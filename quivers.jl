@@ -415,7 +415,10 @@ Returns the codimension of the HN stratum of Q with dimension vector d and HN ty
 function codimension_of_harder_narasimhan_stratum(Q::Quiver, stratum::Vector{Vector{Int64}})
     return -sum(euler_form(Q, stratum[i],stratum[j]) for i in 1:length(stratum)-1 for j in i+1:length(stratum))
 end
+
+
 """
+Checks wether the dimension vector d is amply stable with respect to the slope function theta/denominator. This means that the codimension of the unstable locus in the parameter space is at least 2.
 """
 function is_amply_stable(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
     # We say that representations of a given dimension vector d are amply stable (for any notion of stability) if the codimension of the semistable locus is at least 2.
@@ -425,9 +428,26 @@ function is_amply_stable(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; deno
 end
 
 
+function all_weight_bounds(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
 
+    #This is only relevant on the unstable locus
+    HN = filter(hntype -> hntype != [d], all_harder_narasimhan_types(Q, d, theta, denominator=denominator))
 
+    return map(hntype -> -sum((slope(hntype[s],theta,denominator=denominator) - slope(hntype[t],theta,denominator=denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ), HN)
 
+end
+    
+function does_rigidity_inequality_hold(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
+    #This is only relevant on the unstable locus
+    HN = filter(hntype -> hntype != [d], all_harder_narasimhan_types(Q, d, theta, denominator=denominator))
+
+    # We compute the weights of the 1-PS lambda on det(N_{S/R}|_Z) for each HN type
+    weights = map(hntype -> -sum((slope(hntype[s],theta,denominator=denominator) - slope(hntype[t],theta,denominator=denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ), HN)
+    # the maximum weight of the tensors of the universal bundles U_i^\vee \otimes U_j is slope of first term in the HN type - slope of the last term in the HN type
+    tensorWeights = map(hntype -> slope(first(hntype),theta,denominator=denominator) - slope(last(hntype),theta,denominator=denominator), HN)
+
+    return all(weights[i] > tensorWeights[i] for i in 1:length(HN))
+end
 
 
 
