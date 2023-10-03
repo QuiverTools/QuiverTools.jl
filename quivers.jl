@@ -396,9 +396,9 @@ function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{In
 
         allHNtypes = []
         for e in subdimensions
-            for fstar in filter(fstar -> slope(e,theta, denominator=denominator) > slope(fstar[1],theta, denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator))
-                push!(allHNtypes, [e, fstar...])
-            end
+            append!(allHNtypes, map(effestar -> [e,effestar...], filter(fstar -> slope(e,theta, denominator=denominator) > slope(fstar[1],theta, denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator))))
+#                push!(allHNtypes, [e, fstar...])
+
         end
         
         # Possibly add d again, at the beginning, because it is smallest with respect to the partial order from Def. 3.6
