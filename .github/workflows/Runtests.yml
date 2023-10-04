@@ -18,5 +18,5 @@ jobs:
       - name: Build Package
         uses: julia-actions/julia-buildpkg@latest
       - name: Run tests
-        uses: julia-actions/julia-runtests@latest
+        uses: julia-actions/julia-runtest@latest
       # uses: julia-actions/julia-runtest@latest
