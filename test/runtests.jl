@@ -1,7 +1,4 @@
-# this script should be ran in the terminal with the command "julia test.jl"
-
-using LinearAlgebra, Test
-include("Quivers.jl")
+using Test, QuiverTools
 
 @testset "All tests" begin
 
