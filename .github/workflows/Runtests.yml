@@ -1,0 +1,20 @@
+name: Runtests
+on: 
+    push:
+        branches: [ main ]
+        paths:
+          - "**.jl"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout QuiverTools-julia
+        uses: actions/checkout@v2
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@latest
+        # For now this is not a package. Maybe it will be in the future.
+    #   - name: Build Package
+    #     uses: julia-actions/julia-buildpkg@latest
+      - name: Run tests
+        run: julia test/runtests.jl  
+      # uses: julia-actions/julia-runtest@latest
