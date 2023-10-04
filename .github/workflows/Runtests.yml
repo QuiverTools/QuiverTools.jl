@@ -1,9 +1,11 @@
 name: Runtests
 on: 
-    push:
-        branches: [ main ]
-        paths:
-          - "**.jl"
+  push:
+    branches: [ main ]
+    paths:
+      - "**.jl"
+  pull_request:
+  workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
