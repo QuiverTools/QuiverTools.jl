@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout QuiverTools-julia
-        uses: actions/checkout@latest
+        uses: actions/checkout@v4.1.0
       - name: Setup Julia
         uses: julia-actions/setup-julia@latest
       - name: Build package
