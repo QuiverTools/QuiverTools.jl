@@ -10,8 +10,8 @@ using LinearAlgebra
 A quiver is represented by its adjacency matrix (a_ij) in M_{n x n}(N) where Q_0 = {1,...,n} and a_{ij} is the number of arrows i --> j.
 
 Variables:
-adjacency::Matrix{Int64} is the adjacency matrix of the quiver
-name = None
+`adjacency::Matrix{Int64}` is the adjacency matrix of the quiver
+`name = None`
 """
 mutable struct Quiver
     adjacency::Matrix{Int64}
@@ -444,12 +444,19 @@ function does_rigidity_inequality_hold(Q::Quiver, d::Vector{Int64}, theta::Vecto
     #This is only relevant on the unstable locus
     HN = filter(hntype -> hntype != [d], all_harder_narasimhan_types(Q, d, theta, denominator=denominator))
 
-    # We compute the weights of the 1-PS lambda on det(N_{S/R}|_Z) for each HN type
-    weights = map(hntype -> -sum((slope(hntype[s],theta,denominator=denominator) - slope(hntype[t],theta,denominator=denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ), HN)
-    # the maximum weight of the tensors of the universal bundles U_i^\vee \otimes U_j is slope of first term in the HN type - slope of the last term in the HN type
-    tensorWeights = map(hntype -> slope(first(hntype),theta,denominator=denominator) - slope(last(hntype),theta,denominator=denominator), HN)
+    # The following code is here, commented out, for readability. It is equivalent to the one-liner below.
 
-    return all(weights[i] > tensorWeights[i] for i in 1:length(HN))
+    # # We compute the weights of the 1-PS lambda on det(N_{S/R}|_Z) for each HN type
+    # weights = map(hntype -> -sum((slope(hntype[s],theta,denominator=denominator) - slope(hntype[t],theta,denominator=denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ), HN)
+    
+    # # the maximum weight of the tensors of the universal bundles U_i^\vee \otimes U_j is slope of first term in the HN type - slope of the last term in the HN type
+    # tensorWeights = map(hntype -> slope(first(hntype),theta,denominator=denominator) - slope(last(hntype),theta,denominator=denominator), HN)
+
+    # return all(weights[i] >= tensorWeights[i] for i in 1:length(HN))
+
+
+    return all( hntype -> sum((slope(hntype[t],theta,denominator=denominator) - slope(hntype[s],theta,denominator=denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ) > slope(first(hntype), theta, denominator=denominator) - slope(last(hntype), theta, denominator=denominator), HN)
+
 end
 
 
