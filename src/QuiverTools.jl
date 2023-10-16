@@ -581,4 +581,54 @@ ZeroVector(n::Int64) = Vector{Int64}(zeros(Int64, n))
 
 all_subdimension_vectors(d::Vector{Int64}) = collect(collect.(Iterators.product((0:di for di in d)...)))
 
+"""
+This is a method for studying various properties of the moduli problem (Q,d,theta). It saves the results on a text file, or prints them without saving.
+This method exists to avoid hardcoding multiple scripts that do the same thing, but with different parameters, or slighty different things each time.
+"""
+function CaseStudy(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum, returning=false)
+
+    # Here there should be several boolean variables as input that determine what to return. For now, I will just return everything.
+    @info "Running CaseStudy for $(Q.adjacency_matrix) with dimension vector $d and stability parameter $theta."
+
+    candidates_strong_AS = filter(e -> e != ZeroVector(number_of_vertices(Q)) && e != d && slope(e,theta) >= slope(d-e,theta),all_subdimension_vectors(d))
+    strong_Ample_Stability = all(e -> euler_form(Q,e,d-e) <= -2, candidates_strong_AS)
+
+
+    if strong_Ample_Stability
+        @info "Strong ample stability holds. Ample stability and rigidity also hold."
+    elseif !strong_Ample_Stability
+        failed_element_strong_AS = findfirst(e -> euler_form(Q,e,d-e) > -2, candidates_strong_AS)
+        @info "Strong ample stability failed for element: $failed_element_strong_AS."
+    
+        HN = all_harder_narasimhan_types(Q, d, theta, denominator=denominator)
+        ample_stability = all(stratum -> codimension_of_harder_narasimhan_stratum(Q, stratum) >= 2, filter(hntype -> hntype != [d], HN))
+
+        rigidity = all(stratum -> sum((slope(stratum[t],theta,denominator=denominator) - slope(stratum[s],theta,denominator=denominator))*euler_form(Q, stratum[s],stratum[t]) for s in 1:length(stratum)-1 for t in s+1:length(stratum) ) > slope(first(stratum), theta, denominator=denominator) - slope(last(stratum), theta, denominator=denominator), filter(hntype -> hntype != [d], HN))
+        
+        if !ample_stability
+           failed_element_ample_stability = findfirst(stratum -> codimension_of_harder_narasimhan_stratum(Q, stratum) < 2, filter(hntype -> hntype != [d], HN))
+              @info "Ample stability failed for element: $failed_element_ample_stability."
+        else 
+            @info "Ample stability holds."
+        end
+
+        if !rigidity
+            failed_element_rigidity = findfirst(stratum -> sum((slope(stratum[t],theta,denominator=denominator) - slope(stratum[s],theta,denominator=denominator))*euler_form(Q, stratum[s],stratum[t]) for s in 1:length(stratum)-1 for t in s+1:length(stratum) ) <= slope(first(stratum), theta, denominator=denominator) - slope(last(stratum), theta, denominator=denominator), filter(hntype -> hntype != [d], HN))
+            @info "Rigidity failed for element: $failed_element_rigidity."
+        else
+            @info "Rigidity holds."
+        end
+
+    end
+
+    if returning
+        if !strong_Ample_Stability
+            return strong_Ample_Stability, ample_stability, rigidity, HN
+        else
+            return strong_Ample_Stability, ample_stability, rigidity
+        end
+    end
+end
+
+
 end
