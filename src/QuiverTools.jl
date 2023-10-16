@@ -1,7 +1,7 @@
 # This code is a translation of the Sage code in quivers.py. It is not necessarily meant to be published, but rather to help with high-performance hypothesis testing and profiling.
 
 module QuiverTools
-export Quiver, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, ThreeVertexQuiver, all_slope_decreasing_sequences, has_semistable_representation, all_harder_narasimhan_types, all_weight_bounds, does_rigidity_inequality_hold, is_luna_type, all_luna_types, semistable_equals_stable, slope, all_subdimension_vectors, all_forbidden_subdimension_vectors, is_coprime_for_stability_parameter, is_indivisible, is_acyclic, is_connected, indegree, outdegree, is_source, is_sink, euler_matrix, euler_form, opposite_quiver, double_quiver, canonical_decomposition, canonical_stability_parameter, is_harder_narasimhan_type, codimension_of_harder_narasimhan_stratum, is_amply_stable, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, thin_dimension_vectors, all_generic_subdimension_vectors, generic_ext_vanishing, is_generic_subdimension_vector, number_of_arrows, number_of_vertices, underlying_graph, ZeroVector
+export Quiver, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, ThreeVertexQuiver, all_slope_decreasing_sequences, has_semistable_representation, all_harder_narasimhan_types, all_weight_bounds, does_rigidity_inequality_hold, is_luna_type, all_luna_types, semistable_equals_stable, slope, all_subdimension_vectors, all_forbidden_subdimension_vectors, is_coprime_for_stability_parameter, is_indivisible, is_acyclic, is_connected, indegree, outdegree, is_source, is_sink, euler_matrix, euler_form, opposite_quiver, double_quiver, canonical_decomposition, canonical_stability_parameter, is_harder_narasimhan_type, codimension_of_harder_narasimhan_stratum, is_amply_stable, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, thin_dimension_vectors, all_generic_subdimension_vectors, generic_ext_vanishing, is_generic_subdimension_vector, number_of_arrows, number_of_vertices, underlying_graph, ZeroVector, DynkinQuiver
 
 using LinearAlgebra
 
@@ -510,7 +510,10 @@ KroneckerQuiver() = GeneralizedKroneckerQuiver(2)
 
 ThreeVertexQuiver(m12::Int64, m13::Int64, m23::Int64) = Quiver([0 m12 m13; 0 0 m23; 0 0 0], "An acyclic 3-vertex quiver")
 
-LoopQuiver(m::Int64) = Quiver([m], string(m)*"-loop quiver")
+function LoopQuiver(m::Int64)
+    @warn "Assess behaviour of 1x1 matrices in Julia. Add tests!"
+    return Quiver(Matrix{Int64}(reshape([m],1,1)), string(m)*"-loop quiver")
+end
 
 function SubspaceQuiver(m::Int64)
     A = zeros(Int64, m+1, m+1)
@@ -520,7 +523,56 @@ function SubspaceQuiver(m::Int64)
     return Quiver(A, string(m)*"-subspace quiver")
 end
 
-DynkinQuiver(T::String) = throw(ArgumentError("not implemented"))
+function DynkinQuiver(Tn::String)
+    #parse the string Tn
+    T = Tn[1:end-1]
+    n = parse(Int, Tn[end])
+    return DynkinQuiver(T,n)
+end
+
+function DynkinQuiver(T::String,n::Int64)
+
+    if T == "A"
+        if !(n >= 1)
+            throw(ArgumentError("$n is out of bounds"))
+        end
+        if n == 1
+#            return Quiver([[1]], "Dynkin quiver of type A1")
+            return LoopQuiver(1)
+        else
+            M = zeros(Int64, n, n)
+            for i in 1:n-1
+                M[i, i+1] = 1
+            end
+            return Quiver(M, "Dynkin quiver of type A$n")
+        end
+    elseif T == "D"
+        if !(n >= 3)
+            throw(ArgumentError("$n is out of bounds."))
+        end
+        M = zeros(Int64, n, n)
+        for i in 1:n-2
+            M[i, i+1] = 1
+        end
+        M[n-2, n] = 1
+
+        return Quiver(M, "Dynkin quiver of type D$n")
+    elseif T == "E"
+        if !(n in [6,7,8])
+            throw(ArgumentError("$n is out of bounds."))
+        end
+        if n == 6
+            return Quiver([0 1 0 0 0 0 0; 0 0 1 0 0 0 0; 0 0 0 1 1 0 0; 0 0 0 0 0 0 0; 0 0 0 0 0 1 0; 0 0 0 0 0 0 1; 0 0 0 0 0 0 0], "Dynkin quiver of type E6")
+        elseif n == 7
+            return Quiver([0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 1 0 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 1; 0 0 0 0 0 0 0 0], "Dynkin quiver of type E7")
+        elseif n == 8
+            return Quiver([0 1 0 0 0 0 0 0 0; 0 0 1 0 0 0 0 0 0; 0 0 0 1 1 0 0 0 0; 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 1 0 0 0; 0 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 0 1; 0 0 0 0 0 0 0 0 0], "Dynkin quiver of type E8")
+        end
+    else
+        throw(ArgumentError("not implemented"))
+    end
+end
+
 ExtendedDynkinQuiver(T::String) = throw(ArgumentError("not implemented"))
 CyclicQuiver(n::Int64) = throw(ArgumentError("not implemented"))
 BipartiteQuiver(m::Int64, n::Int64) = throw(ArgumentError("not implemented"))
