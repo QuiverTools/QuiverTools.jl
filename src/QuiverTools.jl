@@ -588,7 +588,19 @@ This method exists to avoid hardcoding multiple scripts that do the same thing, 
 function CaseStudy(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum, returning=false)
 
     # Here there should be several boolean variables as input that determine what to return. For now, I will just return everything.
-    @info "Running CaseStudy for $(Q.adjacency_matrix) with dimension vector $d and stability parameter $theta."
+    @info "Running CaseStudy for $(adjacency_matrix(Q)) with dimension vector $d and stability parameter $theta."
+
+    if is_coprime_for_stability_parameter(d, theta)
+         @info "The dimension vector $d and stability parameter $theta are coprime."
+    else 
+        @info "The dimension vector $d and stability parameter $theta are not coprime."
+    end
+
+    if has_semistable_representation(Q, d, theta, denominator=denominator)
+        @info "The dimension vector $d admits a semistable representation with respect to the stability parameter $theta."
+    else
+        @info "The dimension vector $d does not admit a semistable representation with respect to the stability parameter $theta."
+    end
 
     candidates_strong_AS = filter(e -> e != ZeroVector(number_of_vertices(Q)) && e != d && slope(e,theta) >= slope(d-e,theta),all_subdimension_vectors(d))
     strong_Ample_Stability = all(e -> euler_form(Q,e,d-e) <= -2, candidates_strong_AS)
@@ -598,10 +610,12 @@ function CaseStudy(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominato
         @info "Strong ample stability holds. Ample stability and rigidity also hold."
     elseif !strong_Ample_Stability
         failed_element_strong_AS = findfirst(e -> euler_form(Q,e,d-e) > -2, candidates_strong_AS)
-        @info "Strong ample stability failed for element: $failed_element_strong_AS."
+        @info "Strong ample stability failed for e = $(candidates_strong_AS[failed_element_strong_AS]): slope(e,theta) = $(slope(candidates_strong_AS[failed_element_strong_AS],theta)), slope(d-e,theta) = $(slope(d-candidates_strong_AS[failed_element_strong_AS],theta)), euler_form(Q,e,d-e) = $(euler_form(Q,candidates_strong_AS[failed_element_strong_AS],d-candidates_strong_AS[failed_element_strong_AS]))."
     
         HN = all_harder_narasimhan_types(Q, d, theta, denominator=denominator)
+        @info "There are $(length(HN)) Harder--Narasimhan types: $HN."
         ample_stability = all(stratum -> codimension_of_harder_narasimhan_stratum(Q, stratum) >= 2, filter(hntype -> hntype != [d], HN))
+        @info "The lowest codimension is $(minimum(map(stratum -> codimension_of_harder_narasimhan_stratum(Q, stratum), filter(hntype -> hntype != [d], HN)))), and the stratum that gives it is $(argmin(stratum -> codimension_of_harder_narasimhan_stratum(Q,stratum), filter(hntype -> hntype != [d], HN)))."
 
         rigidity = all(stratum -> sum((slope(stratum[t],theta,denominator=denominator) - slope(stratum[s],theta,denominator=denominator))*euler_form(Q, stratum[s],stratum[t]) for s in 1:length(stratum)-1 for t in s+1:length(stratum) ) > slope(first(stratum), theta, denominator=denominator) - slope(last(stratum), theta, denominator=denominator), filter(hntype -> hntype != [d], HN))
         
@@ -614,7 +628,7 @@ function CaseStudy(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominato
 
         if !rigidity
             failed_element_rigidity = findfirst(stratum -> sum((slope(stratum[t],theta,denominator=denominator) - slope(stratum[s],theta,denominator=denominator))*euler_form(Q, stratum[s],stratum[t]) for s in 1:length(stratum)-1 for t in s+1:length(stratum) ) <= slope(first(stratum), theta, denominator=denominator) - slope(last(stratum), theta, denominator=denominator), filter(hntype -> hntype != [d], HN))
-            @info "Rigidity failed for element: $failed_element_rigidity."
+            @info "Rigidity failed for HN type $(filter(hntype -> hntype != [d], HN)[failed_element_rigidity]): slope(first(stratum), theta, denominator=denominator) = $(slope(first(filter(hntype -> hntype != [d], HN)[failed_element_rigidity]), theta, denominator=denominator)), slope(last(stratum), theta, denominator=denominator) = $(slope(last(filter(hntype -> hntype != [d], HN)[failed_element_rigidity]), theta, denominator=denominator)), sum((slope(stratum[t],theta,denominator=denominator) - slope(stratum[s],theta,denominator=denominator))*euler_form(Q, stratum[s],stratum[t]) for s in 1:length(stratum)-1 for t in s+1:length(stratum) ) = $(sum((slope(filter(hntype -> hntype != [d], HN)[failed_element_rigidity][t],theta,denominator=denominator) - slope(filter(hntype -> hntype != [d], HN)[failed_element_rigidity][s],theta,denominator=denominator))*euler_form(Q, filter(hntype -> hntype != [d], HN)[failed_element_rigidity][s],filter(hntype -> hntype != [d], HN)[failed_element_rigidity][t]) for s in 1:length(filter(hntype -> hntype != [d], HN)[failed_element_rigidity])-1 for t in s+1:length(filter(hntype -> hntype != [d], HN)[failed_element_rigidity]) ))."
         else
             @info "Rigidity holds."
         end
