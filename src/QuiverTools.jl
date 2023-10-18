@@ -413,7 +413,7 @@ function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{In
 end
 
 """
-Returns the codimension of the HN stratum of Q with dimension vector d and HN type dstar, with respect to the slope function theta/denominator.
+Returns the codimension of the given HN stratum.
 """
 function codimension_of_harder_narasimhan_stratum(Q::Quiver, stratum::Vector{Vector{Int64}})
     return -sum(euler_form(Q, stratum[i],stratum[j]) for i in 1:length(stratum)-1 for j in i+1:length(stratum))
@@ -483,7 +483,7 @@ function semistable_equals_stable(Q::Quiver, d::Vector{Int64}, theta::Vector{Int
     throw(ArgumentError("not implemented"))
 end
 
-slope(d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum) = (length(d) == length(theta) && denominator(d)>0) ? (theta'*d)/denominator(d) : throw(DomainError("dimension vector and stability parameter must have same length"))
+slope(d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum) = (length(d) == length(theta) && denominator(d)>0) ? (theta'*d)//denominator(d) : throw(DomainError("dimension vector and stability parameter must have same length"))
 
 
 function all_forbidden_subdimension_vectors(d::Vector{Int64}, theta::Vector{Int64})
