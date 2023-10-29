@@ -466,6 +466,30 @@ function does_rigidity_inequality_hold(Q::Quiver, d::Vector{Int64}, theta::Vecto
 
 end
 
+function Picard_rank(Q,d;theta=canonical_stability_parameter(Q,d))
+    # MR4352662 gives the following easy computation. What to do for others?
+    #TODO This should really be a method for a QuiverModuliSpace object. Translate the rest of the code?
+    if theta == canonical_stability_parameter(Q,d) && is_coprime_for_stability_parameter(d,theta) && is_amply_stable(Q,d,theta)
+        return number_of_vertices(Q) - 1
+    else
+       Throw(NotImplementedError("Not implemented for this stability parameter."))
+    end
+end
+
+
+function does_Mukai_inequality_hold(Q::Quiver, d::Vector{Int64}; theta::Vector{Int64} = canonical_stability_parameter(Q,d))
+
+    # the first condition should really verify that theta is in the canonical chamber, but that is not implemented yet.
+    # TODO: implement the canonical chamber check
+    if theta == canonical_stability_parameter(Q,d) && is_coprime_for_stability_parameter(d, theta) && is_amply_stable(Q, d, theta)
+        PicardRank = number_of_vertices(Q) - 1
+        Index = gcd(theta)
+        return 1 - euler_form(Q,d,d) >= PicardRank*(Index - 1)
+
+    else
+        Throw(NotImplementedError("Not implemented for this stability parameter."))
+    end
+end
 
 
 function is_luna_type(Q::Quiver, tau::Vector{Tuple{Vector{Int64},Int64}}, theta::Vector{Int64})
