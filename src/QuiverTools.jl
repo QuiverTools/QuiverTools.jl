@@ -368,7 +368,7 @@ end
 Checks wether dstar is a Harder--Narasimhan type of Q, with dimension vector d, with respect to the slope function theta/denominator
 """
 function is_harder_narasimhan_type(Q::Quiver, dstar::Vector{Vector{Int64}}, theta::Vector{Int64}; denominator::Function = sum)
-    @warn "This method is not relevant: it does not guarantee that the tuple of dimension vectors is a Harder--Narasimhan type for a given representation."
+    @warn "This method is not relevant: it does not guarantee that the tuple of dimension vectors is a Harder--Narasimhan type for some representation."
     if length(dstar) == 1
         return has_semistable_representation(Q, dstar[1], theta)
     else
@@ -418,6 +418,12 @@ Returns the codimension of the given HN stratum.
 function codimension_of_harder_narasimhan_stratum(Q::Quiver, stratum::Vector{Vector{Int64}})
     return -sum(euler_form(Q, stratum[i],stratum[j]) for i in 1:length(stratum)-1 for j in i+1:length(stratum))
 end
+
+"""
+Checks wether the stability parameter theta is on a wall with respect to the wall-and-chamber decomposition for the dimension vector d.
+The wall and chamber decomposition is described in Section 2.2, MR4352662
+"""
+is_on_a_wall(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}) = any(e -> sum(e .* theta) == 0,all_proper_subdimension_vectors(d))
 
 
 """
@@ -485,6 +491,21 @@ end
 
 slope(d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum) = (length(d) == length(theta) && denominator(d)>0) ? (theta'*d)//denominator(d) : throw(DomainError("dimension vector and stability parameter must have same length"))
 
+function in_fundamental_domain(Q::Quiver, d::Vector{Int64}; strict=false)
+    # https://arxiv.org/abs/2209.14791 uses a strict inequality, while https://arxiv.org/abs/2310.15927 uses a non-strict?
+    # here we set it to non-strict by default because.
+
+    # there has to be a way to do this better
+    simples = [ZeroVector(number_of_vertices(Q)) for i in ZeroVector(number_of_vertices(Q))]
+    for i in 1:number_of_vertices(Q)
+        simples[i][i] = 1
+    end
+    if strict
+        return all(euler_form(Q, d, simple) + euler_form(Q, simple, d) < 0 for simple in simples)
+    else
+        return all(euler_form(Q, d, simple) + euler_form(Q, simple, d) <= 0 for simple in simples)
+    end
+end
 
 function all_forbidden_subdimension_vectors(d::Vector{Int64}, theta::Vector{Int64})
     zeroVector = Vector{Int64}(zeros(Int64, length(d)))
@@ -579,7 +600,13 @@ BipartiteQuiver(m::Int64, n::Int64) = throw(ArgumentError("not implemented"))
 
 ZeroVector(n::Int64) = Vector{Int64}(zeros(Int64, n))
 
+# subdimension vectors
+
 all_subdimension_vectors(d::Vector{Int64}) = collect(collect.(Iterators.product((0:di for di in d)...)))
+all_nonzero_subdimension_vectors(d::Vector{Int64}) = filter(e -> e != ZeroVector(length(d)), all_subdimension_vectors(d))
+all_proper_subdimension_vectors(d::Vector{Int64}) = filter(e -> e != ZeroVector(length(d)) && e != d, all_subdimension_vectors(d))
+
+
 
 """
 This is a method for studying various properties of the moduli problem (Q,d,theta). It saves the results on a text file, or prints them without saving.
