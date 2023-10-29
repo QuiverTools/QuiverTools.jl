@@ -423,8 +423,9 @@ end
 Checks wether the stability parameter theta is on a wall with respect to the wall-and-chamber decomposition for the dimension vector d.
 The wall and chamber decomposition is described in Section 2.2, MR4352662
 """
-is_on_a_wall(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}) = any(e -> sum(e .* theta) == 0,all_proper_subdimension_vectors(d))
-
+function is_on_a_wall(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}) 
+    return any(e -> sum(e .* theta) == 0,all_proper_subdimension_vectors(d))
+end
 
 """
 Checks wether the dimension vector d is amply stable with respect to the slope function theta/denominator. This means that the codimension of the unstable locus in the parameter space is at least 2.
@@ -527,9 +528,13 @@ function GeneralizedKroneckerQuiver(m::Int64)
     return Quiver([0 m; 0 0], string(m)*"-Kronecker quiver")
 end
 
-KroneckerQuiver() = GeneralizedKroneckerQuiver(2)
+function KroneckerQuiver()
+    return GeneralizedKroneckerQuiver(2)
+end
 
-ThreeVertexQuiver(m12::Int64, m13::Int64, m23::Int64) = Quiver([0 m12 m13; 0 0 m23; 0 0 0], "An acyclic 3-vertex quiver")
+function ThreeVertexQuiver(m12::Int64, m13::Int64, m23::Int64)
+    return Quiver([0 m12 m13; 0 0 m23; 0 0 0], "An acyclic 3-vertex quiver")
+end
 
 function LoopQuiver(m::Int64)
     @warn "Assess behaviour of 1x1 matrices in Julia. Add tests!"
@@ -598,13 +603,22 @@ ExtendedDynkinQuiver(T::String) = throw(ArgumentError("not implemented"))
 CyclicQuiver(n::Int64) = throw(ArgumentError("not implemented"))
 BipartiteQuiver(m::Int64, n::Int64) = throw(ArgumentError("not implemented"))
 
-ZeroVector(n::Int64) = Vector{Int64}(zeros(Int64, n))
+function ZeroVector(n::Int64)
+    return Vector{Int64}(zeros(Int64, n))
+end
 
 # subdimension vectors
+function all_subdimension_vectors(d::Vector{Int64})
+    return collect(collect.(Iterators.product((0:di for di in d)...)))
+end
 
-all_subdimension_vectors(d::Vector{Int64}) = collect(collect.(Iterators.product((0:di for di in d)...)))
-all_nonzero_subdimension_vectors(d::Vector{Int64}) = filter(e -> e != ZeroVector(length(d)), all_subdimension_vectors(d))
-all_proper_subdimension_vectors(d::Vector{Int64}) = filter(e -> e != ZeroVector(length(d)) && e != d, all_subdimension_vectors(d))
+function all_nonzero_subdimension_vectors(d::Vector{Int64})
+    return filter(e -> e != ZeroVector(length(d)), all_subdimension_vectors(d))
+end
+
+function all_proper_subdimension_vectors(d::Vector{Int64})
+    return filter(e -> e != ZeroVector(length(d)) && e != d, all_subdimension_vectors(d))
+end
 
 
 
