@@ -424,7 +424,7 @@ Checks wether the stability parameter theta is on a wall with respect to the wal
 The wall and chamber decomposition is described in Section 2.2, MR4352662
 """
 function is_on_a_wall(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}) 
-    return any(e -> sum(e .* theta) == 0,all_proper_subdimension_vectors(d))
+    return any(e -> e'*theta == 0,all_proper_subdimension_vectors(d))
 end
 
 """
@@ -516,7 +516,7 @@ end
 
 slope(d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum) = (length(d) == length(theta) && denominator(d)>0) ? (theta'*d)//denominator(d) : throw(DomainError("dimension vector and stability parameter must have same length"))
 
-function in_fundamental_domain(Q::Quiver, d::Vector{Int64}; strict=false)
+function in_fundamental_domain(Q::Quiver, d::Vector{Int64}; interior=false)
     # https://arxiv.org/abs/2209.14791 uses a strict inequality, while https://arxiv.org/abs/2310.15927 uses a non-strict?
     # here we set it to non-strict by default because.
 
@@ -525,7 +525,7 @@ function in_fundamental_domain(Q::Quiver, d::Vector{Int64}; strict=false)
     for i in 1:number_of_vertices(Q)
         simples[i][i] = 1
     end
-    if strict
+    if interior
         return all(euler_form(Q, d, simple) + euler_form(Q, simple, d) < 0 for simple in simples)
     else
         return all(euler_form(Q, d, simple) + euler_form(Q, simple, d) <= 0 for simple in simples)
@@ -541,7 +541,7 @@ end
 function is_coprime_for_stability_parameter(d::Vector{Int64}, theta::Vector{Int64})
     zeroVector = Vector{Int64}(zeros(Int64, length(d)))
     properSubdimensions = filter(e -> e != d && e != zeroVector, all_subdimension_vectors(d))
-    return all(e -> sum(theta .*e) != 0, properSubdimensions)
+    return all(e -> theta'*e != 0, properSubdimensions)
 end
 
 function is_indivisible(d::Vector{Int64})
