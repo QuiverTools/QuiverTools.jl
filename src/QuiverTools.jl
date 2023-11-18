@@ -1,9 +1,9 @@
 # This code is a translation of the Sage code in quivers.py. It is not necessarily meant to be published, but rather to help with high-performance hypothesis testing and profiling.
 
 module QuiverTools
-export Quiver, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, ThreeVertexQuiver, all_slope_decreasing_sequences, has_semistable_representation, all_harder_narasimhan_types, all_weight_bounds, does_teleman_inequality_hold, is_luna_type, all_luna_types, semistable_equals_stable, slope, all_subdimension_vectors, all_forbidden_subdimension_vectors, is_coprime_for_stability_parameter, is_indivisible, is_acyclic, is_connected, indegree, outdegree, is_source, is_sink, euler_matrix, euler_form, opposite_quiver, double_quiver, canonical_decomposition, canonical_stability_parameter, is_harder_narasimhan_type, codimension_of_harder_narasimhan_stratum, is_amply_stable, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, thin_dimension_vectors, all_generic_subdimension_vectors, generic_ext_vanishing, is_generic_subdimension_vector, number_of_arrows, number_of_vertices, underlying_graph, ZeroVector, DynkinQuiver
+export Quiver, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, ThreeVertexQuiver, all_slope_decreasing_sequences, has_semistable_representation, all_harder_narasimhan_types, all_weight_bounds, does_teleman_inequality_hold, is_luna_type, all_luna_types, semistable_equals_stable, slope, all_subdimension_vectors, all_forbidden_subdimension_vectors, is_coprime_for_stability_parameter, is_indivisible, is_acyclic, is_connected, indegree, outdegree, is_source, is_sink, euler_matrix, euler_form, opposite_quiver, double_quiver, canonical_decomposition, canonical_stability_parameter, is_harder_narasimhan_type, codimension_of_harder_narasimhan_stratum, is_amply_stable, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, thin_dimension_vectors, all_generic_subdimension_vectors, generic_ext_vanishing, is_generic_subdimension_vector, number_of_arrows, number_of_vertices, underlying_graph, ZeroVector, DynkinQuiver,CaseStudy, extension_matrix
 
-using LinearAlgebra
+using LinearAlgebra, Memoize
 
 
 """
@@ -341,11 +341,11 @@ function is_generic_subdimension_vector(Q::Quiver, e::Vector{Int64}, d::Vector{I
     if e == d
         return true
     else
-    # considering subdimension vectors that violate the numerical condition
-    subdimensions = filter(eprime -> euler_form(Q,eprime, d-e) < 0, all_subdimension_vectors(e))
-    # none of the subdimension vectors violating the condition should be generic
-    return !any(eprime -> is_generic_subdimension_vector(Q,eprime,e), subdimensions)
-end
+        # considering subdimension vectors that violate the numerical condition
+        subdimensions = filter(eprime -> euler_form(Q,eprime, d-e) < 0, all_subdimension_vectors(e))
+        # none of the subdimension vectors violating the condition should be generic
+        return !any(eprime -> is_generic_subdimension_vector(Q,eprime,e), subdimensions)
+    end
 end
 all_generic_subdimension_vectors(Q::Quiver, d::Vector{Int64}) = filter(e -> is_generic_subdimension_vector(Q, e, d), all_subdimension_vectors(d))
 
@@ -384,7 +384,7 @@ end
 """
 Returns a list of all the Harder Narasimhan types of representations of Q with dimension vector d, with respect to the slope function theta/denominator.
 """
-function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum)
+function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum,ordered=true)
 
     if d == ZeroVector(number_of_vertices(Q))
         return [[ZeroVector(number_of_vertices(Q))]]
@@ -393,8 +393,11 @@ function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{In
         # We consider just those subdimension vectors which are not zero, whose slope is bigger than the slope of d and which admit a semi-stable representation
         # Note that we also eliminate d by the following
         subdimensions = filter(e -> (e != ZeroVector(number_of_vertices(Q))) && (slope(e, theta, denominator=denominator) > slope(d,theta,denominator=denominator)) && has_semistable_representation(Q, e, theta, denominator=denominator, algorithm="schofield"), all_subdimension_vectors(d))
+       
+       if ordered
         # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
         subdimensions = sort(subdimensions, by = e -> slope(e,theta,denominator=denominator))
+       end
         # The HN types which are not of the form (d) are given by (e,f^1,...,f^s) where e is a proper subdimension vector such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
 
         allHNtypes = []
@@ -469,6 +472,7 @@ end
 function Picard_rank(Q,d;theta=canonical_stability_parameter(Q,d))
     # MR4352662 gives the following easy computation. What to do for others?
     #TODO This should really be a method for a QuiverModuliSpace object. Translate the rest of the code?
+    @info "Do this as in the hodge diamond cutter."
     if theta == canonical_stability_parameter(Q,d) && is_coprime_for_stability_parameter(d,theta) && is_amply_stable(Q,d,theta)
         return number_of_vertices(Q) - 1
     else
@@ -477,19 +481,43 @@ function Picard_rank(Q,d;theta=canonical_stability_parameter(Q,d))
 end
 
 
-function does_Mukai_inequality_hold(Q::Quiver, d::Vector{Int64}; theta::Vector{Int64} = canonical_stability_parameter(Q,d))
-
+function does_Mukai_inequality_hold(Q::Quiver, d::Vector{Int64}; theta::Vector{Int64} = canonical_stability_parameter(Q,d), safe=false)
     # the first condition should really verify that theta is in the canonical chamber, but that is not implemented yet.
     # TODO: implement the canonical chamber check
-    if theta == canonical_stability_parameter(Q,d) && is_coprime_for_stability_parameter(d, theta) && is_amply_stable(Q, d, theta)
+    if safe
+        run = theta == canonical_stability_parameter(Q,d) && is_coprime_for_stability_parameter(d, theta) && is_amply_stable(Q, d, theta)
+    else
+        run = true
+    end
+    if run
         PicardRank = number_of_vertices(Q) - 1
         Index = gcd(theta)
         return 1 - euler_form(Q,d,d) >= PicardRank*(Index - 1)
-
     else
         Throw(NotImplementedError("Not implemented for this stability parameter."))
     end
 end
+
+
+"""
+Given an HN type the quiver Q, returns the upper triangular matrix whose ij entry is ext(d^1,d^j) where (d^1,...,d^l) is the HN type.
+The sum of all the entries is the codimension of the HN stratum; the sum of all the rectangles starting on the "up-diagonal" (where the 1s go in a Jordan form) and going all the way is at least 1.
+Teleman is satisfied for this stratum iif one of these rectangles sums to 2 or more.
+"""
+function extension_matrix(Q::Quiver, hntype::Vector{Vector{Int64}})
+    n = length(hntype)
+
+    if n <= 1
+        throw(ArgumentError("HN type must have length at least 2, this makes no sense for the dense stratum"))
+    else
+        M = zeros(Int64, n, n)
+        for i in 1:n-1, j in i+1:n
+            M[i,j] = -euler_form(Q, hntype[i], hntype[j])
+        end
+        return M
+    end
+end
+
 
 
 function is_luna_type(Q::Quiver, tau::Vector{Tuple{Vector{Int64},Int64}}, theta::Vector{Int64})
@@ -532,10 +560,10 @@ function in_fundamental_domain(Q::Quiver, d::Vector{Int64}; interior=false)
     end
 end
 
-function all_forbidden_subdimension_vectors(d::Vector{Int64}, theta::Vector{Int64})
+function all_forbidden_subdimension_vectors(d::Vector{Int64}, theta::Vector{Int64};denominator::Function = sum)
     zeroVector = Vector{Int64}(zeros(Int64, length(d)))
     properSubdimensions = filter(e -> e != d && e != zeroVector, all_subdimension_vectors(d))
-    return filter(e -> slope(e, theta) > slope(d, theta), properSubdimensions)
+    return filter(e -> slope(e, theta,denominator=denominator) > slope(d, theta,denominator=denominator), properSubdimensions)
 end
 
 function is_coprime_for_stability_parameter(d::Vector{Int64}, theta::Vector{Int64})
