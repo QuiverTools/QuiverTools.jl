@@ -248,7 +248,7 @@ julia> all_slope_decreasing_sequences(Q, d, theta)
 function all_slope_decreasing_sequences(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
 
     # List all subdimension vectors e of bigger slope than d.
-    subdimensions = filter(e -> (e != ZeroVector(number_of_vertices(Q))) && (slope(e,theta,denominator=denominator) > slope(d,theta,denominator=denominator)), all_subdimension_vectors(d))
+    subdimensions = filter(e -> slope(e,theta,denominator=denominator) > slope(d,theta,denominator=denominator), all_nonzero_subdimension_vectors(d))
 
     # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
     subdimensions = sort(subdimensions, by = e -> slope(e,theta,denominator=denominator))
@@ -306,7 +306,7 @@ function has_semistable_representation(Q::Quiver, d::Vector{Int64}, theta::Vecto
 
     elseif algorithm == "schofield"
         # collect the list of all subdimension vectors e of bigger slope than d
-        subdimensionsBiggerSlope = filter(e -> e != ZeroVector(number_of_vertices(Q)) && e != d && slope(e, theta, denominator=denominator) > slope(d, theta, denominator=denominator), all_subdimension_vectors(d))
+        subdimensionsBiggerSlope = filter(e -> slope(e, theta, denominator=denominator) > slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
         # to have semistable representations, none of the vectors above must be generic subdimension vectors.
         return !any(e -> is_generic_subdimension_vector(Q, e, d), subdimensionsBiggerSlope)
     else
@@ -322,7 +322,7 @@ function has_stable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{In
         if d == ZeroVector(number_of_vertices(Q))
             return false
         else
-            subdimensionsSlopeNoLess = filter(e -> e != zeroVector && e != d && slope(e, theta, denominator=denominator) >= slope(d, theta, denominator=denominator), all_subdimension_vectors(d))
+            subdimensionsSlopeNoLess = filter(slope(e, theta, denominator=denominator) >= slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
             return !any(e -> is_generic_subdimension_vector(Q, e, d), subdimensionsSlopeNoLess)
         end
     else
@@ -342,7 +342,7 @@ function is_generic_subdimension_vector(Q::Quiver, e::Vector{Int64}, d::Vector{I
         return true
     else
         # considering subdimension vectors that violate the numerical condition
-        subdimensions = filter(eprime -> euler_form(Q,eprime, d-e) < 0, all_subdimension_vectors(e))
+        subdimensions = filter(eprime -> euler_form(Q,eprime, d-e) < 0, all_nonzero_subdimension_vectors(e))
         # none of the subdimension vectors violating the condition should be generic
         return !any(eprime -> is_generic_subdimension_vector(Q,eprime,e), subdimensions)
     end
@@ -387,12 +387,12 @@ Returns a list of all the Harder Narasimhan types of representations of Q with d
 function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum,ordered=true)
 
     if d == ZeroVector(number_of_vertices(Q))
-        return [[ZeroVector(number_of_vertices(Q))]]
+        return [[d]]
     else
 
         # We consider just those subdimension vectors which are not zero, whose slope is bigger than the slope of d and which admit a semi-stable representation
         # Note that we also eliminate d by the following
-        subdimensions = filter(e -> (e != ZeroVector(number_of_vertices(Q))) && (slope(e, theta, denominator=denominator) > slope(d,theta,denominator=denominator)) && has_semistable_representation(Q, e, theta, denominator=denominator, algorithm="schofield"), all_subdimension_vectors(d))
+        subdimensions = filter(e -> (slope(e, theta, denominator=denominator) > slope(d,theta,denominator=denominator)) && has_semistable_representation(Q, e, theta, denominator=denominator, algorithm="schofield"), all_proper_subdimension_vectors(d))
        
        if ordered
         # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
@@ -561,15 +561,11 @@ function in_fundamental_domain(Q::Quiver, d::Vector{Int64}; interior=false)
 end
 
 function all_forbidden_subdimension_vectors(d::Vector{Int64}, theta::Vector{Int64};denominator::Function = sum)
-    zeroVector = Vector{Int64}(zeros(Int64, length(d)))
-    properSubdimensions = filter(e -> e != d && e != zeroVector, all_subdimension_vectors(d))
-    return filter(e -> slope(e, theta,denominator=denominator) > slope(d, theta,denominator=denominator), properSubdimensions)
+    return filter(e -> slope(e, theta,denominator=denominator) > slope(d, theta,denominator=denominator), all_proper_subdimension_vectors(d))
 end
 
 function is_coprime_for_stability_parameter(d::Vector{Int64}, theta::Vector{Int64})
-    zeroVector = Vector{Int64}(zeros(Int64, length(d)))
-    properSubdimensions = filter(e -> e != d && e != zeroVector, all_subdimension_vectors(d))
-    return all(e -> theta'*e != 0, properSubdimensions)
+    return all(e -> theta'*e != 0, all_proper_subdimension_vectors(d))
 end
 
 function is_indivisible(d::Vector{Int64})
