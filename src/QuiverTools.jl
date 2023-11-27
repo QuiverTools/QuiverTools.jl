@@ -196,12 +196,18 @@ is_sink(Q::Quiver, j::Int64) = (1 <= j & j<= number_of_vertices(Q)) ? outdegree(
 """
 Returns the Euler matrix of the quiver.
 """
-euler_matrix(Q::Quiver) = Matrix{Int64}(I, number_of_vertices(Q), number_of_vertices(Q)) - adjacency_matrix(Q)
+@memoize euler_matrix(Q::Quiver) = Matrix{Int64}(I, number_of_vertices(Q), number_of_vertices(Q)) - adjacency_matrix(Q)
 
 """
 Returns the value of the Euler bilinear form of the quiver computed on the vectors x and y.
 """
 euler_form(Q::Quiver, x::Vector{Int64}, y::Vector{Int64}) = (length(x) == number_of_vertices(Q) & length(y) == number_of_vertices(Q)) ? x'*euler_matrix(Q)*y : throw(DomainError("dimension vectors must have length equal to number of vertices"))
+# euler_form(Q::Quiver, x::Vector{Int64}, y::Vector{Int64}) = x'*euler_matrix(Q)*y
+
+euler_form_first(Q::Quiver, y::Vector{Int64}) = x -> x'*euler_matrix(Q)*y
+
+euler_form_second(Q::Quiver, x::Vector{Int64}) = y -> x'*euler_matrix(Q)*y
+
 
 """
 The opposite quiver is given by the transpose of the adjacency matrix of the original quiver.
@@ -342,7 +348,9 @@ function is_generic_subdimension_vector(Q::Quiver, e::Vector{Int64}, d::Vector{I
         return true
     else
         # considering subdimension vectors that violate the numerical condition
-        subdimensions = filter(eprime -> euler_form(Q,eprime, d-e) < 0, all_nonzero_subdimension_vectors(e))
+        # TODO this filtering is inefficent. For fixed d-e, this is a LINEAR form, we KNOW which eprimes violate the condition. We should just check those.
+        euler_matrix_temp = euler_matrix(Q) * (d-e) #to speed up computation of <eprime,d-e>
+        subdimensions = filter(eprime -> eprime'*euler_matrix_temp < 0, all_nonzero_subdimension_vectors(e))
         # none of the subdimension vectors violating the condition should be generic
         return !any(eprime -> is_generic_subdimension_vector(Q,eprime,e), subdimensions)
     end
@@ -368,9 +376,9 @@ end
 Checks wether dstar is a Harder--Narasimhan type of Q, with dimension vector d, with respect to the slope function theta/denominator
 """
 function is_harder_narasimhan_type(Q::Quiver, dstar::Vector{Vector{Int64}}, theta::Vector{Int64}; denominator::Function = sum)
-    @warn "This method is not relevant: it does not guarantee that the tuple of dimension vectors is a Harder--Narasimhan type for some representation."
+    # @warn "This method is not relevant: it does not guarantee that the tuple of dimension vectors is a Harder--Narasimhan type for some representation."
     if length(dstar) == 1
-        return has_semistable_representation(Q, dstar[1], theta)
+        return has_semistable_representation(Q, dstar[1], theta,denominator=denominator)
     else
         for i in 1:length(dstar)-1
             if slope(dstar[i],theta, denominator=denominator) <= slope(dstar[i+1],theta, denominator=denominator)
@@ -385,6 +393,7 @@ end
 Returns a list of all the Harder Narasimhan types of representations of Q with dimension vector d, with respect to the slope function theta/denominator.
 """
 function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum,ordered=true)
+# @memoize function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum,ordered=true)
 
     if d == ZeroVector(number_of_vertices(Q))
         return [[d]]
@@ -392,19 +401,18 @@ function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{In
 
         # We consider just those subdimension vectors which are not zero, whose slope is bigger than the slope of d and which admit a semi-stable representation
         # Note that we also eliminate d by the following
-        subdimensions = filter(e -> (slope(e, theta, denominator=denominator) > slope(d,theta,denominator=denominator)) && has_semistable_representation(Q, e, theta, denominator=denominator, algorithm="schofield"), all_proper_subdimension_vectors(d))
-       
+        subdimensions = filter(e -> has_semistable_representation(Q, e, theta, denominator=denominator, algorithm="schofield"), all_forbidden_subdimension_vectors(d,theta,denominator=denominator)) 
+        
+
        if ordered
         # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
         subdimensions = sort(subdimensions, by = e -> slope(e,theta,denominator=denominator))
        end
         # The HN types which are not of the form (d) are given by (e,f^1,...,f^s) where e is a proper subdimension vector such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
 
-        allHNtypes = []
+        allHNtypes = Vector{Vector{Int64}}[]
         for e in subdimensions
             append!(allHNtypes, map(effestar -> [e,effestar...], filter(fstar -> slope(e,theta, denominator=denominator) > slope(fstar[1],theta, denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator))))
-#                push!(allHNtypes, [e, fstar...])
-
         end
         
         # Possibly add d again, at the beginning, because it is smallest with respect to the partial order from Def. 3.6
@@ -651,7 +659,7 @@ ExtendedDynkinQuiver(T::String) = throw(ArgumentError("not implemented"))
 CyclicQuiver(n::Int64) = throw(ArgumentError("not implemented"))
 BipartiteQuiver(m::Int64, n::Int64) = throw(ArgumentError("not implemented"))
 
-function ZeroVector(n::Int64)
+@memoize function ZeroVector(n::Int64)
     return Vector{Int64}(zeros(Int64, n))
 end
 
