@@ -410,9 +410,23 @@ function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{In
        end
         # The HN types which are not of the form (d) are given by (e,f^1,...,f^s) where e is a proper subdimension vector such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
 
+        # allHNtypes = Vector{Vector{Int64}}[]
+        # for e in subdimensions
+        #     slop = slope(e,theta,denominator=denominator)
+        #     fstars = filter(fstar -> slope(fstar[1],theta,denominator=denominator) < slop, all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator))
+        #     for fstar in fstars
+        #             push!(allHNtypes, [e,fstar...])
+        #         end
+        #     end
+        
+        
+        # allHNtypes =  [[e,effestar...] for e in subdimensions for effestar in filter(fstar -> slope(e,theta, denominator=denominator) > slope(fstar[1],theta, 
+        # denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator)) ]
+
+        
         allHNtypes = Vector{Vector{Int64}}[]
         for e in subdimensions
-            append!(allHNtypes, map(effestar -> [e,effestar...], filter(fstar -> slope(e,theta, denominator=denominator) > slope(fstar[1],theta, denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator))))
+            append!(allHNtypes, map(effestar -> [e,effestar...], filter(fstar -> slope(e,theta,denominator=denominator) > slope(fstar[1],theta, denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator))))
         end
         
         # Possibly add d again, at the beginning, because it is smallest with respect to the partial order from Def. 3.6
@@ -669,11 +683,11 @@ function all_subdimension_vectors(d::Vector{Int64})
 end
 
 function all_nonzero_subdimension_vectors(d::Vector{Int64})
-    return filter(e -> e != ZeroVector(length(d)), all_subdimension_vectors(d))
+    return filter(e -> any(ei -> ei != 0, e), all_subdimension_vectors(d))
 end
 
 function all_proper_subdimension_vectors(d::Vector{Int64})
-    return filter(e -> e != ZeroVector(length(d)) && e != d, all_subdimension_vectors(d))
+    return filter(e -> any(ei -> ei != 0, e) && e != d, all_subdimension_vectors(d))
 end
 
 
