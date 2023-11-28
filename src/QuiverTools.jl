@@ -306,15 +306,15 @@ julia> d = [1,4]
 julia> has_semistable_representation(K3, d, theta)
 false
 """
-function has_semistable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function =  sum, algorithm::String = "schofield") 
-    if algorithm == "reineke"
-        throw(ArgumentError("reineke algorithm not implemented"))
-
-    elseif algorithm == "schofield"
+function has_semistable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function =  sum, algorithm::String = "schofield")
+    
+    if algorithm == "schofield"
         # collect the list of all subdimension vectors e of bigger slope than d
         subdimensionsBiggerSlope = filter(e -> slope(e, theta, denominator=denominator) > slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
         # to have semistable representations, none of the vectors above must be generic subdimension vectors.
-        return !any(e -> is_generic_subdimension_vector(Q, e, d), subdimensionsBiggerSlope)
+        return all(e -> !is_generic_subdimension_vector(Q, e, d), subdimensionsBiggerSlope)
+    elseif algorithm == "reineke"
+        throw(ArgumentError("reineke algorithm not implemented"))
     else
         throw(ArgumentError("algorithm not recognized"))
     end
@@ -346,6 +346,8 @@ is_schur_root(Q::Quiver, d::Vector{Int64}) = has_stable_representation(Q, d, can
 function is_generic_subdimension_vector(Q::Quiver, e::Vector{Int64}, d::Vector{Int64})
     if e == d
         return true
+    elseif all(ei==0 for ei in e)
+        return false
     else
         # considering subdimension vectors that violate the numerical condition
         # TODO this filtering is inefficent. For fixed d-e, this is a LINEAR form, we KNOW which eprimes violate the condition. We should just check those.
@@ -395,7 +397,8 @@ Returns a list of all the Harder Narasimhan types of representations of Q with d
 function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum,ordered=true)
 # @memoize function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum,ordered=true)
 
-    if d == ZeroVector(number_of_vertices(Q))
+    if all(di == 0 for di in d)
+    # if d == ZeroVector(number_of_vertices(Q))
         return [[d]]
     else
 
@@ -410,16 +413,6 @@ function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{In
        end
         # The HN types which are not of the form (d) are given by (e,f^1,...,f^s) where e is a proper subdimension vector such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
 
-        # allHNtypes = Vector{Vector{Int64}}[]
-        # for e in subdimensions
-        #     slop = slope(e,theta,denominator=denominator)
-        #     fstars = filter(fstar -> slope(fstar[1],theta,denominator=denominator) < slop, all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator))
-        #     for fstar in fstars
-        #             push!(allHNtypes, [e,fstar...])
-        #         end
-        #     end
-        
-        
         # allHNtypes =  [[e,effestar...] for e in subdimensions for effestar in filter(fstar -> slope(e,theta, denominator=denominator) > slope(fstar[1],theta, 
         # denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator)) ]
 
@@ -679,15 +672,15 @@ end
 
 # subdimension vectors
 function all_subdimension_vectors(d::Vector{Int64})
-    return collect(collect.(Iterators.product((0:di for di in d)...)))
+    return collect.(Iterators.product(map(di -> 0:di, d)...))
 end
 
-function all_nonzero_subdimension_vectors(d::Vector{Int64})
-    return filter(e -> any(ei -> ei != 0, e), all_subdimension_vectors(d))
+function all_nonzero_subdimension_vectors(d::Vector{Int64})::Vector{Vector{Int64}}
+    return filter(e -> any(ei!= 0 for ei in e), all_subdimension_vectors(d))
 end
 
-function all_proper_subdimension_vectors(d::Vector{Int64})
-    return filter(e -> any(ei -> ei != 0, e) && e != d, all_subdimension_vectors(d))
+function all_proper_subdimension_vectors(d::Vector{Int64})::Vector{Vector{Int64}}
+    return filter(e -> any(ei != 0 for ei in e) && e != d, all_subdimension_vectors(d))
 end
 
 
