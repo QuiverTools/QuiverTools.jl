@@ -1,9 +1,9 @@
 # This code is a translation of the Sage code in quivers.py. It is not necessarily meant to be published, but rather to help with high-performance hypothesis testing and profiling.
 
 module QuiverTools
-export Quiver, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, ThreeVertexQuiver, all_slope_decreasing_sequences, has_semistable_representation, all_harder_narasimhan_types, all_weight_bounds, does_teleman_inequality_hold, is_luna_type, all_luna_types, semistable_equals_stable, slope, all_subdimension_vectors, all_forbidden_subdimension_vectors, is_coprime_for_stability_parameter, is_indivisible, is_acyclic, is_connected, indegree, outdegree, is_source, is_sink, euler_matrix, euler_form, opposite_quiver, double_quiver, canonical_decomposition, canonical_stability_parameter, is_harder_narasimhan_type, codimension_of_harder_narasimhan_stratum, is_amply_stable, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, thin_dimension_vectors, all_generic_subdimension_vectors, generic_ext_vanishing, is_generic_subdimension_vector, number_of_arrows, number_of_vertices, underlying_graph, ZeroVector, DynkinQuiver,CaseStudy, extension_matrix
+export Quiver, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, ThreeVertexQuiver, all_slope_decreasing_sequences, has_semistable_representation, all_harder_narasimhan_types, all_weight_bounds, does_teleman_inequality_hold, is_luna_type, all_luna_types, semistable_equals_stable, slope, all_subdimension_vectors, all_forbidden_subdimension_vectors, is_coprime_for_stability_parameter, is_indivisible, is_acyclic, is_connected, indegree, outdegree, is_source, is_sink, euler_matrix, euler_form, opposite_quiver, double_quiver, canonical_decomposition, canonical_stability_parameter, is_harder_narasimhan_type, codimension_of_harder_narasimhan_stratum, is_amply_stable, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, thin_dimension_vectors, all_generic_subdimension_vectors, generic_ext_vanishing, is_generic_subdimension_vector, number_of_arrows, number_of_vertices, underlying_graph, ZeroVector, DynkinQuiver,CaseStudy, extension_matrix, HodgeDiamond
 
-using LinearAlgebra, Memoize
+using LinearAlgebra, Nemo, Memoize
 
 
 """
@@ -557,7 +557,7 @@ function semistable_equals_stable(Q::Quiver, d::Vector{Int64}, theta::Vector{Int
     throw(ArgumentError("not implemented"))
 end
 
-slope(d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum) = (length(d) == length(theta) && denominator(d)>0) ? (theta'*d)//denominator(d) : throw(DomainError("dimension vector and stability parameter must have same length"))
+slope(d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum) = (length(d) == length(theta) && denominator(d)>0) ? (theta'*d)//denominator(d) : throw(DomainError("different length entries or zero denominator"))
 
 function in_fundamental_domain(Q::Quiver, d::Vector{Int64}; interior=false)
     # https://arxiv.org/abs/2209.14791 uses a strict inequality, while https://arxiv.org/abs/2310.15927 uses a non-strict?
@@ -586,6 +586,129 @@ end
 function is_indivisible(d::Vector{Int64})
     return gcd(d) == 1
 end
+
+# Below lie methods to compute Hodge diamonds translated from the Hodge diamond cutter.
+
+"""
+Solve Ax=b for A upper triangular via back substitution
+"""
+function solve(A,b)
+    #TODO type
+    n = length(b)
+    x = Vector{Any}(zeros(n))
+
+    x[n] = b[n] / A[n,n]
+
+    for i in n-1:-1:1
+        x[i] = (b[i] - sum(A[i,j]*x[j] for j in i+1:n)) / A[i,i]
+    end
+    return x
+end
+
+"""
+Cardinality of general linear group \$\\mathrm{GL}_n(\\mathbb{F}_v)
+"""
+@memoize function CardinalGl(n::Int64,q)
+    #TODO type
+    if n == 0
+        return 1
+    else
+        return prod(q^n - q^i for i in 0:n-1)
+    end
+end
+
+"""
+Cardinality of representation space \$\\mathrm{R}(Q,d)\$, over \$\\mathbb{F}_q\$.
+"""
+function CardinalRd(Q::Quiver, d::Vector{Int64},q)
+    #TODO type
+    return q^sum(d[i] * d[j] * adjacency_matrix(Q)[i,j] for i in 1:number_of_vertices(Q), j in 1:number_of_vertices(Q))
+end
+
+"""
+Cardinality of product of general linear groups \$\\mathrm{GL}_{d}(\\mathbb{F}_q)\$.
+"""
+@memoize function CardinalGd(d::Vector{Int64},q)
+    #TODO type
+    return prod(CardinalGl(di,q) for di in d)
+end
+
+"""Entry of the transfer matrix, as per Corollary 6.9"""
+function TransferMatrixEntry(Q, e, f, q)
+    #TODO type
+    fe = f - e
+
+    if all(fei >= 0 for fei in fe)
+        return q^euler_form(Q,-fe,e) * CardinalRd(Q, fe,q) / CardinalGd(fe,q)
+    else
+        return 0
+    end
+end
+
+function TdChangeThisName(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64},q)
+
+    # indexing set for the transfer matrix
+    I = filter(e -> slope(e, theta) > slope(d, theta), all_proper_subdimension_vectors(d))
+    append!(I, [d])
+    pushfirst!(I, ZeroVector(number_of_vertices(Q)))
+
+    # TODO this should just be a placeholder for the matrix
+    T = Matrix{Any}(zeros(length(I),length(I)))
+
+    for (i, Ii) in enumerate(I)
+        for j in i:length(I)  # upper triangular
+            T[i, j] = TransferMatrixEntry(Q, Ii, I[j],q)
+        end
+    end
+
+    return T
+end
+"""Returns the Hodge polynomial of the moduli space of theta-semistable representations of Q with dimension vector d. 
+"""
+function hodge_polynomial(Q::Quiver,d::Vector{Int64},theta::Vector{Int64})
+
+    # safety checks
+    if !is_coprime_for_stability_parameter(d,theta)
+        throw(ArgumentError("d and theta are not coprime"))
+    elseif !is_acyclic(Q)
+        throw(ArgumentError("Q is not acyclic"))
+    end
+
+    R,q = polynomial_ring(Nemo.QQ,'q')
+    F = fraction_field(R)
+    v = F(q) # worsens performance by ~8%. Necessary?
+
+    T = TdChangeThisName(Q,d,theta,v)
+
+    # there HAS to be a better way to do this
+    one_at_the_end = [0 for i in 1:size(T)[1]]
+    one_at_the_end[end] = 1
+
+    result = numerator(solve(T, one_at_the_end)[1] * (1-v))
+    S,(x, y) = PolynomialRing(Nemo.QQ, ["x", "y"])
+    return result(x*y)
+    # return [coeff(result,i) for i in 0:degree(result)] # this is actually all we need for the Hodge diamond because the matrix is diagonal for quiver moduli
+end
+
+function hodge_diamond_from_polynomial(g)
+    #TODO can be bypassed by knowing that this matrix is diagonal. Do this before high performance computations!
+    result = Matrix{Any}(zeros(degree(g,1)+1,degree(g,2)+1))
+    for i in 1:degree(g,1)+1
+        for j in 1:degree(g,2)+1
+            result[i,j] = coeff(g,[i-1,j-1])
+        end
+    end
+    return result
+end
+
+"""
+Returns the Hodge diamond of the moduli space of theta-semistable representations of Q with dimension vector d.
+"""
+function HodgeDiamond(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64})
+    return hodge_diamond_from_polynomial(hodge_polynomial(Q,d,theta))
+end
+
+
 
 function GeneralizedKroneckerQuiver(m::Int64)
     return Quiver([0 m; 0 0], string(m)*"-Kronecker quiver")
