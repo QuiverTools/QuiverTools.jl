@@ -484,11 +484,13 @@ function does_teleman_inequality_hold(Q::Quiver, d::Vector{Int64}, theta::Vector
 
 end
 
-function Picard_rank(Q,d;theta=canonical_stability_parameter(Q,d))
+function _fano_paper_picard_rank(Q::Quiver,d::Vector{Int64})
     # MR4352662 gives the following easy computation. What to do for others?
     #TODO This should really be a method for a QuiverModuliSpace object. Translate the rest of the code?
     @info "Do this as in the hodge diamond cutter."
-    if theta == canonical_stability_parameter(Q,d) && is_coprime_for_stability_parameter(d,theta) && is_amply_stable(Q,d,theta)
+    
+    theta=canonical_stability_parameter(Q,d)
+    if is_coprime_for_stability_parameter(d,theta) && is_amply_stable(Q,d,theta)
         return number_of_vertices(Q) - 1
     else
        Throw(NotImplementedError("Not implemented for this stability parameter."))
@@ -692,10 +694,11 @@ end
 
 function hodge_diamond_from_polynomial(g)
     #TODO can be bypassed by knowing that this matrix is diagonal. Do this before high performance computations!
-    result = Matrix{Any}(zeros(degree(g,1)+1,degree(g,2)+1))
+    result = zeros(degree(g,1)+1,degree(g,2)+1)
     for i in 1:degree(g,1)+1
         for j in 1:degree(g,2)+1
-            result[i,j] = coeff(g,[i-1,j-1])
+            # .num is to extract the Int64 
+            result[i,j] = coeff(g,[i-1,j-1]).num
         end
     end
     return result
@@ -708,6 +711,49 @@ function HodgeDiamond(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64})
     return hodge_diamond_from_polynomial(hodge_polynomial(Q,d,theta))
 end
 
+"""
+Picard rank of the moduli space of theta-semistable representations of Q with dimension vector d.
+"""
+function PicardRank(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64})
+    # TODO If over the complex numbers this should be h^{1,1}, since the moduli space is rational.
+    # TODO This should follow from the long exact sequence in cohomology given by the exponential short exact sequence.
+
+    # safety checks
+    if !is_coprime_for_stability_parameter(d,theta)
+        throw(ArgumentError("d and theta are not coprime"))
+    elseif !is_acyclic(Q)
+        throw(ArgumentError("Q is not acyclic"))
+    end
+
+    # find Hodge polynomial as in th diamond cutter
+    R,q = polynomial_ring(Nemo.QQ,'q')
+    F = fraction_field(R)
+    v = F(q) # worsens performance by ~8%. Necessary?
+    
+    T = TdChangeThisName(Q,d,theta,v)
+    
+    # there HAS to be a better way to do this
+    one_at_the_end = [0 for i in 1:size(T)[1]]
+    one_at_the_end[end] = 1
+
+    # extract coefficent of Hodge polynomial of degree 1 in v (= h^{1,1})
+    return coeff(numerator(solve(T, one_at_the_end)[1] * (1-v)),1).num
+end
+
+function _picard_rank_fast(Q::Quiver,d::Vector{Int64},theta::Vector{Int64})
+    # internal, comes with no safety checks.
+    R,q = polynomial_ring(Nemo.QQ,'q')
+    F = fraction_field(R)
+    v = F(q) # worsens performance by ~8%. Necessary?
+
+    T = TdChangeThisName(Q,d,theta,v)
+
+    # there HAS to be a better way to do this
+    one_at_the_end = [0 for i in 1:size(T)[1]]
+    one_at_the_end[end] = 1
+
+    return coeff(numerator(solve(T, one_at_the_end)[1] * (1-v)),1).num
+end
 
 
 function GeneralizedKroneckerQuiver(m::Int64)
