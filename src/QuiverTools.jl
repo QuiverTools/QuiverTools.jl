@@ -419,7 +419,7 @@ function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{In
         
         allHNtypes = Vector{Vector{Int64}}[]
         for e in subdimensions
-            append!(allHNtypes, map(effestar -> [e,effestar...], filter(fstar -> slope(e,theta,denominator=denominator) > slope(fstar[1],theta, denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator))))
+            append!(allHNtypes, map(effestar -> pushfirst!(effestar,e), filter(fstar -> slope(e,theta,denominator=denominator) > slope(fstar[1],theta, denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator))))
         end
         
         # Possibly add d again, at the beginning, because it is smallest with respect to the partial order from Def. 3.6
@@ -434,7 +434,11 @@ end
 Returns the codimension of the given HN stratum.
 """
 function codimension_of_harder_narasimhan_stratum(Q::Quiver, stratum::Vector{Vector{Int64}})
-    return -sum(euler_form(Q, stratum[i],stratum[j]) for i in 1:length(stratum)-1 for j in i+1:length(stratum))
+    if length(stratum) == 1
+        return 0
+    else
+        return -sum(euler_form(Q, stratum[i],stratum[j]) for i in 1:length(stratum)-1 for j in i+1:length(stratum))
+    end
 end
 
 """
@@ -566,15 +570,17 @@ function in_fundamental_domain(Q::Quiver, d::Vector{Int64}; interior=false)
     # here we set it to non-strict by default because.
 
     # there has to be a way to do this better
-    simples = [ZeroVector(number_of_vertices(Q)) for i in ZeroVector(number_of_vertices(Q))]
+    simples = [zeros(Int64,number_of_vertices(Q)) for i in 1:number_of_vertices(Q)]
+
     for i in 1:number_of_vertices(Q)
         simples[i][i] = 1
     end
     if interior
-        return all(euler_form(Q, d, simple) + euler_form(Q, simple, d) < 0 for simple in simples)
-    else
-        return all(euler_form(Q, d, simple) + euler_form(Q, simple, d) <= 0 for simple in simples)
+        return all(simple -> euler_form(Q, d, simple) + euler_form(Q, simple, d) < 0, simples)
+    elseif !interior
+        return all(simple -> euler_form(Q, d, simple) + euler_form(Q, simple, d) <= 0, simples)
     end
+    throw(ArgumentError("interior must be true or false"))
 end
 
 function all_forbidden_subdimension_vectors(d::Vector{Int64}, theta::Vector{Int64};denominator::Function = sum)
