@@ -325,10 +325,10 @@ function has_stable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{In
     if algorithm == "al"
         throw(ArgumentError("al algorithm not implemented"))
     elseif algorithm == "schofield"
-        if d == ZeroVector(number_of_vertices(Q))
+        if all(di == 0 for di in d)
             return false
         else
-            subdimensionsSlopeNoLess = filter(slope(e, theta, denominator=denominator) >= slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
+            subdimensionsSlopeNoLess = filter(e -> slope(e, theta, denominator=denominator) >= slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
             return !any(e -> is_generic_subdimension_vector(Q, e, d), subdimensionsSlopeNoLess)
         end
     else
