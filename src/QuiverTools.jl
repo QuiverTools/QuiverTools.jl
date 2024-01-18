@@ -222,7 +222,7 @@ double_quiver(Q::Quiver) = Quiver(adjacency_matrix(Q) + Matrix{Int64}(transpose(
 
 ## Everything that comes before this has been properly translated from the Sage code and should work.
 
-thin_dimension_vectors(Q::Quiver) = [1 or i in 1:number_of_vertices(Q)]
+thin_dimension_vectors(Q::Quiver) = [1 for i in 1:number_of_vertices(Q)]
 
 """
 The canonical stability parameter is given by <d,_> - <_,d>
