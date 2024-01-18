@@ -66,7 +66,7 @@ number_of_arrows(Q::Quiver) = sum(Q.adjacency)
 """
 Returns true if the quiver is acyclic, false otherwise.
 """
-is_acyclic(Q::Quiver) = (Q.adjacency^number_of_vertices(Q) == zeros(Int64, number_of_vertices(Q), number_of_vertices(Q)))
+is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^number_of_vertices(Q))
 
 """
 Returns true if the quiver is connected, false otherwise.
@@ -222,7 +222,7 @@ double_quiver(Q::Quiver) = Quiver(adjacency_matrix(Q) + Matrix{Int64}(transpose(
 
 ## Everything that comes before this has been properly translated from the Sage code and should work.
 
-thin_dimension_vectors(Q::Quiver) = [1 for i in 1:number_of_vertices(Q)]
+thin_dimension_vectors(Q::Quiver) = ones(Int64,number_of_vertices(Q))
 
 """
 The canonical stability parameter is given by <d,_> - <_,d>
@@ -850,7 +850,7 @@ function ThreeVertexQuiver(m12::Int64, m13::Int64, m23::Int64)
 end
 
 function LoopQuiver(m::Int64)
-    @warn "Assess behaviour of 1x1 matrices in Julia. Add tests!"
+    # @warn "Assess behaviour of 1x1 matrices in Julia. Add tests!"
     return Quiver(Matrix{Int64}(reshape([m],1,1)), string(m)*"-loop quiver")
 end
 
