@@ -271,6 +271,41 @@ function all_slope_decreasing_sequences(Q::Quiver, d::Vector{Int64}, theta::Vect
     return [[d], allSlopeDecreasing...]
 end
 
+# the following code serves the computation of the directed graph of generic subdimension vectors. It is only called with the "gianni" algorithm for now.
+
+
+function _indices_for_generic_subdimension_graph(d::Vector{Int64})::Dict{Vector{Int64},Int64}
+    all_subdim_vectors = all_nonzero_subdimension_vectors(d,sorted=true)
+    return Dict{Vector{Int64},Int64}(all_subdim_vectors[i] => i for i in eachindex(all_subdim_vectors))
+end
+
+"""
+Returns the adjacency matrix of the directed graph of generic roots for dimension vectors up to d for the quiver Q.
+"""
+function _generic_subdimension_graph(Q::Quiver, d::Vector{Int64})::Matrix{Bool}
+    # sort by sum to have adjacency matrix upper triangular.
+    all_subdim_vectors = all_nonzero_subdimension_vectors(d,sorted=true)
+
+    adjacency = zeros(Bool,(length(all_subdim_vectors), length(all_subdim_vectors)))
+    # euler matrix here to not call it thousands of times in the loop
+    # euler_matrix = copy(QuiverTools.euler_matrix(Q)) # maybe useful for threading
+    euler_matrix = QuiverTools.euler_matrix(Q)
+
+    for i in eachindex(all_subdim_vectors)
+        #the list of all generic subdimension vectors of the one corresponding to i.
+        generic_subdim_indices = [l for l in 1:i if adjacency[l,i] || l == i]
+
+        for j in i:length(all_subdim_vectors)
+            # this eliminates all cases where i is not componentwise smaller than j
+            if all(all_subdim_vectors[i][k] <= all_subdim_vectors[j][k] for k in eachindex(all_subdim_vectors[i]))
+                # fast euler form
+                euler_matrix_temp = euler_matrix * (all_subdim_vectors[j] - all_subdim_vectors[i])
+                adjacency[i,j] = all(all_subdim_vectors[l]' * euler_matrix_temp >= 0 for l in generic_subdim_indices)
+            end
+        end
+    end
+    return adjacency
+end
 
 """Checks if there is a theta-semistable representation of dimension vector d.
 
@@ -306,33 +341,52 @@ julia> d = [1,4]
 julia> has_semistable_representation(K3, d, theta)
 false
 """
-function has_semistable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function =  sum, algorithm::String = "schofield")
-    
-    if algorithm == "schofield"
-        # collect the list of all subdimension vectors e of bigger slope than d
-        subdimensionsBiggerSlope = filter(e -> slope(e, theta, denominator=denominator) > slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
-        # to have semistable representations, none of the vectors above must be generic subdimension vectors.
-        return all(e -> !is_generic_subdimension_vector(Q, e, d), subdimensionsBiggerSlope)
-    elseif algorithm == "reineke"
-        throw(ArgumentError("reineke algorithm not implemented"))
+@memoize Dict function has_semistable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum, algorithm::String = "schofield")
+    if all(di == 0 for di in d)
+        return true
     else
-        throw(ArgumentError("algorithm not recognized"))
+        if algorithm == "schofield"
+            # collect the list of all subdimension vectors e of bigger slope than d
+            subdimensionsBiggerSlope = filter(e -> slope(e, theta, denominator=denominator) > slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
+            # to have semistable representations, none of the vectors above must be generic subdimension vectors.
+            return all(e -> !is_generic_subdimension_vector(Q, e, d, algorithm="schofield"), subdimensionsBiggerSlope)
+
+        elseif algorithm == "gianni"
+            generic_roots = _generic_subdimension_graph(Q,d)
+            indices_for = _indices_for_generic_subdimension_graph(d)
+
+            # list of subdimension vectors with bigger slope than d
+            subdimensionsBiggerSlope = filter(e -> slope(e, theta, denominator=denominator) > slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
+
+            # none of the subdimension vectors with bigger slope than d should be a generic subdimension.
+            return all(subdim -> !generic_roots[indices_for[subdim], indices_for[d]],subdimensionsBiggerSlope)
+        else
+            throw(ArgumentError("algorithm not recognized"))
+        end
     end
 end
 
 function has_stable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum, algorithm::String = "schofield")
-
-    if algorithm == "al"
-        throw(ArgumentError("al algorithm not implemented"))
-    elseif algorithm == "schofield"
-        if all(di == 0 for di in d)
-            return false
-        else
-            subdimensionsSlopeNoLess = filter(e -> slope(e, theta, denominator=denominator) >= slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
-            return !any(e -> is_generic_subdimension_vector(Q, e, d), subdimensionsSlopeNoLess)
-        end
+    if all(di == 0 for di in d)
+        return true
     else
-        throw(ArgumentError("algorithm not recognized"))
+        if algorithm == "schofield"
+            # collect the list of all subdimension vectors e of bigger slope than d
+            subdimensions_bigger_or_equal_slope = filter(e -> slope(e, theta, denominator=denominator) >= slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
+            # to have semistable representations, none of the vectors above must be generic subdimension vectors.
+            return all(e -> !is_generic_subdimension_vector(Q, e, d, algorithm="schofield"), subdimensions_bigger_or_equal_slope)
+
+        elseif algorithm == "gianni"
+            generic_roots = _generic_subdimension_graph(Q,d)
+            indices_for = _indices_for_generic_subdimension_graph(d)
+            
+            # list of subdimension vectors with bigger slope than d
+            subdimensions_bigger_or_equal_slope = filter(e -> slope(e, theta, denominator=denominator) >= slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
+            # none of the subdimension vectors with bigger slope than d should be a generic subdimension.
+            return all(subdim -> !generic_roots[indices_for[subdim], indices_for[d]],subdimensions_bigger_or_equal_slope)
+        else
+            throw(ArgumentError("algorithm not recognized"))
+        end
     end
 end
 
@@ -342,22 +396,54 @@ is_schur_root(Q::Quiver, d::Vector{Int64}) = has_stable_representation(Q, d, can
 """Checks if e is a generic subdimension vector of d.
         # using notation from Section 5 of https://arxiv.org/pdf/0802.2147.pdf
     A dimension vector e is called a generic subdimension vector of d if a generic representation of dimension vector d possesses a subrepresentation of dimension vector e.
-    By a result of Schofield (see Thm. 5.3 of https://arxiv.org/pdf/0802.2147.pdf) e is a generic subdimension vector of d if and only if <e',d-e> is non-negative for all generic subdimension vectors e' of e."""
-function is_generic_subdimension_vector(Q::Quiver, e::Vector{Int64}, d::Vector{Int64})
+    By a result of Schofield (see Thm. 5.3 of https://arxiv.org/pdf/0802.2147.pdf) e is a generic subdimension vector of d if and only if <e',d-e> is non-negative for all generic subdimension vectors e' of e.
+    Algorithm "gianni" is a more efficient implementation of this algorithm, which uses the directed graph of generic subdimension vectors instead of recursions.
+    """
+@memoize Dict function is_generic_subdimension_vector(Q::Quiver, e::Vector{Int64}, d::Vector{Int64}; algorithm::String = "schofield")
     if e == d
         return true
     elseif all(ei==0 for ei in e)
         return false
     else
+        if algorithm == "schofield"
         # considering subdimension vectors that violate the numerical condition
         # TODO this filtering is inefficent. For fixed d-e, this is a LINEAR form, we KNOW which eprimes violate the condition. We should just check those.
-        euler_matrix_temp = euler_matrix(Q) * (d-e) #to speed up computation of <eprime,d-e>
-        subdimensions = filter(eprime -> eprime'*euler_matrix_temp < 0, all_nonzero_subdimension_vectors(e))
-        # none of the subdimension vectors violating the condition should be generic
-        return !any(eprime -> is_generic_subdimension_vector(Q,eprime,e), subdimensions)
+            euler_matrix_temp = euler_matrix(Q) * (d-e) #to speed up computation of <eprime,d-e>
+            subdimensions = filter(eprime -> eprime'*euler_matrix_temp < 0, all_nonzero_subdimension_vectors(e))
+            # none of the subdimension vectors violating the condition should be generic
+            return !any(eprime -> is_generic_subdimension_vector(Q,eprime,e,algorithm="schofield"), subdimensions)
+
+        elseif algorithm == "gianni"
+            indices = _indices_for_generic_subdimension_graph(d)
+            return _generic_subdimension_graph(Q,d)[indices[e], indices[d]]
+        else
+            throw(ArgumentError("algorithm not recognized"))
+        end            
     end
 end
-all_generic_subdimension_vectors(Q::Quiver, d::Vector{Int64}) = filter(e -> is_generic_subdimension_vector(Q, e, d), all_subdimension_vectors(d))
+
+function all_generic_subdimension_vectors(Q::Quiver, d::Vector{Int64}) 
+    @warn "rewrite this function to use the directed graph of generic subdimension vectors"
+    return filter(e -> is_generic_subdimension_vector(Q, e, d), all_subdimension_vectors(d))
+end
+
+function indices_for_generic_root_tree(d::Vector{Int64})::Dict{Vector{Int64},Int64}
+    all_subdim_vectors = all_nonzero_subdimension_vectors(d,sorted=true)
+    return Dict{Vector{Int64},Int64}(all_subdim_vectors[i] => i for i in eachindex(all_subdim_vectors))
+end
+
+"""Returns the list of all dimension vectors smaller or equal to d that admit semistable representations"""
+function all_semistable_dimension_vectors(Q::Quiver,d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
+    all_subdimensions = all_nonzero_subdimension_vectors(d, sorted=true)
+    # the following line is extremely slow, we compute all cases at once with the generic root tree instead
+    # stable = map(e -> has_semistable_representation(Q,e,theta,denominator=denominator), all_subdimensions)
+    generic_roots = _generic_subdimension_graph(Q,d)
+    index_for = indices_for_generic_root_tree(d)
+    slopes = map(e -> slope(e,theta,denominator=denominator),all_subdimensions)
+
+    # retains all the dimension vectors which only have generic subdimensions with smaller slope
+    return filter(e -> all(slopes[j] <= slopes[index_for[e]] for j in 1:index_for[e] if generic_roots[index_for[e],j]), all_subdimensions)
+end
 
 
 generic_ext_vanishing(Q::Quiver, a::Vector{Int64}, b::Vector{Int64}) = is_generic_subdimension_vector(Q, a, a+b)
@@ -378,7 +464,6 @@ end
 Checks wether dstar is a Harder--Narasimhan type of Q, with dimension vector d, with respect to the slope function theta/denominator
 """
 function is_harder_narasimhan_type(Q::Quiver, dstar::Vector{Vector{Int64}}, theta::Vector{Int64}; denominator::Function = sum)
-    # @warn "This method is not relevant: it does not guarantee that the tuple of dimension vectors is a Harder--Narasimhan type for some representation."
     if length(dstar) == 1
         return has_semistable_representation(Q, dstar[1], theta,denominator=denominator)
     else
@@ -394,8 +479,8 @@ end
 """
 Returns a list of all the Harder Narasimhan types of representations of Q with dimension vector d, with respect to the slope function theta/denominator.
 """
-function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum,ordered=true)
-# @memoize function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum,ordered=true)
+# function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum,ordered=true)
+@memoize Dict function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum, ordered=true)
 
     if all(di == 0 for di in d)
     # if d == ZeroVector(number_of_vertices(Q))
@@ -406,21 +491,22 @@ function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{In
         # Note that we also eliminate d by the following
         subdimensions = filter(e -> has_semistable_representation(Q, e, theta, denominator=denominator, algorithm="schofield"), all_forbidden_subdimension_vectors(d,theta,denominator=denominator)) 
         
-
        if ordered
         # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
         subdimensions = sort(subdimensions, by = e -> slope(e,theta,denominator=denominator))
        end
         # The HN types which are not of the form (d) are given by (e,f^1,...,f^s) where e is a proper subdimension vector such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
 
-        # allHNtypes =  [[e,effestar...] for e in subdimensions for effestar in filter(fstar -> slope(e,theta, denominator=denominator) > slope(fstar[1],theta, 
-        # denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator)) ]
+        allHNtypes =  [[e,effestar...] for e in subdimensions for effestar in filter(fstar -> slope(e,theta, denominator=denominator) > slope(fstar[1],theta, 
+        denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator)) ]
 
-        
-        allHNtypes = Vector{Vector{Int64}}[]
-        for e in subdimensions
-            append!(allHNtypes, map(effestar -> pushfirst!(effestar,e), filter(fstar -> slope(e,theta,denominator=denominator) > slope(fstar[1],theta, denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator))))
-        end
+        # the following code breaks with memoization. ????
+        # allHNtypes = Vector{Vector{Int64}}[]
+
+        # for e in subdimensions
+        #     lower_hn = all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator,ordered=ordered)
+        #     append!(allHNtypes, map(effestar -> pushfirst!(effestar,e), filter(fstar -> slope(e,theta,denominator=denominator) > slope(fstar[1],theta, denominator=denominator) ,lower_hn)))
+        # end
         
         # Possibly add d again, at the beginning, because it is smallest with respect to the partial order from Def. 3.6
         if has_semistable_representation(Q, d, theta, denominator=denominator, algorithm="schofield")
@@ -583,7 +669,7 @@ function in_fundamental_domain(Q::Quiver, d::Vector{Int64}; interior=false)
     throw(ArgumentError("interior must be true or false"))
 end
 
-function all_forbidden_subdimension_vectors(d::Vector{Int64}, theta::Vector{Int64};denominator::Function = sum)
+@memoize Dict function all_forbidden_subdimension_vectors(d::Vector{Int64}, theta::Vector{Int64};denominator::Function = sum)
     return filter(e -> slope(e, theta,denominator=denominator) > slope(d, theta,denominator=denominator), all_proper_subdimension_vectors(d))
 end
 
@@ -845,16 +931,18 @@ BipartiteQuiver(m::Int64, n::Int64) = throw(ArgumentError("not implemented"))
     return Vector{Int64}(zeros(Int64, n))
 end
 
-# subdimension vectors
-function all_subdimension_vectors(d::Vector{Int64})
+# subdimension vectors @memoize Dict 
+@memoize Dict function all_subdimension_vectors(d::Vector{Int64})
     return collect.(Iterators.product(map(di -> 0:di, d)...))
 end
-
-function all_nonzero_subdimension_vectors(d::Vector{Int64})::Vector{Vector{Int64}}
-    return filter(e -> any(ei!= 0 for ei in e), all_subdimension_vectors(d))
+@memoize Dict function all_nonzero_subdimension_vectors(d::Vector{Int64};sorted::Bool=false)::Vector{Vector{Int64}}
+    if sorted
+        return sort(all_nonzero_subdimension_vectors(d), by=e -> sum(e))
+    end
+    return filter(e->!all(ei == 0 for ei in e),collect.(Iterators.product(map(di -> 0:di, d)...)))
 end
 
-function all_proper_subdimension_vectors(d::Vector{Int64})::Vector{Vector{Int64}}
+@memoize Dict function all_proper_subdimension_vectors(d::Vector{Int64})::Vector{Vector{Int64}}
     return filter(e -> any(ei != 0 for ei in e) && e != d, all_subdimension_vectors(d))
 end
 
