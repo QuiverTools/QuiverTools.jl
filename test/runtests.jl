@@ -1,7 +1,5 @@
 using Test, QuiverTools
 
-@testset "All tests" begin
-
 @testset "Testing basic methods" begin
     K = GeneralizedKroneckerQuiver(4)
     
@@ -16,6 +14,16 @@ using Test, QuiverTools
     @test euler_form(K, [1, 1], [1, 1]) == -2
     @test opposite_quiver(K).adjacency == transpose(K.adjacency)
     @test double_quiver(K).adjacency == K.adjacency + transpose(K.adjacency)
+end;
+
+@testset "Testing constructors" begin 
+    
+    @test GeneralizedKroneckerQuiver(3).adjacency == [0 3; 0 0]
+    @test ThreeVertexQuiver(3,4,5).adjacency == [0 3 4; 0 0 5; 0 0 0]
+    @test LoopQuiver(3).adjacency == Matrix{Int64}(reshape([3],1,1))
+    @test SubspaceQuiver(2).adjacency == [0 0 1; 0 0 1;0 0 0]
+    @test thin_dimension_vectors(GeneralizedKroneckerQuiver(3)) == [1, 1]
+
 end;
 
 @testset "Testing all_slope_decreasing_sequences" begin
@@ -101,6 +109,4 @@ end;
 
     @test is_amply_stable(Q, d, [3,-2]) == true
     @test is_amply_stable(Q, d, [-3,2]) == false
-end;
-
 end;
