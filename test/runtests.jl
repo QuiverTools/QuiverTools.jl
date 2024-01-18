@@ -65,12 +65,12 @@ end;
     @test has_semistable_representation(K3, d, theta) == false
 end;
 
-@testset "Testing all_harder_narasimhan_types" begin
+@testset "Testing AllHarderNarasimhanTypes" begin
     Q = GeneralizedKroneckerQuiver(3)
     d = [2,3]
     
     theta = [3,-2]
-    @test all_harder_narasimhan_types(Q, d, theta) == [[[2, 3]],
+    @test AllHarderNarasimhanTypes(Q, d, theta) == [[[2, 3]],
     [[1, 1], [1, 2]],
     [[2, 2], [0, 1]],
     [[2, 1], [0, 2]],
@@ -80,7 +80,7 @@ end;
     [[2, 0], [0, 3]]]
 
     theta = [-3,2]
-    @test all_harder_narasimhan_types(Q, d, theta) == [[[0,3],[2,0]]]
+    @test AllHarderNarasimhanTypes(Q, d, theta) == [[[0,3],[2,0]]]
 
     Q = ThreeVertexQuiver(3,4,5)
     d = [3,5,7]
@@ -91,7 +91,7 @@ end;
         expected = readline(file)
     end
 
-    @test string(all_harder_narasimhan_types(Q,d,theta)) == expected 
+    @test string(AllHarderNarasimhanTypes(Q,d,theta)) == expected 
         
 end;
 
