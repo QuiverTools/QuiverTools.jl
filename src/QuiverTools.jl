@@ -1,7 +1,5 @@
-# This code is a translation of the Sage code in quivers.py. It is not necessarily meant to be published, but rather to help with high-performance hypothesis testing and profiling.
-
 module QuiverTools
-export Quiver, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, ThreeVertexQuiver, all_slope_decreasing_sequences, has_semistable_representation, all_harder_narasimhan_types, all_weight_bounds, does_teleman_inequality_hold, is_luna_type, all_luna_types, semistable_equals_stable, slope, all_subdimension_vectors, all_forbidden_subdimension_vectors, is_coprime_for_stability_parameter, is_indivisible, is_acyclic, is_connected, indegree, outdegree, is_source, is_sink, euler_matrix, euler_form, opposite_quiver, double_quiver, canonical_decomposition, canonical_stability_parameter, is_harder_narasimhan_type, codimension_of_harder_narasimhan_stratum, is_amply_stable, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, thin_dimension_vectors, all_generic_subdimension_vectors, generic_ext_vanishing, is_generic_subdimension_vector, number_of_arrows, number_of_vertices, underlying_graph, ZeroVector, DynkinQuiver,CaseStudy, extension_matrix, HodgeDiamond
+export Quiver, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, ThreeVertexQuiver, all_slope_decreasing_sequences, has_semistable_representation, AllHarderNarasimhanTypes, all_weight_bounds, does_teleman_inequality_hold, is_luna_type, all_luna_types, semistable_equals_stable, slope, all_subdimension_vectors, all_forbidden_subdimension_vectors, is_coprime_for_stability_parameter, is_indivisible, is_acyclic, is_connected, indegree, outdegree, is_source, is_sink, euler_matrix, euler_form, opposite_quiver, double_quiver, canonical_decomposition, canonical_stability_parameter, is_harder_narasimhan_type, codimension_of_harder_narasimhan_stratum, is_amply_stable, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, thin_dimension_vectors, all_generic_subdimension_vectors, generic_ext_vanishing, is_generic_subdimension_vector, number_of_arrows, number_of_vertices, underlying_graph, ZeroVector, DynkinQuiver,CaseStudy, extension_matrix, HodgeDiamond
 
 using LinearAlgebra, Nemo, Memoize
 
@@ -224,7 +222,7 @@ double_quiver(Q::Quiver) = Quiver(adjacency_matrix(Q) + Matrix{Int64}(transpose(
 
 ## Everything that comes before this has been properly translated from the Sage code and should work.
 
-thin_dimension_vectors(Q::Quiver) = [1 for i in 1:number_of_vertices(Q)]
+thin_dimension_vectors(Q::Quiver) = [1 or i in 1:number_of_vertices(Q)]
 
 """
 The canonical stability parameter is given by <d,_> - <_,d>
@@ -251,19 +249,19 @@ julia> all_slope_decreasing_sequences(Q, d, theta)
     [[1, 0], [1, 1], [0, 2]],
     [[2, 0], [0, 3]]]
     """
-function all_slope_decreasing_sequences(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
+function all_slope_decreasing_sequences(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}, denominator::Function = sum)
 
     # List all subdimension vectors e of bigger slope than d.
-    subdimensions = filter(e -> slope(e,theta,denominator=denominator) > slope(d,theta,denominator=denominator), all_nonzero_subdimension_vectors(d))
+    subdimensions = filter(e -> slope(e,theta,denominator) > slope(d,theta,denominator), all_nonzero_subdimension_vectors(d))
 
     # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
-    subdimensions = sort(subdimensions, by = e -> slope(e,theta,denominator=denominator))
+    subdimensions = sort(subdimensions, by = e -> slope(e,theta,denominator))
     # The slope decreasing sequences which are not of the form (d) are given by (e,f^1,...,f^s) where e is a proper subdimension vector such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
 
     # I will rewrite this as functional programming later
     allSlopeDecreasing = []
     for e in subdimensions
-        for fstar in filter(fstar -> slope(e,theta,denominator=denominator) > slope(fstar[1],theta, denominator=denominator), all_slope_decreasing_sequences(Q, d-e, theta, denominator=denominator))
+        for fstar in filter(fstar -> slope(e,theta,denominator) > slope(fstar[1],theta, denominator), all_slope_decreasing_sequences(Q, d-e, theta, denominator))
         push!(allSlopeDecreasing, [e, fstar...])
         end
     end
@@ -341,13 +339,13 @@ julia> d = [1,4]
 julia> has_semistable_representation(K3, d, theta)
 false
 """
-@memoize Dict function has_semistable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum, algorithm::String = "schofield")
+@memoize Dict function has_semistable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}, denominator::Function = sum; algorithm="schofield")
     if all(di == 0 for di in d)
         return true
     else
         if algorithm == "schofield"
             # collect the list of all subdimension vectors e of bigger slope than d
-            subdimensionsBiggerSlope = filter(e -> slope(e, theta, denominator=denominator) > slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
+            subdimensionsBiggerSlope = filter(e -> slope(e, theta, denominator) > slope(d, theta, denominator), all_proper_subdimension_vectors(d))
             # to have semistable representations, none of the vectors above must be generic subdimension vectors.
             return all(e -> !is_generic_subdimension_vector(Q, e, d, algorithm="schofield"), subdimensionsBiggerSlope)
 
@@ -356,7 +354,7 @@ false
             indices_for = _indices_for_generic_subdimension_graph(d)
 
             # list of subdimension vectors with bigger slope than d
-            subdimensionsBiggerSlope = filter(e -> slope(e, theta, denominator=denominator) > slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
+            subdimensionsBiggerSlope = filter(e -> slope(e, theta, denominator) > slope(d, theta, denominator), all_proper_subdimension_vectors(d))
 
             # none of the subdimension vectors with bigger slope than d should be a generic subdimension.
             return all(subdim -> !generic_roots[indices_for[subdim], indices_for[d]],subdimensionsBiggerSlope)
@@ -372,7 +370,7 @@ function has_stable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{In
     else
         if algorithm == "schofield"
             # collect the list of all subdimension vectors e of bigger slope than d
-            subdimensions_bigger_or_equal_slope = filter(e -> slope(e, theta, denominator=denominator) >= slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
+            subdimensions_bigger_or_equal_slope = filter(e -> slope(e, theta, denominator) >= slope(d, theta, denominator), all_proper_subdimension_vectors(d))
             # to have semistable representations, none of the vectors above must be generic subdimension vectors.
             return all(e -> !is_generic_subdimension_vector(Q, e, d, algorithm="schofield"), subdimensions_bigger_or_equal_slope)
 
@@ -381,7 +379,7 @@ function has_stable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{In
             indices_for = _indices_for_generic_subdimension_graph(d)
             
             # list of subdimension vectors with bigger slope than d
-            subdimensions_bigger_or_equal_slope = filter(e -> slope(e, theta, denominator=denominator) >= slope(d, theta, denominator=denominator), all_proper_subdimension_vectors(d))
+            subdimensions_bigger_or_equal_slope = filter(e -> slope(e, theta, denominator) >= slope(d, theta, denominator), all_proper_subdimension_vectors(d))
             # none of the subdimension vectors with bigger slope than d should be a generic subdimension.
             return all(subdim -> !generic_roots[indices_for[subdim], indices_for[d]],subdimensions_bigger_or_equal_slope)
         else
@@ -436,10 +434,10 @@ end
 function all_semistable_dimension_vectors(Q::Quiver,d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
     all_subdimensions = all_nonzero_subdimension_vectors(d, sorted=true)
     # the following line is extremely slow, we compute all cases at once with the generic root tree instead
-    # stable = map(e -> has_semistable_representation(Q,e,theta,denominator=denominator), all_subdimensions)
+    # stable = map(e -> has_semistable_representation(Q,e,theta,denominator), all_subdimensions)
     generic_roots = _generic_subdimension_graph(Q,d)
     index_for = indices_for_generic_root_tree(d)
-    slopes = map(e -> slope(e,theta,denominator=denominator),all_subdimensions)
+    slopes = map(e -> slope(e,theta,denominator),all_subdimensions)
 
     # retains all the dimension vectors which only have generic subdimensions with smaller slope
     return filter(e -> all(slopes[j] <= slopes[index_for[e]] for j in 1:index_for[e] if generic_roots[index_for[e],j]), all_subdimensions)
@@ -465,51 +463,42 @@ Checks wether dstar is a Harder--Narasimhan type of Q, with dimension vector d, 
 """
 function is_harder_narasimhan_type(Q::Quiver, dstar::Vector{Vector{Int64}}, theta::Vector{Int64}; denominator::Function = sum)
     if length(dstar) == 1
-        return has_semistable_representation(Q, dstar[1], theta,denominator=denominator)
+        return has_semistable_representation(Q, dstar[1], theta,denominator)
     else
         for i in 1:length(dstar)-1
-            if slope(dstar[i],theta, denominator=denominator) <= slope(dstar[i+1],theta, denominator=denominator)
+            if slope(dstar[i],theta, denominator) <= slope(dstar[i+1],theta, denominator)
                 return false
             end
         end
-        return all(e -> has_semistable_representation(Q, e, theta, denominator=denominator), dstar)
+        return all(e -> has_semistable_representation(Q, e, theta, denominator), dstar)
     end    
 end
 
 """
 Returns a list of all the Harder Narasimhan types of representations of Q with dimension vector d, with respect to the slope function theta/denominator.
 """
-# function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum,ordered=true)
-@memoize Dict function all_harder_narasimhan_types(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}; denominator::Function = sum, ordered=true)
+@memoize Dict function AllHarderNarasimhanTypes(Q::Quiver,d::Vector{Int64},theta::Vector{Int64}, denominator=sum; ordered=true)
 
     if all(di == 0 for di in d)
-    # if d == ZeroVector(number_of_vertices(Q))
         return [[d]]
     else
 
-        # We consider just those subdimension vectors which are not zero, whose slope is bigger than the slope of d and which admit a semi-stable representation
+        # We consider just proper subdimension vectors which admit a semistable representation and for which μ(e) > μ(d)
         # Note that we also eliminate d by the following
-        subdimensions = filter(e -> has_semistable_representation(Q, e, theta, denominator=denominator, algorithm="schofield"), all_forbidden_subdimension_vectors(d,theta,denominator=denominator)) 
+        subdimensions = filter(e -> has_semistable_representation(Q, e, theta, denominator), all_forbidden_subdimension_vectors(d,theta,denominator)) 
         
-       if ordered
         # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
-        subdimensions = sort(subdimensions, by = e -> slope(e,theta,denominator=denominator))
-       end
-        # The HN types which are not of the form (d) are given by (e,f^1,...,f^s) where e is a proper subdimension vector such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
+        if ordered
+            subdimensions = sort(subdimensions, by = e -> slope(e,theta,denominator))
+        end
 
-        allHNtypes =  [[e,effestar...] for e in subdimensions for effestar in filter(fstar -> slope(e,theta, denominator=denominator) > slope(fstar[1],theta, 
-        denominator=denominator) ,all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator)) ]
+        # The HN types which are not of the form (d) are (e,f^1,...,f^s) where e is a proper semistable subdimension vector with μ(e) > μ(d), (f^1,...,f^s) is a HN type of f = d-e and μ(e) > μ(f^1) holds.
 
-        # the following code breaks with memoization. ????
-        # allHNtypes = Vector{Vector{Int64}}[]
+        allHNtypes =  [[e,efstar...] for e in subdimensions for efstar in filter(fstar -> slope(e,theta, denominator) > slope(fstar[1],theta, 
+        denominator) ,AllHarderNarasimhanTypes(Q, d-e, theta, denominator,ordered=ordered)) ]
 
-        # for e in subdimensions
-        #     lower_hn = all_harder_narasimhan_types(Q, d-e, theta, denominator=denominator,ordered=ordered)
-        #     append!(allHNtypes, map(effestar -> pushfirst!(effestar,e), filter(fstar -> slope(e,theta,denominator=denominator) > slope(fstar[1],theta, denominator=denominator) ,lower_hn)))
-        # end
-        
         # Possibly add d again, at the beginning, because it is smallest with respect to the partial order from Def. 3.6
-        if has_semistable_representation(Q, d, theta, denominator=denominator, algorithm="schofield")
+        if has_semistable_representation(Q, d, theta, denominator)
             pushfirst!(allHNtypes, [d])
         end
         return allHNtypes
@@ -541,7 +530,7 @@ Checks wether the dimension vector d is amply stable with respect to the slope f
 function is_amply_stable(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
     # We say that representations of a given dimension vector d are amply stable (for any notion of stability) if the codimension of the semistable locus is at least 2.
     # We verify this by computing the codimension of each HN stratum.
-    HN = filter(hntype -> hntype != [d], all_harder_narasimhan_types(Q, d, theta, denominator=denominator))
+    HN = filter(hntype -> hntype != [d], AllHarderNarasimhanTypes(Q, d, theta, denominator))
     return all(stratum -> codimension_of_harder_narasimhan_stratum(Q, stratum) >= 2, HN)
 end
 
@@ -549,28 +538,28 @@ end
 function all_weight_bounds(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
 
     #This is only relevant on the unstable locus
-    HN = filter(hntype -> hntype != [d], all_harder_narasimhan_types(Q, d, theta, denominator=denominator))
+    HN = filter(hntype -> hntype != [d], AllHarderNarasimhanTypes(Q, d, theta, denominator))
 
-    return map(hntype -> -sum((slope(hntype[s],theta,denominator=denominator) - slope(hntype[t],theta,denominator=denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ), HN)
+    return map(hntype -> -sum((slope(hntype[s],theta,denominator) - slope(hntype[t],theta,denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ), HN)
 
 end
     
 function does_teleman_inequality_hold(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
     #This is only relevant on the unstable locus
-    HN = filter(hntype -> hntype != [d], all_harder_narasimhan_types(Q, d, theta, denominator=denominator))
+    HN = filter(hntype -> hntype != [d], AllHarderNarasimhanTypes(Q, d, theta, denominator))
 
     # The following code is here, commented out, for readability. It is equivalent to the one-liner below.
 
     # # We compute the weights of the 1-PS lambda on det(N_{S/R}|_Z) for each HN type
-    # weights = map(hntype -> -sum((slope(hntype[s],theta,denominator=denominator) - slope(hntype[t],theta,denominator=denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ), HN)
+    # weights = map(hntype -> -sum((slope(hntype[s],theta,denominator) - slope(hntype[t],theta,denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ), HN)
     
     # # the maximum weight of the tensors of the universal bundles U_i^\vee \otimes U_j is slope of first term in the HN type - slope of the last term in the HN type
-    # tensorWeights = map(hntype -> slope(first(hntype),theta,denominator=denominator) - slope(last(hntype),theta,denominator=denominator), HN)
+    # tensorWeights = map(hntype -> slope(first(hntype),theta,denominator) - slope(last(hntype),theta,denominator), HN)
 
     # return all(weights[i] >= tensorWeights[i] for i in 1:length(HN))
 
 
-    return all( hntype -> sum((slope(hntype[t],theta,denominator=denominator) - slope(hntype[s],theta,denominator=denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ) > slope(first(hntype), theta, denominator=denominator) - slope(last(hntype), theta, denominator=denominator), HN)
+    return all( hntype -> sum((slope(hntype[t],theta,denominator) - slope(hntype[s],theta,denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ) > slope(first(hntype), theta, denominator) - slope(last(hntype), theta, denominator), HN)
 
 end
 
@@ -635,7 +624,7 @@ function is_luna_type(Q::Quiver, tau::Vector{Tuple{Vector{Int64},Int64}}, theta:
         return tau == [(zeroVector, 1)]
     else
         dstar = [tupl[1] for tupl in tau]
-        equalSlope = all(e -> slope(e, theta, denominator=sum) == slope(d, theta, denominator=sum), dstar)
+        equalSlope = all(e -> slope(e, theta, denominator) == slope(d, theta, denominator), dstar)
         semistable = all(e -> has_stable_representation(Q, e, theta, algorithm="schofield"), dstar)
         return equalSlope && semistable
     end
@@ -649,7 +638,7 @@ function semistable_equals_stable(Q::Quiver, d::Vector{Int64}, theta::Vector{Int
     throw(ArgumentError("not implemented"))
 end
 
-slope(d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum) = (length(d) == length(theta) && denominator(d)>0) ? (theta'*d)//denominator(d) : throw(DomainError("different length entries or zero denominator"))
+slope(d::Vector{Int64}, theta::Vector{Int64}, denominator::Function = sum) = (length(d) == length(theta) && denominator(d)>0) ? (theta'*d)//denominator(d) : throw(DomainError("different length entries or zero denominator"))
 
 function in_fundamental_domain(Q::Quiver, d::Vector{Int64}; interior=false)
     # https://arxiv.org/abs/2209.14791 uses a strict inequality, while https://arxiv.org/abs/2310.15927 uses a non-strict?
@@ -669,8 +658,8 @@ function in_fundamental_domain(Q::Quiver, d::Vector{Int64}; interior=false)
     throw(ArgumentError("interior must be true or false"))
 end
 
-@memoize Dict function all_forbidden_subdimension_vectors(d::Vector{Int64}, theta::Vector{Int64};denominator::Function = sum)
-    return filter(e -> slope(e, theta,denominator=denominator) > slope(d, theta,denominator=denominator), all_proper_subdimension_vectors(d))
+@memoize Dict function all_forbidden_subdimension_vectors(d::Vector{Int64}, theta::Vector{Int64}, denominator::Function = sum)
+    return filter(e -> slope(e, theta,denominator) > slope(d, theta,denominator), all_proper_subdimension_vectors(d))
 end
 
 function is_coprime_for_stability_parameter(d::Vector{Int64}, theta::Vector{Int64})
@@ -964,7 +953,7 @@ function CaseStudy(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominato
         @info "The dimension vector $d and stability parameter $theta are not coprime."
     end
 
-    if has_semistable_representation(Q, d, theta, denominator=denominator)
+    if has_semistable_representation(Q, d, theta, denominator)
         @info "The dimension vector $d admits a semistable representation with respect to the stability parameter $theta."
         @info "The moduli space has dimension $(1 - euler_form(Q,d,d))."
     else
@@ -982,12 +971,12 @@ function CaseStudy(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominato
         if strong_AS
             @info "Strong ample stability failed for e = $(candidates_strong_AS[failed_element_strong_AS]): slope(e,theta) = $(slope(candidates_strong_AS[failed_element_strong_AS],theta)), slope(d-e,theta) = $(slope(d-candidates_strong_AS[failed_element_strong_AS],theta)), euler_form(Q,e,d-e) = $(euler_form(Q,candidates_strong_AS[failed_element_strong_AS],d-candidates_strong_AS[failed_element_strong_AS]))."
         end
-        HN = all_harder_narasimhan_types(Q, d, theta, denominator=denominator)
+        HN = AllHarderNarasimhanTypes(Q, d, theta, denominator)
         @info "There are $(length(HN)) Harder--Narasimhan types: $HN."
         ample_stability = all(stratum -> codimension_of_harder_narasimhan_stratum(Q, stratum) >= 2, filter(hntype -> hntype != [d], HN))
         @info "The lowest codimension is $(minimum(map(stratum -> codimension_of_harder_narasimhan_stratum(Q, stratum), filter(hntype -> hntype != [d], HN)))), and the stratum that gives it is $(argmin(stratum -> codimension_of_harder_narasimhan_stratum(Q,stratum), filter(hntype -> hntype != [d], HN)))."
 
-        teleman_inequality = all(stratum -> sum((slope(stratum[t],theta,denominator=denominator) - slope(stratum[s],theta,denominator=denominator))*euler_form(Q, stratum[s],stratum[t]) for s in 1:length(stratum)-1 for t in s+1:length(stratum) ) > slope(first(stratum), theta, denominator=denominator) - slope(last(stratum), theta, denominator=denominator), filter(hntype -> hntype != [d], HN))
+        teleman_inequality = all(stratum -> sum((slope(stratum[t],theta,denominator) - slope(stratum[s],theta,denominator))*euler_form(Q, stratum[s],stratum[t]) for s in 1:length(stratum)-1 for t in s+1:length(stratum) ) > slope(first(stratum), theta, denominator) - slope(last(stratum), theta, denominator), filter(hntype -> hntype != [d], HN))
         
         if !ample_stability
            failed_element_ample_stability = findfirst(stratum -> codimension_of_harder_narasimhan_stratum(Q, stratum) < 2, filter(hntype -> hntype != [d], HN))
@@ -997,8 +986,8 @@ function CaseStudy(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominato
         end
 
         if !teleman_inequality && rigidity
-            failed_element_rigidity = findfirst(stratum -> sum((slope(stratum[t],theta,denominator=denominator) - slope(stratum[s],theta,denominator=denominator))*euler_form(Q, stratum[s],stratum[t]) for s in 1:length(stratum)-1 for t in s+1:length(stratum) ) <= slope(first(stratum), theta, denominator=denominator) - slope(last(stratum), theta, denominator=denominator), filter(hntype -> hntype != [d], HN))
-            @info "Rigidity failed for HN type $(filter(hntype -> hntype != [d], HN)[failed_element_rigidity]): slope(first(stratum), theta, denominator=denominator) = $(slope(first(filter(hntype -> hntype != [d], HN)[failed_element_rigidity]), theta, denominator=denominator)), slope(last(stratum), theta, denominator=denominator) = $(slope(last(filter(hntype -> hntype != [d], HN)[failed_element_rigidity]), theta, denominator=denominator)), sum((slope(stratum[t],theta,denominator=denominator) - slope(stratum[s],theta,denominator=denominator))*euler_form(Q, stratum[s],stratum[t]) for s in 1:length(stratum)-1 for t in s+1:length(stratum) ) = $(sum((slope(filter(hntype -> hntype != [d], HN)[failed_element_rigidity][t],theta,denominator=denominator) - slope(filter(hntype -> hntype != [d], HN)[failed_element_rigidity][s],theta,denominator=denominator))*euler_form(Q, filter(hntype -> hntype != [d], HN)[failed_element_rigidity][s],filter(hntype -> hntype != [d], HN)[failed_element_rigidity][t]) for s in 1:length(filter(hntype -> hntype != [d], HN)[failed_element_rigidity])-1 for t in s+1:length(filter(hntype -> hntype != [d], HN)[failed_element_rigidity]) ))."
+            failed_element_rigidity = findfirst(stratum -> sum((slope(stratum[t],theta,denominator) - slope(stratum[s],theta,denominator))*euler_form(Q, stratum[s],stratum[t]) for s in 1:length(stratum)-1 for t in s+1:length(stratum) ) <= slope(first(stratum), theta, denominator) - slope(last(stratum), theta, denominator), filter(hntype -> hntype != [d], HN))
+            @info "Rigidity failed for HN type $(filter(hntype -> hntype != [d], HN)[failed_element_rigidity]): slope(first(stratum), theta, denominator) = $(slope(first(filter(hntype -> hntype != [d], HN)[failed_element_rigidity]), theta, denominator)), slope(last(stratum), theta, denominator) = $(slope(last(filter(hntype -> hntype != [d], HN)[failed_element_rigidity]), theta, denominator)), sum((slope(stratum[t],theta,denominator) - slope(stratum[s],theta,denominator))*euler_form(Q, stratum[s],stratum[t]) for s in 1:length(stratum)-1 for t in s+1:length(stratum) ) = $(sum((slope(filter(hntype -> hntype != [d], HN)[failed_element_rigidity][t],theta,denominator) - slope(filter(hntype -> hntype != [d], HN)[failed_element_rigidity][s],theta,denominator))*euler_form(Q, filter(hntype -> hntype != [d], HN)[failed_element_rigidity][s],filter(hntype -> hntype != [d], HN)[failed_element_rigidity][t]) for s in 1:length(filter(hntype -> hntype != [d], HN)[failed_element_rigidity])-1 for t in s+1:length(filter(hntype -> hntype != [d], HN)[failed_element_rigidity]) ))."
         elseif rigidity
             @info "Rigidity holds."
         end
