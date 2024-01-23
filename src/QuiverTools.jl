@@ -1,16 +1,22 @@
 module QuiverTools
-export Quiver, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, ThreeVertexQuiver, all_slope_decreasing_sequences, has_semistable_representation, AllHarderNarasimhanTypes, all_weight_bounds, does_teleman_inequality_hold, is_luna_type, all_luna_types, semistable_equals_stable, slope, all_subdimension_vectors, all_forbidden_subdimension_vectors, is_coprime_for_stability_parameter, is_indivisible, is_acyclic, is_connected, indegree, outdegree, is_source, is_sink, euler_matrix, euler_form, opposite_quiver, double_quiver, canonical_decomposition, canonical_stability_parameter, is_harder_narasimhan_type, codimension_of_harder_narasimhan_stratum, is_amply_stable, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, thin_dimension_vectors, all_generic_subdimension_vectors, generic_ext_vanishing, is_generic_subdimension_vector, number_of_arrows, number_of_vertices, underlying_graph, ZeroVector, DynkinQuiver,CaseStudy, extension_matrix, HodgeDiamond
+export Quiver, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, ThreeVertexQuiver, all_slope_decreasing_sequences, has_semistable_representation, AllHarderNarasimhanTypes, all_weight_bounds, does_teleman_inequality_hold, is_luna_type, all_luna_types, semistable_equals_stable, slope, all_subdimension_vectors, all_forbidden_subdimension_vectors, is_coprime_for_stability_parameter, is_indivisible, IsAcyclic, IsConnected, InDegree, OutDegree, IsSource, IsSink, euler_matrix, euler_form, opposite_quiver, double_quiver, canonical_decomposition, canonical_stability_parameter, is_harder_narasimhan_type, codimension_of_harder_narasimhan_stratum, is_amply_stable, GeneralizedKroneckerQuiver, LoopQuiver, SubspaceQuiver, thin_dimension_vectors, all_generic_subdimension_vectors, generic_ext_vanishing, is_generic_subdimension_vector, number_of_arrows, number_of_vertices, underlying_graph, ZeroVector, DynkinQuiver,CaseStudy, extension_matrix, HodgeDiamond
 
 using LinearAlgebra, Nemo, Memoize
 
 
 """
-A quiver is represented by its adjacency matrix (a_ij) in M_{n x n}(N) where Q_0 = {1,...,n} and a_{ij} is the number of arrows i --> j.
+A quiver is represented by its adjacency
+``n \\times n`` matrix ``adjacency = (a_{ij}),
+``
+where ``n`` is the number of vertices
+and ``a_{ij}`` is the number of arrows i → j.
 
-Variables:
-`adjacency::Matrix{Int64}` is the adjacency matrix of the quiver
-`name = None`
+Attributes:
+
+- `adjacency` is the adjacency matrix of the quiver
+- `name` is the name of the quiver, defaults to `""`.
 """
+
 mutable struct Quiver
     adjacency::Matrix{Int64}
     name::String
@@ -19,8 +25,6 @@ mutable struct Quiver
     function Quiver(adjacency::Matrix{Int64}, name::String)
         if !(size(adjacency)[1] == size(adjacency)[1])
             throw(DomainError(adjacency, "adjacency matrix must be square"))
-        elseif !(all(a >= 0 for a in adjacency))
-            throw(DomainError(adjacency, "adjacency matrix must have non-negative entries"))
         else 
             new(adjacency, name)
         end
@@ -28,8 +32,6 @@ mutable struct Quiver
     function Quiver(adjacency::Matrix{Int64})
         if !(size(adjacency)[1] == size(adjacency)[2])
             throw(DomainError(adjacency, "adjacency matrix must be square"))
-        elseif !(all(a >= 0 for a in adjacency))
-            throw(DomainError(adjacency, "adjacency matrix must have non-negative entries"))
         else
             new(adjacency, "")
         end
@@ -42,13 +44,12 @@ Returns the adjacency matrix of the quiver.
 OUTPUT: A square matrix M whose entry M[i,j] is the number of arrows from the vertex i to the vertex j.
 """
 function adjacency_matrix(Q::Quiver)
+    #TODO this is not necessary really. We should just use Q.adjacency
     return Q.adjacency
 end
 
 """
 Returns the (necessarily symmetric) adjacency matrix of the underlying graph of the quiver.
-
-OUTPUT: A square, symmetric matrix M whose entry M[i,j] = M[j,i] is the number of edges between the vertices i and j.
 """
 function underlying_graph(Q::Quiver)
     return Matrix{Int64}(Q.adjacency + transpose(Q.adjacency) - diagm(diag(Q.adjacency)))
@@ -64,38 +65,38 @@ Returns the number of arrows of the quiver.
 number_of_arrows(Q::Quiver) = sum(Q.adjacency)
 
 """
-Returns true if the quiver is acyclic, false otherwise.
+Checks wether the quiver is acyclic, i.e. has no oriented cycles.
 """
-is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^number_of_vertices(Q))
+IsAcyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^number_of_vertices(Q))
 
 """
-Returns true if the quiver is connected, false otherwise.
+Checks wether the underlying graph of the quiver is connected.
 
 Examples:
+```julia-repl
     julia> Q = Quiver([0 1 0; 0 0 1; 1 0 0])
-    julia> is_connected(Q)
+    julia> IsConnected(Q)
     true
 
     julia> Q = Quiver([0 1 0; 1 0 0; 0 0 2])
     false
 
-    The 4-Kronecker quiver:
+    # The 4-Kronecker quiver:
     julia> Q = GeneralizedKroneckerQuiver(4)
-    julia> is_connected(Q)
+    julia> IsConnected(Q)
     true
 
-    The 4-loop quiver:
+    # The 4-loop quiver:
     julia> Q = LoopQuiver(4)
-    julia> is_connected(Q)
+    julia> IsConnected(Q)
     true
 
-    The 4-subspace quiver:
+    # The 4-subspace quiver:
     julia> Q = SubspaceQuiver(4)
-    julia> is_connected(Q)
+    julia> IsConnected(Q)
     true
 
-    The A10 quiver:
-
+    # The A10 quiver:
     julia> A10 = Quiver(   [0 1 0 0 0 0 0 0 0 0;
                             0 0 1 0 0 0 0 0 0 0;
                             0 0 0 1 0 0 0 0 0 0;
@@ -106,10 +107,10 @@ Examples:
                             0 0 0 0 0 0 0 0 1 0;
                             0 0 0 0 0 0 0 0 0 1;
                             0 0 0 0 0 0 0 0 0 0] )
-    julia> is_connected(A10)
+    julia> IsConnected(A10)
     true
 
-    The A10 quiver without one arrow:
+    # The A10 quiver without one arrow:
     julia> A10 = Quiver(   [0 1 0 0 0 0 0 0 0 0;
                             0 0 1 0 0 0 0 0 0 0;
                             0 0 0 1 0 0 0 0 0 0;
@@ -120,11 +121,11 @@ Examples:
                             0 0 0 0 0 0 0 0 1 0;
                             0 0 0 0 0 0 0 0 0 1;
                             0 0 0 0 0 0 0 0 0 0] )
-    julia> is_connected(A10)
+    julia> IsConnected(A10)
     false
-    
+```
 """
-function is_connected(Q::Quiver)
+function IsConnected(Q::Quiver)
     paths = underlying_graph(Q)
     for i in 2:number_of_vertices(Q) - 1
         paths += paths*underlying_graph(Q)
@@ -143,64 +144,80 @@ end
 Returns the number of incoming arrows to the vertex j.
 
 Examples:
-
+```julia-repl
 julia> Q = GeneralizedKroneckerQuiver(4)
-julia> indegree(Q, 1)
+julia> InDegree(Q, 1)
 0
-julia> indegree(Q, 2)
+julia> InDegree(Q, 2)
 4
+```
 """
-indegree(Q::Quiver, j::Int64) = (1 <= j & j<= number_of_vertices(Q)) ? sum(adjacency_matrix(Q)[:,j]) : throw(DomainError(j, "vertex index out of bounds"))
-
+InDegree(Q::Quiver, j::Int64) = (1 <= j & j<= number_of_vertices(Q)) ? sum(adjacency_matrix(Q)[:,j]) : throw(DomainError(j, "vertex index out of bounds"))
+# TODO unnecessary checks
 """
 Returns the number of outgoing arrows from the vertex i.
 
 Examples:
-
+```julia-repl
 julia> Q = GeneralizedKroneckerQuiver(4)
-julia> outdegree(Q, 1)
+julia> OutDegree(Q, 1)
 4
-julia> outdegree(Q, 2)
+julia> OutDegree(Q, 2)
 0
+```
 """
-outdegree(Q::Quiver, i::Int64) = (1 <= i & i<= number_of_vertices(Q)) ? sum(adjacency_matrix(Q)[i,:]) : throw(DomainError(i, "vertex index out of bounds"))
-
+OutDegree(Q::Quiver, i::Int64) = (1 <= i & i<= number_of_vertices(Q)) ? sum(adjacency_matrix(Q)[i,:]) : throw(DomainError(i, "vertex index out of bounds"))
+# TODO unnecessary checks
 """
-Returns true if the vertex i is a source, i.e. there are no incoming arrows into i, false otherwise.
+Checks if the vertex i is a source, i.e., a vertex with no incoming arrows.
 
 Examples:
-
+```julia-repl
 julia> Q = GeneralizedKroneckerQuiver(4)
-julia> is_source(Q, 1)
+julia> IsSource(Q, 1)
 true
-julia> is_source(Q, 2)
+julia> IsSource(Q, 2)
 false
+```
 """
-is_source(Q::Quiver, i::Int64) = (1 <= i & i<= number_of_vertices(Q)) ? indegree(Q, i) == 0 : throw(DomainError(i, "vertex index out of bounds"))
+IsSource(Q::Quiver, i::Int64) = (1 <= i & i<= number_of_vertices(Q)) ? InDegree(Q, i) == 0 : throw(DomainError(i, "vertex index out of bounds"))
 
 """
-Returns true if the vertex j is a sink, i.e. there are no outgoing arrows from j, false otherwise.
+Checks if the vertex j is a sink, i.e., a vertex with no outgoing arrows.
 
 Examples:
-
+```julia-repl
 julia> Q = GeneralizedKroneckerQuiver(4)
-julia> is_sink(Q, 1)
+julia> IsSink(Q, 1)
 false
-julia> is_sink(Q, 2)
+julia> IsSink(Q, 2)
 true
+```
 """
-is_sink(Q::Quiver, j::Int64) = (1 <= j & j<= number_of_vertices(Q)) ? outdegree(Q, j) == 0 : throw(DomainError(j, "vertex index out of bounds"))
+IsSink(Q::Quiver, j::Int64) = (1 <= j & j<= number_of_vertices(Q)) ? OutDegree(Q, j) == 0 : throw(DomainError(j, "vertex index out of bounds"))
 
 """
 Returns the Euler matrix of the quiver.
+
+
+The Euler matrix of a quiver Q is defined as 
+```math
+E = I - A,
+```
+where ``A`` is the adjacency matrix of Q and ``I`` is the identity matrix of the same size as ``A``.
 """
-@memoize euler_matrix(Q::Quiver) = Matrix{Int64}(I, number_of_vertices(Q), number_of_vertices(Q)) - adjacency_matrix(Q)
+@memoize Dict euler_matrix(Q::Quiver) = Matrix{Int64}(I, number_of_vertices(Q), number_of_vertices(Q)) - adjacency_matrix(Q)
 
 """
-Returns the value of the Euler bilinear form of the quiver computed on the vectors x and y.
+Computes the Euler form of the quiver for vectors x and y.
+
+The Euler form is defined as the bilinear form
+```math
+\\langle x,y\\rangle = x^T * E * y,
+```
+where E is the Euler matrix of the quiver.
 """
-euler_form(Q::Quiver, x::Vector{Int64}, y::Vector{Int64}) = (length(x) == number_of_vertices(Q) & length(y) == number_of_vertices(Q)) ? x'*euler_matrix(Q)*y : throw(DomainError("dimension vectors must have length equal to number of vertices"))
-# euler_form(Q::Quiver, x::Vector{Int64}, y::Vector{Int64}) = x'*euler_matrix(Q)*y
+@memoize Dict euler_form(Q::Quiver, x::Vector{Int64}, y::Vector{Int64}) = (length(x) == number_of_vertices(Q) & length(y) == number_of_vertices(Q)) ? x'*euler_matrix(Q)*y : throw(DomainError("dimension vectors must have length equal to number of vertices"))
 
 euler_form_first(Q::Quiver, y::Vector{Int64}) = x -> x'*euler_matrix(Q)*y
 
@@ -208,9 +225,7 @@ euler_form_second(Q::Quiver, x::Vector{Int64}) = y -> x'*euler_matrix(Q)*y
 
 
 """
-The opposite quiver is given by the transpose of the adjacency matrix of the original quiver.
-
-Returns a Quiver object with the same vertices and an arrow from j to i for every arrow from i to j in the original quiver.
+Returns a Quiver with the same vertices and an arrow ``j \\to i`` for every arrow  ``i \\to j`` in the original quiver.
 """
 opposite_quiver(Q::Quiver) = Quiver(Matrix{Int64}(transpose(adjacency_matrix(Q))), "Opposite of "*Q.name)
 
@@ -225,16 +240,16 @@ double_quiver(Q::Quiver) = Quiver(adjacency_matrix(Q) + Matrix{Int64}(transpose(
 thin_dimension_vectors(Q::Quiver) = ones(Int64,number_of_vertices(Q))
 
 """
-The canonical stability parameter is given by <d,_> - <_,d>
+The canonical stability parameter for the couple ``(Q,d)`` is given by ``<d,- > - < - ,d>``
 """
 canonical_stability_parameter(Q::Quiver, d::Vector{Int64})::Vector{Int64} = -(-transpose(euler_matrix(Q)) + euler_matrix(Q))*d
 
 
 """
-Returns the list of all sequences (d^1,...,d^l) which sum to d such that slope(d^1) > ... > slope(d^l)
+Returns the list of all sequences ``(d^1,...,d^l)`` which sum to d such that ``\\mu(d^1) > ... > \\mu(d^l).``
 
 Examples:
-
+```julia-repl
 julia> Q = GeneralizedKroneckerQuiver(3)
 julia> d = [2,3]
 julia> theta = [3,-2]
@@ -248,7 +263,8 @@ julia> all_slope_decreasing_sequences(Q, d, theta)
     [[1, 0], [1, 2], [0, 1]],
     [[1, 0], [1, 1], [0, 2]],
     [[2, 0], [0, 3]]]
-    """
+```
+"""
 function all_slope_decreasing_sequences(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}, denominator::Function = sum)
 
     # List all subdimension vectors e of bigger slope than d.
@@ -308,8 +324,7 @@ end
 """Checks if there is a theta-semistable representation of dimension vector d.
 
 Examples:
-
-
+```julia-repl
 julia> A2 = GeneralizedKroneckerQuiver(1)
 julia> theta = [1,-1]
 julia> d = [1,1]
@@ -338,6 +353,7 @@ true
 julia> d = [1,4]
 julia> has_semistable_representation(K3, d, theta)
 false
+```
 """
 @memoize Dict function has_semistable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}, denominator::Function = sum; algorithm="schofield")
     if all(di == 0 for di in d)
@@ -364,6 +380,7 @@ false
     end
 end
 
+"""Checks if Q has a theta-stable representation of dimension vector d."""
 function has_stable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum, algorithm::String = "schofield")
     if all(di == 0 for di in d)
         return true
@@ -388,15 +405,23 @@ function has_stable_representation(Q::Quiver, d::Vector{Int64}, theta::Vector{In
     end
 end
 
-
+"""
+Checks if d is a Schur root for Q.
+By a lemma of Schofield (See Lemma 4.2 of https://arxiv.org/pdf/0802.2147.pdf),
+this is equivalent to the existence of a stable representation of dimension vector d.
+"""
 is_schur_root(Q::Quiver, d::Vector{Int64}) = has_stable_representation(Q, d, canonical_stability_parameter(Q, d))
 
 """Checks if e is a generic subdimension vector of d.
-        # using notation from Section 5 of https://arxiv.org/pdf/0802.2147.pdf
-    A dimension vector e is called a generic subdimension vector of d if a generic representation of dimension vector d possesses a subrepresentation of dimension vector e.
-    By a result of Schofield (see Thm. 5.3 of https://arxiv.org/pdf/0802.2147.pdf) e is a generic subdimension vector of d if and only if <e',d-e> is non-negative for all generic subdimension vectors e' of e.
-    Algorithm "gianni" is a more efficient implementation of this algorithm, which uses the directed graph of generic subdimension vectors instead of recursions.
-    """
+
+A dimension vector e is called a generic subdimension vector of d if a generic representation
+of dimension vector d possesses a subrepresentation of dimension vector e.
+
+By a result of Schofield (see Thm. 5.3 of https://arxiv.org/pdf/0802.2147.pdf)
+e is a generic subdimension vector of d if and only if
+``<e',d-e> \\geq 0``
+for all generic subdimension vectors e' of e.
+"""
 @memoize Dict function is_generic_subdimension_vector(Q::Quiver, e::Vector{Int64}, d::Vector{Int64}; algorithm::String = "schofield")
     if e == d
         return true
@@ -420,6 +445,9 @@ is_schur_root(Q::Quiver, d::Vector{Int64}) = has_stable_representation(Q, d, can
     end
 end
 
+"""
+Returns the list of all generic subdimension vectors of d.
+"""
 function all_generic_subdimension_vectors(Q::Quiver, d::Vector{Int64}) 
     @warn "rewrite this function to use the directed graph of generic subdimension vectors"
     return filter(e -> is_generic_subdimension_vector(Q, e, d), all_subdimension_vectors(d))
@@ -430,7 +458,9 @@ function indices_for_generic_root_tree(d::Vector{Int64})::Dict{Vector{Int64},Int
     return Dict{Vector{Int64},Int64}(all_subdim_vectors[i] => i for i in eachindex(all_subdim_vectors))
 end
 
-"""Returns the list of all dimension vectors smaller or equal to d that admit semistable representations"""
+"""
+Returns the list of all dimension vectors of d that admit semistable representations.
+"""
 function all_semistable_dimension_vectors(Q::Quiver,d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
     all_subdimensions = all_nonzero_subdimension_vectors(d, sorted=true)
     # the following line is extremely slow, we compute all cases at once with the generic root tree instead
@@ -520,46 +550,51 @@ end
 Checks wether the stability parameter theta is on a wall with respect to the wall-and-chamber decomposition for the dimension vector d.
 The wall and chamber decomposition is described in Section 2.2, MR4352662
 """
-function is_on_a_wall(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}) 
+function is_on_a_fake_wall(d::Vector{Int64}, theta::Vector{Int64}) 
     return any(e -> e'*theta == 0,all_proper_subdimension_vectors(d))
 end
 
 """
-Checks wether the dimension vector d is amply stable with respect to the slope function theta/denominator. This means that the codimension of the unstable locus in the parameter space is at least 2.
+Checks wether the dimension vector d is amply stable with respect to the slope function theta/denominator.
+This means that the codimension of the unstable locus in the parameter space is at least 2.
 """
 function is_amply_stable(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
     # We say that representations of a given dimension vector d are amply stable (for any notion of stability) if the codimension of the semistable locus is at least 2.
-    # We verify this by computing the codimension of each HN stratum.
     HN = filter(hntype -> hntype != [d], AllHarderNarasimhanTypes(Q, d, theta, denominator))
     return all(stratum -> codimension_of_harder_narasimhan_stratum(Q, stratum) >= 2, HN)
 end
 
 
-function all_weight_bounds(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
+""" Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS ``\\lambda`` corresponding to the given HN type."""
+function weight_bound(hntype::Vector{Vector{Int}}, theta::Vector{Int}, denominator::Function = sum)
+    if length(hntype) == 1
+        throw(ArgumentError("Weight not defined for HN type of length 1."))
+    end
+    return -sum((slope(hntype[s],theta,denominator) - slope(hntype[t],theta,denominator))*EulerForm(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) )
+end
+
+""" Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each HN type for the given Q, d, theta and denominator."""
+function all_weight_bounds(Q::Quiver, d::Vector{Int}, theta::Vector{Int},denominator::Function = sum)
 
     #This is only relevant on the unstable locus
     HN = filter(hntype -> hntype != [d], AllHarderNarasimhanTypes(Q, d, theta, denominator))
 
-    return map(hntype -> -sum((slope(hntype[s],theta,denominator) - slope(hntype[t],theta,denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ), HN)
-
+    return map(hntype -> weight_bound(hntype,theta, denominator), HN)
 end
-    
+
 function does_teleman_inequality_hold(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominator::Function = sum)
     #This is only relevant on the unstable locus
+    
+    # We compute the weights of the 1-PS lambda on det(N_{S/R}|_Z) for each HN type
+    weights = all_weight_bounds(Q, d, theta, denominator)
+    
     HN = filter(hntype -> hntype != [d], AllHarderNarasimhanTypes(Q, d, theta, denominator))
 
-    # The following code is here, commented out, for readability. It is equivalent to the one-liner below.
+    # the maximum weight of the tensors of the universal bundles U_i^\vee \otimes U_j is slope of first term in the HN type - slope of the last term in the HN type
+    tensorWeights = map(hntype -> slope(first(hntype),theta,denominator) - slope(last(hntype),theta,denominator), HN)
 
-    # # We compute the weights of the 1-PS lambda on det(N_{S/R}|_Z) for each HN type
-    # weights = map(hntype -> -sum((slope(hntype[s],theta,denominator) - slope(hntype[t],theta,denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ), HN)
-    
-    # # the maximum weight of the tensors of the universal bundles U_i^\vee \otimes U_j is slope of first term in the HN type - slope of the last term in the HN type
-    # tensorWeights = map(hntype -> slope(first(hntype),theta,denominator) - slope(last(hntype),theta,denominator), HN)
-
-    # return all(weights[i] >= tensorWeights[i] for i in 1:length(HN))
-
-
-    return all( hntype -> sum((slope(hntype[t],theta,denominator) - slope(hntype[s],theta,denominator))*euler_form(Q, hntype[s],hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype) ) > slope(first(hntype), theta, denominator) - slope(last(hntype), theta, denominator), HN)
+    @warn "Inequality has to be strict pheraps."
+    return all(weights[i] >= tensorWeights[i] for i in eachindex(HN))
 
 end
 
@@ -753,7 +788,7 @@ function hodge_polynomial(Q::Quiver,d::Vector{Int64},theta::Vector{Int64})
     # safety checks
     if !is_coprime_for_stability_parameter(d,theta)
         throw(ArgumentError("d and theta are not coprime"))
-    elseif !is_acyclic(Q)
+    elseif !IsAcyclic(Q)
         throw(ArgumentError("Q is not acyclic"))
     end
 
@@ -802,7 +837,7 @@ function PicardRank(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64})
     # safety checks
     if !is_coprime_for_stability_parameter(d,theta)
         throw(ArgumentError("d and theta are not coprime"))
-    elseif !is_acyclic(Q)
+    elseif !IsAcyclic(Q)
         throw(ArgumentError("Q is not acyclic"))
     end
 
