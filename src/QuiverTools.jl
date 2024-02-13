@@ -476,9 +476,138 @@ end
 
 generic_ext_vanishing(Q::Quiver, a::Vector{Int64}, b::Vector{Int64}) = is_generic_subdimension_vector(Q, a, a+b)
 
+generic_hom_vanishing(Q::Quiver, a::Vector{Int64}, b::Vector{Int64}) = throw(ArgumentError("not implemented"))
+"""
+Two dimension vectors `a` and `b` are said to be left orthogonal if `hom(a,b) = ext(a,b) = 0`.
+"""
+function is_left_orthogonal(Q::Quiver, a::Vector{Int64}, b::Vector{Int64})
+    if generic_ext_vanishing(Q, a, b)
+        return EulerForm(Q, a, b) == 0
+    else
+        return false
+    end
+end
+
+function is_real_root(Q::Quiver, a::Vector{Int64})
+    return EulerForm(Q, a, a) == 1
+end
+
+function rearrange_dw_decomposition!(Q,decomposition,i,j)
+    # apply Lemma 11.9.10 of Derksen--Weyman to rearrange the roots from i to j as k, k+1
+    S = []
+    for k in i:j-1
+        # if k has a ``path to j'' satisfying the hypothesis of Lemma 11.9.10, we keep it
+        # m is the j-k times j-k matrix with entry m[i,j] = 1 if !generic_hom_vanishing(Q,decomposition[j][2],decomposition[i][2]) and 0 otherwise
+        m = zeros(Int64,j-k,j-k)
+        for l in k:j-1 for s in l+1:j
+            if !generic_hom_vanishing(Q,decomposition[s][2],decomposition[l][2])
+                m[l-k+1,s-k+1] = 1
+            end
+        end
+        paths = zeros(Int64,j-k,j-k) # paths[i,j] is the number of paths from k + i - 1 to k + j - 1 of length at most j-k
+        for l in 1:j-k
+            paths = paths + m^l
+        end
+        if paths[1,j-k] > 0
+            push!(S,k)
+        end
+    end
+    rearrangement = [l for l in i+1:j-1 if l ∉ S]
+    final = [S...,i,j,rearrangement...]
+    permute!(decomposition,final)
+    return i + length(S) + 1 #this is the index of the element i now.
+end
+# the function below is written in Julia, and below we translate it to Sagemath
+
+
 function canonical_decomposition(Q::Quiver, d::Vector{Int64}, algorithm::String = "derksen-weyman")
     if algorithm == "derksen-weyman"
-        throw(ArgumentError("derksen-weyman algorithm not implemented"))
+        if any(Q.adjacency[i,j] != 0 for (i,j) in eachindex(Q.adjacency) if i <= j)
+            throw(ArgumentError("Algorithm is meant for strictly lower triangular adjacency matrix"))
+        end
+        decomposition = [[d[i],UnitVector(length(d),i)] for i in 1:number_of_vertices(Q)]
+        while true
+            
+            # check P1 to P4
+            # None of this is actually used in the algorithm
+            # might be useful for debugging though
+
+            # if any(root[1] < 0 for root in decomposition)
+            #     throw(ErrorException("P1 violated"))
+            # elseif any(!is_schur_root(Q,root[2]) for root in decomposition)
+            #     throw(ErrorException("P2 violated"))
+            # elseif !all(is_left_orthogonal(Q,decomposition[i][2],decomposition[j][2]) for i in eachindex(decomposition) for j in i+1:length(decomposition))
+            #     throw(ErrorException("P3 violated"))
+            # elseif all(root[1] != 1 for root in decomposition if EulerForm(Q,root[2],root[2]) < 0)
+            #     throw(ErrorException("P4 violated"))
+            # end
+            
+            decomposition = filter(root -> root[1] > 0,decomposition)
+            violating_pairs = [(i,j) for i in 1:length(decomposition)-1 for j in i+1:length(decomposition) if EulerForm(Q,decomposition[j][2],decomposition[i][2]) < 0]            
+            if isempty(violating_pairs)
+                break
+            end
+            violating_pairs = sort(violating_pairs, by = (i,j) -> j - i) # only need smallest actually, not to sort them
+            
+            i,j = violating_pairs[1]
+
+            i = rearrange_dw_decomposition!(Q,decomposition,i,j)
+            p,xi = decomposition[i]
+            q,eta = decomposition[i+1]
+        
+            xireal = is_real_root(Q,xi)
+            etareal = is_real_root(Q,eta)
+            zeta = p*xi + q*eta
+            if xireal & etareal
+                # both roots real
+                # TODO figure out the vague instructions in Derksen--Weyman
+                discriminant = EulerForm(Q,zeta,zeta)
+                if discriminant > 0
+                    # TODO what
+                elseif discriminant == 0
+                    zetaprime = zeta ÷ gcd(zeta)
+                    # replace xi, eta by zetaprime
+                    deleteat!(decomposition, i+1)
+                    decomposition[i] = [1,zetaprime]
+                else
+                    # replace xi, eta by zeta 
+                    deleteat!(decomposition, i+1)
+                    decomposition[i] = [1,zeta]
+                end
+            elseif xireal & !etareal
+                # xi real, eta imaginary
+                # as per P4, here the coefficent of eta is 1
+                if p + q*EulerForm(Q,eta,xi) >= 0
+                    # replace (xi,eta) with (eta - <eta,xi>xi,xi)
+                    deleteat!(decomposition, i+1)
+                    decomposition[i] = [1,eta - EulerForm(Q,eta,xi)*xi]
+                else
+                    # replace (xi,eta) with zeta
+                    deleteat!(decomposition, i+1)
+                    decomposition[i] = [1,zeta]
+                end
+            elseif !xireal & etareal
+                # xi imaginary, eta real
+                if q + p*EulerForm(Q,eta,xi) >= 0
+                    # replace (xi,eta) with (eta,xi - <eta,xi>eta)
+                    decomposition[i] = [1,eta]
+                    decomposition[i+1] = [1,xi - EulerForm(Q,eta,xi)*eta]
+                else
+                    # replace (xi,eta) with zeta
+                    deleteat!(decomposition, i+1)
+                    decomposition[i] = [1,zeta]
+                end
+            elseif !xireal & !etareal
+                # both roots imaginary
+                # replace (xi,eta) with zeta
+                deleteat!(decomposition, i+1)
+                decomposition[i] = [1,zeta]
+            end
+
+
+        end
+        return decomposition
+    
     elseif algorithm == "schofield-1"
         throw(ArgumentError("schofield-1 algorithm not implemented"))
     elseif algorithm == "schofield-2"
@@ -965,11 +1094,14 @@ end
     end
     return filter(e->!all(ei == 0 for ei in e),collect.(Iterators.product(map(di -> 0:di, d)...)))
 end
-
 @memoize Dict function all_proper_subdimension_vectors(d::Vector{Int64})::Vector{Vector{Int64}}
     return filter(e -> any(ei != 0 for ei in e) && e != d, all_subdimension_vectors(d))
 end
-
+@memoize Dict function UnitVector(n::Int64, i::Int64)
+    v = zeros(Int64, n)
+    v[i] = 1
+    return v
+end
 
 
 """
