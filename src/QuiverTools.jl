@@ -16,7 +16,6 @@ Attributes:
 - `adjacency` is the adjacency matrix of the quiver
 - `name` is the name of the quiver, defaults to `""`.
 """
-
 mutable struct Quiver
     adjacency::Matrix{Int64}
     name::String
@@ -477,15 +476,15 @@ end
 generic_ext_vanishing(Q::Quiver, a::Vector{Int64}, b::Vector{Int64}) = is_generic_subdimension_vector(Q, a, a+b)
 
 generic_hom_vanishing(Q::Quiver, a::Vector{Int64}, b::Vector{Int64}) = throw(ArgumentError("not implemented"))
+
 """
 Two dimension vectors `a` and `b` are said to be left orthogonal if `hom(a,b) = ext(a,b) = 0`.
 """
 function is_left_orthogonal(Q::Quiver, a::Vector{Int64}, b::Vector{Int64})
     if generic_ext_vanishing(Q, a, b)
         return EulerForm(Q, a, b) == 0
-    else
-        return false
     end
+    return false
 end
 
 function is_real_root(Q::Quiver, a::Vector{Int64})
@@ -499,9 +498,11 @@ function rearrange_dw_decomposition!(Q,decomposition,i,j)
         # if k has a ``path to j'' satisfying the hypothesis of Lemma 11.9.10, we keep it
         # m is the j-k times j-k matrix with entry m[i,j] = 1 if !generic_hom_vanishing(Q,decomposition[j][2],decomposition[i][2]) and 0 otherwise
         m = zeros(Int64,j-k,j-k)
-        for l in k:j-1 for s in l+1:j
-            if !generic_hom_vanishing(Q,decomposition[s][2],decomposition[l][2])
-                m[l-k+1,s-k+1] = 1
+        for l in k:j-1
+            for s in l+1:j
+                if !generic_hom_vanishing(Q,decomposition[s][2],decomposition[l][2])
+                    m[l-k+1,s-k+1] = 1
+                end
             end
         end
         paths = zeros(Int64,j-k,j-k) # paths[i,j] is the number of paths from k + i - 1 to k + j - 1 of length at most j-k
@@ -517,7 +518,6 @@ function rearrange_dw_decomposition!(Q,decomposition,i,j)
     permute!(decomposition,final)
     return i + length(S) + 1 #this is the index of the element i now.
 end
-# the function below is written in Julia, and below we translate it to Sagemath
 
 
 function canonical_decomposition(Q::Quiver, d::Vector{Int64}, algorithm::String = "derksen-weyman")
@@ -558,12 +558,13 @@ function canonical_decomposition(Q::Quiver, d::Vector{Int64}, algorithm::String 
             xireal = is_real_root(Q,xi)
             etareal = is_real_root(Q,eta)
             zeta = p*xi + q*eta
-            if xireal & etareal
+            if xireal && etareal
                 # both roots real
                 # TODO figure out the vague instructions in Derksen--Weyman
                 discriminant = EulerForm(Q,zeta,zeta)
                 if discriminant > 0
                     # TODO what
+                    throw(ArgumentError("discriminant > 0 not implemented"))
                 elseif discriminant == 0
                     zetaprime = zeta ÷ gcd(zeta)
                     # replace xi, eta by zetaprime
@@ -574,7 +575,7 @@ function canonical_decomposition(Q::Quiver, d::Vector{Int64}, algorithm::String 
                     deleteat!(decomposition, i+1)
                     decomposition[i] = [1,zeta]
                 end
-            elseif xireal & !etareal
+            elseif xireal && !etareal
                 # xi real, eta imaginary
                 # as per P4, here the coefficent of eta is 1
                 if p + q*EulerForm(Q,eta,xi) >= 0
@@ -586,7 +587,7 @@ function canonical_decomposition(Q::Quiver, d::Vector{Int64}, algorithm::String 
                     deleteat!(decomposition, i+1)
                     decomposition[i] = [1,zeta]
                 end
-            elseif !xireal & etareal
+            elseif !xireal && etareal
                 # xi imaginary, eta real
                 if q + p*EulerForm(Q,eta,xi) >= 0
                     # replace (xi,eta) with (eta,xi - <eta,xi>eta)
@@ -597,14 +598,12 @@ function canonical_decomposition(Q::Quiver, d::Vector{Int64}, algorithm::String 
                     deleteat!(decomposition, i+1)
                     decomposition[i] = [1,zeta]
                 end
-            elseif !xireal & !etareal
+            elseif !xireal && !etareal
                 # both roots imaginary
                 # replace (xi,eta) with zeta
                 deleteat!(decomposition, i+1)
                 decomposition[i] = [1,zeta]
             end
-
-
         end
         return decomposition
     
@@ -1169,6 +1168,5 @@ function CaseStudy(Q::Quiver, d::Vector{Int64}, theta::Vector{Int64}; denominato
         end
     end
 end
-
 
 end
