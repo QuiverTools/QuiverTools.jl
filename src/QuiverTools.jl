@@ -395,22 +395,6 @@ function all_generic_subdimension_vectors(Q::Quiver, d::Vector{Int})
 end
 
 """
-Returns the list of all dimension vectors of d that admit semistable representations.
-"""
-function all_semistable_dimension_vectors(Q::Quiver,d::Vector{Int}, theta::Vector{Int}; denominator::Function = sum)
-    all_subdimensions = all_nonzero_subdimension_vectors(d, sorted=true)
-    # the following line is extremely slow, we compute all cases at once with the generic root tree instead
-    # stable = map(e -> has_semistable_representation(Q,e,theta,denominator), all_subdimensions)
-    generic_roots = _generic_subdimension_graph(Q,d)
-    index_for = indices_for_generic_root_tree(d)
-    slopes = map(e -> slope(e,theta,denominator),all_subdimensions)
-
-    # retains all the dimension vectors which only have generic subdimensions with smaller slope
-    return filter(e -> all(slopes[j] <= slopes[index_for[e]] for j in 1:index_for[e] if generic_roots[index_for[e],j]), all_subdimensions)
-end
-
-
-"""
 Returns a list of all the Harder Narasimhan types of representations of Q with dimension vector d, with respect to the slope function theta/slope_denominator.
 """
 @memoize Dict function all_HN_types(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function=sum; ordered=true)
