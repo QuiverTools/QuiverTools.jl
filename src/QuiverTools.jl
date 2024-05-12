@@ -593,7 +593,7 @@ Checks wether the stability parameter theta is on a wall with respect to the wal
 The wall and chamber decomposition is described in Section 2.2, MR4352662
 """
 function is_on_a_fake_wall(d::Vector{Int}, theta::Vector{Int}) 
-    return any(e -> e'*theta == 0,all_proper_subdimension_vectors(d))
+    return any(e -> e'*theta == 0, all_proper_subdimension_vectors(d))
 end
 
 function _fano_paper_picard_rank(Q::Quiver,d::Vector{Int})
@@ -601,7 +601,7 @@ function _fano_paper_picard_rank(Q::Quiver,d::Vector{Int})
     #TODO This should really be a method for a QuiverModuliSpace object. Translate the rest of the code?
     @info "Do this as in the hodge diamond cutter."
     
-    theta=canonical_stability_parameter(Q,d)
+    theta = canonical_stability(Q,d)
     if is_coprime(d, theta) && is_amply_stable(Q, d, theta)
         return number_of_vertices(Q) - 1
     else
@@ -687,11 +687,6 @@ function in_fundamental_domain(Q::Quiver, d::Vector{Int}; interior=false)
         return all(simple -> EulerForm(Q, d, simple) + EulerForm(Q, simple, d) <= 0, simples)
     end
     throw(ArgumentError("interior must be true or false"))
-end
-
-
-function is_indivisible(d::Vector{Int})
-    return gcd(d) == 1
 end
 
 # Below lie methods to compute Hodge diamonds translated from the Hodge diamond cutter.
