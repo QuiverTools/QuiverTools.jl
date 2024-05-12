@@ -13,6 +13,15 @@ export mKronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver
 using Memoize, LinearAlgebra
 # using Oscar
 
+# TODO coframed_quiver()
+# TODO full_subquiver()
+# TODO roots are imaginary, real?
+# TODO in_fundamental_domain
+# TODO generic_ext()
+# TODO generic_hom() = euler form + generic ext 
+# TODO canonical decomposition recursive
+# TODO Hochschild cohomology
+
 
 """
 A quiver is represented by its adjacency
@@ -532,152 +541,52 @@ function all_weights_endomorphisms_universal_bundle(Q::Quiver,d::Vector{Int},the
 end
 
 
-
-
-
+#####################################################
+# Canonical decomposition
+#####################################################
 
 """
-Two dimension vectors `a` and `b` are said to be left orthogonal if `hom(a,b) = ext(a,b) = 0`.
+Computes the dimension of the ext group between generic representations
+of dimension vectors a and b.
+
+According to Thm. 5.4 in Schofield's 'General representations of quivers', we have ext(a,b) = max{-<c,b> | c gen. subdimension vector of a}.
 """
-function is_left_orthogonal(Q::Quiver, a::Vector{Int}, b::Vector{Int})
-    if generic_ext_vanishing(Q, a, b)
-        return EulerForm(Q, a, b) == 0
+function generic_ext(Q::Quiver, a::Vector{Int}, b::Vector{Int})
+    return maximum(-Euler_form(Q, c, b) for c in all_generic_subdimension_vectors(Q, a))
+end
+
+"""
+Computes the dimension of the hom group between generic representations
+of dimension vectors a and b.
+"""
+function generic_hom(Q::Quiver, a::Vector{Int}, b::Vector{Int})
+    return Euler_form(Q, a, b) + generic_ext(Q, a, b)
+end
+
+
+# TODO add references
+# TODO implement Derksen-Weyman?
+# TODO add examples
+"""
+Computes the canonical decomposition of the dimension vector d for the given quiver Q.
+If ``\\beta_1, \\dots, \\beta_{\\ell}`` is a sequence
+of Schur roots such that, for all ``i \\neq j``, one has
+``ext(\\beta_i, \\beta_j) = ext(\\beta_j, \\beta_i) = 0``,
+then the general representation of dimension ``\\sum_i \\beta_i`` is a direct sum
+of irreducible representations of dimension vectors ``\\beta_i``.
+Such a decomposition is called therefore the canonical decomposition.
+"""
+function canonical_decomposition(Q::Quiver, d::Vector{Int})
+    if is_Schur_root(Q, d)
+        return [d]
     end
-    return false
-end
-
-function is_real_root(Q::Quiver, a::Vector{Int})
-    return EulerForm(Q, a, a) == 1
-end
-
-function rearrange_dw_decomposition!(Q,decomposition,i,j)
-    # apply Lemma 11.9.10 of Derksen--Weyman to rearrange the roots from i to j as k, k+1
-    S = []
-    for k in i:j-1
-        # if k has a ``path to j'' satisfying the hypothesis of Lemma 11.9.10, we keep it
-        # m is the j-k times j-k matrix with entry m[i,j] = 1 if !generic_hom_vanishing(Q,decomposition[j][2],decomposition[i][2]) and 0 otherwise
-        m = zeros(Int,j-k,j-k)
-        for l in k:j-1
-            for s in l+1:j
-                # Theorem 4.1 of MR1162487 is used for the generic hom vanishing here
-                if EulerForm(Q,decomposition[s][2],decomposition[l][2]) <= 0 
-                # if !generic_hom_vanishing(Q,decomposition[s][2],decomposition[l][2])
-                    m[l-k+1,s-k+1] = 1
-                end
-            end
+    generic_subdimensions = all_generic_subdimension_vectors(Q, d)
+    for e in generic_subdimensions
+        if d - e in generic_subdimensions && generic_ext(Q, e, d-e) == 0 && generic_ext(Q, d-e, e) == 0
+            return vcat(canonical_decomposition(Q, e), canonical_decomposition(Q, d-e))
         end
-        paths = zeros(Int,j-k,j-k) # paths[i,j] is the number of paths from k + i - 1 to k + j - 1 of length at most j-k
-        for l in 1:j-k
-            paths = paths + m^l
-        end
-        if paths[1,j-k] > 0
-            push!(S,k)
-        end
-    end
-    rearrangement = [l for l in i+1:j-1 if l ∉ S]
-    final = [l for l in 1:i-1]*[S...,i,j,rearrangement...]*[l for l in j+1:length(decomposition)]
-    permute!(decomposition,final)
-    return i + length(S) + 1 #this is the index of the element i now.
-end
-
-
-function canonical_decomposition(Q::Quiver, d::Vector{Int}, algorithm::String = "derksen-weyman")
-    if algorithm == "derksen-weyman"
-        if any(Q.adjacency[i,j] != 0 for (i,j) in eachindex(Q.adjacency) if i <= j)
-            throw(ArgumentError("Algorithm is meant for strictly lower triangular adjacency matrix"))
-        end
-        decomposition = [[d[i],UnitVector(length(d),i)] for i in 1:number_of_vertices(Q)]
-        while true
-            
-            # check P1 to P4
-            # None of this is actually used in the algorithm
-            # might be useful for debugging though
-
-            # if any(root[1] < 0 for root in decomposition)
-            #     throw(ErrorException("P1 violated"))
-            # elseif any(!is_schur_root(Q,root[2]) for root in decomposition)
-            #     throw(ErrorException("P2 violated"))
-            # elseif !all(is_left_orthogonal(Q,decomposition[i][2],decomposition[j][2]) for i in eachindex(decomposition) for j in i+1:length(decomposition))
-            #     throw(ErrorException("P3 violated"))
-            # elseif all(root[1] != 1 for root in decomposition if EulerForm(Q,root[2],root[2]) < 0)
-            #     throw(ErrorException("P4 violated"))
-            # end
-            
-            decomposition = filter(root -> root[1] > 0,decomposition)
-            violating_pairs = [(i,j) for i in 1:length(decomposition)-1 for j in i+1:length(decomposition) if EulerForm(Q,decomposition[j][2],decomposition[i][2]) < 0]            
-            if isempty(violating_pairs)
-                break
-            end
-            violating_pairs = sort(violating_pairs, by = (i,j) -> j - i) # only need smallest actually, not to sort them
-            
-            i,j = violating_pairs[1]
-
-            i = rearrange_dw_decomposition!(Q,decomposition,i,j)
-            p,xi = decomposition[i]
-            q,eta = decomposition[i+1]
-        
-            xireal = is_real_root(Q,xi)
-            etareal = is_real_root(Q,eta)
-            zeta = p*xi + q*eta
-            if xireal && etareal # ugly cases here
-                # both roots real
-                # TODO figure out the vague instructions in Derksen--Weyman
-                discriminant = EulerForm(Q,zeta,zeta)
-                if discriminant > 0
-                    # TODO what
-                    throw(ArgumentError("discriminant > 0 not implemented"))
-                elseif discriminant == 0
-                    zetaprime = zeta ÷ gcd(zeta)
-                    # replace xi, eta by zetaprime
-                    deleteat!(decomposition, i+1)
-                    decomposition[i] = [1,zetaprime]
-                else
-                    # replace xi, eta by zeta 
-                    deleteat!(decomposition, i+1)
-                    decomposition[i] = [1,zeta]
-                end
-            elseif xireal && !etareal
-                # xi real, eta imaginary
-                # as per P4, here the coefficent of eta is 1
-                if p + q*EulerForm(Q,eta,xi) >= 0
-                    # replace (xi,eta) with (eta - <eta,xi>xi,xi)
-                    deleteat!(decomposition, i+1)
-                    decomposition[i] = [1,eta - EulerForm(Q,eta,xi)*xi]
-                else
-                    # replace (xi,eta) with zeta
-                    deleteat!(decomposition, i+1)
-                    decomposition[i] = [1,zeta]
-                end
-            elseif !xireal && etareal
-                # xi imaginary, eta real
-                if q + p*EulerForm(Q,eta,xi) >= 0
-                    # replace (xi,eta) with (eta,xi - <eta,xi>eta)
-                    decomposition[i] = [1,eta]
-                    decomposition[i+1] = [1,xi - EulerForm(Q,eta,xi)*eta]
-                else
-                    # replace (xi,eta) with zeta
-                    deleteat!(decomposition, i+1)
-                    decomposition[i] = [1,zeta]
-                end
-            elseif !xireal && !etareal
-                # both roots imaginary
-                # replace (xi,eta) with zeta
-                deleteat!(decomposition, i+1)
-                decomposition[i] = [1,zeta]
-            end
-        end
-        return decomposition
-    
-    elseif algorithm == "schofield-1"
-        throw(ArgumentError("schofield-1 algorithm not implemented"))
-    elseif algorithm == "schofield-2"
-        throw(ArgumentError("schofield-2 algorithm not implemented"))
-    else
-        throw(ArgumentError("algorithm not recognized"))
     end
 end
-
-
 
 """
 Checks wether the stability parameter theta is on a wall with respect to the wall-and-chamber decomposition for the dimension vector d.
