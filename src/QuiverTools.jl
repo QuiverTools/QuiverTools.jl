@@ -5,7 +5,7 @@ import Base.show
 export Quiver
 export nvertices, narrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
 export Euler_form, canonical_stability, is_coprime, slope
-export is_Schur_root
+export is_Schur_root, generic_ext, generic_hom, canonical_decomposition
 export all_HN_types, has_semistables, has_stables, is_amply_stable
 export all_Teleman_bounds, all_weights_endomorphisms_universal_bundle, all_weights_universal_bundle, all_weights_irreducible_component_canonical
 export mKronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver
@@ -17,9 +17,6 @@ using Memoize, LinearAlgebra
 # TODO full_subquiver()
 # TODO roots are imaginary, real?
 # TODO in_fundamental_domain
-# TODO generic_ext()
-# TODO generic_hom() = euler form + generic ext 
-# TODO canonical decomposition recursive
 # TODO Hochschild cohomology
 
 
@@ -87,74 +84,80 @@ Checks wether the quiver is acyclic, i.e. has no oriented cycles.
 """
 is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^nvertices(Q))
 
-    """
-    Checks wether the underlying graph of the quiver is connected.
-    
-    Examples:
-    ```julia-repl
-    julia> Q = Quiver([0 1 0; 0 0 1; 1 0 0])
-    julia> is_connected(Q)
-    true
-    
-    julia> Q = Quiver([0 1 0; 1 0 0; 0 0 2])
-    false
-    
-    # The 4-Kronecker quiver:
-    julia> Q = mKroneckerquiver(4)
-    julia> is_connected(Q)
-    true
-    
-    # The 4-loop quiver:
-    julia> Q = LoopQuiver(4)
-    julia> is_connected(Q)
-    true
-    
-    # The 4-subspace quiver:
-    julia> Q = SubspaceQuiver(4)
-    julia> is_connected(Q)
-    true
-    
-    # The A10 quiver:
-    julia> A10 = Quiver(   [0 1 0 0 0 0 0 0 0 0;
-                            0 0 1 0 0 0 0 0 0 0;
-                            0 0 0 1 0 0 0 0 0 0;
-                            0 0 0 0 1 0 0 0 0 0;
-                            0 0 0 0 0 1 0 0 0 0;
-                            0 0 0 0 0 0 1 0 0 0;
-                            0 0 0 0 0 0 0 1 0 0;
-                            0 0 0 0 0 0 0 0 1 0;
-                            0 0 0 0 0 0 0 0 0 1;
-                            0 0 0 0 0 0 0 0 0 0] )
-    julia> is_connected(A10)
-    true
-    
-    # The A10 quiver without one arrow:
-    julia> A10 = Quiver(   [0 1 0 0 0 0 0 0 0 0;
-                            0 0 1 0 0 0 0 0 0 0;
-                            0 0 0 1 0 0 0 0 0 0;
-                            0 0 0 0 1 0 0 0 0 0;
-                            0 0 0 0 0 1 0 0 0 0;
-                            0 0 0 0 0 0 0 0 0 0;
-                            0 0 0 0 0 0 0 1 0 0;
-                            0 0 0 0 0 0 0 0 1 0;
-                            0 0 0 0 0 0 0 0 0 1;
-                            0 0 0 0 0 0 0 0 0 0] )
-    julia> is_connected(A10)
-    false
-    ```
-    """
-    function is_connected(Q::Quiver)
-        paths = underlying_graph(Q)
-        for i in 2:nvertices(Q) - 1
-            paths += paths*underlying_graph(Q)
-        end
-        for i in 1:nvertices(Q), j in 1:nvertices(Q)
-                if i != j && paths[i, j] == 0 && paths[j, i] == 0
-                    return false
-                end
-        end
-        return true
+"""
+Checks wether the underlying graph of the quiver is connected.
+
+Examples:
+```julia-repl
+julia> Q = Quiver([0 1 0; 0 0 1; 1 0 0])
+
+julia> is_connected(Q)
+true
+
+julia> Q = Quiver([0 1 0; 1 0 0; 0 0 2])
+false
+
+# The 4-Kronecker quiver:
+julia> Q = mKroneckerquiver(4)
+
+julia> is_connected(Q)
+true
+
+# The 4-loop quiver:
+julia> Q = LoopQuiver(4)
+
+julia> is_connected(Q)
+true
+
+# The 4-subspace quiver:
+julia> Q = SubspaceQuiver(4)
+
+julia> is_connected(Q)
+true
+
+# The A10 quiver:
+julia> A10 = Quiver(   [0 1 0 0 0 0 0 0 0 0;
+                        0 0 1 0 0 0 0 0 0 0;
+                        0 0 0 1 0 0 0 0 0 0;
+                        0 0 0 0 1 0 0 0 0 0;
+                        0 0 0 0 0 1 0 0 0 0;
+                        0 0 0 0 0 0 1 0 0 0;
+                        0 0 0 0 0 0 0 1 0 0;
+                        0 0 0 0 0 0 0 0 1 0;
+                        0 0 0 0 0 0 0 0 0 1;
+                        0 0 0 0 0 0 0 0 0 0] )
+
+julia> is_connected(A10)
+true
+
+# The A10 quiver without one arrow:
+julia> A10 = Quiver(   [0 1 0 0 0 0 0 0 0 0;
+                        0 0 1 0 0 0 0 0 0 0;
+                        0 0 0 1 0 0 0 0 0 0;
+                        0 0 0 0 1 0 0 0 0 0;
+                        0 0 0 0 0 1 0 0 0 0;
+                        0 0 0 0 0 0 0 0 0 0;
+                        0 0 0 0 0 0 0 1 0 0;
+                        0 0 0 0 0 0 0 0 1 0;
+                        0 0 0 0 0 0 0 0 0 1;
+                        0 0 0 0 0 0 0 0 0 0] )
+
+julia> is_connected(A10)
+false
+```
+"""
+function is_connected(Q::Quiver)
+    paths = underlying_graph(Q)
+    for i in 2:nvertices(Q) - 1
+        paths += paths*underlying_graph(Q)
     end
+    for i in 1:nvertices(Q), j in 1:nvertices(Q)
+            if i != j && paths[i, j] == 0 && paths[j, i] == 0
+                return false
+            end
+    end
+    return true
+end
 
 # the docstrings on these functions are from the file quiver.py
 
@@ -164,8 +167,10 @@ Returns the number of incoming arrows to the vertex j.
 Examples:
 ```julia-repl
 julia> Q = mKroneckerquiver(4)
+
 julia> indegree(Q, 1)
 0
+
 julia> indegree(Q, 2)
 4
 ```
@@ -178,8 +183,10 @@ Returns the number of outgoing arrows from the vertex i.
 Examples:
 ```julia-repl
 julia> Q = mKroneckerquiver(4)
+
 julia> outdegree(Q, 1)
 4
+
 julia> outdegree(Q, 2)
 0
 ```
@@ -192,8 +199,10 @@ Checks if the vertex i is a source, i.e., a vertex with no incoming arrows.
 Examples:
 ```julia-repl
 julia> Q = mKroneckerquiver(4)
+
 julia> is_source(Q, 1)
 true
+
 julia> is_source(Q, 2)
 false
 ```
@@ -206,8 +215,10 @@ Checks if the vertex j is a sink, i.e., a vertex with no outgoing arrows.
 Examples:
 ```julia-repl
 julia> Q = mKroneckerquiver(4)
+
 julia> is_sink(Q, 1)
 false
+
 julia> is_sink(Q, 2)
 true
 ```
@@ -255,12 +266,19 @@ function is_coprime(d::Vector{Int})
     return gcd(d) == 1
 end
 
+# TODO should this return a function?
+"""
+Returns the slope of the dimension vector ``d`` with respect to the stability parameter ``theta``
+and a choice of a denominator function.
+"""
 function slope(d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
     return (theta'*d)//slope_denominator(d)
 end
-
-@memoize Dict function all_forbidden_subdimension_vectors(d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
-    return filter(e -> slope(e, theta, slope_denominator) > slope(d, theta, slope_denominator), all_proper_subdimension_vectors(d))
+"""
+Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d``.
+"""
+@memoize Dict function all_destabilizing_subdimension_vectors(d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
+    return filter(e -> slope(e, theta, slope_denominator) > slope(d, theta, slope_denominator), all_nonzero_subdimension_vectors(d))
 end
 
 """
@@ -268,9 +286,8 @@ Returns the list of all sequences ``(d^1,...,d^l)`` which sum to d such that ``\
 
 Examples:
 ```julia-repl
-julia> Q = GeneralizedKroneckerQuiver(3)
-julia> d = [2,3]
-julia> theta = [3,-2]
+julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
+
 julia> all_slope_decreasing_sequences(Q, d, theta)
 8-element Array{Array{Vector}}:
     [[[2, 3]],
@@ -308,33 +325,27 @@ end
 
 Examples:
 ```julia-repl
-julia> A2 = mKroneckerquiver(1)
-julia> theta = [1,-1]
-julia> d = [1,1]
-julia> has_semistables(A2, d, theta)
+julia> A2 = mKroneckerquiver(1); theta = [1,-1];
+
+julia> has_semistables(A2, [1,1], theta)
 true
 
-julia> d = [2,2]
-julia> has_semistables(A2, d, theta)
+julia> has_semistables(A2, [2,2], theta)
 true
 
-julia> d = [1,2]
-julia> has_semistables(A2, d, theta)
+julia> has_semistables(A2, [1,2], theta)
 false
 
-julia> d = [0,0]
-julia> has_semistables(A2, d, theta)
+julia> has_semistables(A2, [0,0], theta)
 true
 
 # The 3-Kronecker quiver:
-julia> K3 = mKroneckerquiver(3)
-julia> theta = [3,-2]
-julia> d = [2,3]
-julia> has_semistables(K3, d, theta)
+julia> K3 = mKroneckerquiver(3); theta = [3,-2];
+
+julia> has_semistables(K3, [2,3], theta)
 true
 
-julia> d = [1,4]
-julia> has_semistables(K3, d, theta)
+julia> has_semistables(K3, [1,4], theta)
 false
 ```
 """
@@ -350,9 +361,24 @@ false
     end
 end
 
-# TODO write examples with properly semistable representations and with sst nonempty and st empty.
-# TODO put these in unit tests
-"""Checks if Q has a theta-stable representation of dimension vector d."""
+"""Checks if Q has a theta-stable representation of dimension vector d.
+
+Examples:
+```julia-repl
+julia> Q = mKroneckerquiver(3); d = [2,3]; theta = [3,-2];
+
+julia> has_stables(Q, d, theta)
+true
+
+julia> Q = mKroneckerquiver(2); d = [2,2]; theta = [1,-1];
+
+julia> has_stables(Q, d, theta)
+false
+
+julia> has_semistables(Q, d, theta)
+true
+```
+"""
 @memoize Dict function has_stables(Q::Quiver, d::Vector{Int}, theta::Vector{Int}; slope_denominator::Function = sum)
     if all(di == 0 for di in d)
         return true
@@ -367,8 +393,20 @@ end
 
 """
 Checks if d is a Schur root for Q.
+
 By a lemma of Schofield (See Lemma 4.2 of https://arxiv.org/pdf/0802.2147.pdf),
-this is equivalent to the existence of a stable representation of dimension vector d."""
+this is equivalent to the existence of a stable representation of dimension vector d
+for the canonical stability parameter.
+    
+Examples:
+
+```julia-repl
+julia> Q = mKroneckerquiver(3); d = [2,3];
+
+julia> is_Schur_root(Q, d)
+true
+```
+"""
 is_Schur_root(Q::Quiver, d::Vector{Int}) = has_stables(Q, d, canonical_stability(Q, d))
 
 """Checks if e is a generic subdimension vector of d.
@@ -384,7 +422,7 @@ for all generic subdimension vectors e' of e.
 @memoize Dict function is_generic_subdimension_vector(Q::Quiver, e::Vector{Int}, d::Vector{Int}; algorithm::String = "schofield")
     if e == d
         return true
-    elseif all(ei==0 for ei in e)
+    elseif all(ei == 0 for ei in e)
         # return false
         return true
     else
@@ -392,8 +430,8 @@ for all generic subdimension vectors e' of e.
     # TODO this filtering is inefficent.
     # For fixed d-e, this is a LINEAR form, we KNOW which eprimes violate the condition.
     # We should just check those.
-        Euler_matrix_temp = Euler_matrix(Q) * (d-e) #to speed up computation of <eprime,d-e>
-        subdimensions = filter(eprime -> eprime'*Euler_matrix_temp < 0, all_subdimension_vectors(e))
+        Euler_matrix_temp = Euler_matrix(Q) * (d - e) #to speed up computation of <eprime,d-e>
+        subdimensions = filter(eprime -> eprime' * Euler_matrix_temp < 0, all_subdimension_vectors(e))
         # none of the subdimension vectors violating the condition should be generic
         return !any(eprime -> is_generic_subdimension_vector(Q, eprime, e), subdimensions)
     end
@@ -401,6 +439,21 @@ end
 
 """
 Returns the list of all generic subdimension vectors of d.
+
+Examples:
+```julia-repl
+julia> Q = mKroneckerquiver(3); d = [2,3];
+
+julia> QuiverTools.all_generic_subdimension_vectors(Q, d)
+7-element Vector{Vector{Int64}}:
+ [0, 0]
+ [0, 1]
+ [0, 2]
+ [1, 2]
+ [0, 3]
+ [1, 3]
+ [2, 3]
+```
 """
 function all_generic_subdimension_vectors(Q::Quiver, d::Vector{Int}) 
     return filter(e -> is_generic_subdimension_vector(Q, e, d), all_subdimension_vectors(d))
@@ -408,6 +461,86 @@ end
 
 """
 Returns a list of all the Harder Narasimhan types of representations of Q with dimension vector d, with respect to the slope function theta/slope_denominator.
+
+Examples:
+```julia-repl
+julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
+
+julia> all_HN_types(Q, d, theta)
+8-element Vector{Vector{Vector{Int64}}}:
+ [[2, 3]]
+ [[1, 1], [1, 2]]
+ [[2, 2], [0, 1]]
+ [[2, 1], [0, 2]]
+ [[1, 0], [1, 3]]
+ [[1, 0], [1, 2], [0, 1]]
+ [[1, 0], [1, 1], [0, 2]]
+ [[2, 0], [0, 3]]
+
+julia> all_HN_types(Q, [3,0], [0,0])
+1-element Vector{Vector{Vector{Int64}}}:
+ [[3, 0]]
+
+julia> Q = three_vertex_quiver(1,4,1); d = [4,1,4];
+
+julia> theta = canonical_stability(Q, d);
+
+julia> all_HN_types(Q, d, theta)
+106-element Vector{Vector{Vector{Int64}}}:
+ [[4, 1, 4]]
+ [[4, 1, 3], [0, 0, 1]]
+ [[4, 0, 3], [0, 1, 1]]
+ [[4, 0, 3], [0, 1, 0], [0, 0, 1]]
+ [[3, 1, 2], [1, 0, 2]]
+ [[3, 1, 2], [1, 0, 1], [0, 0, 1]]
+ [[3, 0, 2], [1, 1, 2]]
+ [[3, 0, 2], [0, 1, 0], [1, 0, 2]]
+ [[3, 0, 2], [1, 0, 1], [0, 1, 1]]
+ [[3, 0, 2], [1, 1, 1], [0, 0, 1]]
+ [[2, 1, 1], [2, 0, 3]]
+ [[2, 1, 1], [1, 0, 1], [1, 0, 2]]
+ [[2, 1, 1], [2, 0, 2], [0, 0, 1]]
+ [[4, 1, 2], [0, 0, 2]]
+ [[2, 0, 1], [2, 1, 3]]
+ [[2, 0, 1], [0, 1, 0], [2, 0, 3]]
+ [[2, 0, 1], [1, 0, 1], [1, 1, 2]]
+ [[2, 0, 1], [1, 1, 1], [1, 0, 2]]
+ [[2, 0, 1], [2, 0, 2], [0, 1, 1]]
+ [[2, 0, 1], [2, 1, 2], [0, 0, 1]]
+ [[2, 0, 1], [2, 1, 1], [0, 0, 2]]
+ [[4, 0, 2], [0, 1, 1], [0, 0, 1]]
+ [[4, 0, 2], [0, 1, 0], [0, 0, 2]]
+ [[3, 1, 1], [1, 0, 3]]
+ [[3, 1, 1], [1, 0, 2], [0, 0, 1]]
+ [[3, 1, 1], [1, 0, 1], [0, 0, 2]]
+ ⋮
+ [[2, 0, 0], [1, 0, 1], [1, 1, 3]]
+ [[2, 0, 0], [1, 0, 1], [1, 0, 2], [0, 1, 1]]
+ [[2, 0, 0], [1, 0, 1], [1, 1, 2], [0, 0, 1]]
+ [[2, 0, 0], [1, 1, 1], [1, 0, 3]]
+ [[2, 0, 0], [1, 1, 1], [1, 0, 2], [0, 0, 1]]
+ [[2, 0, 0], [2, 0, 2], [0, 1, 1], [0, 0, 1]]
+ [[2, 0, 0], [2, 1, 2], [0, 0, 2]]
+ [[2, 0, 0], [2, 1, 1], [0, 0, 3]]
+ [[2, 0, 0], [2, 0, 1], [0, 1, 1], [0, 0, 2]]
+ [[2, 0, 0], [2, 0, 1], [0, 1, 0], [0, 0, 3]]
+ [[2, 0, 0], [1, 1, 0], [1, 0, 4]]
+ [[2, 0, 0], [1, 1, 0], [1, 0, 3], [0, 0, 1]]
+ [[2, 0, 0], [1, 1, 0], [1, 0, 2], [0, 0, 2]]
+ [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 0, 3]]
+ [[3, 0, 0], [1, 1, 4]]
+ [[3, 0, 0], [1, 1, 3], [0, 0, 1]]
+ [[3, 0, 0], [1, 0, 2], [0, 1, 1], [0, 0, 1]]
+ [[3, 0, 0], [1, 1, 2], [0, 0, 2]]
+ [[3, 0, 0], [0, 1, 0], [1, 0, 4]]
+ [[3, 0, 0], [0, 1, 0], [1, 0, 3], [0, 0, 1]]
+ [[3, 0, 0], [0, 1, 0], [1, 0, 2], [0, 0, 2]]
+ [[3, 0, 0], [1, 0, 1], [0, 1, 1], [0, 0, 2]]
+ [[3, 0, 0], [1, 1, 1], [0, 0, 3]]
+ [[3, 0, 0], [1, 1, 0], [0, 0, 4]]
+ [[4, 0, 0], [0, 1, 1], [0, 0, 3]]
+ [[4, 0, 0], [0, 1, 0], [0, 0, 4]]
+```
 """
 @memoize Dict function all_HN_types(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function=sum; ordered=true)
 
@@ -416,7 +549,7 @@ Returns a list of all the Harder Narasimhan types of representations of Q with d
     else
         # We consider just proper subdimension vectors which admit a semistable representation and for which μ(e) > μ(d)
         # Note that we also eliminate d by the following
-        subdimensions = filter(e -> has_semistables(Q,  e, theta, slope_denominator), all_forbidden_subdimension_vectors(d, theta, slope_denominator)) 
+        subdimensions = filter(e -> has_semistables(Q,  e, theta, slope_denominator), all_destabilizing_subdimension_vectors(d, theta, slope_denominator)) 
         
         # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
         if ordered
@@ -425,7 +558,7 @@ Returns a list of all the Harder Narasimhan types of representations of Q with d
 
         # The HN types which are not of the form (d) are (e,f^1,...,f^s) where e is a proper semistable subdimension vector with μ(e) > μ(d), (f^1,...,f^s) is a HN type of f = d-e and μ(e) > μ(f^1) holds.
 
-        alltypes = [[e, efstar...] for e in subdimensions for efstar in filter(fstar -> slope(e, theta, slope_denominator) > slope(fstar[1], theta, slope_denominator), all_HN_types(Q, d-e, theta, slope_denominator, ordered=ordered))]
+        alltypes = Vector{Vector{Int}}[[e, efstar...] for e in subdimensions for efstar in filter(fstar -> slope(e, theta, slope_denominator) > slope(fstar[1], theta, slope_denominator), all_HN_types(Q, d-e, theta, slope_denominator, ordered=ordered))]
 
         # Possibly add d again, at the beginning, because it is smallest with respect to the partial order from Def. 3.6
         if has_semistables(Q, d, theta, slope_denominator)
@@ -437,6 +570,34 @@ end
 
 """
 Returns the codimension of the given HN stratum.
+
+Examples:
+```julia-repl
+julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
+
+julia> HN = all_HN_types(Q, d, theta)
+8-element Vector{Vector{Vector{Int64}}}:
+ [[2, 3]]
+ [[1, 1], [1, 2]]
+ [[2, 2], [0, 1]]
+ [[2, 1], [0, 2]]
+ [[1, 0], [1, 3]]
+ [[1, 0], [1, 2], [0, 1]]
+ [[1, 0], [1, 1], [0, 2]]
+ [[2, 0], [0, 3]]
+
+ julia> for hntype in HN
+ println(QuiverTools.codimension_HN_stratum(Q, hntype))
+ end
+0
+3
+4
+10
+8
+9
+12
+18
+```
 """
 function codimension_HN_stratum(Q::Quiver, stratum::Vector{Vector{Int}})
     if length(stratum) == 1
