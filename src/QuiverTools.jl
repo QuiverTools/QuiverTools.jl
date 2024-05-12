@@ -385,14 +385,17 @@ for all generic subdimension vectors e' of e.
     if e == d
         return true
     elseif all(ei==0 for ei in e)
-        return false
+        # return false
+        return true
     else
     # considering subdimension vectors that violate the numerical condition
-    # TODO this filtering is inefficent. For fixed d-e, this is a LINEAR form, we KNOW which eprimes violate the condition. We should just check those.
+    # TODO this filtering is inefficent.
+    # For fixed d-e, this is a LINEAR form, we KNOW which eprimes violate the condition.
+    # We should just check those.
         Euler_matrix_temp = Euler_matrix(Q) * (d-e) #to speed up computation of <eprime,d-e>
-        subdimensions = filter(eprime -> eprime'*Euler_matrix_temp < 0, all_nonzero_subdimension_vectors(e))
+        subdimensions = filter(eprime -> eprime'*Euler_matrix_temp < 0, all_subdimension_vectors(e))
         # none of the subdimension vectors violating the condition should be generic
-        return !any(eprime -> is_generic_subdimension_vector(Q, eprime, e, algorithm="schofield"), subdimensions)
+        return !any(eprime -> is_generic_subdimension_vector(Q, eprime, e), subdimensions)
     end
 end
 
@@ -577,15 +580,16 @@ of irreducible representations of dimension vectors ``\\beta_i``.
 Such a decomposition is called therefore the canonical decomposition.
 """
 function canonical_decomposition(Q::Quiver, d::Vector{Int})
-    if is_Schur_root(Q, d)
-        return [d]
-    end
-    generic_subdimensions = all_generic_subdimension_vectors(Q, d)
+    # if is_Schur_root(Q, d)
+    #     return [d]
+    # end
+    generic_subdimensions = filter(e -> e != d, all_generic_subdimension_vectors(Q, d))
     for e in generic_subdimensions
         if d - e in generic_subdimensions && generic_ext(Q, e, d-e) == 0 && generic_ext(Q, d-e, e) == 0
             return vcat(canonical_decomposition(Q, e), canonical_decomposition(Q, d-e))
         end
     end
+    return [d] # if nothing above worked then d is a Schur root. Right?
 end
 
 """
@@ -961,6 +965,9 @@ function thin_dimension_vector(Q::Quiver)
 end
 
 @memoize Dict function all_subdimension_vectors(d::Vector{Int})
+    if any(di < 0 for di in d)
+        throw(ArgumentError("dimension vector must be nonnegative"))
+    end
     return collect.(Iterators.product(map(di -> 0:di, d)...))
 end
 @memoize Dict function all_nonzero_subdimension_vectors(d::Vector{Int})::Vector{Vector{Int}}
