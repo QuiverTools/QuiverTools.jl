@@ -713,7 +713,8 @@ end
 Computes the dimension of the ext group between generic representations
 of dimension vectors a and b.
 
-According to Thm. 5.4 in Schofield's 'General representations of quivers', we have ext(a,b) = max{-<c,b> | c gen. subdimension vector of a}.
+According to Thm. 5.4 in Schofield's 'General representations of quivers', we have
+``ext(a,b) = max\\{- \\langle c, b\\rangle \\| c gen. subdimension vector of a\\}``.
 """
 function generic_ext(Q::Quiver, a::Vector{Int}, b::Vector{Int})
     return maximum(-Euler_form(Q, c, b) for c in all_generic_subdimension_vectors(Q, a))
@@ -836,7 +837,7 @@ function semistable_equals_stable(Q::Quiver, d::Vector{Int}, theta::Vector{Int},
     throw(ArgumentError("not implemented"))
 end
 
-function in_fundamental_domain(Q::Quiver, d::Vector{Int}; interior=false)
+function in_fundamental_domain(Q::Quiver, d::Vector{Int}; interior::Bool=false)
     # https://arxiv.org/abs/2209.14791 uses a strict inequality, while https://arxiv.org/abs/2310.15927 uses a non-strict?
     # here we set it to non-strict by default because.
 
@@ -848,13 +849,12 @@ function in_fundamental_domain(Q::Quiver, d::Vector{Int}; interior=false)
     end
     if interior
         return all(simple -> EulerForm(Q, d, simple) + EulerForm(Q, simple, d) < 0, simples)
-    elseif !interior
-        return all(simple -> EulerForm(Q, d, simple) + EulerForm(Q, simple, d) <= 0, simples)
     end
-    throw(ArgumentError("interior must be true or false"))
+    return all(simple -> EulerForm(Q, d, simple) + EulerForm(Q, simple, d) <= 0, simples)
 end
-
+######################################################################################
 # Below lie methods to compute Hodge diamonds translated from the Hodge diamond cutter.
+######################################################################################
 
 """
 Solve Ax=b for A upper triangular via back substitution
@@ -875,7 +875,7 @@ end
 """
 Cardinality of general linear group \$\\mathrm{GL}_n(\\mathbb{F}_v)\$.
 """
-@memoize Dict function CardinalGl(n::Int,q)
+@memoize Dict function CardinalGl(n::Int, q)
     #TODO type
     if n == 0
         return 1
@@ -887,7 +887,7 @@ end
 """
 Cardinality of representation space \$\\mathrm{R}(Q,d)\$, over \$\\mathbb{F}_q\$.
 """
-function CardinalRd(Q::Quiver, d::Vector{Int},q)
+function CardinalRd(Q::Quiver, d::Vector{Int}, q)
     #TODO type
     return q^sum(d[i] * d[j] * Q.adjacency[i,j] for i in 1:number_of_vertices(Q), j in 1:number_of_vertices(Q))
 end
@@ -895,7 +895,7 @@ end
 """
 Cardinality of product of general linear groups \$\\mathrm{GL}_{d}(\\mathbb{F}_q)\$.
 """
-@memoize Dict function CardinalGd(d::Vector{Int},q)
+@memoize Dict function CardinalGd(d::Vector{Int}, q)
     #TODO type
     return prod(CardinalGl(di,q) for di in d)
 end
@@ -924,7 +924,7 @@ function TdChangeThisName(Q::Quiver, d::Vector{Int}, theta::Vector{Int},q)
 
     for (i, Ii) in enumerate(I)
         for j in i:length(I)  # upper triangular
-            T[i, j] = TransferMatrixEntry(Q, Ii, I[j],q)
+            T[i, j] = TransferMatrixEntry(Q, Ii, I[j], q)
         end
     end
 
@@ -1002,7 +1002,7 @@ function PicardRank(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     one_at_the_end[end] = 1
 
     # extract coefficent of Hodge polynomial of degree 1 in v (= h^{1,1})
-    return coeff(numerator(solve(T, one_at_the_end)[1] * (1-v)),1).num
+    return coeff(numerator(solve(T, one_at_the_end)[1] * (1-v)), 1).num
 end
 
 function _picard_rank_fast(Q::Quiver,d::Vector{Int},theta::Vector{Int})
@@ -1080,15 +1080,36 @@ function DynkinQuiver(T::String, n::Int)
 
         return Quiver(M, "Dynkin quiver of type D$n")
     elseif T == "E"
-        if !(n in [6,7,8])
+        if !(n in [6, 7, 8])
             throw(ArgumentError("$n is out of bounds."))
         end
         if n == 6
-            return Quiver([0 1 0 0 0 0 0; 0 0 1 0 0 0 0; 0 0 0 1 1 0 0; 0 0 0 0 0 0 0; 0 0 0 0 0 1 0; 0 0 0 0 0 0 1; 0 0 0 0 0 0 0], "Dynkin quiver of type E6")
+            return Quiver([ 0 1 0 0 0 0 0;
+                            0 0 1 0 0 0 0;
+                            0 0 0 1 1 0 0;
+                            0 0 0 0 0 0 0;
+                            0 0 0 0 0 1 0;
+                            0 0 0 0 0 0 1;
+                            0 0 0 0 0 0 0], "Dynkin quiver of type E6")
         elseif n == 7
-            return Quiver([0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 1 0 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 1; 0 0 0 0 0 0 0 0], "Dynkin quiver of type E7")
+            return Quiver([ 0 1 0 0 0 0 0 0;
+                            0 0 1 0 0 0 0 0;
+                            0 0 0 1 1 0 0 0;
+                            0 0 0 0 0 0 0 0;
+                            0 0 0 0 0 1 0 0;
+                            0 0 0 0 0 0 1 0;
+                            0 0 0 0 0 0 0 1;
+                            0 0 0 0 0 0 0 0], "Dynkin quiver of type E7")
         elseif n == 8
-            return Quiver([0 1 0 0 0 0 0 0 0; 0 0 1 0 0 0 0 0 0; 0 0 0 1 1 0 0 0 0; 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 1 0 0 0; 0 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 0 1; 0 0 0 0 0 0 0 0 0], "Dynkin quiver of type E8")
+            return Quiver([ 0 1 0 0 0 0 0 0 0;
+                            0 0 1 0 0 0 0 0 0;
+                            0 0 0 1 1 0 0 0 0;
+                            0 0 0 0 0 0 0 0 0;
+                            0 0 0 0 0 1 0 0 0;
+                            0 0 0 0 0 0 1 0 0;
+                            0 0 0 0 0 0 0 1 0;
+                            0 0 0 0 0 0 0 0 1;
+                            0 0 0 0 0 0 0 0 0], "Dynkin quiver of type E8")
         end
     else
         throw(ArgumentError("not implemented"))

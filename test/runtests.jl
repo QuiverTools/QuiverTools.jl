@@ -1,9 +1,10 @@
 using Test, QuiverTools
 
-@testset "basic-methods" begin
+@testset begin
+#  basic methods
     K = mKronecker_quiver(4)
     
-    @test QuiverTools.underlying_graph(K) == [0 4;4 0]
+    @test QuiverTools.underlying_graph(K) == [0 4; 4 0]
     @test nvertices(K) == 2
     @test narrows(K) == 4
     @test is_acyclic(K) == true
@@ -14,14 +15,16 @@ using Test, QuiverTools
     @test Euler_form(K, [1, 1], [1, 1]) == -2
 end;
 
-@testset "constructors" begin
+@testset begin
+# constructors
     @test mKronecker_quiver(3).adjacency == [0 3; 0 0]
     @test three_vertex_quiver(3,4,5).adjacency == [0 3 4; 0 0 5; 0 0 0]
-    @test loop_quiver(3).adjacency == Matrix{Int64}(reshape([3],1,1))
-    @test subspace_quiver(2).adjacency == [0 0 1; 0 0 1;0 0 0]
+    @test loop_quiver(3).adjacency == Matrix{Int}(reshape([3], 1, 1))
+    @test subspace_quiver(2).adjacency == [0 0 1; 0 0 1; 0 0 0]
 end;
 
-@testset "all_slope_decreasing_sequences()" begin
+@testset begin
+# all_slope_decreasing_sequences()
     Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
     @test QuiverTools.all_slope_decreasing_sequences(Q, d, theta) == [  [[2, 3]],
                                                                         [[1, 1], [1, 2]],
@@ -33,7 +36,8 @@ end;
                                                                         [[2, 0], [0, 3]]]
 end;
 
-@testset "all_generic_subdimension_vectors()" begin
+@testset begin
+# all_generic_subdimension_vectors()
     Q = mKronecker_quiver(3);
     @test QuiverTools.all_generic_subdimension_vectors(Q, [2,3]) == [   [0, 0],
                                                                         [0, 1],
@@ -48,7 +52,8 @@ end;
                                                                         [3, 0]]
 end;
 
-@testset "has_semistables()" begin
+@testset begin
+# has_semistables()
     Q = mKronecker_quiver(17)
     @test has_semistables(Q,[1,13], [13,-1]) == true
     @test has_semistables(Q,[1,13], [-13,1]) == false
@@ -80,7 +85,8 @@ end;
     @test has_semistables(K3, [0,3], [1,0]) == true
 end;
 
-@testset "has_stables()" begin
+@testset begin
+# has_stables()
     Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
     @test has_stables(Q, d, theta) == true
     
@@ -90,7 +96,8 @@ end;
     @test has_stables(Q, [0,3], [1,0]) == false
 end
 
-@testset "proper-semistability" begin
+@testset begin
+# proper-semistability
     Q = mKronecker_quiver(2); d = [2,2]; theta = [1,-1];
 
     @test has_semistables(Q, d, theta) == true
@@ -103,7 +110,9 @@ end
     @test has_semistables(Q, [3,0], [0,-1]) == true
     @test has_semistables(Q, [0,3], [1,0]) == true
 end;
-@testset "all_HN_types()" begin
+
+@testset begin
+# all_HN_types()
     Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
     @test all_HN_types(Q, d, theta) == [[[2, 3]],
@@ -129,11 +138,13 @@ end;
     @test string(all_HN_types(Q,d,theta)) == expected
 end;
 
-@testset "is_amply_stable()" begin
+@testset begin
+# is_amply_stable()
     Q = mKronecker_quiver(3); d = [2,3];
 
     @test is_amply_stable(Q, d, [3,-2]) == true
     @test is_amply_stable(Q, d, [-3,2]) == false
+    @test is_amply_stable(Q, [3,0], [0,-3]) == true
 end;
 
 
