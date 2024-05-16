@@ -1,6 +1,8 @@
 module QuiverTools
 
 import Base.show
+using Memoize, LinearAlgebra
+using Nemo
 
 export Quiver
 export nvertices, narrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
@@ -8,10 +10,9 @@ export Euler_form, canonical_stability, is_coprime, slope
 export is_Schur_root, generic_ext, generic_hom, canonical_decomposition
 export all_HN_types, has_semistables, has_stables, is_amply_stable
 export all_Teleman_bounds, all_weights_endomorphisms_universal_bundle, all_weights_universal_bundle, all_weights_irreducible_component_canonical
+export Hodge_diamond, Hodge_polynomial, Picard_rank
 export mKronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver
 
-using Memoize, LinearAlgebra
-# using Oscar
 
 # TODO coframed_quiver()
 # TODO full_subquiver()
@@ -409,6 +410,19 @@ true
 """
 is_Schur_root(Q::Quiver, d::Vector{Int}) = has_stables(Q, d, canonical_stability(Q, d))
 
+function is_real_root(Q, d)
+    return Euler_form(Q, d, d) == 1
+end
+
+function is_imaginary_root(Q, d)
+    return Euler_form(Q, d, d) <= 0
+end
+
+function is_isotropic_root(Q, d)
+    return Euler_form(Q, d, d) == 0
+end
+
+
 """Checks if e is a generic subdimension vector of d.
 
 A dimension vector e is called a generic subdimension vector of d if a generic representation
@@ -751,48 +765,16 @@ function canonical_decomposition(Q::Quiver, d::Vector{Int})
             return vcat(canonical_decomposition(Q, e), canonical_decomposition(Q, d-e))
         end
     end
-    return [d] # if nothing above worked then d is a Schur root. Right?
+    return [d] # if nothing above worked then d is a Schur root.
 end
 
-"""
-Checks wether the stability parameter theta is on a wall with respect to the wall-and-chamber decomposition for the dimension vector d.
-The wall and chamber decomposition is described in Section 2.2, MR4352662
-"""
-function is_on_a_fake_wall(d::Vector{Int}, theta::Vector{Int}) 
-    return any(e -> e'*theta == 0, all_proper_subdimension_vectors(d))
-end
-
-function _fano_paper_picard_rank(Q::Quiver,d::Vector{Int})
-    # MR4352662 gives the following easy computation. What to do for others?
-    #TODO This should really be a method for a QuiverModuliSpace object. Translate the rest of the code?
-    @info "Do this as in the hodge diamond cutter."
-    
-    theta = canonical_stability(Q,d)
-    if is_coprime(d, theta) && is_amply_stable(Q, d, theta)
-        return number_of_vertices(Q) - 1
-    else
-       Throw(NotImplementedError("Not implemented for this stability parameter."))
-    end
-end
-
-
-function does_Mukai_inequality_hold(Q::Quiver, d::Vector{Int}; theta::Vector{Int} = canonical_stability_parameter(Q,d), safe=false)
-    # the first condition should really verify that theta is in the canonical chamber, but that is not implemented yet.
-    # TODO: implement the canonical chamber check
-    if safe
-        run = theta == canonical_stability_parameter(Q,d) && is_coprime(d, theta) && is_amply_stable(Q, d, theta)
-    else
-        run = true
-    end
-    if run
-        PicardRank = number_of_vertices(Q) - 1
-        Index = gcd(theta)
-        return 1 - EulerForm(Q,d,d) >= PicardRank*(Index - 1)
-    else
-        Throw(NotImplementedError("Not implemented for this stability parameter."))
-    end
-end
-
+# """
+# Checks wether the stability parameter theta is on a wall with respect to the wall-and-chamber decomposition for the dimension vector d.
+# The wall and chamber decomposition is described in Section 2.2, MR4352662
+# """
+# function is_on_a_fake_wall(d::Vector{Int}, theta::Vector{Int}) 
+#     return any(e -> e'*theta == 0, all_proper_subdimension_vectors(d))
+# end
 
 """
 Given an HN type the quiver Q, returns the upper triangular matrix whose ij entry is ext(d^1,d^j) where (d^1,...,d^l) is the HN type.
@@ -807,7 +789,7 @@ function extension_matrix(Q::Quiver, hntype::Vector{Vector{Int}})
     else
         M = zeros(Int, n, n)
         for i in 1:n-1, j in i+1:n
-            M[i,j] = -EulerForm(Q, hntype[i], hntype[j])
+            M[i,j] = -Euler_form(Q, hntype[i], hntype[j])
         end
         return M
     end
@@ -816,7 +798,7 @@ end
 
 
 function is_luna_type(Q::Quiver, tau::Vector{Tuple{Vector{Int},Int}}, theta::Vector{Int})
-    n = number_of_vertices(Q)
+    n = nvertices(Q)
     zeroVector = Vector{Int}(zeros(Int, n))
     d = sum(sum(tupl[1] .* tupl[2]) for tupl in tau) 
     if d == zeroVector
@@ -837,35 +819,43 @@ function semistable_equals_stable(Q::Quiver, d::Vector{Int}, theta::Vector{Int},
     throw(ArgumentError("not implemented"))
 end
 
+# TODO write this as a normal person would
 function in_fundamental_domain(Q::Quiver, d::Vector{Int}; interior::Bool=false)
     # https://arxiv.org/abs/2209.14791 uses a strict inequality, while https://arxiv.org/abs/2310.15927 uses a non-strict?
     # here we set it to non-strict by default because.
 
     # there has to be a way to do this better
-    simples = [zeros(Int,number_of_vertices(Q)) for i in 1:number_of_vertices(Q)]
+    simples = [zeros(Int,nvertices(Q)) for i in 1:nvertices(Q)]
 
-    for i in 1:number_of_vertices(Q)
+    for i in 1:nvertices(Q)
         simples[i][i] = 1
     end
     if interior
-        return all(simple -> EulerForm(Q, d, simple) + EulerForm(Q, simple, d) < 0, simples)
+        return all(simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) < 0, simples)
     end
-    return all(simple -> EulerForm(Q, d, simple) + EulerForm(Q, simple, d) <= 0, simples)
+    return all(simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) <= 0, simples)
 end
+
 ######################################################################################
 # Below lie methods to compute Hodge diamonds translated from the Hodge diamond cutter.
+# In turn, these are based on M. Reineke's paper
+# "The Harder-Narasimhan system in quantum groups and cohomology of quiver moduli", 
+# https://doi.org/10.1007/s00222-002-0273-4
 ######################################################################################
+
+
+###################################################
+# auxiliary functions for HOdge_polynomial() below
 
 """
 Solve Ax=b for A upper triangular via back substitution
 """
 function solve(A,b)
-    #TODO type
     n = length(b)
     x = Vector{Any}(zeros(n))
-
+    
     x[n] = b[n] / A[n,n]
-
+    
     for i in n-1:-1:1
         x[i] = (b[i] - sum(A[i,j]*x[j] for j in i+1:n)) / A[i,i]
     end
@@ -876,7 +866,6 @@ end
 Cardinality of general linear group \$\\mathrm{GL}_n(\\mathbb{F}_v)\$.
 """
 @memoize Dict function CardinalGl(n::Int, q)
-    #TODO type
     if n == 0
         return 1
     else
@@ -888,137 +877,109 @@ end
 Cardinality of representation space \$\\mathrm{R}(Q,d)\$, over \$\\mathbb{F}_q\$.
 """
 function CardinalRd(Q::Quiver, d::Vector{Int}, q)
-    #TODO type
-    return q^sum(d[i] * d[j] * Q.adjacency[i,j] for i in 1:number_of_vertices(Q), j in 1:number_of_vertices(Q))
+    return q^sum(d[i] * d[j] * Q.adjacency[i,j] for i in 1:nvertices(Q), j in 1:nvertices(Q))
 end
 
 """
 Cardinality of product of general linear groups \$\\mathrm{GL}_{d}(\\mathbb{F}_q)\$.
 """
 @memoize Dict function CardinalGd(d::Vector{Int}, q)
-    #TODO type
-    return prod(CardinalGl(di,q) for di in d)
+    return prod(CardinalGl(di, q) for di in d)
 end
 
 """Entry of the transfer matrix, as per Corollary 6.9"""
 function TransferMatrixEntry(Q, e, f, q)
-    #TODO type
     fe = f - e
-
+    
     if all(fei >= 0 for fei in fe)
-        return q^EulerForm(Q,-fe,e) * CardinalRd(Q, fe,q) / CardinalGd(fe,q)
+        return q^Euler_form(Q, -fe, e) * CardinalRd(Q, fe, q) / CardinalGd(fe, q)
     else
         return 0
     end
 end
 
-function TdChangeThisName(Q::Quiver, d::Vector{Int}, theta::Vector{Int},q)
-
+function Td(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, q)
     # indexing set for the transfer matrix
     I = filter(e -> slope(e, theta) > slope(d, theta), all_proper_subdimension_vectors(d))
-    append!(I, [d])
-    pushfirst!(I, ZeroVector(number_of_vertices(Q)))
+    I = vcat([zero_vector(nvertices(Q))], I, [d])
 
-    # TODO this should just be a placeholder for the matrix
-    T = Matrix{Any}(zeros(length(I),length(I)))
-
+    l = length(I)
+    T = Matrix{Any}(zeros(l, l))
+    
     for (i, Ii) in enumerate(I)
-        for j in i:length(I)  # upper triangular
+        for j in i:l  # upper triangular
             T[i, j] = TransferMatrixEntry(Q, Ii, I[j], q)
         end
     end
-
     return T
 end
-"""Returns the Hodge polynomial of the moduli space of theta-semistable representations of Q with dimension vector d. 
+    
+# auxiliary functions for Hodge_polynomial() above
+###################################################
+    
 """
-function hodge_polynomial(Q::Quiver,d::Vector{Int},theta::Vector{Int})
-
+Returns the Hodge polynomial of the moduli space of theta-semistable representations of Q with dimension vector d. 
+"""
+function Hodge_polynomial(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
+    
     # safety checks
-    if !is_coprime_for_stability_parameter(d,theta)
-        throw(ArgumentError("d and theta are not coprime"))
-    elseif !IsAcyclic(Q)
-        throw(ArgumentError("Q is not acyclic"))
+    if theta' * d == 0 && !is_coprime(d)
+        throw(ArgumentError("d is not coprime"))
+    elseif theta' * d != 0 && gcd(theta' * d, sum(d)) != 1
+        throw(ArgumentError("d is not coprime in the sense of Definition 6.3."))
+    elseif !is_acyclic(Q)
+        throw(ArgumentError("Q is not acyclic."))
     end
 
-    R,q = polynomial_ring(QQ,'q')
+    R, q = polynomial_ring(Nemo.QQ, 'q')
     F = fraction_field(R)
     v = F(q) # worsens performance by ~8%. Necessary?
+    
+    T = Td(Q, d, theta, v)
 
-    T = TdChangeThisName(Q,d,theta,v)
-
-    # there HAS to be a better way to do this
-    one_at_the_end = [0 for i in 1:size(T)[1]]
-    one_at_the_end[end] = 1
-
+    one_at_the_end = unit_vector(size(T)[1], size(T)[1])
+    
     result = numerator(solve(T, one_at_the_end)[1] * (1-v))
-    S,(x, y) = PolynomialRing(QQ, ["x", "y"])
+
+    S,(x, y) = polynomial_ring(Nemo.QQ, ["x", "y"])
     return result(x*y)
     # return [coeff(result,i) for i in 0:degree(result)] # this is actually all we need for the Hodge diamond because the matrix is diagonal for quiver moduli
-end
-
-function hodge_diamond_from_polynomial(g)
-    #TODO can be bypassed by knowing that this matrix is diagonal. Do this before high performance computations!
-    result = zeros(degree(g,1)+1,degree(g,2)+1)
-    for i in 1:degree(g,1)+1
-        for j in 1:degree(g,2)+1
-            # .num is to extract the Int 
-            result[i,j] = coeff(g,[i-1,j-1]).num
-        end
-    end
-    return result
 end
 
 """
 Returns the Hodge diamond of the moduli space of theta-semistable representations of Q with dimension vector d.
 """
-function HodgeDiamond(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
-    return hodge_diamond_from_polynomial(hodge_polynomial(Q,d,theta))
+function Hodge_diamond(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
+    g = Hodge_polynomial(Q, d, theta)
+    return map(ind -> coeff(g, [ind[1] - 1, ind[2] - 1]).num, collect.(Iterators.product(1:degree(g, 1) + 1, 1:degree(g, 2) + 1)))
 end
 
 """
 Picard rank of the moduli space of theta-semistable representations of Q with dimension vector d.
 """
-function PicardRank(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
+function Picard_rank(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     # TODO If over the complex numbers this should be h^{1,1}, since the moduli space is rational.
     # TODO This should follow from the long exact sequence in cohomology given by the exponential short exact sequence.
 
-    # safety checks
-    if !is_coprime_for_stability_parameter(d,theta)
-        throw(ArgumentError("d and theta are not coprime"))
-    elseif !IsAcyclic(Q)
-        throw(ArgumentError("Q is not acyclic"))
-    end
+    return coeff(Hodge_polynomial(Q, d, theta), 2, 2).num
+end
 
-    # find Hodge polynomial as in th diamond cutter
-    R,q = polynomial_ring(Nemo.QQ,'q')
+function _Hodge_polynomial_fast(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
+    # unsafe, curate input!
+    # this is about 2% faster than the above, and occupies about 2% less memory.
+    
+    R, q = polynomial_ring(QQ, 'q')
     F = fraction_field(R)
     v = F(q) # worsens performance by ~8%. Necessary?
     
-    T = TdChangeThisName(Q,d,theta,v)
+    T = Td(Q, d, theta, v)
+
+    one_at_the_end = unit_vector(size(T)[1], size(T)[1])
     
-    # there HAS to be a better way to do this
-    one_at_the_end = [0 for i in 1:size(T)[1]]
-    one_at_the_end[end] = 1
-
-    # extract coefficent of Hodge polynomial of degree 1 in v (= h^{1,1})
-    return coeff(numerator(solve(T, one_at_the_end)[1] * (1-v)), 1).num
+    result = numerator(solve(T, one_at_the_end)[1] * (1-v))
+    return [coeff(result, i) for i in 0:degree(result)] # this is actually all we need for the Hodge diamond because the matrix is diagonal for quiver moduli
 end
 
-function _picard_rank_fast(Q::Quiver,d::Vector{Int},theta::Vector{Int})
-    # internal, comes with no safety checks.
-    R,q = polynomial_ring(Nemo.QQ,'q')
-    F = fraction_field(R)
-    v = F(q) # worsens performance by ~8%. Necessary?
-
-    T = TdChangeThisName(Q,d,theta,v)
-
-    # there HAS to be a better way to do this
-    one_at_the_end = [0 for i in 1:size(T)[1]]
-    one_at_the_end[end] = 1
-
-    return coeff(numerator(solve(T, one_at_the_end)[1] * (1-v)),1).num
-end
 
 
 #################
@@ -1167,7 +1128,7 @@ end
 end
 
 function unit_vector(Q::Quiver, i::Int)
-    return unit_vector(number_of_vertices(Q), i)
+    return unit_vector(nvertices(Q), i)
 end
 
 
