@@ -9,7 +9,7 @@ so you can install it by running the following command in the Julia REPL:
 pkg> no-you-can-not-install-it-yet
 ```
 
-## Examples
+## Basic functionalities
 
 To start using QuiverTools in the REPL, one first must import it.
 
@@ -76,6 +76,29 @@ julia> Euler_form(Q, d, e)
 julia> Euler_form(Q, e, d)
 -4
 ```
+
+This allows to verify whether any given dimension vector belongs to the fundamental domain of the problem.
+
+The fundamental domain is the cone of dimension vectors in ``\mathbb{Z}^{Q_0}``
+such that the symmetric Tits form is negative on all the simple roots, i.e.,
+for all vertices i,
+
+```math
+(s_i, d) := \langle d, s_i\rangle + \langle s_i, d\rangle  \leq 0,
+```
+
+where ``s_i`` is the dimension vector with all entries set to ``0`` and the i-th
+set to ``1``.
+
+```julia-repl
+julia> QuiverTools.in_fundamental_domain(Q, d)
+true
+
+julia> QuiverTools.in_fundamental_domain(Q, [1,3])
+false
+```
+
+## Stable and semistable dimension vectors
 
 One can check if semistable, respectively stable representations
 exist for a given dimension vector and stability parameter:
@@ -156,11 +179,7 @@ Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
   [[2, 0], [0, 3]]         => 90
 ```
 
-## Use cases
-
-The following are examples of use cases for QuiverTools
-
-### **Verify Teleman inequalities**
+## Verify Teleman inequalities
 
 In the following example, for each ``i,j`` and on each Harder-Narasimhan stratum,
 we compute the weight of ``\mathcal{U}_i^\vee \otimes \mathcal{U}_j`` relative to the
@@ -290,9 +309,9 @@ julia> filter(d -> QuiverTools.is_imaginary_root(Q, d), ds)
  [3, 5]
  [4, 5]
  [5, 5]
- ```
+```
 
-### Hodge polynomials
+## Hodge polynomials
 
 QuiverTools features an implementation of the Hodge polynomial of quiver moduli, if the base field is ``\mathbb{C}`` and the dimension vector is a coprime Schurian root.
 
@@ -313,12 +332,15 @@ julia> Hodge_diamond(Q, d, theta)
  0  0  0  0  0  0  1
 ```
 
+Note that the ``i, j``-th entry of the matrix representing the Hodge diamond is ``h^{i,j}``. In other words, the point of the diamond is on the upper left side of the matrix.
+
 This allows us to conclude that the Picard rank of the moduli space is 1.
 
 ```julia-repl
 julia> Picard_rank(Q, d, theta)
 1
 ```
+
 For performance-oriented computations, one can use some theoretical results to get a slightly faster computation of the Hodge polynomial.
 
 ```julia-repl
@@ -332,7 +354,7 @@ This skips some safety checks and returns the Hodge polynomial after the change 
 julia> using BenchmarkTools
 
 julia> @benchmark Hodge_polynomial(Q, d, theta)
-@benchmBenchmarkTools.Trial: 10000 samples with 1 evaluation.
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
  Range (min … max):  117.500 μs … 109.571 ms  ┊ GC (min … max):  0.00% … 41.09%
  Time  (median):     123.188 μs               ┊ GC (median):     0.00%
  Time  (mean ± σ):   230.718 μs ±   3.241 ms  ┊ GC (mean ± σ):  18.81% ±  1.36%
@@ -354,7 +376,8 @@ BenchmarkTools.Trial: 10000 samples with 1 evaluation.
   115 μs           Histogram: frequency by time          139 μs <
 
  Memory estimate: 132.34 KiB, allocs estimate: 3327.
- ```
+```
+
 
 <!-- 
 ## Bundle library
