@@ -1,8 +1,13 @@
 module QuiverTools
 
-import Base.show
-using Memoize, LinearAlgebra
+using Memoize
 using Nemo
+using JuMP, HiGHS
+using LinearAlgebra
+
+import Base.show
+# import LinearAlgebra.I
+# import JuMP.Model, JuMP.optimize!, JuMP.@variable, JuMP.@constraint, JuMP.@objective, JuMP.termination_status
 
 export Quiver
 export nvertices, narrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
@@ -840,6 +845,61 @@ function in_fundamental_domain(Q::Quiver, d::Vector{Int}; interior::Bool=false)
     return all(simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) <= 0, simples)
 end
 
+##############################################################
+# walls and chambers decomposition for stability parameters
+
+
+function is_stable_cone_nonempty(Q::Quiver, d::Vector{Int}; strict::Bool=false)
+    # use JUMPs to check if the intersection of all the half spaces is nonempty
+    # each space is given by the inequality <theta, e> <= 0 for all e in the set of all generic subdimension vectors of d
+    # the intersection of all these half spaces is the stable cone
+
+    model = JuMP.Model(HiGHS.Optimizer)
+    JuMP.@variable(model, x[1:nvertices(Q)], integer=true)
+
+    for e in all_generic_subdimension_vectors(Q, d)
+        if strict
+            JuMP.@constraint(model, dot(x, e) <= -0.5)
+        end
+        JuMP.@constraint(model, dot(x, e) <= 0)
+    end
+
+    #optimize a constant function = check if feasible set is nonempty
+        JuMP.@objective(model, Min, 1)
+        JuMP.set_silent(model)
+        JuMP.optimize!(model)
+
+    if JuMP.termination_status(model) == MOI.OPTIMAL
+        return true
+    else
+        return false
+    end
+end
+
+"""
+Checks if the stability parameter theta belongs to the cone of parameters admitting
+stable representations of dimension vector d.
+Assumes that the dimension vector d is Schurian (for now).
+"""
+function in_stable_cone(Q::Quiver, d::Vector{Int}, theta::Vector{Int}; strict::Bool = false)
+    if !is_Schur_root(Q, d)
+        throw(ArgumentError("d is not Schurian"))
+    end
+    if strict
+        return all(e -> theta' * e < 0, all_generic_subdimension_vectors(Q, d))
+    end
+    return all(e -> theta' * e <= 0, all_generic_subdimension_vectors(Q, d))
+end
+
+# how to find inner walls now? These are given by a finite subset of the special subdimension vectors of d.
+# which ones? and how to find them?
+
+
+
+
+
+
+
 ######################################################################################
 # Below lie methods to compute Hodge diamonds translated from the Hodge diamond cutter.
 # In turn, these are based on M. Reineke's paper
@@ -849,7 +909,7 @@ end
 
 
 ###################################################
-# auxiliary functions for HOdge_polynomial() below
+# auxiliary functions for Hodge_polynomial() below
 
 """
 Solve Ax=b for A upper triangular via back substitution
