@@ -16,10 +16,8 @@ export mKronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver
 
 # TODO coframed_quiver()
 # TODO full_subquiver()
-# TODO roots are imaginary, real?
-# TODO in_fundamental_domain
-# TODO Hochschild cohomology
-
+# TODO bipartite quiver
+# TODO wall and chamber decomposition
 
 """
 A quiver is represented by its adjacency
@@ -819,17 +817,23 @@ function semistable_equals_stable(Q::Quiver, d::Vector{Int}, theta::Vector{Int},
     throw(ArgumentError("not implemented"))
 end
 
-# TODO write this as a normal person would
+"""
+Checks if the dimension vector d is in the fundamental domain of the quiver Q.
+
+The fundamental domain is the cone of dimension vectors in ``\\mathbb{Z}^{Q_0}``
+such that the symmetric Tits form is negative on all the simple roots, i.e.,
+for all vertices i, 
+
+``(i, d) := \\langle d, s_i\\rangle + \\langle s_i, d\\rangle  \\leq 0``,
+
+where ``s_i`` is the dimension vector with all entries set to 0, and the i-th
+set to 1.
+"""
 function in_fundamental_domain(Q::Quiver, d::Vector{Int}; interior::Bool=false)
-    # https://arxiv.org/abs/2209.14791 uses a strict inequality, while https://arxiv.org/abs/2310.15927 uses a non-strict?
-    # here we set it to non-strict by default because.
-
-    # there has to be a way to do this better
-    simples = [zeros(Int,nvertices(Q)) for i in 1:nvertices(Q)]
-
-    for i in 1:nvertices(Q)
-        simples[i][i] = 1
-    end
+    # https://arxiv.org/abs/2209.14791 uses a strict inequality, while https://arxiv.org/abs/2310.15927 uses a non-strict.
+    # here we set it to non-strict by default.
+    
+    simples = [unit_vector(nvertices(Q), i) for i in 1:nvertices(Q)]
     if interior
         return all(simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) < 0, simples)
     end
@@ -918,7 +922,10 @@ end
 ###################################################
     
 """
-Returns the Hodge polynomial of the moduli space of theta-semistable representations of Q with dimension vector d. 
+Returns the Hodge polynomial of the moduli space of theta-semistable representations of Q with dimension vector d.
+The algorithm is based on [MR1974891](https://doi.org/10.1007/s00222-002-0273-4),
+and the current implementation is translated from the [Hodge diamond cutter]
+(https://zenodo.org/doi/10.5281/zenodo.3893509).
 """
 function Hodge_polynomial(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     
@@ -951,7 +958,7 @@ Returns the Hodge diamond of the moduli space of theta-semistable representation
 """
 function Hodge_diamond(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     g = Hodge_polynomial(Q, d, theta)
-    return map(ind -> coeff(g, [ind[1] - 1, ind[2] - 1]).num, collect.(Iterators.product(1:degree(g, 1) + 1, 1:degree(g, 2) + 1)))
+    return map(ind -> coeff(g, [ind[1] - 1, ind[2] - 1]).num, Iterators.product(1:degree(g, 1) + 1, 1:degree(g, 2) + 1))
 end
 
 """
