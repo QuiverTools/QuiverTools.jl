@@ -147,6 +147,14 @@ end;
     @test is_amply_stable(Q, [3,0], [0,-3]) == true
 end;
 
+# TODO teleman weight computations
+# TODO generic hom, ext
+# TODO canonical decomposition
+# TODO fundamental domain
+# TODO stable cone methods
+# TODO auxiliary methods for Hodge polynomial
+# TODO Hodge diamond (test against what?)
+
 
 # @testset "Testing weight handling" begin 
 

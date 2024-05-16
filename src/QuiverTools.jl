@@ -869,7 +869,9 @@ end
 # walls and chambers decomposition for stability parameters
 
 
-function is_stable_cone_nonempty(Q::Quiver, d::Vector{Int}; strict::Bool=false)
+function is_stable_cone_nonempty(Q::Quiver, d::Vector{Int})
+    # TODO profile this. Does it leave stuff in memory once it is done?
+
     # use JUMPs to check if the intersection of all the half spaces is nonempty
     # each space is given by the inequality <theta, e> <= 0 for all e in the set of all generic subdimension vectors of d
     # the intersection of all these half spaces is the stable cone
@@ -878,9 +880,6 @@ function is_stable_cone_nonempty(Q::Quiver, d::Vector{Int}; strict::Bool=false)
     JuMP.@variable(model, x[1:nvertices(Q)], integer=true)
 
     for e in all_generic_subdimension_vectors(Q, d)
-        if strict
-            JuMP.@constraint(model, dot(x, e) <= -0.5)
-        end
         JuMP.@constraint(model, dot(x, e) <= 0)
     end
 
