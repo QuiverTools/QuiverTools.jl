@@ -28,7 +28,7 @@ export mKronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver
 A quiver is represented by its adjacency
 ``n \\times n`` matrix ``adjacency = (a_{ij})``,
 where ``n`` is the number of vertices
-and ``a_{ij}`` is the number of arrows i → j.
+and ``a_{ij}`` is the number of arrows ``i \\to j``.
 
 Attributes:
 
@@ -166,7 +166,7 @@ end
 # the docstrings on these functions are from the file quiver.py
 
 """
-Returns the number of incoming arrows to the vertex j.
+Returns the number of incoming arrows to the vertex ``j``.
 
 Examples:
 ```julia-repl
@@ -182,7 +182,7 @@ julia> indegree(Q, 2)
 indegree(Q::Quiver, j::Int) = sum(Q.adjacency[:, j])
 
 """
-Returns the number of outgoing arrows from the vertex i.
+Returns the number of outgoing arrows from the vertex ``i``.
 
 Examples:
 ```julia-repl
@@ -198,7 +198,7 @@ julia> outdegree(Q, 2)
 outdegree(Q::Quiver, i::Int) = sum(Q.adjacency[i, :])
 
 """
-Checks if the vertex i is a source, i.e., a vertex with no incoming arrows.
+Checks if the vertex ``i`` is a source, i.e., a vertex with no incoming arrows.
 
 Examples:
 ```julia-repl
@@ -214,7 +214,7 @@ false
 is_source(Q::Quiver, i::Int) = indegree(Q, i) == 0
 
 """
-Checks if the vertex j is a sink, i.e., a vertex with no outgoing arrows.
+Checks if the vertex ``j`` is a sink, i.e., a vertex with no outgoing arrows.
 
 Examples:
 ```julia-repl
@@ -236,22 +236,22 @@ end
 """
 Returns the Euler matrix of the quiver.
 
-The Euler matrix of a quiver Q is defined as 
+The Euler matrix of a quiver ``Q`` is defined as 
 ```math
 E = I - A,
 ```
-where ``A`` is the adjacency matrix of Q and ``I`` is the identity matrix of the same size as ``A``.
+where ``A`` is the adjacency matrix of ``Q`` and ``I`` is the identity matrix of the same size as ``A``.
 """
 @memoize Dict Euler_matrix(Q::Quiver) = Matrix{Int}(LinearAlgebra.I, nvertices(Q), nvertices(Q)) - Q.adjacency
 
 """
-Computes the Euler form of the quiver for vectors x and y.
+Computes the Euler form of the quiver for vectors ``x`` and ``y``.
 
 The Euler form is defined as the bilinear form
 ```math
 \\langle x,y\\rangle = x^T * E * y,
 ```
-where E is the Euler matrix of the quiver.
+where ``E`` is the Euler matrix of the quiver.
 """
 Euler_form(Q::Quiver, x::Vector{Int}, y::Vector{Int}) = x'*Euler_matrix(Q)*y
 
@@ -260,7 +260,7 @@ The canonical stability parameter for the couple ``(Q,d)`` is given by ``<d,- > 
 """
 canonical_stability(Q::Quiver, d::Vector{Int})::Vector{Int} = -(-transpose(Euler_matrix(Q)) + Euler_matrix(Q))*d
 
-"""Checks wether the given dimension vector ``d`` is ``theta``-coprime for the stability parameter ``theta``."""
+"""Checks wether the given dimension vector ``d`` is ``\\theta``-coprime for the stability parameter ``\\theta``."""
 function is_coprime(d::Vector{Int}, theta::Vector{Int})
     return all(e -> theta'*e != 0, all_proper_subdimension_vectors(d))
 end
@@ -272,7 +272,7 @@ end
 
 # TODO should this return a function?
 """
-Returns the slope of the dimension vector ``d`` with respect to the stability parameter ``theta``
+Returns the slope of the dimension vector ``d`` with respect to the stability parameter ``\\theta``
 and a choice of a denominator function.
 """
 function slope(d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
@@ -286,7 +286,7 @@ Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d`
 end
 
 """
-Returns the list of all sequences ``(d^1,...,d^l)`` which sum to d such that ``\\mu(d^1) > ... > \\mu(d^l).``
+Returns the list of all sequences ``(d^1,...,d^l)`` which sum to ``d`` such that ``\\mu(d^1) > ... > \\mu(d^l).``
 
 Examples:
 ```julia-repl
@@ -325,7 +325,7 @@ function all_slope_decreasing_sequences(Q::Quiver, d::Vector{Int}, theta::Vector
 end
 
 
-"""Checks if there is a theta-semistable representation of dimension vector d.
+"""Checks if there is a ``\\theta``-semistable representation of dimension vector ``d``.
 
 Examples:
 ```julia-repl
@@ -365,7 +365,7 @@ false
     end
 end
 
-"""Checks if Q has a theta-stable representation of dimension vector d.
+"""Checks if Q has a ``theta``-stable representation of dimension vector ``d``.
 
 Examples:
 ```julia-repl
@@ -396,10 +396,10 @@ true
 end
 
 """
-Checks if d is a Schur root for Q.
+Checks if ``d`` is a Schur root for ``Q``.
 
-By a lemma of Schofield (See Lemma 4.2 of https://arxiv.org/pdf/0802.2147.pdf),
-this is equivalent to the existence of a stable representation of dimension vector d
+By a lemma of Schofield (See Lemma 4.2 of [arXiv:0802.2147](https://arxiv.org/pdf/0802.2147.pdf)),
+this is equivalent to the existence of a stable representation of dimension vector ``d``
 for the canonical stability parameter.
     
 Examples:
@@ -426,15 +426,17 @@ function is_isotropic_root(Q, d)
 end
 
 
-"""Checks if e is a generic subdimension vector of d.
+"""Checks if ``e`` is a generic subdimension vector of ``d``.
 
-A dimension vector e is called a generic subdimension vector of d if a generic representation
-of dimension vector d possesses a subrepresentation of dimension vector e.
+A dimension vector ``e`` is called a generic subdimension vector of ``d`` if a generic representation
+of dimension vector ``d`` possesses a subrepresentation of dimension vector ``e``.
 
-By a result of Schofield (see Thm. 5.3 of https://arxiv.org/pdf/0802.2147.pdf)
-e is a generic subdimension vector of d if and only if
-``<e',d-e> \\geq 0``
-for all generic subdimension vectors e' of e.
+By a result of Schofield (see Thm. 5.3 of [arXiv:0802.2147](https://arxiv.org/pdf/0802.2147.pdf)),
+``e`` is a generic subdimension vector of ``d`` if and only if
+```math
+<e',d-e> \\geq 0
+```
+for all generic subdimension vectors ``e'`` of ``e``.
 """
 @memoize Dict function is_generic_subdimension_vector(Q::Quiver, e::Vector{Int}, d::Vector{Int}; algorithm::String = "schofield")
     if e == d
@@ -455,7 +457,7 @@ for all generic subdimension vectors e' of e.
 end
 
 """
-Returns the list of all generic subdimension vectors of d.
+Returns the list of all generic subdimension vectors of ``d``.
 
 Examples:
 ```julia-repl
@@ -477,7 +479,8 @@ function all_generic_subdimension_vectors(Q::Quiver, d::Vector{Int})
 end
 
 """
-Returns a list of all the Harder Narasimhan types of representations of Q with dimension vector d, with respect to the slope function theta/slope_denominator.
+Returns a list of all the Harder Narasimhan types of representations of ``Q``
+with dimension vector ``d``, with respect to the slope function theta/slope_denominator.
 
 Examples:
 ```julia-repl
@@ -603,9 +606,9 @@ julia> HN = all_HN_types(Q, d, theta)
  [[1, 0], [1, 1], [0, 2]]
  [[2, 0], [0, 3]]
 
- julia> for hntype in HN
- println(QuiverTools.codimension_HN_stratum(Q, hntype))
- end
+julia> for hntype in HN
+        println(QuiverTools.codimension_HN_stratum(Q, hntype))
+        end
 0
 3
 4
@@ -625,9 +628,9 @@ function codimension_HN_stratum(Q::Quiver, stratum::Vector{Vector{Int}})
 end
 
 """
-Checks wether the dimension vector d is amply stable with respect to the slope function theta/denominator.
-    
-This means that the codimension of the unstable locus in the parameter space is at least 2.
+Checks wether the dimension vector ``d`` is amply stable with respect to the slope function `theta`/`denominator`.
+
+This means that the codimension of the unstable locus in the parameter space is at least ``2``.
 """
 function is_amply_stable(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
     # We say that representations of a given dimension vector d are amply stable (for any notion of stability) if the codimension of the semistable locus is at least 2.
@@ -654,7 +657,7 @@ function Teleman_bound_onstratum(Q::Quiver, hntype::Vector{Vector{Int}}, theta::
 end
 
 """ Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
-HN type for the given Q, d, theta and denominator."""
+HN type for the given ``Q``, ``d``, ``\\theta`` and `slope_denominator``."""
 function all_Teleman_bounds(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
     #This is only relevant on the unstable locus
     HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, slope_denominator))
@@ -681,7 +684,7 @@ end
 
 """Computes the weight of the irreducible component of ``\\omega_R|_Z``
 on a Harder-Narasimhan stratum for the 1-PS corresponding to each HN type.
-More explicitly, if ``\\omega_X = O(rH)``, this returns the weight of
+More explicitly, if ``\\omega_X = \\mathcal{O}(rH)``, this returns the weight of
 the pullback of O(H) on the given stratum."""
 function weight_irreducible_component_canonical_on_stratum(Q::Quiver,d::Vector{Int},hntype::Vector{Vector{Int}},theta::Vector{Int},slope_denominator::Function = sum)::Int
     kweights = map(di -> slope(di,theta, slope_denominator), hntype)
@@ -698,7 +701,7 @@ end
 
 """Computes the weights of the irreducible component of ``\\omega_R|_Z``
 on all the non-dense Harder-Narasimhan strata for each 1-PS relative to the HN type.
-More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullback of O(H) on each stratum."""
+More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullback of ``\\mathcal{O}(H)`` on each stratum."""
 function all_weights_irreducible_component_canonical(Q::Quiver,d::Vector{Int},theta::Vector{Int}, slope_denominator::Function = sum)
     HN = filter(hntype -> hntype != [d], all_HN_types(Q,d,theta))
     return Dict([hntype, weight_irreducible_component_canonical_on_stratum(Q, d, hntype, theta, slope_denominator)] for hntype in HN)
@@ -727,19 +730,23 @@ end
 #####################################################
 
 """
-Computes the dimension of the ext group between generic representations
-of dimension vectors a and b.
+Computes the dimension of the ``\\mathrm{Ext}^1`` group between generic representations
+of dimension vectors ``a`` and ``b``.
 
-According to Thm. 5.4 in Schofield's 'General representations of quivers', we have
-``ext(a,b) = max\\{- \\langle c, b\\rangle \\| c gen. subdimension vector of a\\}``.
+According to Thm. 5.4 in Schofield's [*General representations of quivers*](https://doi.org/10.1112/plms/s3-65.1.46),
+we have
+
+```math
+ext(a,b) = max\\{- \\langle c, b\\rangle~~|~~c~\\text{is a generic subdimension vector of } a\\}.
+```
 """
 function generic_ext(Q::Quiver, a::Vector{Int}, b::Vector{Int})
     return maximum(-Euler_form(Q, c, b) for c in all_generic_subdimension_vectors(Q, a))
 end
 
 """
-Computes the dimension of the hom group between generic representations
-of dimension vectors a and b.
+Computes the dimension of the ``\\mathrm{Hom}`` group between generic representations
+of dimension vectors ``a`` and ``b``.
 """
 function generic_hom(Q::Quiver, a::Vector{Int}, b::Vector{Int})
     return Euler_form(Q, a, b) + generic_ext(Q, a, b)
@@ -750,13 +757,20 @@ end
 # TODO implement Derksen-Weyman?
 # TODO add examples
 """
-Computes the canonical decomposition of the dimension vector d for the given quiver Q.
+Computes the canonical decomposition of the dimension vector ``d`` for the given quiver ``Q``.
+
 If ``\\beta_1, \\dots, \\beta_{\\ell}`` is a sequence
 of Schur roots such that, for all ``i \\neq j``, one has
-``ext(\\beta_i, \\beta_j) = ext(\\beta_j, \\beta_i) = 0``,
-then the general representation of dimension ``\\sum_i \\beta_i`` is a direct sum
-of irreducible representations of dimension vectors ``\\beta_i``.
-Such a decomposition is called therefore the canonical decomposition.
+
+```math
+\\mathrm{ext}(\\beta_i, \\beta_j) = \\mathrm{ext}(\\beta_j, \\beta_i) = 0,
+```
+
+then the general representation of dimension ``\\sum_i \\beta_i`` is
+isomorphic to the direct sum of irreducible representations
+of dimension vectors ``\\beta_i``.
+
+Such a decomposition is called the canonical decomposition.
 """
 function canonical_decomposition(Q::Quiver, d::Vector{Int})
     # if is_Schur_root(Q, d)
@@ -779,10 +793,17 @@ end
 #     return any(e -> e'*theta == 0, all_proper_subdimension_vectors(d))
 # end
 
+# TODO this is not relevant for anyone who is not me right now.
 """
-Given an HN type the quiver Q, returns the upper triangular matrix whose ij entry is ext(d^1,d^j) where (d^1,...,d^l) is the HN type.
-The sum of all the entries is the codimension of the HN stratum; the sum of all the rectangles starting on the "up-diagonal" (where the 1s go in a Jordan form) and going all the way is at least 1.
-Teleman is satisfied for this stratum iif one of these rectangles sums to 2 or more.
+Given an HN type ``(d^1,...,d^l)`` for the quiver Q,
+returns the upper triangular matrix whose ``i,j``-th entry is ``\\mathrm{ext}(d^i,d^j)``.
+
+The sum of all the entries is the codimension of the HN stratum;
+the sum of all the rectangles starting on the "up-diagonal" (where the 1s go in a Jordan form)
+and going all the way to the entry ``1,\\ell`` is at least ``1``.
+
+The Teleman inequality is satisfied for this stratum
+iif one of these rectangles sums to ``2`` or more.
 """
 function extension_matrix(Q::Quiver, hntype::Vector{Vector{Int}})
     n = length(hntype)
@@ -799,7 +820,7 @@ function extension_matrix(Q::Quiver, hntype::Vector{Vector{Int}})
 end
 
 
-
+# TODO what is this for?
 function is_luna_type(Q::Quiver, tau::Vector{Tuple{Vector{Int},Int}}, theta::Vector{Int})
     n = nvertices(Q)
     zeroVector = Vector{Int}(zeros(Int, n))
@@ -818,26 +839,25 @@ function all_luna_types(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     throw(ArgumentError("not implemented"))
 end
 
-function semistable_equals_stable(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, algorithm::String = "schofield")
-    throw(ArgumentError("not implemented"))
-end
-
 """
-Checks if the dimension vector d is in the fundamental domain of the quiver Q.
+Checks if the dimension vector ``d`` is in the fundamental domain of the quiver ``Q``.
 
 The fundamental domain is the cone of dimension vectors in ``\\mathbb{Z}^{Q_0}``
 such that the symmetric Tits form is negative on all the simple roots, i.e.,
 for all vertices i, 
 
-``(i, d) := \\langle d, s_i\\rangle + \\langle s_i, d\\rangle  \\leq 0``,
+```math
+(s_i, d) := \\langle d, s_i\\rangle + \\langle s_i, d\\rangle  \\leq 0,
+```
 
-where ``s_i`` is the dimension vector with all entries set to 0, and the i-th
-set to 1.
+where ``s_i`` is the dimension vector with all entries set to ``0`` and the i-th
+set to ``1``.
 """
 function in_fundamental_domain(Q::Quiver, d::Vector{Int}; interior::Bool=false)
-    # https://arxiv.org/abs/2209.14791 uses a strict inequality, while https://arxiv.org/abs/2310.15927 uses a non-strict.
+    # https://arxiv.org/abs/2209.14791 uses a strict inequality,
+    # while https://arxiv.org/abs/2310.15927 uses a non-strict.
     # here we set it to non-strict by default.
-    
+
     simples = [unit_vector(nvertices(Q), i) for i in 1:nvertices(Q)]
     if interior
         return all(simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) < 0, simples)
@@ -877,9 +897,9 @@ function is_stable_cone_nonempty(Q::Quiver, d::Vector{Int}; strict::Bool=false)
 end
 
 """
-Checks if the stability parameter theta belongs to the cone of parameters admitting
-stable representations of dimension vector d.
-Assumes that the dimension vector d is Schurian (for now).
+Checks if the stability parameter ``\\theta`` belongs to the cone of parameters admitting
+stable representations of dimension vector ``d``.
+Assumes that the dimension vector ``d`` is Schurian (for now).
 """
 function in_stable_cone(Q::Quiver, d::Vector{Int}, theta::Vector{Int}; strict::Bool = false)
     if !is_Schur_root(Q, d)
@@ -912,16 +932,16 @@ end
 # auxiliary functions for Hodge_polynomial() below
 
 """
-Solve Ax=b for A upper triangular via back substitution
+Solve ``A\\cdot x = b`` for ``A`` upper triangular via back substitution
 """
-function solve(A,b)
+function solve(A, b)
     n = length(b)
     x = Vector{Any}(zeros(n))
     
     x[n] = b[n] / A[n,n]
     
     for i in n-1:-1:1
-        x[i] = (b[i] - sum(A[i,j]*x[j] for j in i+1:n)) / A[i,i]
+        x[i] = (b[i] - sum(A[i, j] * x[j] for j in i+1:n)) / A[i, i]
     end
     return x
 end
@@ -982,7 +1002,9 @@ end
 ###################################################
     
 """
-Returns the Hodge polynomial of the moduli space of theta-semistable representations of Q with dimension vector d.
+Returns the Hodge polynomial of the moduli space of ``\\theta``-semistable
+representations of ``Q`` with dimension vector ``d``.
+
 The algorithm is based on [MR1974891](https://doi.org/10.1007/s00222-002-0273-4),
 and the current implementation is translated from the [Hodge diamond cutter]
 (https://zenodo.org/doi/10.5281/zenodo.3893509).
@@ -1014,7 +1036,8 @@ function Hodge_polynomial(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
 end
 
 """
-Returns the Hodge diamond of the moduli space of theta-semistable representations of Q with dimension vector d.
+Returns the Hodge diamond of the moduli space of
+``\\theta``-semistable representations of ``Q`` with dimension vector ``d``.
 """
 function Hodge_diamond(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     g = Hodge_polynomial(Q, d, theta)
@@ -1022,7 +1045,8 @@ function Hodge_diamond(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
 end
 
 """
-Picard rank of the moduli space of theta-semistable representations of Q with dimension vector d.
+Computes the Picard rank of the moduli space of
+``\\theta``-semistable representations of ``Q`` with dimension vector ``d``.
 """
 function Picard_rank(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     # TODO If over the complex numbers this should be h^{1,1}, since the moduli space is rational.
