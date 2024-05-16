@@ -1051,7 +1051,7 @@ function Picard_rank(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     # TODO If over the complex numbers this should be h^{1,1}, since the moduli space is rational.
     # TODO This should follow from the long exact sequence in cohomology given by the exponential short exact sequence.
 
-    return coeff(Hodge_polynomial(Q, d, theta), 2, 2).num
+    return coeff(Hodge_polynomial(Q, d, theta), 2).num
 end
 
 function _Hodge_polynomial_fast(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
@@ -1067,7 +1067,7 @@ function _Hodge_polynomial_fast(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     one_at_the_end = unit_vector(size(T)[1], size(T)[1])
     
     result = numerator(solve(T, one_at_the_end)[1] * (1-v))
-    return [coeff(result, i) for i in 0:degree(result)] # this is actually all we need for the Hodge diamond because the matrix is diagonal for quiver moduli
+    # return [coeff(result, i) for i in 0:degree(result)] # this is actually all we need for the Hodge diamond because the matrix is diagonal for quiver moduli
 end
 
 
