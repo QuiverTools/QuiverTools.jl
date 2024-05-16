@@ -196,6 +196,101 @@ true
 The fact that all of these inequalities are satisfied allows to conclude that the higher cohomology of
 ``\mathcal{U}_i^\vee \otimes \mathcal{U}_j`` vanishes.
 
+## Canonical decompositions and roots
+
+QuiverTools provides a method to compute the canonical decomposition of a dimension vector.
+
+Given a dimension vector ``d``, the canonical decomposition is a list of Shur roots ``\beta_i`` such that
+``d = \sum_i \beta_i`` and ``\mathrm{ext}(\beta_i,\beta_j) = 0`` for all ``i \neq j``.
+
+It is a theorem of Schofield that the canonical decomposition exists and is described by the condition above. It is a fact that if this is the canonical deconstruction of ``d``, then the general representation of dimension vector ``d`` decomposes as a direct sum of indecomposable representations of dimension vector ``\beta_i``.
+
+```julia-repl
+julia> canonical_decomposition(Q, d)
+1-element Vector{Vector{Int64}}:
+ [2, 3]
+
+julia> canonical_decomposition(Q, [12,3])
+6-element Vector{Vector{Int64}}:
+ [1, 0]
+ [1, 0]
+ [1, 0]
+ [3, 1]
+ [3, 1]
+ [3, 1]
+
+julia> canonical_decomposition(Q, [12,4])
+4-element Vector{Vector{Int64}}:
+ [3, 1]
+ [3, 1]
+ [3, 1]
+ [3, 1]
+```
+
+QuiverTools also implements computations of generic hom and ext for dimension vectors.
+
+```julia-repl
+julia> e = [1,2];
+
+julia> generic_hom(Q, d, e)
+0
+
+julia> generic_hom(Q, e, d)
+0
+
+julia> generic_ext(Q, d, e)
+4
+
+julia> generic_ext(Q, e, d)
+1
+```
+
+This allows to determine wether a root is real, imaginary isotropic or imaginary anisotropic.
+
+```julia-repl
+julia> ds = QuiverTools.all_subdimension_vectors([5,5])
+6×6 Matrix{Vector{Int64}}:
+ [0, 0]  [0, 1]  [0, 2]  [0, 3]  [0, 4]  [0, 5]
+ [1, 0]  [1, 1]  [1, 2]  [1, 3]  [1, 4]  [1, 5]
+ [2, 0]  [2, 1]  [2, 2]  [2, 3]  [2, 4]  [2, 5]
+ [3, 0]  [3, 1]  [3, 2]  [3, 3]  [3, 4]  [3, 5]
+ [4, 0]  [4, 1]  [4, 2]  [4, 3]  [4, 4]  [4, 5]
+ [5, 0]  [5, 1]  [5, 2]  [5, 3]  [5, 4]  [5, 5]
+
+julia> filter(d -> QuiverTools.is_real_root(Q, d), ds)
+4-element Vector{Vector{Int64}}:
+ [1, 0]
+ [0, 1]
+ [3, 1]
+ [1, 3]
+
+julia> filter(d -> QuiverTools.is_isotropic_root(Q, d), ds)
+1-element Vector{Vector{Int64}}:
+ [0, 0]
+
+julia> filter(d -> QuiverTools.is_imaginary_root(Q, d), ds)
+20-element Vector{Vector{Int64}}:
+ [0, 0]
+ [1, 1]
+ [2, 1]
+ [1, 2]
+ [2, 2]
+ [3, 2]
+ [4, 2]
+ [5, 2]
+ [2, 3]
+ [3, 3]
+ [4, 3]
+ [5, 3]
+ [2, 4]
+ [3, 4]
+ [4, 4]
+ [5, 4]
+ [2, 5]
+ [3, 5]
+ [4, 5]
+ [5, 5]
+ ```
 
 ### Hodge polynomials
 
