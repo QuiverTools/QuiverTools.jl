@@ -220,14 +220,37 @@ end;
                                                     [[2, 0, 0], [1, 1, 2]]                       => 120)
 end;
 
+@testset begin
+    # wall and chamber methods
+    Q = mKronecker_quiver(3); d = [2, 3];
+    @test QuiverTools.in_stable_cone(Q, d, [3,-2]) == true
+    @test QuiverTools.in_stable_cone(Q, d, [-3,2]) == false  
+
+    @test_throws ArgumentError("d is not Schurian") QuiverTools.in_stable_cone(Q, [6, 2], [3, -2]);
+    # add more as methods are implemented
+end;
+
+@testset begin
+    # Hodge polynomial
+    Q = mKronecker_quiver(3); d = [2, 3];
+    @test QuiverTools.Hodge_diamond(Q, d, [3,-2]) == [  1  0  0  0  0  0  0;
+                                                        0  1  0  0  0  0  0;
+                                                        0  0  3  0  0  0  0;
+                                                        0  0  0  3  0  0  0;
+                                                        0  0  0  0  3  0  0;
+                                                        0  0  0  0  0  1  0;
+                                                        0  0  0  0  0  0  1]
+
+    # is this how we want it to behave when the moduli space is empty?
+    @test QuiverTools.Hodge_diamond(Q, d, [-3, 2]) == Matrix{Int64}(undef, 0, 0)
+end;
 
 # DONE teleman weight computations
 # DONE generic hom, ext 
 # DONE canonical decomposition
 # DONE fundamental domain
 # TODO stable cone methods
-# TODO auxiliary methods for Hodge polynomial
-# TODO Hodge diamond (test against what?)
+# DONE Hodge diamond (test against what?)
 
 
 # @testset "Testing weight handling" begin 
