@@ -12,7 +12,7 @@ import Base.show
 export Quiver
 export nvertices, narrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
 export Euler_form, canonical_stability, is_coprime, slope
-export is_Schur_root, generic_ext, generic_hom, canonical_decomposition
+export is_Schur_root, generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
 export all_HN_types, has_semistables, has_stables, is_amply_stable
 export all_Teleman_bounds, all_weights_endomorphisms_universal_bundle, all_weights_universal_bundle, all_weights_irreducible_component_canonical
 export Hodge_diamond, Hodge_polynomial, Picard_rank
@@ -67,7 +67,8 @@ end
 
 
 """
-Returns the (necessarily symmetric) adjacency matrix of the underlying graph of the quiver.
+Returns the (necessarily symmetric) adjacency matrix
+of the underlying graph of the quiver.
 """
 function underlying_graph(Q::Quiver)
     return Matrix{Int}(Q.adjacency + transpose(Q.adjacency) - diagm(diag(Q.adjacency)))
@@ -230,7 +231,8 @@ true
 is_sink(Q::Quiver, j::Int) = outdegree(Q, j) == 0
 
 function arrows(Q::Quiver)
-    return reduce(vcat, [[i,j] for k in 1:Q.adjacency[i,j]] for i in 1:nvertices(Q) for j in 1:nvertices(Q) if Q.adjacency[i,j] > 0)
+    n = nvertices(Q)
+    return reduce(vcat, [[i, j] for k in 1:Q.adjacency[i, j]] for i in 1:n for j in 1:n if Q.adjacency[i, j] > 0)
 end
 
 """
@@ -307,16 +309,16 @@ julia> all_slope_decreasing_sequences(Q, d, theta)
 function all_slope_decreasing_sequences(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denominator::Function = sum)
 
     # List all subdimension vectors e of bigger slope than d.
-    subdimensions = filter(e -> slope(e,theta,denominator) > slope(d,theta,denominator), all_nonzero_subdimension_vectors(d))
+    subdimensions = filter(e -> slope(e, theta, denominator) > slope(d, theta, denominator), all_nonzero_subdimension_vectors(d))
 
     # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
-    subdimensions = sort(subdimensions, by = e -> slope(e,theta,denominator))
+    subdimensions = sort(subdimensions, by = e -> slope(e, theta, denominator))
     # The slope decreasing sequences which are not of the form (d) are given by (e,f^1,...,f^s) where e is a proper subdimension vector such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
 
     # I will rewrite this as functional programming later
     allSlopeDecreasing = []
     for e in subdimensions
-        for fstar in filter(fstar -> slope(e,theta,denominator) > slope(fstar[1],theta, denominator), all_slope_decreasing_sequences(Q, d-e, theta, denominator))
+        for fstar in filter(fstar -> slope(e, theta, denominator) > slope(fstar[1], theta, denominator), all_slope_decreasing_sequences(Q, d-e, theta, denominator))
         push!(allSlopeDecreasing, [e, fstar...])
         end
     end
@@ -439,21 +441,17 @@ By a result of Schofield (see Thm. 5.3 of [arXiv:0802.2147](https://arxiv.org/pd
 for all generic subdimension vectors ``e'`` of ``e``.
 """
 @memoize Dict function is_generic_subdimension_vector(Q::Quiver, e::Vector{Int}, d::Vector{Int}; algorithm::String = "schofield")
-    if e == d
+    if e == d || all(ei == 0 for ei in e)
         return true
-    elseif all(ei == 0 for ei in e)
-        # return false
-        return true
-    else
+    end
     # considering subdimension vectors that violate the numerical condition
     # TODO this filtering is inefficent.
     # For fixed d-e, this is a LINEAR form, we KNOW which eprimes violate the condition.
     # We should just check those.
-        Euler_matrix_temp = Euler_matrix(Q) * (d - e) #to speed up computation of <eprime,d-e>
-        subdimensions = filter(eprime -> eprime' * Euler_matrix_temp < 0, all_subdimension_vectors(e))
-        # none of the subdimension vectors violating the condition should be generic
-        return !any(eprime -> is_generic_subdimension_vector(Q, eprime, e), subdimensions)
-    end
+    Euler_matrix_temp = Euler_matrix(Q) * (d - e) #to speed up computation of <eprime,d-e>
+    subdimensions = filter(eprime -> eprime' * Euler_matrix_temp < 0, all_subdimension_vectors(e))
+    # none of the subdimension vectors violating the condition should be generic
+    return !any(eprime -> is_generic_subdimension_vector(Q, eprime, e), subdimensions)
 end
 
 """
@@ -686,7 +684,7 @@ end
 on a Harder-Narasimhan stratum for the 1-PS corresponding to each HN type.
 More explicitly, if ``\\omega_X = \\mathcal{O}(rH)``, this returns the weight of
 the pullback of O(H) on the given stratum."""
-function weight_irreducible_component_canonical_on_stratum(Q::Quiver,d::Vector{Int},hntype::Vector{Vector{Int}},theta::Vector{Int},slope_denominator::Function = sum)::Int
+function weight_irreducible_component_canonical_on_stratum(Q::Quiver, d::Vector{Int}, hntype::Vector{Vector{Int}}, theta::Vector{Int}, slope_denominator::Function = sum)::Int
     kweights = map(di -> slope(di,theta, slope_denominator), hntype)
     kweights = kweights * lcm(denominator.(kweights))
 
@@ -830,7 +828,7 @@ function is_luna_type(Q::Quiver, tau::Vector{Tuple{Vector{Int},Int}}, theta::Vec
     else
         dstar = [tupl[1] for tupl in tau]
         equalSlope = all(e -> slope(e, theta, denominator) == slope(d, theta, denominator), dstar)
-        semistable = all(e -> has_stable_representation(Q, e, theta, algorithm="schofield"), dstar)
+        semistable = all(e -> has_stables(Q, e, theta), dstar)
         return equalSlope && semistable
     end
 end
@@ -884,7 +882,7 @@ function is_stable_cone_nonempty(Q::Quiver, d::Vector{Int})
     end
 
     #optimize a constant function = check if feasible set is nonempty
-        JuMP.@objective(model, Min, 1)
+        JuMP.@objective(model, JuMP.Min, 1)
         JuMP.set_silent(model)
         JuMP.optimize!(model)
 
@@ -1096,14 +1094,14 @@ function subspace_quiver(m::Int)
     return Quiver(A, string(m)*"-subspace quiver")
 end
 
-function DynkinQuiver(Tn::String)
+function Dynkin_quiver(Tn::String)
     #parse the string Tn
     T = Tn[1:end-1]
     n = parse(Int, Tn[end])
-    return DynkinQuiver(T,n)
+    return Dynkin_quiver(T, n)
 end
 
-function DynkinQuiver(T::String, n::Int)
+function Dynkin_quiver(T::String, n::Int)
 
     if T == "A"
         if !(n >= 1)
@@ -1111,7 +1109,7 @@ function DynkinQuiver(T::String, n::Int)
         end
         if n == 1
 #            return Quiver([[1]], "Dynkin quiver of type A1")
-            return LoopQuiver(1)
+            return loop_quiver(1)
         else
             M = zeros(Int, n, n)
             for i in 1:n-1
