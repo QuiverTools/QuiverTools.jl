@@ -147,10 +147,84 @@ end;
     @test is_amply_stable(Q, [3,0], [0,-3]) == true
 end;
 
-# TODO teleman weight computations
-# TODO generic hom, ext
-# TODO canonical decomposition
-# TODO fundamental domain
+@testset begin
+# in_fundamental_domain()
+    Q = mKronecker_quiver(3);
+    @test in_fundamental_domain(Q, [2,3]) == true
+    @test in_fundamental_domain(Q, [1,1]) == true
+    @test in_fundamental_domain(Q, [2,2]) == true
+    @test in_fundamental_domain(Q, [1,2]) == false
+end;
+
+@testset begin
+    # generic_hom(), generic_ext()
+    Q = mKronecker_quiver(3);
+    @test generic_hom(Q, [2, 3], [6, 7]) == 0
+    @test generic_ext(Q, [2, 3], [6, 7]) == 9
+
+    @test generic_hom(Q, [1, 1], [1, 0]) == 1
+    @test generic_ext(Q, [1, 1], [1, 0]) == 0
+
+    Q = three_vertex_quiver(1, 6, 7);
+    @test generic_hom(Q, [5, 6, 7], [6, 7, 8]) == 0
+    @test generic_ext(Q, [5, 6, 7], [6, 7, 8]) == 483
+end;
+
+@testset begin
+    # canonical_decomposition()
+    Q = mKronecker_quiver(3);
+    @test canonical_decomposition(Q, [6, 7]) == [[6, 7]]
+    @test canonical_decomposition(Q, [1, 1]) == [[1, 1]]
+    @test canonical_decomposition(Q, [6, 2]) == [[3, 1], [3, 1]]
+
+    Q = mKronecker_quiver(2);
+    @test canonical_decomposition(Q, [8, 8]) == [[1, 1] for i in 1:8]
+end;
+
+@testset begin
+    # all_Teleman_bounds()
+    Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
+
+    @test all_Teleman_bounds(Q, d, theta) == Dict(  [[2, 2], [0, 1]]         => 20,
+                                                    [[2, 1], [0, 2]]         => 100,
+                                                    [[1, 0], [1, 2], [0, 1]] => 100,
+                                                    [[1, 0], [1, 3]]         => 120,
+                                                    [[1, 0], [1, 1], [0, 2]] => 90,
+                                                    [[1, 1], [1, 2]]         => 15,
+                                                    [[2, 0], [0, 3]]         => 90)
+
+    Q = three_vertex_quiver(1, 2, 3); d = [3, 1, 2]; theta = [5, 3, -9];
+    @test all_Teleman_bounds(Q, d, theta) == Dict(  [[2, 1, 1], [1, 0, 1]]                       => 12,
+                                                    [[1, 0, 0], [0, 1, 0], [2, 0, 1], [0, 0, 1]] => 306,
+                                                    [[1, 0, 0], [1, 1, 0], [1, 0, 1], [0, 0, 1]] => 131,
+                                                    [[2, 0, 0], [1, 0, 1], [0, 1, 1]]            => 64,
+                                                    [[3, 0, 0], [0, 1, 2]]                       => 150,
+                                                    [[1, 1, 0], [2, 0, 1], [0, 0, 1]]            => 312,
+                                                    [[2, 0, 0], [1, 1, 1], [0, 0, 1]]            => 336,
+                                                    [[2, 0, 0], [1, 1, 0], [0, 0, 2]]            => 242,
+                                                    [[3, 0, 0], [0, 1, 1], [0, 0, 1]]            => 168,
+                                                    [[3, 1, 1], [0, 0, 1]]                       => 432,
+                                                    [[3, 0, 0], [0, 1, 0], [0, 0, 2]]            => 246,
+                                                    [[0, 1, 0], [3, 0, 2]]                       => 108,
+                                                    [[0, 1, 0], [2, 0, 1], [1, 0, 1]]            => 76,
+                                                    [[1, 0, 0], [2, 0, 1], [0, 1, 1]]            => 122,
+                                                    [[1, 0, 0], [2, 1, 1], [0, 0, 1]]            => 92,
+                                                    [[2, 0, 0], [0, 1, 0], [1, 0, 2]]            => 312,
+                                                    [[1, 0, 0], [2, 1, 2]]                       => 18,
+                                                    [[2, 0, 0], [0, 1, 0], [1, 0, 1], [0, 0, 1]] => 132,
+                                                    [[1, 0, 0], [1, 1, 1], [1, 0, 1]]            => 68,
+                                                    [[1, 0, 0], [0, 1, 0], [2, 0, 2]]            => 46,
+                                                    [[1, 0, 0], [1, 1, 0], [1, 0, 2]]            => 309,
+                                                    [[2, 0, 1], [1, 1, 1]]                       => 6,
+                                                    [[1, 1, 0], [2, 0, 2]]                       => 48,
+                                                    [[2, 0, 0], [1, 1, 2]]                       => 120)
+end;
+
+
+# DONE teleman weight computations
+# DONE generic hom, ext 
+# DONE canonical decomposition
+# DONE fundamental domain
 # TODO stable cone methods
 # TODO auxiliary methods for Hodge polynomial
 # TODO Hodge diamond (test against what?)
