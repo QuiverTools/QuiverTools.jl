@@ -77,7 +77,8 @@ julia> Euler_form(Q, e, d)
 -4
 ```
 
-This allows to verify whether any given dimension vector belongs to the fundamental domain of the problem.
+This allows to verify whether any given dimension vector belongs
+to the fundamental domain of the problem.
 
 The fundamental domain is the cone of dimension vectors in ``\mathbb{Z}^{Q_0}``
 such that the symmetric Tits form is negative on all the simple roots, i.e.,
@@ -136,8 +137,11 @@ julia> QuiverTools.is_Schur_root(K2, d)
 false
 ```
 
-To investigate the Harder-Narasimhan stratification of the parameter space
-``\mathrm{R}(Q,\mathbf{d})``, the module provides an implementation based on a recursive algorithm.
+## Harder-Narasimhan types
+
+This module provides methods to investigate
+the Harder-Narasimhan stratification of the parameter space
+``\mathrm{R}(Q,\mathbf{d})``.
 
 ```julia-repl
 julia> Q = mKronecker_quiver(3); d = [2, 3]; θ = [3, -2];
@@ -157,18 +161,23 @@ julia> is_amply_stable(Q, d, θ)
 true
 ```
 
-The method `is_amply_stable()` determines whether the codimension of the θ-semistable locus,
-``\mathrm{R}^{\theta-sst}(Q,\mathbf{d})\subset\mathrm{R}(Q,\mathbf{d})``, is at least 2.
+The method `is_amply_stable()` determines whether
+the codimension of the θ-semistable locus,
+``\mathrm{R}^{\theta-sst}(Q,\mathbf{d})\subset\mathrm{R}(Q,\mathbf{d})``,
+is at least 2.
 
-The method `all_HN_types()` provides a list of all the Harder-Narasimhan types that appear in the problem.
+The method `all_HN_types()` provides a list of
+all the Harder-Narasimhan types that appear in the problem.
 
-The method `all_Teleman_bounds()` computes the bounds to apply Teleman quantization on the non-dense strata.
-The output is a dictionary whose keys are the HN types and whose values are the weights themselves.
+The method `all_Teleman_bounds()` computes the bounds
+to apply Teleman quantization on the non-dense strata.
+The output is a dictionary whose keys are the HN types
+and whose values are the weights themselves.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
+julia> Q = mKronecker_quiver(3); d = [2, 3]; θ = [3, -2];
 
-julia> all_Teleman_bounds(Q, d, theta)
+julia> all_Teleman_bounds(Q, d, θ)
 Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
   [[2, 2], [0, 1]]         => 20
   [[2, 1], [0, 2]]         => 100
@@ -186,9 +195,9 @@ we compute the weight of ``\mathcal{U}_i^\vee \otimes \mathcal{U}_j`` relative t
 1-PS corresponding to the HN stratum. These are then compared to the Teleman bounds.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
+julia> Q = mKronecker_quiver(3); d = [2, 3]; θ = [3, -2];
 
-julia> hn = all_Teleman_bounds(Q,d,theta)
+julia> hn = all_Teleman_bounds(Q, d, θ)
 Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
   [[2, 2], [0, 1]]         => 20
   [[2, 1], [0, 2]]         => 100
@@ -198,7 +207,7 @@ Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
   [[1, 1], [1, 2]]         => 15
   [[2, 0], [0, 3]]         => 90
 
-julia> endom = all_weights_endomorphisms_universal_bundle(Q,d,theta)
+julia> endom = all_weights_endomorphisms_universal_bundle(Q, d, θ)
 Dict{Vector{Vector{Int64}}, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [0, 5, -5, 0]
   [[2, 1], [0, 2]]         => [0, 10, -10, 0]
@@ -212,24 +221,32 @@ julia> all(maximum(endom[key]) < hn[key] for key in keys(hn))
 true
 ```
 
-The fact that all of these inequalities are satisfied allows to conclude that the higher cohomology of
+The fact that all of these inequalities are satisfied allows
+to conclude that the higher cohomology of
 ``\mathcal{U}_i^\vee \otimes \mathcal{U}_j`` vanishes.
 
 ## Canonical decompositions and roots
 
-QuiverTools provides a method to compute the canonical decomposition of a dimension vector.
+QuiverTools provides a method to compute
+the canonical decomposition of a dimension vector.
 
-Given a dimension vector ``d``, the canonical decomposition is a list of Shur roots ``\beta_i`` such that
-``d = \sum_i \beta_i`` and ``\mathrm{ext}(\beta_i,\beta_j) = 0`` for all ``i \neq j``.
+Given a dimension vector ``d``, the canonical decomposition
+is a list of Shur roots ``\beta_i`` such that
+``d = \sum_i \beta_i`` and
+``\mathrm{ext}(\beta_i,\beta_j) = 0`` for all ``i \neq j``.
 
-It is a theorem of Schofield that the canonical decomposition exists and is described by the condition above. It is a fact that if this is the canonical deconstruction of ``d``, then the general representation of dimension vector ``d`` decomposes as a direct sum of indecomposable representations of dimension vector ``\beta_i``.
+It is a theorem of Schofield that the canonical decomposition exists and
+is described by the condition above.
+If this is the canonical deconstruction of ``d``,
+then the general representation of dimension vector ``d`` decomposes
+as a direct sum of indecomposable representations of dimension vector ``\beta_i``.
 
 ```julia-repl
 julia> canonical_decomposition(Q, d)
 1-element Vector{Vector{Int64}}:
  [2, 3]
 
-julia> canonical_decomposition(Q, [12,3])
+julia> canonical_decomposition(Q, [12, 3])
 6-element Vector{Vector{Int64}}:
  [1, 0]
  [1, 0]
@@ -238,7 +255,7 @@ julia> canonical_decomposition(Q, [12,3])
  [3, 1]
  [3, 1]
 
-julia> canonical_decomposition(Q, [12,4])
+julia> canonical_decomposition(Q, [12, 4])
 4-element Vector{Vector{Int64}}:
  [3, 1]
  [3, 1]
@@ -249,7 +266,7 @@ julia> canonical_decomposition(Q, [12,4])
 QuiverTools also implements computations of generic hom and ext for dimension vectors.
 
 ```julia-repl
-julia> e = [1,2];
+julia> e = [1, 2];
 
 julia> generic_hom(Q, d, e)
 0
@@ -267,7 +284,7 @@ julia> generic_ext(Q, e, d)
 This allows to determine wether a root is real, imaginary isotropic or imaginary anisotropic.
 
 ```julia-repl
-julia> ds = QuiverTools.all_subdimension_vectors([5,5])
+julia> ds = QuiverTools.all_subdimension_vectors([5, 5])
 6×6 Matrix{Vector{Int64}}:
  [0, 0]  [0, 1]  [0, 2]  [0, 3]  [0, 4]  [0, 5]
  [1, 0]  [1, 1]  [1, 2]  [1, 3]  [1, 4]  [1, 5]
@@ -313,15 +330,16 @@ julia> filter(d -> QuiverTools.is_imaginary_root(Q, d), ds)
 
 ## Hodge polynomials
 
-QuiverTools features an implementation of the Hodge polynomial of quiver moduli, if the base field is ``\mathbb{C}`` and the dimension vector is a coprime Schurian root.
+QuiverTools features an implementation of the Hodge polynomial of quiver moduli,
+if the base field is ``\mathbb{C}`` and the dimension vector is a coprime Schurian root.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); d = [2, 3]; theta = canonical_stability(Q, d);
+julia> Q = mKronecker_quiver(3); d = [2, 3]; θ = canonical_stability(Q, d);
 
-julia> Hodge_polynomial(Q, d, theta)
+julia> Hodge_polynomial(Q, d, θ)
 x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 
-julia> Hodge_diamond(Q, d, theta)
+julia> Hodge_diamond(Q, d, θ)
 7×7 Matrix{Int64}:
  1  0  0  0  0  0  0
  0  1  0  0  0  0  0
@@ -332,28 +350,29 @@ julia> Hodge_diamond(Q, d, theta)
  0  0  0  0  0  0  1
 ```
 
-Note that the ``i, j``-th entry of the matrix representing the Hodge diamond is ``h^{i,j}``. In other words, the point of the diamond is on the upper left side of the matrix.
+Note that the ``i, j``-th entry of the matrix representing the Hodge diamond
+is ``h^{i,j}``.
+In other words, the point of the diamond is on the upper left side of the matrix.
 
 This allows us to conclude that the Picard rank of the moduli space is 1.
 
 ```julia-repl
-julia> Picard_rank(Q, d, theta)
+julia> Picard_rank(Q, d, θ)
 1
 ```
 
-For performance-oriented computations, one can use some theoretical results to get a slightly faster computation of the Hodge polynomial.
+For performance-oriented computations, one can use some theoretical results
+to get a slightly faster computation of the Hodge polynomial,
+which skips some safety checks and returns the Hodge polynomial
+without performing the change of variables ``q \to x \cdot y``.
 
 ```julia-repl
-julia> QuiverTools._Hodge_polynomial_fast(Q, d, theta)
+julia> QuiverTools._Hodge_polynomial_fast(Q, d, θ)
 q^6 + q^5 + 3*q^4 + 3*q^3 + 3*q^2 + q + 1
-```
 
-This skips some safety checks and returns the Hodge polynomial after the change of variables ``q = x*y``. This leads to about a 3% speedup in the computation...
-
-```julia-repl
 julia> using BenchmarkTools
 
-julia> @benchmark Hodge_polynomial(Q, d, theta)
+julia> @benchmark Hodge_polynomial(Q, d, θ)
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
  Range (min … max):  117.500 μs … 109.571 ms  ┊ GC (min … max):  0.00% … 41.09%
  Time  (median):     123.188 μs               ┊ GC (median):     0.00%
@@ -365,7 +384,7 @@ BenchmarkTools.Trial: 10000 samples with 1 evaluation.
 
  Memory estimate: 136.06 KiB, allocs estimate: 3408.
 
-julia> @benchmark QuiverTools._Hodge_polynomial_fast(Q, d, theta)
+julia> @benchmark QuiverTools._Hodge_polynomial_fast(Q, d, θ)
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
  Range (min … max):  114.625 μs … 110.717 ms  ┊ GC (min … max):  0.00% … 40.68%
  Time  (median):     120.042 μs               ┊ GC (median):     0.00%
