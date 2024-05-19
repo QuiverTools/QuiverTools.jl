@@ -363,7 +363,7 @@ false
         slope_d = slope(d, theta, slope_denominator)
         subdimensionsBiggerSlope = filter(e -> slope(e, theta, slope_denominator) > slope_d, all_proper_subdimension_vectors(d))
         # to have semistable representations, none of the vectors above must be generic subdimension vectors.
-        return all(e -> !is_generic_subdimension_vector(Q, e, d, algorithm="schofield"), subdimensionsBiggerSlope)
+        return all(e -> !is_generic_subdimension_vector(Q, e, d), subdimensionsBiggerSlope)
     end
 end
 
@@ -400,7 +400,7 @@ end
 """
 Checks if ``d`` is a Schur root for ``Q``.
 
-By a lemma of Schofield (See Lemma 4.2 of [arXiv:0802.2147](https://arxiv.org/pdf/0802.2147.pdf)),
+By a lemma of Schofield (See Lemma 4.2 of [arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)),
 this is equivalent to the existence of a stable representation of dimension vector ``d``
 for the canonical stability parameter.
     
@@ -433,14 +433,14 @@ end
 A dimension vector ``e`` is called a generic subdimension vector of ``d`` if a generic representation
 of dimension vector ``d`` possesses a subrepresentation of dimension vector ``e``.
 
-By a result of Schofield (see Thm. 5.3 of [arXiv:0802.2147](https://arxiv.org/pdf/0802.2147.pdf)),
+By a result of Schofield (see Thm. 5.3 of [arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)),
 ``e`` is a generic subdimension vector of ``d`` if and only if
 ```math
 <e',d-e> \\geq 0
 ```
 for all generic subdimension vectors ``e'`` of ``e``.
 """
-@memoize Dict function is_generic_subdimension_vector(Q::Quiver, e::Vector{Int}, d::Vector{Int}; algorithm::String = "schofield")
+@memoize Dict function is_generic_subdimension_vector(Q::Quiver, e::Vector{Int}, d::Vector{Int})
     if e == d || all(ei == 0 for ei in e)
         return true
     end
@@ -727,6 +727,7 @@ end
 # Canonical decomposition
 #####################################################
 
+# TODO check if the paper of Schofield is open access
 """
 Computes the dimension of the ``\\mathrm{Ext}^1`` group between generic representations
 of dimension vectors ``a`` and ``b``.
@@ -842,7 +843,7 @@ Checks if the dimension vector ``d`` is in the fundamental domain of the quiver 
 
 The fundamental domain is the cone of dimension vectors in ``\\mathbb{Z}^{Q_0}``
 such that the symmetric Tits form is negative on all the simple roots, i.e.,
-for all vertices i, 
+for all vertices i,
 
 ```math
 (s_i, d) := \\langle d, s_i\\rangle + \\langle s_i, d\\rangle  \\leq 0,
@@ -866,7 +867,9 @@ end
 ##############################################################
 # walls and chambers decomposition for stability parameters
 
-
+# this is equivalent to checking if a Schur root exists? No, that would be the case with a strict inequality, but JuMP does not support those.
+# This tells us if a certain parameter admitting semistables exists.
+# Checking the strict inequality would give the same information as checking if d is a Schur root, so it is not needed.
 function is_stable_cone_nonempty(Q::Quiver, d::Vector{Int})
     # TODO profile this. Does it leave stuff in memory once it is done?
 
@@ -911,7 +914,38 @@ end
 # how to find inner walls now? These are given by a finite subset of the special subdimension vectors of d.
 # which ones? and how to find them?
 
+# TODO implement this better, the smooth model quiver construction should not need to be cached here.
 
+function has_stables_with_subdimension(Q::Quiver, d::Vector{Int}, e::Vector{Int})
+#    return has_stables(smooth_model_quiver(Q, e), smooth_model_root(d), smooth_model_root(theta, inclusion=true))
+   return is_Schur_root(smooth_model_quiver(Q, e), smooth_model_root(d))
+end
+
+function has_stables_with_subdimension(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, e::Vector{Int})
+   return has_stables(smooth_model_quiver(Q, e), smooth_model_root(d), smooth_model_root(theta, inclusion=true))
+end
+
+function has_semistables_with_subdimension(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, e::Vector{Int})
+    return has_semistables(smooth_model_quiver(Q, e), smooth_model_root(d), smooth_model_root(theta, inclusion=true))
+end
+
+
+# this comes with a stability parameter, not sure how to generalize.
+# there seems to be an analogy with the HN stratification: generic subdimension vectors do not
+# depend on a stability parameter, but the special ones seem to do, like stability does not depend on a choice of metric
+# for 1-PSs, but the HN types that arise do.
+# are these two things related?
+function all_special_subdimension_vectors(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
+    candidates = filter(e -> !is_generic_subdimension_vector(Q, e, d), all_proper_subdimension_vectors(d)) #0 and d are generic
+
+    return filter(e -> has_stables_with_subdimension(Q, d, theta, e), candidates)
+end
+
+function all_special_subdimension_vectors(Q::Quiver, d::Vector{Int})
+    candidates = filter(e -> !is_generic_subdimension_vector(Q, e, d), all_proper_subdimension_vectors(d)) #0 and d are generic
+
+    return filter(e -> has_stables_with_subdimension(Q, d, e), candidates)
+end
 
 
 
@@ -994,7 +1028,9 @@ function Td(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, q)
     end
     return T
 end
-    
+
+
+# TODO DOI below is not open access.
 # auxiliary functions for Hodge_polynomial() above
 ###################################################
     
@@ -1181,6 +1217,28 @@ opposite_quiver(Q::Quiver) = Quiver(Matrix{Int}(transpose(Q.adjacency)), "Opposi
 The adjacency matrix of the double of a quiver is the sum of the adjacency matrix of the original quiver and its transpose.
 """
 double_quiver(Q::Quiver) = Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "Double of "*Q.name)
+
+
+"""
+Computes the quiver ``\\hat{Q}`` defined in [arXiv:0706.4306](https://doi.org/10.48550/arXiv.0706.4306)
+for the given quiver ``Q`` and a given subdimension vector ``e``.
+"""
+@memoize Dict function smooth_model_quiver(Q::Quiver, e::Vector{Int})
+    n = nvertices(Q)
+    A = zeros(Int, n+1, n+1)
+    A[2:n+1, 2:n+1] = Q.adjacency
+    A[1, 2:n+1] = e
+    return Quiver(A, "Smooth model quiver of "*Q.name)
+end
+
+# TODO think of a better way to do this?
+@memoize Dict function smooth_model_root(d::Vector{Int}; inclusion::Bool = false)
+    if inclusion
+        return [0, d...]
+    end
+    return [1, d...]
+end
+
 
 
 #################
