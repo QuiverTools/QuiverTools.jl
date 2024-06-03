@@ -249,7 +249,7 @@ end;
 # DONE generic hom, ext 
 # DONE canonical decomposition
 # DONE fundamental domain
-# TODO stable cone methods
+# DONE stable cone methods 
 # DONE Hodge diamond (test against what?)
 
 

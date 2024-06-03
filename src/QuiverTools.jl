@@ -1,13 +1,19 @@
 module QuiverTools
 
-using Memoize
-using Nemo
-using JuMP, HiGHS
-using LinearAlgebra
+import Memoize
+import Singular
+import AbstractAlgebra
+import LinearAlgebra, Combinatorics
+import LinearAlgebraX
+import IterTools
 
 import Base.show
-# import LinearAlgebra.I
-# import JuMP.Model, JuMP.optimize!, JuMP.@variable, JuMP.@constraint, JuMP.@objective, JuMP.termination_status
+import LinearAlgebra: I, diag, diagm
+import Memoize: @memoize
+import AbstractAlgebra: fraction_field
+import IterTools: subsets
+import LinearAlgebraX: rankx
+import Singular: polynomial_ring, degree, coeff, AlgebraHomomorphism, preimage, Ideal, QuotientRing, std
 
 export Quiver
 export nvertices, narrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
@@ -22,7 +28,6 @@ export mKronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver
 # TODO coframed_quiver()
 # TODO full_subquiver()
 # TODO bipartite quiver
-# TODO wall and chamber decomposition
 
 """
 A quiver is represented by its adjacency
@@ -385,7 +390,7 @@ julia> has_semistables(Q, d, theta)
 true
 ```
 """
-@memoize Dict function has_stables(Q::Quiver, d::Vector{Int}, theta::Vector{Int}; slope_denominator::Function = sum)
+@memoize Dict function has_stables(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
     if all(di == 0 for di in d)
         return true
     else
@@ -818,25 +823,33 @@ function extension_matrix(Q::Quiver, hntype::Vector{Vector{Int}})
     end
 end
 
-
-# TODO what is this for?
-function is_luna_type(Q::Quiver, tau::Vector{Tuple{Vector{Int},Int}}, theta::Vector{Int})
-    n = nvertices(Q)
-    zeroVector = Vector{Int}(zeros(Int, n))
-    d = sum(sum(tupl[1] .* tupl[2]) for tupl in tau) 
-    if d == zeroVector
-        return tau == [(zeroVector, 1)]
-    else
-        dstar = [tupl[1] for tupl in tau]
-        equalSlope = all(e -> slope(e, theta, denominator) == slope(d, theta, denominator), dstar)
-        semistable = all(e -> has_stables(Q, e, theta), dstar)
-        return equalSlope && semistable
+# This can be modified once we decide how to properly represent a Luna type. Dict? Vector? Set? custom type?
+function Luna_type_from_vector(vec::Vector{Vector{Int}})
+    Luna_type = Dict{Vector{Int}, Int}()
+    for entry in vec
+        if haskey(Luna_type, entry)
+            Luna_type[entry] += 1
+        else
+            Luna_type[entry] = 1
+        end
     end
+    return Luna_type
 end
 
-function all_luna_types(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
-    throw(ArgumentError("not implemented"))
+function all_Luna_types(Q::Quiver, d::Vector{Int}, theta::Vector{Int}; slope_denominator::Function=sum)
+    same_slope = filter(e -> slope(e, theta, slope_denominator) == slope(d, theta, slope_denominator) && has_stables(Q, e, theta, slope_denominator), QuiverTools.all_nonzero_subdimension_vectors(d))
+    Luna_types = []
+    bound =  sum(d) ÷ minimum(sum(e) for e in same_slope) # the highest possible amount of repetitions for a given stable dimension vector
+    for i in 1:bound + 1
+        for tau in Combinatorics.with_replacement_combinations(same_slope, i)
+            if sum(tau) == d
+                push!(Luna_types, Luna_type_from_vector(tau))
+            end
+        end
+    end
+    return Luna_types
 end
+
 
 """
 Checks if the dimension vector ``d`` is in the fundamental domain of the quiver ``Q``.
@@ -865,35 +878,43 @@ function in_fundamental_domain(Q::Quiver, d::Vector{Int}; interior::Bool=false)
 end
 
 ##############################################################
-# walls and chambers decomposition for stability parameters
+# walls and chambers bases for stability parameters
 
-# this is equivalent to checking if a Schur root exists? No, that would be the case with a strict inequality, but JuMP does not support those.
-# This tells us if a certain parameter admitting semistables exists.
-# Checking the strict inequality would give the same information as checking if d is a Schur root, so it is not needed.
-function is_stable_cone_nonempty(Q::Quiver, d::Vector{Int})
-    # TODO profile this. Does it leave stuff in memory once it is done?
-
-    # use JUMPs to check if the intersection of all the half spaces is nonempty
-    # each space is given by the inequality <theta, e> <= 0 for all e in the set of all generic subdimension vectors of d
-    # the intersection of all these half spaces is the stable cone
-
-    model = JuMP.Model(HiGHS.Optimizer)
-    JuMP.@variable(model, x[1:nvertices(Q)], integer=true)
-
-    for e in all_generic_subdimension_vectors(Q, d)
-        JuMP.@constraint(model, dot(x, e) <= 0)
+function all_Schurian_decompositions(Q::Quiver, d::Vector{Int})
+    # the end of the recursion is necessarily at a simple root
+    # TODO multisets instead of lists.
+    if all(di == 0 for di in d)
+        return [[]]
+    elseif sum(d) == 1
+        return [[d]]
     end
+    Schur_subroots = filter(e -> is_Schur_root(Q, e), all_nonzero_subdimension_vectors(d))
+    # @info d, Schur_subroots
 
-    #optimize a constant function = check if feasible set is nonempty
-        JuMP.@objective(model, JuMP.Min, 1)
-        JuMP.set_silent(model)
-        JuMP.optimize!(model)
-
-    if JuMP.termination_status(model) == MOI.OPTIMAL
-        return true
-    else
-        return false
+    out = []
+    for e in Schur_subroots, fstar in all_Schurian_decompositions(Q, d - e)
+        push!(out, [e, fstar...])
     end
+    return out
+end
+
+function has_semistables(Q::Quiver, d::Vector{Int})
+    # if there are less summands than vertices, there will always be a stability parameter
+    # which multiplies all the summands (and hence d) to zero.
+    allow_stability = []
+
+    allSchurian = all_Schurian_decompositions(Q, d)
+    for candidate in allSchurian
+        if length(candidate) < nvertices(Q)
+            push!(allow_stability, candidate)
+        else
+            # if not, one has to check.
+            if LinearAlgebraX.rankx(hcat(candidate...)) < nvertices(Q)
+                push!(allow_stability, candidate)
+            end
+        end
+    end
+    return allow_stability
 end
 
 """
@@ -901,7 +922,7 @@ Checks if the stability parameter ``\\theta`` belongs to the cone of parameters 
 stable representations of dimension vector ``d``.
 Assumes that the dimension vector ``d`` is Schurian (for now).
 """
-function in_stable_cone(Q::Quiver, d::Vector{Int}, theta::Vector{Int}; strict::Bool = false)
+function in_stable_cone(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, strict::Bool = false)
     if !is_Schur_root(Q, d)
         throw(ArgumentError("d is not Schurian"))
     end
@@ -913,43 +934,6 @@ end
 
 # how to find inner walls now? These are given by a finite subset of the special subdimension vectors of d.
 # which ones? and how to find them?
-
-# TODO implement this better, the smooth model quiver construction should not need to be cached here.
-
-function has_stables_with_subdimension(Q::Quiver, d::Vector{Int}, e::Vector{Int})
-#    return has_stables(smooth_model_quiver(Q, e), smooth_model_root(d), smooth_model_root(theta, inclusion=true))
-   return is_Schur_root(smooth_model_quiver(Q, e), smooth_model_root(d))
-end
-
-function has_stables_with_subdimension(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, e::Vector{Int})
-   return has_stables(smooth_model_quiver(Q, e), smooth_model_root(d), smooth_model_root(theta, inclusion=true))
-end
-
-function has_semistables_with_subdimension(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, e::Vector{Int})
-    return has_semistables(smooth_model_quiver(Q, e), smooth_model_root(d), smooth_model_root(theta, inclusion=true))
-end
-
-
-# this comes with a stability parameter, not sure how to generalize.
-# there seems to be an analogy with the HN stratification: generic subdimension vectors do not
-# depend on a stability parameter, but the special ones seem to do, like stability does not depend on a choice of metric
-# for 1-PSs, but the HN types that arise do.
-# are these two things related?
-function all_special_subdimension_vectors(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
-    candidates = filter(e -> !is_generic_subdimension_vector(Q, e, d), all_proper_subdimension_vectors(d)) #0 and d are generic
-
-    return filter(e -> has_stables_with_subdimension(Q, d, theta, e), candidates)
-end
-
-function all_special_subdimension_vectors(Q::Quiver, d::Vector{Int})
-    candidates = filter(e -> !is_generic_subdimension_vector(Q, e, d), all_proper_subdimension_vectors(d)) #0 and d are generic
-
-    return filter(e -> has_stables_with_subdimension(Q, d, e), candidates)
-end
-
-
-
-
 
 ######################################################################################
 # Below lie methods to compute Hodge diamonds translated from the Hodge diamond cutter.
@@ -1048,24 +1032,28 @@ function Hodge_polynomial(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     if theta' * d == 0 && !is_coprime(d)
         throw(ArgumentError("d is not coprime"))
     elseif theta' * d != 0 && gcd(theta' * d, sum(d)) != 1
-        throw(ArgumentError("d is not coprime in the sense of Definition 6.3."))
+        throw(ArgumentError("d is not coprime in the sense of Definition 6.3 of MR1974891."))
     elseif !is_acyclic(Q)
         throw(ArgumentError("Q is not acyclic."))
     end
 
-    R, q = polynomial_ring(Nemo.QQ, 'q')
-    F = fraction_field(R)
+    R, q = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, "q") # writing ["q"] throws bugs. No idea why.
+    F = AbstractAlgebra.fraction_field(R)
     v = F(q) # worsens performance by ~8%. Necessary?
     
     T = Td(Q, d, theta, v)
 
     one_at_the_end = unit_vector(size(T)[1], size(T)[1])
     
-    result = numerator(solve(T, one_at_the_end)[1] * (1-v))
+    # @warn "result needs to be a polynomial, otherwise the moduli space is singular."
+    solution = solve(T, one_at_the_end)[1] * (1-v)
+    if denominator(solution) != 1
+        throw(DomainError("Moduli space is singular!"))
+    end
+    result = numerator(solution)
 
-    S,(x, y) = polynomial_ring(Nemo.QQ, ["x", "y"])
+    S,(x, y) = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, ["x", "y"])
     return result(x*y)
-    # return [coeff(result,i) for i in 0:degree(result)] # this is actually all we need for the Hodge diamond because the matrix is diagonal for quiver moduli
 end
 
 """
@@ -1092,8 +1080,8 @@ function _Hodge_polynomial_fast(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     # unsafe, curate input!
     # this is about 2% faster than the above, and occupies about 2% less memory.
     
-    R, q = polynomial_ring(QQ, 'q')
-    F = fraction_field(R)
+    R, q = polynomial_ring(QQ, "q")
+    F = AbstractAlgebra.fraction_field(R)
     v = F(q) # worsens performance by ~8%. Necessary?
     
     T = Td(Q, d, theta, v)
@@ -1104,6 +1092,100 @@ function _Hodge_polynomial_fast(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     # return [coeff(result, i) for i in 0:degree(result)] # this is actually all we need for the Hodge diamond because the matrix is diagonal for quiver moduli
 end
 
+###############################################################################
+# tautological representation of the Chow ring.
+# Implements the results of [arXiv:1307.3066](https://doi.org/10.48550/arXiv.1307.3066) and
+# [arXiv.2307.01711](https://doi.org/10.48550/arXiv.2307.01711).
+###############################################################################
+
+# partial order on the forbidden dimension vectors as in https://doi.org/10.48550/arXiv.1307.3066
+function partial_order(Q::Quiver, f::Vector{Int}, g::Vector{Int})
+    if !all(f[i] <= g[i] for i in 1:nvertices(Q) if is_source(Q, i))
+        return false
+    elseif !all(f[i] >= g[i] for i in 1:nvertices(Q) if is_sink(Q, i))
+        return false
+    elseif !all(f[i] == g[i] for i in 1:nvertices(Q) if !is_source(Q, i) && !is_sink(Q, i))
+        return false
+    end
+    return true
+end
+
+
+"""
+Returns the symmetric polynomial of degree ``degree`` in the variables ``vars``.
+"""
+function symmetric_polynomial(vars, degree::Int)
+    return sum(prod(e) for e in IterTools.subsets(vars, degree))
+end
+
+function Chow_ring(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, a::Vector{Int})
+    # TODO cover case d[i] = 0
+    # safety checks
+    if !is_coprime(d, theta)
+        throw(ArgumentError("d and theta are not coprime"))
+    elseif a' * d != 1
+        throw(ArgumentError("a is not a linearization"))
+    end
+    
+    varnames = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
+    # R, vars = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, varnames)
+    R, vars = Singular.polynomial_ring(Singular.QQ, varnames)
+    function chi(i, j)
+        return vars[sum(d[1:i-1]) + j]
+    end
+    
+    function base_for_ring(name="naive")
+        if name == "naive"
+            bounds = [0:(d[i] - nu) for i in 1:nvertices(Q) for nu in 1:d[i]]
+            lambdas = Iterators.product(bounds...)
+
+            build_elem(lambda) = prod(prod(chi(i, nu)^lambda[sum(d[1:i-1]) + nu] for nu in 1:d[i]) for i in 1:nvertices(Q))
+
+            return map(l -> build_elem(l), lambdas)
+        else
+            throw(ArgumentError("unknown base."))
+        end
+    end
+    
+    # build the permutation group W
+    W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i in 1:nvertices(Q)]...)
+    sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
+    
+    permute(f, sigma) = f([chi(i, sigma[i][j]) for i in 1:nvertices(Q) for j in 1:d[i]]...)
+
+    delta = prod(prod(chi(i, l) - chi(i, k) for k in 1:d[i]-1 for l in k+1:d[i]) for i in 1:nvertices(Q) if d[i] > 1) 
+    antisymmetrize(f) = sum(sign(w)*permute(f, w) for w in W) / delta
+
+    function all_forbidden(Q, d, theta, slope_denominator::Function = sum)
+        dest = all_destabilizing_subdimension_vectors(d, theta, slope_denominator)
+        return filter(e -> !any(f -> partial_order(Q, f, e), filter(f -> f != e, dest)), dest)
+    end
+
+    forbidden_polynomials = [prod(prod((chi(j, s) - chi(i, r))^Q.adjacency[i, j] for r in 1:e[i], s in e[j]+1:d[j]) for j in 1:nvertices(Q), i in 1:nvertices(Q) if Q.adjacency[i, j] > 0 && e[i] > 0 && d[j] > 1) for e in all_forbidden(Q, d, theta)]
+
+    varnames2 = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
+    A, Avars = Singular.polynomial_ring(Singular.QQ, varnames2)
+
+    function xs(i, j)
+        return Avars[sum(d[1:i-1]) + j]
+    end
+
+    targets = [[symmetric_polynomial([chi(i, j) for j in 1:d[i]], k) for k in 1:d[i]] for i in 1:nvertices(Q)]
+    targets = reduce(vcat, targets)
+
+    inclusion = AlgebraHomomorphism(A, R, targets)
+
+    anti = [antisymmetrize(f * b) for f in forbidden_polynomials, b in base_for_ring()]
+    tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
+
+    linear = [sum(a[i] * xs(i, 1) for i in 1:nvertices(Q))]
+
+    return QuotientRing(A, std(Ideal(A, [tautological; linear])))
+end
+
+# TODO todd class
+# TODO point class
+# TODO universal bundle class
 
 
 #################
@@ -1115,7 +1197,7 @@ function mKronecker_quiver(m::Int)
 end
 
 function three_vertex_quiver(m12::Int, m13::Int, m23::Int)
-    return Quiver([0 m12 m13; 0 0 m23; 0 0 0], "An acyclic 3-vertex quiver")
+    return Quiver([0 m12 m13; 0 0 m23; 0 0 0], "Acyclic 3-vertex quiver")
 end
 
 function loop_quiver(m::Int)
@@ -1277,5 +1359,7 @@ function unit_vector(Q::Quiver, i::Int)
     return unit_vector(nvertices(Q), i)
 end
 
-
+#######################################################
+# Include all the submodules
+#######################################################
 end
