@@ -7,6 +7,7 @@ using QuiverTools
 ```@meta
 CurrentModule = QuiverTools
 ```
+DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools))
 
 makedocs(
     sitename = "QuiverTools",

@@ -13,7 +13,7 @@ import Memoize: @memoize
 import AbstractAlgebra: fraction_field
 import IterTools: subsets
 import LinearAlgebraX: rankx
-import Singular: polynomial_ring, degree, coeff, AlgebraHomomorphism, preimage, Ideal, QuotientRing, std
+import Singular: polynomial_ring, degree, coeff, AlgebraHomomorphism, preimage, Ideal, QuotientRing, std, gens
 
 export Quiver
 export nvertices, narrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
@@ -98,34 +98,40 @@ is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^nvertices(Q))
 Checks wether the underlying graph of the quiver is connected.
 
 Examples:
-```julia-repl
-julia> Q = Quiver([0 1 0; 0 0 1; 1 0 0])
+```jldoctest
+julia> Q = Quiver([0 1 0; 0 0 1; 1 0 0]);
 
 julia> is_connected(Q)
 true
 
-julia> Q = Quiver([0 1 0; 1 0 0; 0 0 2])
+julia> Q = Quiver([0 1 0; 1 0 0; 0 0 2]);
+
+julia> is_connected(Q)
 false
 
-# The 4-Kronecker quiver:
-julia> Q = mKroneckerquiver(4)
+julia> # The 4-Kronecker quiver:
+
+julia> Q = mKronecker_quiver(4);
 
 julia> is_connected(Q)
 true
 
-# The 4-loop quiver:
-julia> Q = LoopQuiver(4)
+julia> # The 4-loop quiver:
+
+julia> Q = loop_quiver(4);
 
 julia> is_connected(Q)
 true
 
-# The 4-subspace quiver:
-julia> Q = SubspaceQuiver(4)
+julia> # The 4-subspace quiver:
+
+julia> Q = subspace_quiver(4);
 
 julia> is_connected(Q)
 true
 
-# The A10 quiver:
+julia> # The A10 quiver:
+
 julia> A10 = Quiver(   [0 1 0 0 0 0 0 0 0 0;
                         0 0 1 0 0 0 0 0 0 0;
                         0 0 0 1 0 0 0 0 0 0;
@@ -135,12 +141,13 @@ julia> A10 = Quiver(   [0 1 0 0 0 0 0 0 0 0;
                         0 0 0 0 0 0 0 1 0 0;
                         0 0 0 0 0 0 0 0 1 0;
                         0 0 0 0 0 0 0 0 0 1;
-                        0 0 0 0 0 0 0 0 0 0] )
+                        0 0 0 0 0 0 0 0 0 0] );
 
 julia> is_connected(A10)
 true
 
-# The A10 quiver without one arrow:
+julia> # The A10 quiver without one arrow:
+
 julia> A10 = Quiver(   [0 1 0 0 0 0 0 0 0 0;
                         0 0 1 0 0 0 0 0 0 0;
                         0 0 0 1 0 0 0 0 0 0;
@@ -150,7 +157,7 @@ julia> A10 = Quiver(   [0 1 0 0 0 0 0 0 0 0;
                         0 0 0 0 0 0 0 1 0 0;
                         0 0 0 0 0 0 0 0 1 0;
                         0 0 0 0 0 0 0 0 0 1;
-                        0 0 0 0 0 0 0 0 0 0] )
+                        0 0 0 0 0 0 0 0 0 0] );
 
 julia> is_connected(A10)
 false
@@ -175,8 +182,8 @@ end
 Returns the number of incoming arrows to the vertex ``j``.
 
 Examples:
-```julia-repl
-julia> Q = mKroneckerquiver(4)
+```jldoctest
+julia> Q = mKronecker_quiver(4);
 
 julia> indegree(Q, 1)
 0
@@ -191,8 +198,8 @@ indegree(Q::Quiver, j::Int) = sum(Q.adjacency[:, j])
 Returns the number of outgoing arrows from the vertex ``i``.
 
 Examples:
-```julia-repl
-julia> Q = mKroneckerquiver(4)
+```jldoctest
+julia> Q = mKronecker_quiver(4);
 
 julia> outdegree(Q, 1)
 4
@@ -207,8 +214,8 @@ outdegree(Q::Quiver, i::Int) = sum(Q.adjacency[i, :])
 Checks if the vertex ``i`` is a source, i.e., a vertex with no incoming arrows.
 
 Examples:
-```julia-repl
-julia> Q = mKroneckerquiver(4)
+```jldoctest
+julia> Q = mKronecker_quiver(4);
 
 julia> is_source(Q, 1)
 true
@@ -223,8 +230,8 @@ is_source(Q::Quiver, i::Int) = indegree(Q, i) == 0
 Checks if the vertex ``j`` is a sink, i.e., a vertex with no outgoing arrows.
 
 Examples:
-```julia-repl
-julia> Q = mKroneckerquiver(4)
+```jldoctest
+julia> Q = mKronecker_quiver(4);
 
 julia> is_sink(Q, 1)
 false
@@ -296,19 +303,19 @@ end
 Returns the list of all sequences ``(d^1,...,d^l)`` which sum to ``d`` such that ``\\mu(d^1) > ... > \\mu(d^l).``
 
 Examples:
-```julia-repl
+```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
-julia> all_slope_decreasing_sequences(Q, d, theta)
-8-element Array{Array{Vector}}:
-    [[[2, 3]],
-    [[1, 1], [1, 2]],
-    [[2, 2], [0, 1]],
-    [[2, 1], [0, 2]],
-    [[1, 0], [1, 3]],
-    [[1, 0], [1, 2], [0, 1]],
-    [[1, 0], [1, 1], [0, 2]],
-    [[2, 0], [0, 3]]]
+julia> QuiverTools.all_slope_decreasing_sequences(Q, d, theta)
+8-element Vector{Vector{Vector{Int64}}}:
+ [[2, 3]]
+ [[1, 1], [1, 2]]
+ [[2, 2], [0, 1]]
+ [[2, 1], [0, 2]]
+ [[1, 0], [1, 3]]
+ [[1, 0], [1, 2], [0, 1]]
+ [[1, 0], [1, 1], [0, 2]]
+ [[2, 0], [0, 3]]
 ```
 """
 function all_slope_decreasing_sequences(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denominator::Function=sum)
@@ -335,8 +342,8 @@ end
 """Checks if there is a ``\\theta``-semistable representation of dimension vector ``d``.
 
 Examples:
-```julia-repl
-julia> A2 = mKroneckerquiver(1); theta = [1,-1];
+```jldoctest
+julia> A2 = mKronecker_quiver(1); theta = [1,-1];
 
 julia> has_semistables(A2, [1,1], theta)
 true
@@ -350,8 +357,9 @@ false
 julia> has_semistables(A2, [0,0], theta)
 true
 
-# The 3-Kronecker quiver:
-julia> K3 = mKroneckerquiver(3); theta = [3,-2];
+julia> # The 3-Kronecker quiver:
+
+julia> K3 = mKronecker_quiver(3); theta = [3,-2];
 
 julia> has_semistables(K3, [2,3], theta)
 true
@@ -375,13 +383,13 @@ end
 """Checks if Q has a ``theta``-stable representation of dimension vector ``d``.
 
 Examples:
-```julia-repl
-julia> Q = mKroneckerquiver(3); d = [2,3]; theta = [3,-2];
+```jldoctest
+julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
 julia> has_stables(Q, d, theta)
 true
 
-julia> Q = mKroneckerquiver(2); d = [2,2]; theta = [1,-1];
+julia> Q = mKronecker_quiver(2); d = [2,2]; theta = [1,-1];
 
 julia> has_stables(Q, d, theta)
 false
@@ -411,8 +419,8 @@ for the canonical stability parameter.
     
 Examples:
 
-```julia-repl
-julia> Q = mKroneckerquiver(3); d = [2,3];
+```jldoctest
+julia> Q = mKronecker_quiver(3); d = [2,3];
 
 julia> is_Schur_root(Q, d)
 true
@@ -463,8 +471,8 @@ end
 Returns the list of all generic subdimension vectors of ``d``.
 
 Examples:
-```julia-repl
-julia> Q = mKroneckerquiver(3); d = [2,3];
+```jldoctest
+julia> Q = mKronecker_quiver(3); d = [2,3];
 
 julia> QuiverTools.all_generic_subdimension_vectors(Q, d)
 7-element Vector{Vector{Int64}}:
@@ -486,7 +494,7 @@ Returns a list of all the Harder Narasimhan types of representations of ``Q``
 with dimension vector ``d``, with respect to the slope function theta/slope_denominator.
 
 Examples:
-```julia-repl
+```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
 julia> all_HN_types(Q, d, theta)
@@ -520,40 +528,7 @@ julia> all_HN_types(Q, d, theta)
  [[3, 0, 2], [0, 1, 0], [1, 0, 2]]
  [[3, 0, 2], [1, 0, 1], [0, 1, 1]]
  [[3, 0, 2], [1, 1, 1], [0, 0, 1]]
- [[2, 1, 1], [2, 0, 3]]
- [[2, 1, 1], [1, 0, 1], [1, 0, 2]]
- [[2, 1, 1], [2, 0, 2], [0, 0, 1]]
- [[4, 1, 2], [0, 0, 2]]
- [[2, 0, 1], [2, 1, 3]]
- [[2, 0, 1], [0, 1, 0], [2, 0, 3]]
- [[2, 0, 1], [1, 0, 1], [1, 1, 2]]
- [[2, 0, 1], [1, 1, 1], [1, 0, 2]]
- [[2, 0, 1], [2, 0, 2], [0, 1, 1]]
- [[2, 0, 1], [2, 1, 2], [0, 0, 1]]
- [[2, 0, 1], [2, 1, 1], [0, 0, 2]]
- [[4, 0, 2], [0, 1, 1], [0, 0, 1]]
- [[4, 0, 2], [0, 1, 0], [0, 0, 2]]
- [[3, 1, 1], [1, 0, 3]]
- [[3, 1, 1], [1, 0, 2], [0, 0, 1]]
- [[3, 1, 1], [1, 0, 1], [0, 0, 2]]
  ⋮
- [[2, 0, 0], [1, 0, 1], [1, 1, 3]]
- [[2, 0, 0], [1, 0, 1], [1, 0, 2], [0, 1, 1]]
- [[2, 0, 0], [1, 0, 1], [1, 1, 2], [0, 0, 1]]
- [[2, 0, 0], [1, 1, 1], [1, 0, 3]]
- [[2, 0, 0], [1, 1, 1], [1, 0, 2], [0, 0, 1]]
- [[2, 0, 0], [2, 0, 2], [0, 1, 1], [0, 0, 1]]
- [[2, 0, 0], [2, 1, 2], [0, 0, 2]]
- [[2, 0, 0], [2, 1, 1], [0, 0, 3]]
- [[2, 0, 0], [2, 0, 1], [0, 1, 1], [0, 0, 2]]
- [[2, 0, 0], [2, 0, 1], [0, 1, 0], [0, 0, 3]]
- [[2, 0, 0], [1, 1, 0], [1, 0, 4]]
- [[2, 0, 0], [1, 1, 0], [1, 0, 3], [0, 0, 1]]
- [[2, 0, 0], [1, 1, 0], [1, 0, 2], [0, 0, 2]]
- [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 0, 3]]
- [[3, 0, 0], [1, 1, 4]]
- [[3, 0, 0], [1, 1, 3], [0, 0, 1]]
- [[3, 0, 0], [1, 0, 2], [0, 1, 1], [0, 0, 1]]
  [[3, 0, 0], [1, 1, 2], [0, 0, 2]]
  [[3, 0, 0], [0, 1, 0], [1, 0, 4]]
  [[3, 0, 0], [0, 1, 0], [1, 0, 3], [0, 0, 1]]
@@ -595,7 +570,7 @@ end
 Returns the codimension of the given HN stratum.
 
 Examples:
-```julia-repl
+```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
 julia> HN = all_HN_types(Q, d, theta)
@@ -1118,7 +1093,7 @@ function symmetric_polynomial(vars, degree::Int)
     return sum(prod(e) for e in IterTools.subsets(vars, degree))
 end
 
-function Chow_ring(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, a::Vector{Int})
+function Chow_ring(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, a::Vector{Int}; standard::Bool=false)
     # TODO cover case d[i] = 0
     # safety checks
     if !is_coprime(d, theta)
@@ -1175,12 +1150,14 @@ function Chow_ring(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, a::Vector{Int}
 
     inclusion = AlgebraHomomorphism(A, R, targets)
 
-    anti = [antisymmetrize(f * b) for f in forbidden_polynomials, b in base_for_ring()]
+    anti = [antisymmetrize(f * b) for f in forbidden_polynomials for b in base_for_ring()]
     tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
-
     linear = [sum(a[i] * xs(i, 1) for i in 1:nvertices(Q))]
 
-    return QuotientRing(A, std(Ideal(A, [tautological; linear])))
+    if standard
+        return QuotientRing(A, std(Ideal(A, [tautological; linear])))
+    end
+    return Dict("ring" => A, "relations" => Ideal(A, [tautological; linear]))
 end
 
 # TODO todd class
@@ -1310,7 +1287,7 @@ for the given quiver ``Q`` and a given subdimension vector ``e``.
     A = zeros(Int, n + 1, n + 1)
     A[2:n+1, 2:n+1] = Q.adjacency
     A[1, 2:n+1] = e
-    return Quiver(A, "Smooth model quiver of " * Q.name)
+    return Quiver(A, "Smooth model quiver of " * Q.name * " for the dimension vector " * e)
 end
 
 # TODO think of a better way to do this?
