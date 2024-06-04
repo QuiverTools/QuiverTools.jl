@@ -47,10 +47,10 @@ mutable struct Quiver
     function Quiver(adjacency::Matrix{Int}, name::String)
         if !(size(adjacency)[1] == size(adjacency)[2])
             throw(DomainError(adjacency, "adjacency matrix must be square"))
-        else 
+        else
             new(adjacency, name)
         end
-    end 
+    end
     function Quiver(adjacency::Matrix{Int})
         if !(size(adjacency)[1] == size(adjacency)[2])
             throw(DomainError(adjacency, "adjacency matrix must be square"))
@@ -65,7 +65,7 @@ function show(io::IO, Q::Quiver)
     if Q.name == ""
         print(io, "Quiver with adjacency matrix ")
     else
-        print(io, Q.name*", with adjacency matrix ")
+        print(io, Q.name * ", with adjacency matrix ")
     end
     println(io, Q.adjacency)
 end
@@ -158,13 +158,13 @@ false
 """
 function is_connected(Q::Quiver)
     paths = underlying_graph(Q)
-    for i in 2:nvertices(Q) - 1
-        paths += paths*underlying_graph(Q)
+    for i in 2:nvertices(Q)-1
+        paths += paths * underlying_graph(Q)
     end
     for i in 1:nvertices(Q), j in 1:nvertices(Q)
-            if i != j && paths[i, j] == 0 && paths[j, i] == 0
-                return false
-            end
+        if i != j && paths[i, j] == 0 && paths[j, i] == 0
+            return false
+        end
     end
     return true
 end
@@ -260,16 +260,16 @@ The Euler form is defined as the bilinear form
 ```
 where ``E`` is the Euler matrix of the quiver.
 """
-Euler_form(Q::Quiver, x::Vector{Int}, y::Vector{Int}) = x'*Euler_matrix(Q)*y
+Euler_form(Q::Quiver, x::Vector{Int}, y::Vector{Int}) = x' * Euler_matrix(Q) * y
 
 """
 The canonical stability parameter for the couple ``(Q,d)`` is given by ``<d,- > - < - ,d>``
 """
-canonical_stability(Q::Quiver, d::Vector{Int})::Vector{Int} = -(-transpose(Euler_matrix(Q)) + Euler_matrix(Q))*d
+canonical_stability(Q::Quiver, d::Vector{Int})::Vector{Int} = -(-transpose(Euler_matrix(Q)) + Euler_matrix(Q)) * d
 
 """Checks wether the given dimension vector ``d`` is ``\\theta``-coprime for the stability parameter ``\\theta``."""
 function is_coprime(d::Vector{Int}, theta::Vector{Int})
-    return all(e -> theta'*e != 0, all_proper_subdimension_vectors(d))
+    return all(e -> theta' * e != 0, all_proper_subdimension_vectors(d))
 end
 
 """Checks if the gcd of all the entries of d is ``1``."""
@@ -282,13 +282,13 @@ end
 Returns the slope of the dimension vector ``d`` with respect to the stability parameter ``\\theta``
 and a choice of a denominator function.
 """
-function slope(d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
-    return (theta'*d)//slope_denominator(d)
+function slope(d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function=sum)
+    return (theta' * d) // slope_denominator(d)
 end
 """
 Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d``.
 """
-@memoize Dict function all_destabilizing_subdimension_vectors(d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
+@memoize Dict function all_destabilizing_subdimension_vectors(d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function=sum)
     return filter(e -> slope(e, theta, slope_denominator) > slope(d, theta, slope_denominator), all_nonzero_subdimension_vectors(d))
 end
 
@@ -311,20 +311,20 @@ julia> all_slope_decreasing_sequences(Q, d, theta)
     [[2, 0], [0, 3]]]
 ```
 """
-function all_slope_decreasing_sequences(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denominator::Function = sum)
+function all_slope_decreasing_sequences(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denominator::Function=sum)
 
     # List all subdimension vectors e of bigger slope than d.
     subdimensions = filter(e -> slope(e, theta, denominator) > slope(d, theta, denominator), all_nonzero_subdimension_vectors(d))
 
     # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
-    subdimensions = sort(subdimensions, by = e -> slope(e, theta, denominator))
+    subdimensions = sort(subdimensions, by=e -> slope(e, theta, denominator))
     # The slope decreasing sequences which are not of the form (d) are given by (e,f^1,...,f^s) where e is a proper subdimension vector such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
 
     # I will rewrite this as functional programming later
     allSlopeDecreasing = []
     for e in subdimensions
-        for fstar in filter(fstar -> slope(e, theta, denominator) > slope(fstar[1], theta, denominator), all_slope_decreasing_sequences(Q, d-e, theta, denominator))
-        push!(allSlopeDecreasing, [e, fstar...])
+        for fstar in filter(fstar -> slope(e, theta, denominator) > slope(fstar[1], theta, denominator), all_slope_decreasing_sequences(Q, d - e, theta, denominator))
+            push!(allSlopeDecreasing, [e, fstar...])
         end
     end
     # Add d again, at the beginning, because it is smallest with respect to the partial order from Def. 3.6
@@ -360,7 +360,7 @@ julia> has_semistables(K3, [1,4], theta)
 false
 ```
 """
-@memoize Dict function has_semistables(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
+@memoize Dict function has_semistables(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function=sum)
     if all(di == 0 for di in d)
         return true
     else
@@ -390,7 +390,7 @@ julia> has_semistables(Q, d, theta)
 true
 ```
 """
-@memoize Dict function has_stables(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
+@memoize Dict function has_stables(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function=sum)
     if all(di == 0 for di in d)
         return true
     else
@@ -477,7 +477,7 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, d)
  [2, 3]
 ```
 """
-function all_generic_subdimension_vectors(Q::Quiver, d::Vector{Int}) 
+function all_generic_subdimension_vectors(Q::Quiver, d::Vector{Int})
     return filter(e -> is_generic_subdimension_vector(Q, e, d), all_subdimension_vectors(d))
 end
 
@@ -572,16 +572,16 @@ julia> all_HN_types(Q, d, theta)
     else
         # We consider just proper subdimension vectors which admit a semistable representation and for which μ(e) > μ(d)
         # Note that we also eliminate d by the following
-        subdimensions = filter(e -> has_semistables(Q,  e, theta, slope_denominator), all_destabilizing_subdimension_vectors(d, theta, slope_denominator)) 
-        
+        subdimensions = filter(e -> has_semistables(Q, e, theta, slope_denominator), all_destabilizing_subdimension_vectors(d, theta, slope_denominator))
+
         # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
         if ordered
-            subdimensions = sort(subdimensions, by = e -> slope(e, theta, slope_denominator))
+            subdimensions = sort(subdimensions, by=e -> slope(e, theta, slope_denominator))
         end
 
         # The HN types which are not of the form (d) are (e,f^1,...,f^s) where e is a proper semistable subdimension vector with μ(e) > μ(d), (f^1,...,f^s) is a HN type of f = d-e and μ(e) > μ(f^1) holds.
 
-        alltypes = Vector{Vector{Int}}[[e, efstar...] for e in subdimensions for efstar in filter(fstar -> slope(e, theta, slope_denominator) > slope(fstar[1], theta, slope_denominator), all_HN_types(Q, d-e, theta, slope_denominator, ordered=ordered))]
+        alltypes = Vector{Vector{Int}}[[e, efstar...] for e in subdimensions for efstar in filter(fstar -> slope(e, theta, slope_denominator) > slope(fstar[1], theta, slope_denominator), all_HN_types(Q, d - e, theta, slope_denominator, ordered=ordered))]
 
         # Possibly add d again, at the beginning, because it is smallest with respect to the partial order from Def. 3.6
         if has_semistables(Q, d, theta, slope_denominator)
@@ -635,7 +635,7 @@ Checks wether the dimension vector ``d`` is amply stable with respect to the slo
 
 This means that the codimension of the unstable locus in the parameter space is at least ``2``.
 """
-function is_amply_stable(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
+function is_amply_stable(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function=sum)
     # We say that representations of a given dimension vector d are amply stable (for any notion of stability) if the codimension of the semistable locus is at least 2.
     # We verify this by computing the codimension of each HN stratum.
     HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, slope_denominator))
@@ -650,7 +650,7 @@ end
 
 """ Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS ``\\lambda``
 corresponding to the given HN type."""
-function Teleman_bound_onstratum(Q::Quiver, hntype::Vector{Vector{Int}}, theta::Vector{Int}, slope_denominator::Function = sum)::Int
+function Teleman_bound_onstratum(Q::Quiver, hntype::Vector{Vector{Int}}, theta::Vector{Int}, slope_denominator::Function=sum)::Int
     if length(hntype) == 1
         throw(ArgumentError("Weight not defined for HN type of length 1."))
     end
@@ -661,7 +661,7 @@ end
 
 """ Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
 HN type for the given ``Q``, ``d``, ``\\theta`` and `slope_denominator``."""
-function all_Teleman_bounds(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function = sum)
+function all_Teleman_bounds(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function=sum)
     #This is only relevant on the unstable locus
     HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, slope_denominator))
     return Dict([hntype, Teleman_bound_onstratum(Q, hntype, theta, slope_denominator)] for hntype in HN)
@@ -669,17 +669,17 @@ end
 
 """Returns the weights of a universal bundle ``U_i(a)`` for the linearization ``a``
 for the 1-PS corresponding to the given HN type."""
-function weights_universal_bundle_onstratum(theta::Vector{Int}, a::Vector{Int}, hntype, slope_denominator::Function = sum)::Vector{Int}
+function weights_universal_bundle_onstratum(theta::Vector{Int}, a::Vector{Int}, hntype, slope_denominator::Function=sum)::Vector{Int}
     slopes = map(h -> slope(h, theta, slope_denominator), hntype)
     slopes *= lcm(denominator.(slopes))
 
-    constant_term = sum(slopes[i]* (a' * hntype[i]) for i in eachindex(hntype))
+    constant_term = sum(slopes[i] * (a' * hntype[i]) for i in eachindex(hntype))
 
     return -constant_term .+ slopes
 end
 """Computes the weights of the universal bundle ``U_i(a)`` for the linearization ``a``
 on all the non-dense Harder-Narasimhan strata for each 1-PS corresponding to each HN type."""
-function all_weights_universal_bundle(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, a::Vector{Int}, slope_denominator::Function = sum)
+function all_weights_universal_bundle(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, a::Vector{Int}, slope_denominator::Function=sum)
     HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, slope_denominator))
     return Dict([hntype, weights_universal_bundle_onstratum(theta, a, hntype, slope_denominator)] for hntype in HN)
 end
@@ -689,11 +689,11 @@ end
 on a Harder-Narasimhan stratum for the 1-PS corresponding to each HN type.
 More explicitly, if ``\\omega_X = \\mathcal{O}(rH)``, this returns the weight of
 the pullback of O(H) on the given stratum."""
-function weight_irreducible_component_canonical_on_stratum(Q::Quiver, d::Vector{Int}, hntype::Vector{Vector{Int}}, theta::Vector{Int}, slope_denominator::Function = sum)::Int
-    kweights = map(di -> slope(di,theta, slope_denominator), hntype)
+function weight_irreducible_component_canonical_on_stratum(Q::Quiver, d::Vector{Int}, hntype::Vector{Vector{Int}}, theta::Vector{Int}, slope_denominator::Function=sum)::Int
+    kweights = map(di -> slope(di, theta, slope_denominator), hntype)
     kweights = kweights * lcm(denominator.(kweights))
 
-    dd = sum( kweights[m] .* hntype[m] for m in 1:length(hntype))
+    dd = sum(kweights[m] .* hntype[m] for m in 1:length(hntype))
     # The Fano paper shows that under appropriate conditions,
     # the canonical bundle is given by linearizing with minus
     # the canonical stability parameter.
@@ -705,16 +705,16 @@ end
 """Computes the weights of the irreducible component of ``\\omega_R|_Z``
 on all the non-dense Harder-Narasimhan strata for each 1-PS relative to the HN type.
 More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullback of ``\\mathcal{O}(H)`` on each stratum."""
-function all_weights_irreducible_component_canonical(Q::Quiver,d::Vector{Int},theta::Vector{Int}, slope_denominator::Function = sum)
-    HN = filter(hntype -> hntype != [d], all_HN_types(Q,d,theta))
+function all_weights_irreducible_component_canonical(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function=sum)
+    HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta))
     return Dict([hntype, weight_irreducible_component_canonical_on_stratum(Q, d, hntype, theta, slope_denominator)] for hntype in HN)
 end
 
 """Computes the weights of the endomorphism of the universal bundle ``U_i \\otimes U_j``
 on the given Harder-Narasimhan stratum for the 1-PS relative to the HN type."""
-function weights_endomorphism_universal_bundle_on_stratum(hntype::Vector{Vector{Int}},theta::Vector{Int},slope_denominator::Function = sum)::Vector{Int}
+function weights_endomorphism_universal_bundle_on_stratum(hntype::Vector{Vector{Int}}, theta::Vector{Int}, slope_denominator::Function=sum)::Vector{Int}
     # the maximum weight of the tensors of the universal bundles U_i^\vee \otimes U_j is slope of first term in the HN type - slope of the last term in the HN type
-    kweights = map(di -> slope(di,theta, slope_denominator), hntype)
+    kweights = map(di -> slope(di, theta, slope_denominator), hntype)
     kweights = kweights * lcm(denominator.(kweights))
     # return kweights[1] - kweights[end] # this is the largest one
     return [kweights[i] - kweights[j] for i in 1:length(hntype) for j in 1:length(hntype)]
@@ -722,7 +722,7 @@ end
 
 """Computes the weights of the endomorphisms of the universal bundles ``U_i \\otimes U_j``
 on all the non-dense Harder-Narasimhan strata for each 1-PS relative to the HN type."""
-function all_weights_endomorphisms_universal_bundle(Q::Quiver,d::Vector{Int},theta::Vector{Int}, slope_denominator::Function = sum)
+function all_weights_endomorphisms_universal_bundle(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, slope_denominator::Function=sum)
     HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, slope_denominator))
     return Dict([hntype, weights_endomorphism_universal_bundle_on_stratum(hntype, theta, slope_denominator)] for hntype in HN)
 end
@@ -782,8 +782,8 @@ function canonical_decomposition(Q::Quiver, d::Vector{Int})
     # end
     generic_subdimensions = filter(e -> e != d, all_generic_subdimension_vectors(Q, d))
     for e in generic_subdimensions
-        if d - e in generic_subdimensions && generic_ext(Q, e, d-e) == 0 && generic_ext(Q, d-e, e) == 0
-            return vcat(canonical_decomposition(Q, e), canonical_decomposition(Q, d-e))
+        if d - e in generic_subdimensions && generic_ext(Q, e, d - e) == 0 && generic_ext(Q, d - e, e) == 0
+            return vcat(canonical_decomposition(Q, e), canonical_decomposition(Q, d - e))
         end
     end
     return [d] # if nothing above worked then d is a Schur root.
@@ -817,7 +817,7 @@ function extension_matrix(Q::Quiver, hntype::Vector{Vector{Int}})
     else
         M = zeros(Int, n, n)
         for i in 1:n-1, j in i+1:n
-            M[i,j] = -Euler_form(Q, hntype[i], hntype[j])
+            M[i, j] = -Euler_form(Q, hntype[i], hntype[j])
         end
         return M
     end
@@ -825,7 +825,7 @@ end
 
 # This can be modified once we decide how to properly represent a Luna type. Dict? Vector? Set? custom type?
 function Luna_type_from_vector(vec::Vector{Vector{Int}})
-    Luna_type = Dict{Vector{Int}, Int}()
+    Luna_type = Dict{Vector{Int},Int}()
     for entry in vec
         if haskey(Luna_type, entry)
             Luna_type[entry] += 1
@@ -839,8 +839,8 @@ end
 function all_Luna_types(Q::Quiver, d::Vector{Int}, theta::Vector{Int}; slope_denominator::Function=sum)
     same_slope = filter(e -> slope(e, theta, slope_denominator) == slope(d, theta, slope_denominator) && has_stables(Q, e, theta, slope_denominator), QuiverTools.all_nonzero_subdimension_vectors(d))
     Luna_types = []
-    bound =  sum(d) ÷ minimum(sum(e) for e in same_slope) # the highest possible amount of repetitions for a given stable dimension vector
-    for i in 1:bound + 1
+    bound = sum(d) ÷ minimum(sum(e) for e in same_slope) # the highest possible amount of repetitions for a given stable dimension vector
+    for i in 1:bound+1
         for tau in Combinatorics.with_replacement_combinations(same_slope, i)
             if sum(tau) == d
                 push!(Luna_types, Luna_type_from_vector(tau))
@@ -922,7 +922,7 @@ Checks if the stability parameter ``\\theta`` belongs to the cone of parameters 
 stable representations of dimension vector ``d``.
 Assumes that the dimension vector ``d`` is Schurian (for now).
 """
-function in_stable_cone(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, strict::Bool = false)
+function in_stable_cone(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, strict::Bool=false)
     if !is_Schur_root(Q, d)
         throw(ArgumentError("d is not Schurian"))
     end
@@ -952,9 +952,9 @@ Solve ``A\\cdot x = b`` for ``A`` upper triangular via back substitution
 function solve(A, b)
     n = length(b)
     x = Vector{Any}(zeros(n))
-    
-    x[n] = b[n] / A[n,n]
-    
+
+    x[n] = b[n] / A[n, n]
+
     for i in n-1:-1:1
         x[i] = (b[i] - sum(A[i, j] * x[j] for j in i+1:n)) / A[i, i]
     end
@@ -976,7 +976,7 @@ end
 Cardinality of representation space \$\\mathrm{R}(Q,d)\$, over \$\\mathbb{F}_q\$.
 """
 function CardinalRd(Q::Quiver, d::Vector{Int}, q)
-    return q^sum(d[i] * d[j] * Q.adjacency[i,j] for i in 1:nvertices(Q), j in 1:nvertices(Q))
+    return q^sum(d[i] * d[j] * Q.adjacency[i, j] for i in 1:nvertices(Q), j in 1:nvertices(Q))
 end
 
 """
@@ -989,7 +989,7 @@ end
 """Entry of the transfer matrix, as per Corollary 6.9"""
 function TransferMatrixEntry(Q, e, f, q)
     fe = f - e
-    
+
     if all(fei >= 0 for fei in fe)
         return q^Euler_form(Q, -fe, e) * CardinalRd(Q, fe, q) / CardinalGd(fe, q)
     else
@@ -1004,7 +1004,7 @@ function Td(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, q)
 
     l = length(I)
     T = Matrix{Any}(zeros(l, l))
-    
+
     for (i, Ii) in enumerate(I)
         for j in i:l  # upper triangular
             T[i, j] = TransferMatrixEntry(Q, Ii, I[j], q)
@@ -1017,7 +1017,7 @@ end
 # TODO DOI below is not open access.
 # auxiliary functions for Hodge_polynomial() above
 ###################################################
-    
+
 """
 Returns the Hodge polynomial of the moduli space of ``\\theta``-semistable
 representations of ``Q`` with dimension vector ``d``.
@@ -1027,7 +1027,7 @@ and the current implementation is translated from the [Hodge diamond cutter]
 (https://zenodo.org/doi/10.5281/zenodo.3893509).
 """
 function Hodge_polynomial(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
-    
+
     # safety checks
     if theta' * d == 0 && !is_coprime(d)
         throw(ArgumentError("d is not coprime"))
@@ -1040,20 +1040,20 @@ function Hodge_polynomial(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     R, q = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, "q") # writing ["q"] throws bugs. No idea why.
     F = AbstractAlgebra.fraction_field(R)
     v = F(q) # worsens performance by ~8%. Necessary?
-    
+
     T = Td(Q, d, theta, v)
 
     one_at_the_end = unit_vector(size(T)[1], size(T)[1])
-    
+
     # @warn "result needs to be a polynomial, otherwise the moduli space is singular."
-    solution = solve(T, one_at_the_end)[1] * (1-v)
+    solution = solve(T, one_at_the_end)[1] * (1 - v)
     if denominator(solution) != 1
         throw(DomainError("Moduli space is singular!"))
     end
     result = numerator(solution)
 
-    S,(x, y) = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, ["x", "y"])
-    return result(x*y)
+    S, (x, y) = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, ["x", "y"])
+    return result(x * y)
 end
 
 """
@@ -1062,7 +1062,7 @@ Returns the Hodge diamond of the moduli space of
 """
 function Hodge_diamond(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     g = Hodge_polynomial(Q, d, theta)
-    return map(ind -> coeff(g, [ind[1] - 1, ind[2] - 1]).num, Iterators.product(1:degree(g, 1) + 1, 1:degree(g, 2) + 1))
+    return map(ind -> coeff(g, [ind[1] - 1, ind[2] - 1]).num, Iterators.product(1:degree(g, 1)+1, 1:degree(g, 2)+1))
 end
 
 """
@@ -1079,16 +1079,16 @@ end
 function _Hodge_polynomial_fast(Q::Quiver, d::Vector{Int}, theta::Vector{Int})
     # unsafe, curate input!
     # this is about 2% faster than the above, and occupies about 2% less memory.
-    
+
     R, q = polynomial_ring(QQ, "q")
     F = AbstractAlgebra.fraction_field(R)
     v = F(q) # worsens performance by ~8%. Necessary?
-    
+
     T = Td(Q, d, theta, v)
 
     one_at_the_end = unit_vector(size(T)[1], size(T)[1])
-    
-    result = numerator(solve(T, one_at_the_end)[1] * (1-v))
+
+    result = numerator(solve(T, one_at_the_end)[1] * (1 - v))
     # return [coeff(result, i) for i in 0:degree(result)] # this is actually all we need for the Hodge diamond because the matrix is diagonal for quiver moduli
 end
 
@@ -1126,37 +1126,37 @@ function Chow_ring(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, a::Vector{Int}
     elseif a' * d != 1
         throw(ArgumentError("a is not a linearization"))
     end
-    
+
     varnames = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
     # R, vars = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, varnames)
     R, vars = Singular.polynomial_ring(Singular.QQ, varnames)
     function chi(i, j)
-        return vars[sum(d[1:i-1]) + j]
+        return vars[sum(d[1:i-1])+j]
     end
-    
+
     function base_for_ring(name="naive")
         if name == "naive"
-            bounds = [0:(d[i] - nu) for i in 1:nvertices(Q) for nu in 1:d[i]]
+            bounds = [0:(d[i]-nu) for i in 1:nvertices(Q) for nu in 1:d[i]]
             lambdas = Iterators.product(bounds...)
 
-            build_elem(lambda) = prod(prod(chi(i, nu)^lambda[sum(d[1:i-1]) + nu] for nu in 1:d[i]) for i in 1:nvertices(Q))
+            build_elem(lambda) = prod(prod(chi(i, nu)^lambda[sum(d[1:i-1])+nu] for nu in 1:d[i]) for i in 1:nvertices(Q))
 
             return map(l -> build_elem(l), lambdas)
         else
             throw(ArgumentError("unknown base."))
         end
     end
-    
+
     # build the permutation group W
     W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i in 1:nvertices(Q)]...)
     sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
-    
+
     permute(f, sigma) = f([chi(i, sigma[i][j]) for i in 1:nvertices(Q) for j in 1:d[i]]...)
 
-    delta = prod(prod(chi(i, l) - chi(i, k) for k in 1:d[i]-1 for l in k+1:d[i]) for i in 1:nvertices(Q) if d[i] > 1) 
-    antisymmetrize(f) = sum(sign(w)*permute(f, w) for w in W) / delta
+    delta = prod(prod(chi(i, l) - chi(i, k) for k in 1:d[i]-1 for l in k+1:d[i]) for i in 1:nvertices(Q) if d[i] > 1)
+    antisymmetrize(f) = sum(sign(w) * permute(f, w) for w in W) / delta
 
-    function all_forbidden(Q, d, theta, slope_denominator::Function = sum)
+    function all_forbidden(Q, d, theta, slope_denominator::Function=sum)
         dest = all_destabilizing_subdimension_vectors(d, theta, slope_denominator)
         return filter(e -> !any(f -> partial_order(Q, f, e), filter(f -> f != e, dest)), dest)
     end
@@ -1167,7 +1167,7 @@ function Chow_ring(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, a::Vector{Int}
     A, Avars = Singular.polynomial_ring(Singular.QQ, varnames2)
 
     function xs(i, j)
-        return Avars[sum(d[1:i-1]) + j]
+        return Avars[sum(d[1:i-1])+j]
     end
 
     targets = [[symmetric_polynomial([chi(i, j) for j in 1:d[i]], k) for k in 1:d[i]] for i in 1:nvertices(Q)]
@@ -1193,7 +1193,7 @@ end
 #################
 
 function mKronecker_quiver(m::Int)
-    return Quiver([0 m; 0 0], string(m)*"-Kronecker quiver")
+    return Quiver([0 m; 0 0], string(m) * "-Kronecker quiver")
 end
 
 function three_vertex_quiver(m12::Int, m13::Int, m23::Int)
@@ -1201,15 +1201,15 @@ function three_vertex_quiver(m12::Int, m13::Int, m23::Int)
 end
 
 function loop_quiver(m::Int)
-    return Quiver(Matrix{Int}(reshape([m], 1, 1)), string(m)*"-loop quiver")
+    return Quiver(Matrix{Int}(reshape([m], 1, 1)), string(m) * "-loop quiver")
 end
 
 function subspace_quiver(m::Int)
-    A = zeros(Int, m+1, m+1)
+    A = zeros(Int, m + 1, m + 1)
     for i in 1:m
         A[i, m+1] = 1
     end
-    return Quiver(A, string(m)*"-subspace quiver")
+    return Quiver(A, string(m) * "-subspace quiver")
 end
 
 function Dynkin_quiver(Tn::String)
@@ -1226,7 +1226,7 @@ function Dynkin_quiver(T::String, n::Int)
             throw(ArgumentError("$n is out of bounds"))
         end
         if n == 1
-#            return Quiver([[1]], "Dynkin quiver of type A1")
+            #            return Quiver([[1]], "Dynkin quiver of type A1")
             return loop_quiver(1)
         else
             M = zeros(Int, n, n)
@@ -1251,32 +1251,32 @@ function Dynkin_quiver(T::String, n::Int)
             throw(ArgumentError("$n is out of bounds."))
         end
         if n == 6
-            return Quiver([ 0 1 0 0 0 0 0;
-                            0 0 1 0 0 0 0;
-                            0 0 0 1 1 0 0;
-                            0 0 0 0 0 0 0;
-                            0 0 0 0 0 1 0;
-                            0 0 0 0 0 0 1;
-                            0 0 0 0 0 0 0], "Dynkin quiver of type E6")
+            return Quiver([0 1 0 0 0 0 0;
+                    0 0 1 0 0 0 0;
+                    0 0 0 1 1 0 0;
+                    0 0 0 0 0 0 0;
+                    0 0 0 0 0 1 0;
+                    0 0 0 0 0 0 1;
+                    0 0 0 0 0 0 0], "Dynkin quiver of type E6")
         elseif n == 7
-            return Quiver([ 0 1 0 0 0 0 0 0;
-                            0 0 1 0 0 0 0 0;
-                            0 0 0 1 1 0 0 0;
-                            0 0 0 0 0 0 0 0;
-                            0 0 0 0 0 1 0 0;
-                            0 0 0 0 0 0 1 0;
-                            0 0 0 0 0 0 0 1;
-                            0 0 0 0 0 0 0 0], "Dynkin quiver of type E7")
+            return Quiver([0 1 0 0 0 0 0 0;
+                    0 0 1 0 0 0 0 0;
+                    0 0 0 1 1 0 0 0;
+                    0 0 0 0 0 0 0 0;
+                    0 0 0 0 0 1 0 0;
+                    0 0 0 0 0 0 1 0;
+                    0 0 0 0 0 0 0 1;
+                    0 0 0 0 0 0 0 0], "Dynkin quiver of type E7")
         elseif n == 8
-            return Quiver([ 0 1 0 0 0 0 0 0 0;
-                            0 0 1 0 0 0 0 0 0;
-                            0 0 0 1 1 0 0 0 0;
-                            0 0 0 0 0 0 0 0 0;
-                            0 0 0 0 0 1 0 0 0;
-                            0 0 0 0 0 0 1 0 0;
-                            0 0 0 0 0 0 0 1 0;
-                            0 0 0 0 0 0 0 0 1;
-                            0 0 0 0 0 0 0 0 0], "Dynkin quiver of type E8")
+            return Quiver([0 1 0 0 0 0 0 0 0;
+                    0 0 1 0 0 0 0 0 0;
+                    0 0 0 1 1 0 0 0 0;
+                    0 0 0 0 0 0 0 0 0;
+                    0 0 0 0 0 1 0 0 0;
+                    0 0 0 0 0 0 1 0 0;
+                    0 0 0 0 0 0 0 1 0;
+                    0 0 0 0 0 0 0 0 1;
+                    0 0 0 0 0 0 0 0 0], "Dynkin quiver of type E8")
         end
     else
         throw(ArgumentError("not implemented"))
@@ -1293,12 +1293,12 @@ BipartiteQuiver(m::Int, n::Int) = throw(ArgumentError("not implemented"))
 """"
 Returns a Quiver with the same vertices and an arrow ``j \\to i`` for every arrow  ``i \\to j`` in the original quiver.
 """
-opposite_quiver(Q::Quiver) = Quiver(Matrix{Int}(transpose(Q.adjacency)), "Opposite of "*Q.name)
+opposite_quiver(Q::Quiver) = Quiver(Matrix{Int}(transpose(Q.adjacency)), "Opposite of " * Q.name)
 
 """
 The adjacency matrix of the double of a quiver is the sum of the adjacency matrix of the original quiver and its transpose.
 """
-double_quiver(Q::Quiver) = Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "Double of "*Q.name)
+double_quiver(Q::Quiver) = Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "Double of " * Q.name)
 
 
 """
@@ -1307,14 +1307,14 @@ for the given quiver ``Q`` and a given subdimension vector ``e``.
 """
 @memoize Dict function smooth_model_quiver(Q::Quiver, e::Vector{Int})
     n = nvertices(Q)
-    A = zeros(Int, n+1, n+1)
+    A = zeros(Int, n + 1, n + 1)
     A[2:n+1, 2:n+1] = Q.adjacency
     A[1, 2:n+1] = e
-    return Quiver(A, "Smooth model quiver of "*Q.name)
+    return Quiver(A, "Smooth model quiver of " * Q.name)
 end
 
 # TODO think of a better way to do this?
-@memoize Dict function smooth_model_root(d::Vector{Int}; inclusion::Bool = false)
+@memoize Dict function smooth_model_root(d::Vector{Int}; inclusion::Bool=false)
     if inclusion
         return [0, d...]
     end
@@ -1342,7 +1342,7 @@ end
     return collect.(Iterators.product(map(di -> 0:di, d)...))
 end
 @memoize Dict function all_nonzero_subdimension_vectors(d::Vector{Int})::Vector{Vector{Int}}
-    return filter(e->!all(ei == 0 for ei in e), all_subdimension_vectors(d))
+    return filter(e -> !all(ei == 0 for ei in e), all_subdimension_vectors(d))
 end
 
 @memoize Dict function all_proper_subdimension_vectors(d::Vector{Int})::Vector{Vector{Int}}
