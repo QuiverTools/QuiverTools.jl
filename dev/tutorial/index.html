@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial · QuiverTools</title><meta name="title" content="Tutorial · QuiverTools"/><meta property="og:title" content="Tutorial · QuiverTools"/><meta property="twitter:title" content="Tutorial · QuiverTools"/><meta name="description" content="Documentation for QuiverTools."/><meta property="og:description" content="Documentation for QuiverTools."/><meta property="twitter:description" content="Documentation for QuiverTools."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.jpeg" alt="QuiverTools logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">QuiverTools</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">QuiverTools</a></li><li class="is-active"><a class="tocitem" href>Tutorial</a><ul class="internal"><li><a class="tocitem" href="#Installation"><span>Installation</span></a></li><li><a class="tocitem" href="#Basic-functionalities"><span>Basic functionalities</span></a></li><li><a class="tocitem" href="#Stable-and-semistable-dimension-vectors"><span>Stable and semistable dimension vectors</span></a></li><li><a class="tocitem" href="#Harder-Narasimhan-types"><span>Harder-Narasimhan types</span></a></li><li><a class="tocitem" href="#Verify-Teleman-inequalities"><span>Verify Teleman inequalities</span></a></li><li><a class="tocitem" href="#Canonical-decompositions-and-roots"><span>Canonical decompositions and roots</span></a></li><li><a class="tocitem" href="#Hodge-polynomials"><span>Hodge polynomials</span></a></li><li><a class="tocitem" href="#Bundle-library"><span>Bundle library</span></a></li></ul></li><li><a class="tocitem" href="../methods/">All methods</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Tutorial</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorial</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/quiver-tools/QuiverTools.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/quiver-tools/QuiverTools.jl/blob/main/docs/src/tutorial.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorial"><a class="docs-heading-anchor" href="#Tutorial">Tutorial</a><a id="Tutorial-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial" title="Permalink"></a></h1><h2 id="Installation"><a class="docs-heading-anchor" href="#Installation">Installation</a><a id="Installation-1"></a><a class="docs-heading-anchor-permalink" href="#Installation" title="Permalink"></a></h2><p>At the moment the package is not registered, so you can install it by running the following command in the Julia REPL:</p><pre><code class="language-julia-repl hljs">pkg&gt; no-you-can-not-install-it-yet</code></pre><h2 id="Basic-functionalities"><a class="docs-heading-anchor" href="#Basic-functionalities">Basic functionalities</a><a id="Basic-functionalities-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-functionalities" title="Permalink"></a></h2><p>To start using QuiverTools in the REPL, one first must import it.</p><pre><code class="language-julia-repl hljs">julia&gt; using QuiverTools</code></pre><p>Quivers can be built by passing the adjacency matrix to the <code>Quiver()</code> constructor:</p><pre><code class="language-julia-repl hljs">julia&gt; Quiver([0 3; 0 0])
+Quiver with adjacency matrix [0 3; 0 0]</code></pre><p>The constructor accepts an optional string for naming the quiver:</p><pre><code class="language-julia-repl hljs">julia&gt; MyQ = Quiver([0 3; 0 0], &quot;My personal quiver&quot;)
+My personal quiver, with adjacency matrix [0 3; 0 0]</code></pre><p>QuiverTools has several constructors in place for many common examples:</p><pre><code class="language-julia-repl hljs">julia&gt; mKronecker_quiver(4)
+4-Kronecker quiver, with adjacency matrix [0 4; 0 0]
+
+julia&gt; loop_quiver(5)
+5-loop quiver, with adjacency matrix [5;;]
+
+julia&gt; subspace_quiver(3)
+3-subspace quiver, with adjacency matrix [0 0 0 1; 0 0 0 1; 0 0 0 1; 0 0 0 0]
+
+julia&gt; three_vertex_quiver(1, 6, 7)
+An acyclic 3-vertex quiver, with adjacency matrix [0 1 6; 0 0 7; 0 0 0]</code></pre><p>Dimension vectors and stability parameters are represented by <code>Vector{Int}</code> objects:</p><pre><code class="language-julia-repl hljs">julia&gt; Q = mKronecker_quiver(3); d = [2,3];
+
+julia&gt; θ = canonical_stability(Q, d)
+2-element Vector{Int64}:
+  9
+ -6
+
+julia&gt; is_coprime(d, θ)
+true</code></pre><p>Here, <code>is_coprime()</code> checks if <span>$d$</span> is θ-coprime, i.e., if none of the proper subdimension vectors <span>$0 \neq d&#39; \nleq d$</span> satisfies <span>$\theta \cdot d&#39; = 0$</span>.</p><p>The bilinear Euler form relative to a quiver Q of any two vectors in <span>$\mathbb{Z}^{Q_0}$</span> can be computed:</p><pre><code class="language-julia-repl hljs">julia&gt; Q = mKronecker_quiver(3); d = [2,2]; e = [3,4];
+
+julia&gt; Euler_form(Q, d, e)
+-10
+
+julia&gt; Euler_form(Q, e, d)
+-4</code></pre><p>This allows to verify whether any given dimension vector belongs to the fundamental domain of the problem.</p><p>The fundamental domain is the cone of dimension vectors in <span>$\mathbb{Z}^{Q_0}$</span> such that the symmetric Tits form is negative on all the simple roots, i.e., for all vertices i,</p><p class="math-container">\[(s_i, d) := \langle d, s_i\rangle + \langle s_i, d\rangle  \leq 0,\]</p><p>where <span>$s_i$</span> is the dimension vector with all entries set to <span>$0$</span> and the i-th set to <span>$1$</span>.</p><pre><code class="language-julia-repl hljs">julia&gt; QuiverTools.in_fundamental_domain(Q, d)
+true
+
+julia&gt; QuiverTools.in_fundamental_domain(Q, [1,3])
+false</code></pre><h2 id="Stable-and-semistable-dimension-vectors"><a class="docs-heading-anchor" href="#Stable-and-semistable-dimension-vectors">Stable and semistable dimension vectors</a><a id="Stable-and-semistable-dimension-vectors-1"></a><a class="docs-heading-anchor-permalink" href="#Stable-and-semistable-dimension-vectors" title="Permalink"></a></h2><p>One can check if semistable, respectively stable representations exist for a given dimension vector and stability parameter:</p><pre><code class="language-julia-repl hljs">julia&gt; Q = mKronecker_quiver(3); d = [2,3]; θ = [3,-2];
+
+julia&gt; has_semistables(Q, d, θ)
+true
+
+julia&gt; has_stables(Q, d, θ)
+true
+
+julia&gt; K2 = mKronecker_quiver(2);
+
+julia&gt; has_stables(K2, [2,2], [1,-1])
+false
+
+julia&gt; has_semistables(K2, [2,2], [1,-1])
+true</code></pre><p>One can also determine whether stable representations exist at all for a given dimension vector by checking if it is a Schur root:</p><pre><code class="language-julia-repl hljs">julia&gt; Q = mKronecker_quiver(3); d = [2, 2];
+
+julia&gt; QuiverTools.is_Schur_root(Q, d)
+true
+
+julia&gt; K2 = mKronecker_quiver(2);
+
+julia&gt; QuiverTools.is_Schur_root(K2, d)
+false</code></pre><h2 id="Harder-Narasimhan-types"><a class="docs-heading-anchor" href="#Harder-Narasimhan-types">Harder-Narasimhan types</a><a id="Harder-Narasimhan-types-1"></a><a class="docs-heading-anchor-permalink" href="#Harder-Narasimhan-types" title="Permalink"></a></h2><p>This module provides methods to investigate the Harder-Narasimhan stratification of the parameter space <span>$\mathrm{R}(Q,\mathbf{d})$</span>.</p><pre><code class="language-julia-repl hljs">julia&gt; Q = mKronecker_quiver(3); d = [2, 3]; θ = [3, -2];
+
+julia&gt; allHNtypes(Q, d, θ)
+8-element Vector{Vector{Vector{Int64}}}:
+ [[2, 3]]
+ [[1, 1], [1, 2]]
+ [[2, 2], [0, 1]]
+ [[2, 1], [0, 2]]
+ [[1, 0], [1, 3]]
+ [[1, 0], [1, 2], [0, 1]]
+ [[1, 0], [1, 1], [0, 2]]
+ [[2, 0], [0, 3]]
+
+julia&gt; is_amply_stable(Q, d, θ)
+true</code></pre><p>The method <code>is_amply_stable()</code> determines whether the codimension of the θ-semistable locus, <span>$\mathrm{R}^{\theta-sst}(Q,\mathbf{d})\subset\mathrm{R}(Q,\mathbf{d})$</span>, is at least 2.</p><p>The method <code>all_HN_types()</code> provides a list of all the Harder-Narasimhan types that appear in the problem.</p><p>The method <code>all_Teleman_bounds()</code> computes the bounds to apply Teleman quantization on the non-dense strata. The output is a dictionary whose keys are the HN types and whose values are the weights themselves.</p><pre><code class="language-julia-repl hljs">julia&gt; Q = mKronecker_quiver(3); d = [2, 3]; θ = [3, -2];
+
+julia&gt; all_Teleman_bounds(Q, d, θ)
+Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
+  [[2, 2], [0, 1]]         =&gt; 20
+  [[2, 1], [0, 2]]         =&gt; 100
+  [[1, 0], [1, 2], [0, 1]] =&gt; 100
+  [[1, 0], [1, 3]]         =&gt; 120
+  [[1, 0], [1, 1], [0, 2]] =&gt; 90
+  [[1, 1], [1, 2]]         =&gt; 15
+  [[2, 0], [0, 3]]         =&gt; 90</code></pre><h2 id="Verify-Teleman-inequalities"><a class="docs-heading-anchor" href="#Verify-Teleman-inequalities">Verify Teleman inequalities</a><a id="Verify-Teleman-inequalities-1"></a><a class="docs-heading-anchor-permalink" href="#Verify-Teleman-inequalities" title="Permalink"></a></h2><p>In the following example, for each <span>$i,j$</span> and on each Harder-Narasimhan stratum, we compute the weight of <span>$\mathcal{U}_i^\vee \otimes \mathcal{U}_j$</span> relative to the 1-PS corresponding to the HN stratum. These are then compared to the Teleman bounds.</p><pre><code class="language-julia-repl hljs">julia&gt; Q = mKronecker_quiver(3); d = [2, 3]; θ = [3, -2];
+
+julia&gt; hn = all_Teleman_bounds(Q, d, θ)
+Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
+  [[2, 2], [0, 1]]         =&gt; 20
+  [[2, 1], [0, 2]]         =&gt; 100
+  [[1, 0], [1, 2], [0, 1]] =&gt; 100
+  [[1, 0], [1, 3]]         =&gt; 120
+  [[1, 0], [1, 1], [0, 2]] =&gt; 90
+  [[1, 1], [1, 2]]         =&gt; 15
+  [[2, 0], [0, 3]]         =&gt; 90
+
+julia&gt; endom = all_weights_endomorphisms_universal_bundle(Q, d, θ)
+Dict{Vector{Vector{Int64}}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         =&gt; [0, 5, -5, 0]
+  [[2, 1], [0, 2]]         =&gt; [0, 10, -10, 0]
+  [[1, 0], [1, 2], [0, 1]] =&gt; [0, 10, 15, -10, 0, 5, -15, -5, 0]
+  [[1, 0], [1, 3]]         =&gt; [0, 15, -15, 0]
+  [[1, 0], [1, 1], [0, 2]] =&gt; [0, 5, 10, -5, 0, 5, -10, -5, 0]
+  [[1, 1], [1, 2]]         =&gt; [0, 5, -5, 0]
+  [[2, 0], [0, 3]]         =&gt; [0, 5, -5, 0]
+
+julia&gt; all(maximum(endom[key]) &lt; hn[key] for key in keys(hn))
+true</code></pre><p>The fact that all of these inequalities are satisfied allows to conclude that the higher cohomology of <span>$\mathcal{U}_i^\vee \otimes \mathcal{U}_j$</span> vanishes.</p><h2 id="Canonical-decompositions-and-roots"><a class="docs-heading-anchor" href="#Canonical-decompositions-and-roots">Canonical decompositions and roots</a><a id="Canonical-decompositions-and-roots-1"></a><a class="docs-heading-anchor-permalink" href="#Canonical-decompositions-and-roots" title="Permalink"></a></h2><p>QuiverTools provides a method to compute the canonical decomposition of a dimension vector.</p><p>Given a dimension vector <span>$d$</span>, the canonical decomposition is a list of Shur roots <span>$\beta_i$</span> such that <span>$d = \sum_i \beta_i$</span> and <span>$\mathrm{ext}(\beta_i,\beta_j) = 0$</span> for all <span>$i \neq j$</span>.</p><p>It is a theorem of Schofield that the canonical decomposition exists and is described by the condition above. If this is the canonical deconstruction of <span>$d$</span>, then the general representation of dimension vector <span>$d$</span> decomposes as a direct sum of indecomposable representations of dimension vector <span>$\beta_i$</span>.</p><pre><code class="language-julia-repl hljs">julia&gt; canonical_decomposition(Q, d)
+1-element Vector{Vector{Int64}}:
+ [2, 3]
+
+julia&gt; canonical_decomposition(Q, [12, 3])
+6-element Vector{Vector{Int64}}:
+ [1, 0]
+ [1, 0]
+ [1, 0]
+ [3, 1]
+ [3, 1]
+ [3, 1]
+
+julia&gt; canonical_decomposition(Q, [12, 4])
+4-element Vector{Vector{Int64}}:
+ [3, 1]
+ [3, 1]
+ [3, 1]
+ [3, 1]</code></pre><p>QuiverTools also implements computations of generic hom and ext for dimension vectors.</p><pre><code class="language-julia-repl hljs">julia&gt; e = [1, 2];
+
+julia&gt; generic_hom(Q, d, e)
+0
+
+julia&gt; generic_hom(Q, e, d)
+0
+
+julia&gt; generic_ext(Q, d, e)
+4
+
+julia&gt; generic_ext(Q, e, d)
+1</code></pre><p>This allows to determine wether a root is real, imaginary isotropic or imaginary anisotropic.</p><pre><code class="language-julia-repl hljs">julia&gt; ds = QuiverTools.all_subdimension_vectors([5, 5])
+6×6 Matrix{Vector{Int64}}:
+ [0, 0]  [0, 1]  [0, 2]  [0, 3]  [0, 4]  [0, 5]
+ [1, 0]  [1, 1]  [1, 2]  [1, 3]  [1, 4]  [1, 5]
+ [2, 0]  [2, 1]  [2, 2]  [2, 3]  [2, 4]  [2, 5]
+ [3, 0]  [3, 1]  [3, 2]  [3, 3]  [3, 4]  [3, 5]
+ [4, 0]  [4, 1]  [4, 2]  [4, 3]  [4, 4]  [4, 5]
+ [5, 0]  [5, 1]  [5, 2]  [5, 3]  [5, 4]  [5, 5]
+
+julia&gt; filter(d -&gt; QuiverTools.is_real_root(Q, d), ds)
+4-element Vector{Vector{Int64}}:
+ [1, 0]
+ [0, 1]
+ [3, 1]
+ [1, 3]
+
+julia&gt; filter(d -&gt; QuiverTools.is_isotropic_root(Q, d), ds)
+1-element Vector{Vector{Int64}}:
+ [0, 0]
+
+julia&gt; filter(d -&gt; QuiverTools.is_imaginary_root(Q, d), ds)
+20-element Vector{Vector{Int64}}:
+ [0, 0]
+ [1, 1]
+ [2, 1]
+ [1, 2]
+ [2, 2]
+ [3, 2]
+ [4, 2]
+ [5, 2]
+ [2, 3]
+ [3, 3]
+ [4, 3]
+ [5, 3]
+ [2, 4]
+ [3, 4]
+ [4, 4]
+ [5, 4]
+ [2, 5]
+ [3, 5]
+ [4, 5]
+ [5, 5]</code></pre><h2 id="Hodge-polynomials"><a class="docs-heading-anchor" href="#Hodge-polynomials">Hodge polynomials</a><a id="Hodge-polynomials-1"></a><a class="docs-heading-anchor-permalink" href="#Hodge-polynomials" title="Permalink"></a></h2><p>QuiverTools features an implementation of the Hodge polynomial of quiver moduli, if the base field is <span>$\mathbb{C}$</span> and the dimension vector is a coprime Schurian root.</p><pre><code class="language-julia-repl hljs">julia&gt; Q = mKronecker_quiver(3); d = [2, 3]; θ = canonical_stability(Q, d);
+
+julia&gt; Hodge_polynomial(Q, d, θ)
+x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
+
+julia&gt; Hodge_diamond(Q, d, θ)
+7×7 Matrix{Int64}:
+ 1  0  0  0  0  0  0
+ 0  1  0  0  0  0  0
+ 0  0  3  0  0  0  0
+ 0  0  0  3  0  0  0
+ 0  0  0  0  3  0  0
+ 0  0  0  0  0  1  0
+ 0  0  0  0  0  0  1</code></pre><p>Note that the <span>$i, j$</span>-th entry of the matrix representing the Hodge diamond is <span>$h^{i,j}$</span>. In other words, the point of the diamond is on the upper left side of the matrix.</p><p>This allows us to conclude that the Picard rank of the moduli space is 1.</p><pre><code class="language-julia-repl hljs">julia&gt; Picard_rank(Q, d, θ)
+1</code></pre><p>For performance-oriented computations, one can use some theoretical results to get a slightly faster computation of the Hodge polynomial, which skips some safety checks and returns the Hodge polynomial without performing the change of variables <span>$q \to x \cdot y$</span>.</p><pre><code class="language-julia-repl hljs">julia&gt; QuiverTools._Hodge_polynomial_fast(Q, d, θ)
+q^6 + q^5 + 3*q^4 + 3*q^3 + 3*q^2 + q + 1
+
+julia&gt; using BenchmarkTools
+
+julia&gt; @benchmark Hodge_polynomial(Q, d, θ)
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  117.500 μs … 109.571 ms  ┊ GC (min … max):  0.00% … 41.09%
+ Time  (median):     123.188 μs               ┊ GC (median):     0.00%
+ Time  (mean ± σ):   230.718 μs ±   3.241 ms  ┊ GC (mean ± σ):  18.81% ±  1.36%
+
+  	   ▂▄██▇▅▄▃▂▂                                                  
+  ▂▄▇███████████▇▆▅▅▄▄▃▃▂▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▃
+  118 μs           Histogram: frequency by time          155 μs &lt;
+
+ Memory estimate: 136.06 KiB, allocs estimate: 3408.
+
+julia&gt; @benchmark QuiverTools._Hodge_polynomial_fast(Q, d, θ)
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  114.625 μs … 110.717 ms  ┊ GC (min … max):  0.00% … 40.68%
+ Time  (median):     120.042 μs               ┊ GC (median):     0.00%
+ Time  (mean ± σ):   219.409 μs ±   3.148 ms  ┊ GC (mean ± σ):  18.09% ±  1.28%
+
+        ▄▅▆▆█▇▆▇▅▄▂▂▁▁                                           
+  ▁▂▃▅▇███████████████▇█▆▆▆▄▅▄▄▃▃▃▃▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▃
+  115 μs           Histogram: frequency by time          139 μs &lt;
+
+ Memory estimate: 132.34 KiB, allocs estimate: 3327.</code></pre><p>&lt;!– </p><h2 id="Bundle-library"><a class="docs-heading-anchor" href="#Bundle-library">Bundle library</a><a id="Bundle-library-1"></a><a class="docs-heading-anchor-permalink" href="#Bundle-library" title="Permalink"></a></h2><p>QuiverTools contains (for now) a basic implementation of Bundle objects.</p><p>These are meant to be used as containers to perform computations with weights or linearizations.</p><h3 id="Functionality"><a class="docs-heading-anchor" href="#Functionality">Functionality</a><a id="Functionality-1"></a><a class="docs-heading-anchor-permalink" href="#Functionality" title="Permalink"></a></h3><p>One can create a Bundle object by passing a list of weights and the rank to the constructor:</p><pre><code class="language-julia-repl hljs">julia&gt; Bundle([1, 2, 3], 3)
+Bundle of rank 3 with weights: [1, 2, 3]</code></pre><p><code>Note: the rank is not computed automatically from the weights. This is a design choice, to force a sanity check on the user. Should there be the necessity to bypass this, the expected rank is the length of the list of weights.</code></p><p>Direct sum, tensor product, wedge and symmetric product are implemented:</p><pre><code class="language-julia-repl hljs">julia&gt; U = Bundle([1, 2, 3], 3); V = Bundle([4, 5], 2);
+julia&gt; U ⊕ V
+Bundle of rank 5 with weights: [1, 2, 3, 4, 5]
+
+julia&gt; U ⊗ V
+Bundle of rank 6 with weights: [5, 6, 6, 7, 7, 8]
+
+julia&gt; det(U)
+Bundle of rank 1 with weights: [6]
+
+julia&gt; wedge(U, 0)
+Bundle of rank 1 with weights: [0]
+julia&gt; wedge(U, 1)
+Bundle of rank 3 with weights: [1, 2, 3]
+julia&gt; wedge(U, 2)
+Bundle of rank 3 with weights: [3, 4, 5]
+julia&gt; wedge(U, 3)
+Bundle of rank 1 with weights: [6]
+julia&gt; wedge(U, 4)
+Bundle of rank 0 with weights: Int64[]
+
+julia&gt; symm(U,0)
+Bundle of rank 1 with weights: [0]
+julia&gt; symm(U,1)
+Bundle of rank 3 with weights: [1, 2, 3]
+julia&gt; symm(U,2)
+Bundle of rank 6 with weights: [2, 3, 4, 4, 5, 6]
+julia&gt; symm(U,3)
+Bundle of rank 10 with weights: [3, 4, 5, 5, 6, 7, 6, 7, 8, 9]
+julia&gt; symm(U,4)
+Bundle of rank 15 with weights: [4, 5, 6, 6, 7, 8, 7, 8, 9, 10, 8, 9, 10, 11, 12]</code></pre><p>A basic implementation of box products is also available:</p><pre><code class="language-julia-repl hljs">
+julia&gt; U = Bundle([1, 2, 3], 3); V = Bundle([4, 5], 2);
+julia&gt; a = U ⊠ V
+Bundle of rank 6 with weights: [[1, 4], [1, 5], [2, 4], [2, 5], [3, 4], [3, 5]]
+julia&gt; b = V ⊠ V
+Bundle of rank 4 with weights: [[4, 4], [4, 5], [5, 4], [5, 5]]
+
+
+
+julia&gt; a ⊗ b
+Bundle of rank 24 with weights: [[5, 8], [5, 9], [6, 8], [6, 9], [5, 9], [5, 10], [6, 9], [6, 10], [6, 8], [6, 9], [7, 8], [7, 9], [6, 9], [6, 10], [7, 9], [7, 10], [7, 8], [7, 9], [8, 8], [8, 9], [7, 9], [7, 10], [8, 9], [8, 10]]
+
+julia&gt; a ⊕ b
+Bundle of rank 10 with weights: [[1, 4], [1, 5], [2, 4], [2, 5], [3, 4], [3, 5], [4, 4], [4, 5], [5, 4], [5, 5]]
+
+julia&gt; wedge(b,2)
+Bundle of rank 6 with weights: [[8, 9], [9, 8], [9, 9], [9, 9], [9, 10], [10, 9]]
+
+julia&gt; wedge(b,3)
+Bundle of rank 4 with weights: [[13, 13], [13, 14], [14, 13], [14, 14]]
+
+julia&gt; wedge(b,5)
+Bundle of rank 0 with weights: Vector{Int64}[]
+
+julia&gt; symm(a,2)
+Bundle of rank 21 with weights: [[2, 8], [2, 9], [3, 8], [3, 9], [4, 8], [4, 9], [2, 10], [3, 9], [3, 10], [4, 9], [4, 10], [4, 8], [4, 9], [5, 8], [5, 9], [4, 10], [5, 9], [5, 10], [6, 8], [6, 9], [6, 10]]</code></pre><p>One use case is creating Bundle objects containing weights of linearisations with respect to 1-PSs and then verifying Teleman inequality for objects built with complex combinations of tensor, box and exterior products.</p><p>Another use case is defining line bundles on a projective space and then computing the effects of direct summands, tensor products and exterior products on the linearization. One such example is the computation of the Eagon-Northcott complex for P^n, done below.</p><pre><code class="language-julia-repl hljs">julia&gt; Q = mKronecker_quiver(2);
+julia&gt; U = [Bundle([-1], 1),Bundle([0], 1)]
+2-element Vector{Bundle}:
+  Bundle of rank 1, with weights: [-1]
+  Bundle of rank 1, with weights: [0]
+
+julia&gt; EagonNorthcottcomplex(Q,U)
+1-element Vector{Bundle}:
+  Bundle of rank 1, with weights: [[-1, -1]]
+
+
+julia&gt; Q = mKronecker_quiver(5);
+julia&gt; EagonNorthcottcomplex(Q,U)
+4-element Vector{Bundle}:
+  Bundle of rank 10, with weights: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]]
+  Bundle of rank 20, with weights: [[-1, -2], [-2, -1], [-1, -2], [-2, -1], [-1, -2], [-2, -1], [-1, -2], [-2, -1], [-1, -2], [-2, -1], [-1, -2], [-2, -1], [-1, -2], [-2, -1], [-1, -2], [-2, -1], [-1, -2], [-2, -1], [-1, -2], [-2, -1]]
+  Bundle of rank 15, with weights: [[-1, -3], [-2, -2], [-3, -1], [-1, -3], [-2, -2], [-3, -1], [-1, -3], [-2, -2], [-3, -1], [-1, -3], [-2, -2], [-3, -1], [-1, -3], [-2, -2], [-3, -1]]
+  Bundle of rank 4, with weights: [[-1, -4], [-2, -3], [-3, -2], [-4, -1]]</code></pre><p>Each Bundle object contains a rank and a list of weights.  –&gt;</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« QuiverTools</a><a class="docs-footer-nextpage" href="../methods/">All methods »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Tuesday 4 June 2024 14:39">Tuesday 4 June 2024</span>. Using Julia version 1.10.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
