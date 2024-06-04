@@ -25,10 +25,6 @@ export Hodge_diamond, Hodge_polynomial, Picard_rank
 export mKronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver
 
 
-# TODO coframed_quiver()
-# TODO full_subquiver()
-# TODO bipartite quiver
-
 """
 A quiver is represented by its adjacency
 ``n \\times n`` matrix ``adjacency = (a_{ij})``,
@@ -458,9 +454,6 @@ for all generic subdimension vectors ``e'`` of ``e``.
         return true
     end
     # considering subdimension vectors that violate the numerical condition
-    # TODO this filtering is inefficent.
-    # For fixed d-e, this is a LINEAR form, we KNOW which eprimes violate the condition.
-    # We should just check those.
     Euler_matrix_temp = Euler_matrix(Q) * (d - e) #to speed up computation of <eprime,d-e>
     subdimensions = filter(eprime -> eprime' * Euler_matrix_temp < 0, all_subdimension_vectors(e))
     # none of the subdimension vectors violating the condition should be generic
@@ -1093,7 +1086,7 @@ function symmetric_polynomial(vars, degree::Int)
     return sum(prod(e) for e in IterTools.subsets(vars, degree))
 end
 
-function Chow_ring(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, a::Vector{Int}; standard::Bool=false)
+function Chow_ring(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, a::Vector{Int})
     # TODO cover case d[i] = 0
     # safety checks
     if !is_coprime(d, theta)
@@ -1154,10 +1147,7 @@ function Chow_ring(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, a::Vector{Int}
     tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
     linear = [sum(a[i] * xs(i, 1) for i in 1:nvertices(Q))]
 
-    if standard
-        return QuotientRing(A, std(Ideal(A, [tautological; linear])))
-    end
-    return Dict("ring" => A, "relations" => Ideal(A, [tautological; linear]))
+    return QuotientRing(A, std(Ideal(A, [tautological; linear])))
 end
 
 # TODO todd class

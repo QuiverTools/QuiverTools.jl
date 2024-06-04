@@ -24,4 +24,4 @@ makedocs(
 # See "Hosting Documentation" and deploydocs() in the Documenter manual
 # for more information.
 
-# deploydocs(repo = "where-is-this-going/QuiverTools")
+deploydocs(repo = "github.com/quiver-tools/QuiverTools.jl.git")
