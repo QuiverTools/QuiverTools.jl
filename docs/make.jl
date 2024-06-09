@@ -17,9 +17,10 @@ makedocs(
     modules = [QuiverTools],
     pages = [   "QuiverTools" => "index.md", 
     "Tutorial" => "tutorial.md",
-    "All methods" => "methods.md"]
+    "All methods" => "methods.md",
+    "Benchmarks" => "benchmark.md"]
     )
 
-deploydocs(
-    branch = "docs",
-    repo = "github.com/quiver-tools/QuiverTools.jl.git")
+# deploydocs(
+#     branch = "docs",
+#     repo = "github.com/quiver-tools/QuiverTools.jl.git")

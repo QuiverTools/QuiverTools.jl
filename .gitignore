@@ -6,3 +6,6 @@ Manifest.toml
 
 #MacOS
 .DS_Store
+
+# raw benchmarks
+benchmark/raw
