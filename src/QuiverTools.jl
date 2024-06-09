@@ -63,7 +63,7 @@ function show(io::IO, Q::Quiver)
 	else
 		print(io, Q.name * ", with adjacency matrix ")
 	end
-	println(io, Q.adjacency)
+	print(io, Q.adjacency)
 end
 
 
@@ -1069,7 +1069,7 @@ function _Hodge_polynomial_fast(Q::Quiver, d::AbstractVector{Int}, theta::Abstra
 	# unsafe, curate input!
 	# this is about 2% faster than the above, and occupies about 2% less memory.
 
-	R, q = polynomial_ring(QQ, "q")
+	R, q = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, "q")
 	F = AbstractAlgebra.fraction_field(R)
 	v = F(q) # worsens performance by ~8%. Necessary?
 
