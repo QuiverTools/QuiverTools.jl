@@ -3,11 +3,10 @@ module QuiverTools
 using StaticArrays
 
 import Memoization
-import Singular
 import AbstractAlgebra
-import Combinatorics
-import LinearAlgebraX
 import IterTools
+import LinearAlgebraX
+import Singular
 
 import Base.show
 import Memoization: @memoize
@@ -130,15 +129,15 @@ true
 julia> # The A10 quiver:
 
 julia> A10 = Quiver(   [0 1 0 0 0 0 0 0 0 0;
-						0 0 1 0 0 0 0 0 0 0;
-						0 0 0 1 0 0 0 0 0 0;
-						0 0 0 0 1 0 0 0 0 0;
-						0 0 0 0 0 1 0 0 0 0;
-						0 0 0 0 0 0 1 0 0 0;
-						0 0 0 0 0 0 0 1 0 0;
-						0 0 0 0 0 0 0 0 1 0;
-						0 0 0 0 0 0 0 0 0 1;
-						0 0 0 0 0 0 0 0 0 0] );
+        0 0 1 0 0 0 0 0 0 0;
+        0 0 0 1 0 0 0 0 0 0;
+        0 0 0 0 1 0 0 0 0 0;
+        0 0 0 0 0 1 0 0 0 0;
+        0 0 0 0 0 0 1 0 0 0;
+        0 0 0 0 0 0 0 1 0 0;
+        0 0 0 0 0 0 0 0 1 0;
+        0 0 0 0 0 0 0 0 0 1;
+        0 0 0 0 0 0 0 0 0 0] );
 
 julia> is_connected(A10)
 true
@@ -146,15 +145,15 @@ true
 julia> # The A10 quiver without one arrow:
 
 julia> A10 = Quiver(   [0 1 0 0 0 0 0 0 0 0;
-						0 0 1 0 0 0 0 0 0 0;
-						0 0 0 1 0 0 0 0 0 0;
-						0 0 0 0 1 0 0 0 0 0;
-						0 0 0 0 0 1 0 0 0 0;
-						0 0 0 0 0 0 0 0 0 0;
-						0 0 0 0 0 0 0 1 0 0;
-						0 0 0 0 0 0 0 0 1 0;
-						0 0 0 0 0 0 0 0 0 1;
-						0 0 0 0 0 0 0 0 0 0] );
+        0 0 1 0 0 0 0 0 0 0;
+        0 0 0 1 0 0 0 0 0 0;
+        0 0 0 0 1 0 0 0 0 0;
+        0 0 0 0 0 1 0 0 0 0;
+        0 0 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 0 0 1 0 0;
+        0 0 0 0 0 0 0 0 1 0;
+        0 0 0 0 0 0 0 0 0 1;
+        0 0 0 0 0 0 0 0 0 0] );
 
 julia> is_connected(A10)
 false
@@ -600,17 +599,16 @@ julia> HN = all_HN_types(Q, d, theta)
  [[1, 0], [1, 1], [0, 2]]
  [[2, 0], [0, 3]]
 
-julia> for hntype in HN
-		println(QuiverTools.codimension_HN_stratum(Q, hntype))
-		end
-0
-3
-4
-10
-8
-9
-12
-18
+julia> [QuiverTools.codimension_HN_stratum(Q, stratum) for stratum in HN]
+8-element Vector{Int64}:
+  0
+  3
+  4
+ 10
+  8
+  9
+ 12
+ 18
 ```
 """
 function codimension_HN_stratum(Q::Quiver, stratum::AbstractVector{AbstractVector{Int}})
@@ -1241,7 +1239,7 @@ function Dynkin_quiver(T::String, n::Int)
 			throw(ArgumentError("$n is out of bounds."))
 		end
 		if n == 6
-			return Quiver([       0 1 0 0 0 0 0;
+			return Quiver([              0 1 0 0 0 0 0;
 					0 0 1 0 0 0 0;
 					0 0 0 1 1 0 0;
 					0 0 0 0 0 0 0;
@@ -1249,7 +1247,7 @@ function Dynkin_quiver(T::String, n::Int)
 					0 0 0 0 0 0 1;
 					0 0 0 0 0 0 0], "Dynkin quiver of type E6")
 		elseif n == 7
-			return Quiver([       0 1 0 0 0 0 0 0;
+			return Quiver([              0 1 0 0 0 0 0 0;
 					0 0 1 0 0 0 0 0;
 					0 0 0 1 1 0 0 0;
 					0 0 0 0 0 0 0 0;
@@ -1258,7 +1256,7 @@ function Dynkin_quiver(T::String, n::Int)
 					0 0 0 0 0 0 0 1;
 					0 0 0 0 0 0 0 0], "Dynkin quiver of type E7")
 		elseif n == 8
-			return Quiver([       0 1 0 0 0 0 0 0 0;
+			return Quiver([              0 1 0 0 0 0 0 0 0;
 					0 0 1 0 0 0 0 0 0;
 					0 0 0 1 1 0 0 0 0;
 					0 0 0 0 0 0 0 0 0;
