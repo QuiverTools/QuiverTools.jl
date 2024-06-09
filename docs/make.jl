@@ -18,7 +18,7 @@ makedocs(
     pages = [   "QuiverTools" => "index.md", 
     "Tutorial" => "tutorial.md",
     "All methods" => "methods.md",
-    "Benchmarks" => "benchmark.md"]
+    "Benchmarks" => "benchmarks.md"]
     )
 
 # deploydocs(
