@@ -113,24 +113,50 @@ end
 function all_Luna_types(
 	Q::Quiver,
 	d::AbstractVector{Int},
-	theta::AbstractVector{Int};
+	theta::AbstractVector{Int}=canonical_stability(Q, d),
 	denom::Function = sum,
+    exclude_stable::Bool = false
 )
+
+    # subdimensions with the same slope as d
 	same_slope = filter(
 		e ->
 			slope(e, theta, denom) == slope(d, theta, denom) &&
 				has_stables(Q, e, theta, denom),
 		QuiverTools.all_subdimension_vectors(d, nonzero = true),
 	)
-	Luna_types = []
-	bound = sum(d) ÷ minimum(sum(e) for e in same_slope) # the highest possible amount of repetitions for a given stable dimension vector
-	for i ∈ 1:bound+1
+
+    Luna_types = []
+
+    bound = sum(d) ÷ minimum(sum(e) for e in same_slope) # the highest possible amount of repetitions for a given stable dimension vector
+
+    for i in 1:bound+1
 		for tau in with_replacement_combinations(same_slope, i)
 			if sum(tau) == d
-				push!(Luna_types, Luna_type_from_vector(tau))
-			end
+				
+                partial = Dict()
+                for e in tau
+                    if e in keys(partial)
+                        partial[e] += 1
+                    else
+                        partial[e] = 1
+                    end
+                end
+                
+                for e in keys(partial)
+                    partial[e] = partitions(partial[e])
+                end
+
+                new_Luna = [Dict(zip(keys(partial), p))
+                    for p in IterTools.product(values(partial)...)
+                        ]
+                vcat!(Luna_types, new_Luna)
+            end
 		end
 	end
+
+    if exclude_stable
+        return filter(luna -> luna != Dict(d => [1]), Luna_types)
 	return Luna_types
 end
 

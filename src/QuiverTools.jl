@@ -23,7 +23,7 @@ import Singular:
 	QuotientRing,
 	std,
 	gens
-import Combinatorics: with_replacement_combinations
+import Combinatorics: with_replacement_combinations, partitions
 
 export Quiver
 export nvertices,
