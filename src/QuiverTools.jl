@@ -354,6 +354,7 @@ function all_slope_decreasing_sequences(
     theta::AbstractVector{Int},
     denominator::Function = sum,
 )::Vector{Vector{AbstractVector{Int}}}
+    
     coerce_vector!(d)
     coerce_vector!(theta)
     # List all subdimension vectors e of bigger slope than d.
@@ -364,9 +365,10 @@ function all_slope_decreasing_sequences(
 
     # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
     subdimensions = sort(subdimensions, by = e -> slope(e, theta, denominator))
-    # The slope decreasing sequences which are not of the form (d) are given by (e,f^1,...,f^s) where e is a proper subdimension vector such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
-
-    # I will rewrite this as functional programming later
+    # The slope decreasing sequences which are not of the form (d)
+    # are given by (e,f^1,...,f^s) where e is a proper subdimension vector
+    # such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of
+    # f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
 
     function slope_filter(e, fstar)
         return slope(e, theta, denominator) > slope(fstar[1], theta, denominator)
@@ -399,26 +401,18 @@ end
 Examples:
 ```jldoctest
 julia> A2 = mKronecker_quiver(1); theta = [1,-1];
-
 julia> has_semistables(A2, [1,1], theta)
 true
-
 julia> has_semistables(A2, [2,2], theta)
 true
-
 julia> has_semistables(A2, [1,2], theta)
 false
-
 julia> has_semistables(A2, [0,0], theta)
 true
-
 julia> # The 3-Kronecker quiver:
-
 julia> K3 = mKronecker_quiver(3); theta = [3,-2];
-
 julia> has_semistables(K3, [2,3], theta)
 true
-
 julia> has_semistables(K3, [1,4], theta)
 false
 ```
@@ -476,7 +470,8 @@ true
             e -> slope(e, theta, denom) >= slope_d,
             all_proper_subdimension_vectors(d),
         )
-        # to have semistable representations, none of the vectors above must be generic subdimension vectors.
+        # to have semistable representations,
+        # none of the vectors above must be generic subdimension vectors.
         return all(
             e -> !is_generic_subdimension_vector(Q, e, d),
             subdimensions_bigger_or_equal_slope,
@@ -487,7 +482,8 @@ end
 """
 Checks if ``d`` is a Schur root for ``Q``.
 
-By a lemma of Schofield (See Lemma 4.2 of [arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)),
+By a lemma of Schofield
+(See Lemma 4.2 of [arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)),
 this is equivalent to the existence of a stable representation of dimension vector ``d``
 for the canonical stability parameter.
 	
@@ -518,10 +514,12 @@ end
 
 """Checks if ``e`` is a generic subdimension vector of ``d``.
 
-A dimension vector ``e`` is called a generic subdimension vector of ``d`` if a generic representation
-of dimension vector ``d`` possesses a subrepresentation of dimension vector ``e``.
+A dimension vector ``e`` is called a generic subdimension vector of ``d``
+if a generic representation of dimension vector ``d`` possesses a subrepresentation
+of dimension vector ``e``.
 
-By a result of Schofield (see Thm. 5.3 of [arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)),
+By a result of Schofield
+(see Thm. 5.3 of [arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)),
 ``e`` is a generic subdimension vector of ``d`` if and only if
 ```math
 <e',d-e> \\geq 0
@@ -632,19 +630,24 @@ julia> all_HN_types(Q, d, theta)
     if all(di == 0 for di in d)
         return [[d]]
     end
-    # We consider just proper subdimension vectors which admit a semistable representation and for which μ(e) > μ(d)
+    # We consider just proper subdimension vectors which admit a semistable
+    # representation and for which μ(e) > μ(d)
     # Note that we also eliminate d by the following
     subdimensions = filter(
         e -> has_semistables(Q, e, theta, denom),
         all_destabilizing_subdimension_vectors(d, theta, denom),
     )
 
-    # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
+    # We sort the subdimension vectors by slope because that will return the list of
+    # all HN types in ascending order with respect to the partial order from
+    # Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
     if ordered
         subdimensions = sort(subdimensions, by = e -> slope(e, theta, denom))
     end
 
-    # The HN types which are not of the form (d) are (e,f^1,...,f^s) where e is a proper semistable subdimension vector with μ(e) > μ(d), (f^1,...,f^s) is a HN type of f = d-e and μ(e) > μ(f^1) holds.
+    # The HN types which are not of the form (d) are (e,f^1,...,f^s) where e is a
+    # proper semistable subdimension vector with μ(e) > μ(d), (f^1,...,f^s) is a HN
+    # type of f = d-e and μ(e) > μ(f^1) holds.
 
     alltypes = Vector{AbstractVector{Int}}[
         [e, efstar...] for e in subdimensions for efstar in filter(
@@ -653,7 +656,8 @@ julia> all_HN_types(Q, d, theta)
         )
     ]
 
-    # Possibly add d again, at the beginning, because it is smallest with respect to the partial order from Def. 3.6
+    # Possibly add d again, at the beginning, because it is smallest
+    # with respect to the partial order from Def. 3.6
     if has_semistables(Q, d, theta, denom)
         pushfirst!(alltypes, [d])
     end
@@ -702,9 +706,11 @@ function codimension_HN_stratum(Q::Quiver, stratum::AbstractVector{AbstractVecto
 end
 
 """
-Checks wether the dimension vector ``d`` is amply stable with respect to the slope function `theta`/`denominator`.
+Checks wether the dimension vector ``d`` is amply stable
+with respect to the slope function `theta`/`denominator`.
 
-This means that the codimension of the unstable locus in the parameter space is at least ``2``.
+This means that the codimension of the unstable locus
+in the parameter space is at least ``2``.
 """
 function is_amply_stable(
     Q::Quiver,
@@ -712,8 +718,9 @@ function is_amply_stable(
     theta::AbstractVector{Int},
     denom::Function = sum,
 )
-    # We say that representations of a given dimension vector d are amply stable (for any notion of stability) if the codimension of the semistable locus is at least 2.
-    # We verify this by computing the codimension of each HN stratum.
+    # We say that representations of a given dimension vector d are amply stable
+    # (for any notion of stability) if the codimension of the semistable locus
+    # is at least 2. We verify this by computing the codimension of each HN stratum.
     HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
     return all(stratum -> codimension_HN_stratum(Q, stratum) >= 2, HN)
 end
@@ -892,7 +899,8 @@ end
 # TODO implement Derksen-Weyman?
 # TODO add examples
 """
-Computes the canonical decomposition of the dimension vector ``d`` for the given quiver ``Q``.
+Computes the canonical decomposition of the dimension vector ``d``
+for the given quiver ``Q``.
 
 If ``\\beta_1, \\dots, \\beta_{\\ell}`` is a sequence
 of Schur roots such that, for all ``i \\neq j``, one has
