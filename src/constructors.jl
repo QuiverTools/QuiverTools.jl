@@ -4,6 +4,9 @@
 # Constructors
 #################
 
+export mKronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver
+
+
 function mKronecker_quiver(m::Int)
     return Quiver([0 m; 0 0], string(m) * "-Kronecker quiver")
 end
@@ -18,7 +21,7 @@ end
 
 function subspace_quiver(m::Int)
     A = zeros(Int, m + 1, m + 1)
-    for i in 1:m
+    for i = 1:m
         A[i, m+1] = 1
     end
     return Quiver(A, string(m) * "-subspace quiver")
@@ -42,7 +45,7 @@ function Dynkin_quiver(T::String, n::Int)
             return loop_quiver(1)
         else
             M = zeros(Int, n, n)
-            for i in 1:n-1
+            for i = 1:n-1
                 M[i, i+1] = 1
             end
             return Quiver(M, "Dynkin quiver of type A$n")
@@ -52,7 +55,7 @@ function Dynkin_quiver(T::String, n::Int)
             throw(ArgumentError("$n is out of bounds."))
         end
         M = zeros(Int, n, n)
-        for i in 1:n-2
+        for i = 1:n-2
             M[i, i+1] = 1
         end
         M[n-2, n] = 1
@@ -63,32 +66,47 @@ function Dynkin_quiver(T::String, n::Int)
             throw(ArgumentError("$n is out of bounds."))
         end
         if n == 6
-            return Quiver([0 1 0 0 0 0 0;
-                    0 0 1 0 0 0 0;
-                    0 0 0 1 1 0 0;
-                    0 0 0 0 0 0 0;
-                    0 0 0 0 0 1 0;
-                    0 0 0 0 0 0 1;
-                    0 0 0 0 0 0 0], "Dynkin quiver of type E6")
+            return Quiver(
+                [
+                    0 1 0 0 0 0 0
+                    0 0 1 0 0 0 0
+                    0 0 0 1 1 0 0
+                    0 0 0 0 0 0 0
+                    0 0 0 0 0 1 0
+                    0 0 0 0 0 0 1
+                    0 0 0 0 0 0 0
+                ],
+                "Dynkin quiver of type E6",
+            )
         elseif n == 7
-            return Quiver([0 1 0 0 0 0 0 0;
-                    0 0 1 0 0 0 0 0;
-                    0 0 0 1 1 0 0 0;
-                    0 0 0 0 0 0 0 0;
-                    0 0 0 0 0 1 0 0;
-                    0 0 0 0 0 0 1 0;
-                    0 0 0 0 0 0 0 1;
-                    0 0 0 0 0 0 0 0], "Dynkin quiver of type E7")
+            return Quiver(
+                [
+                    0 1 0 0 0 0 0 0
+                    0 0 1 0 0 0 0 0
+                    0 0 0 1 1 0 0 0
+                    0 0 0 0 0 0 0 0
+                    0 0 0 0 0 1 0 0
+                    0 0 0 0 0 0 1 0
+                    0 0 0 0 0 0 0 1
+                    0 0 0 0 0 0 0 0
+                ],
+                "Dynkin quiver of type E7",
+            )
         elseif n == 8
-            return Quiver([0 1 0 0 0 0 0 0 0;
-                    0 0 1 0 0 0 0 0 0;
-                    0 0 0 1 1 0 0 0 0;
-                    0 0 0 0 0 0 0 0 0;
-                    0 0 0 0 0 1 0 0 0;
-                    0 0 0 0 0 0 1 0 0;
-                    0 0 0 0 0 0 0 1 0;
-                    0 0 0 0 0 0 0 0 1;
-                    0 0 0 0 0 0 0 0 0], "Dynkin quiver of type E8")
+            return Quiver(
+                [
+                    0 1 0 0 0 0 0 0 0
+                    0 0 1 0 0 0 0 0 0
+                    0 0 0 1 1 0 0 0 0
+                    0 0 0 0 0 0 0 0 0
+                    0 0 0 0 0 1 0 0 0
+                    0 0 0 0 0 0 1 0 0
+                    0 0 0 0 0 0 0 1 0
+                    0 0 0 0 0 0 0 0 1
+                    0 0 0 0 0 0 0 0 0
+                ],
+                "Dynkin quiver of type E8",
+            )
         end
     else
         throw(ArgumentError("not implemented"))
@@ -105,9 +123,11 @@ BipartiteQuiver(m::Int, n::Int) = throw(ArgumentError("not implemented"))
 """"
 Returns a Quiver with the same vertices and an arrow ``j \\to i`` for every arrow  ``i \\to j`` in the original quiver.
 """
-opposite_quiver(Q::Quiver) = Quiver(Matrix{Int}(transpose(Q.adjacency)), "Opposite of " * Q.name)
+opposite_quiver(Q::Quiver) =
+    Quiver(Matrix{Int}(transpose(Q.adjacency)), "Opposite of " * Q.name)
 
 """
 The adjacency matrix of the double of a quiver is the sum of the adjacency matrix of the original quiver and its transpose.
 """
-double_quiver(Q::Quiver) = Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "Double of " * Q.name)
+double_quiver(Q::Quiver) =
+    Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "Double of " * Q.name)
