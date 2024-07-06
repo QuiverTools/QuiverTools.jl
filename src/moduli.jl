@@ -186,6 +186,21 @@ function dimension_of_Luna_stratum(M::QuiverModuli, tau)
 end
 
 
+function local_quiver_setting(M::QuiverModuli, tau)
+	if !is_Luna_type(M, tau)
+		throw(DomainError("Not a Luna type"))
+	end
+
+	A = coerce_matrix([[generic_ext(M.Q, e, eprime)
+		for eprime in keys(tau) for n in tau[eprime]]
+		for e in keys(tau) for m in tau[e]]
+	)
+
+	Qloc = Quiver(A)
+	dloc = [m for e in keys(tau) for m in tau[e]]
+
+	return Dict("Q" => Qloc, "d" => dloc)
+end
 
 
 
