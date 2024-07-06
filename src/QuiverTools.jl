@@ -625,7 +625,7 @@ julia> all_HN_types(Q, d, theta)
 	Q::Quiver,
 	d::AbstractVector{Int},
 	theta::AbstractVector{Int},
-	denom::Function = sum;
+	denom::Function = sum,
 	ordered = true,
 )
 
@@ -668,6 +668,54 @@ julia> all_HN_types(Q, d, theta)
 end
 
 """
+    is_hn_type(Q, d, theta, denom, dstar)
+
+Checks if the given ordered list of subdimension vectors ``dstar`` is an HN type
+for the datum ``(Q, d)`` and the slope stability given by ``(theta, denom)``.
+
+
+Examples:
+
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> d = [2,3]; theta = [3,-2];
+
+julia> dstar = [[2, 3]];
+
+julia> is_hn_type(Q, d, theta, sum, dstar)
+true
+
+```
+"""
+function is_HN_type(Q::Quiver,
+                    d::AbstractVector{Int},
+                    theta::AbstractVector{Int}=canonical_stability(Q, d),
+                    denom::Function=sum,
+                    dstar::AbstractVector{AbstractVector{Int}})::bool
+    if sum(dstar) != d
+        return false
+    end
+
+    if !all(
+        slope(dstar[i], theta, denom) > slope(dstar[i+1], theta, denom)
+        for i in 1:length(dstar)-1
+    )
+        return false
+    end
+
+    if !all(
+        has_semistables(Q, dstari, theta, denom)
+        for dstari in dstar
+    )
+        return false
+    end
+    return true
+end
+
+
+
+"""
 Returns the codimension of the given HN stratum.
 
 Examples:
@@ -703,7 +751,7 @@ function codimension_HN_stratum(Q::Quiver, stratum::AbstractVector{AbstractVecto
 	else
 		return -sum(
 			Euler_form(Q, stratum[i], stratum[j]) for i ∈ 1:length(stratum)-1 for
-			j ∈ i+1:length(stratum)
+			j in i+1:length(stratum)
 		)
 	end
 end
@@ -828,43 +876,6 @@ function extension_matrix(Q::Quiver, hntype::AbstractVector{AbstractVector{Int}}
 	end
 end
 
-# This can be modified once we decide how to properly represent a Luna type. Dict? Vector? Set? custom type?
-function Luna_type_from_vector(vec::Vector{AbstractVector{Int}})
-	Luna_type = Dict{AbstractVector{Int}, Int}()
-	for entry in vec
-		if haskey(Luna_type, entry)
-			Luna_type[entry] += 1
-		else
-			Luna_type[entry] = 1
-		end
-	end
-	return Luna_type
-end
-
-# TODO refactor
-function all_Luna_types(
-	Q::Quiver,
-	d::AbstractVector{Int},
-	theta::AbstractVector{Int};
-	denom::Function = sum,
-)
-	same_slope = filter(
-		e ->
-			slope(e, theta, denom) == slope(d, theta, denom) &&
-				has_stables(Q, e, theta, denom),
-		QuiverTools.all_subdimension_vectors(d, nonzero = true),
-	)
-	Luna_types = []
-	bound = sum(d) ÷ minimum(sum(e) for e in same_slope) # the highest possible amount of repetitions for a given stable dimension vector
-	for i ∈ 1:bound+1
-		for tau in with_replacement_combinations(same_slope, i)
-			if sum(tau) == d
-				push!(Luna_types, Luna_type_from_vector(tau))
-			end
-		end
-	end
-	return Luna_types
-end
 
 
 """
@@ -971,306 +982,6 @@ end
 ###################################################
 # auxiliary functions for Hodge_polynomial() below
 
-"""
-Solve ``A\\cdot x = b`` for ``A`` upper triangular via back substitution
-"""
-function solve(A, b)
-	n = length(b)
-	x = Vector{Any}(zeros(n))
-
-	x[n] = b[n] / A[n, n]
-
-	for i ∈ n-1:-1:1
-		x[i] = (b[i] - sum(A[i, j] * x[j] for j ∈ i+1:n)) / A[i, i]
-	end
-	return x
-end
-
-"""
-Cardinality of general linear group \$\\mathrm{GL}_n(\\mathbb{F}_v)\$.
-"""
-@memoize Dict function CardinalGl(n::Int, q)
-	if n == 0
-		return 1
-	else
-		return prod(q^n - q^i for i ∈ 0:n-1)
-	end
-end
-
-"""
-Cardinality of representation space \$\\mathrm{R}(Q,d)\$, over \$\\mathbb{F}_q\$.
-"""
-function CardinalRd(Q::Quiver, d::AbstractVector{Int}, q)
-	return q^sum(d[i] * d[j] * Q.adjacency[i, j] for i ∈ 1:nvertices(Q), j ∈ 1:nvertices(Q))
-end
-
-"""
-Cardinality of product of general linear groups \$\\mathrm{GL}_{d}(\\mathbb{F}_q)\$.
-"""
-@memoize Dict function CardinalGd(d::AbstractVector{Int}, q)
-	return prod(CardinalGl(di, q) for di in d)
-end
-
-"""Entry of the transfer matrix, as per Corollary 6.9"""
-function TransferMatrixEntry(Q, e, f, q)
-	fe = f - e
-
-	if all(fei >= 0 for fei in fe)
-		return q^Euler_form(Q, -fe, e) * CardinalRd(Q, fe, q) / CardinalGd(fe, q)
-	else
-		return 0
-	end
-end
-
-function Td(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, q)
-	# indexing set for the transfer matrix
-	I = filter(e -> slope(e, theta) > slope(d, theta),
-		all_subdimension_vectors(d, nonzero = true, strict = true),
-	)
-	I = vcat([zero_vector(nvertices(Q))], I, [d])
-
-	l = length(I)
-	T = Matrix{Any}(zeros(l, l))
-
-	for (i, Ii) in enumerate(I)
-		for j ∈ i:l  # upper triangular
-			T[i, j] = TransferMatrixEntry(Q, Ii, I[j], q)
-		end
-	end
-	return T
-end
-
-
-# TODO DOI below is not open access.
-# auxiliary functions for Hodge_polynomial() above
-###################################################
-
-"""
-Returns the Hodge polynomial of the moduli space of ``\\theta``-semistable
-representations of ``Q`` with dimension vector ``d``.
-
-The algorithm is based on [MR1974891](https://doi.org/10.1007/s00222-002-0273-4),
-and the current implementation is translated from the [Hodge diamond cutter]
-(https://zenodo.org/doi/10.5281/zenodo.3893509).
-"""
-function Hodge_polynomial(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int})
-
-	# safety checks
-	if theta' * d == 0 && !is_coprime(d)
-		throw(ArgumentError("d is not coprime"))
-	elseif theta' * d != 0 && gcd(theta' * d, sum(d)) != 1
-		throw(
-			ArgumentError("d is not coprime in the sense of Definition 6.3 of MR1974891."),
-		)
-	elseif !is_acyclic(Q)
-		throw(ArgumentError("Q is not acyclic."))
-	end
-
-	R, q = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, "q") # writing ["q"] throws bugs. No idea why.
-	F = AbstractAlgebra.fraction_field(R)
-	v = F(q) # worsens performance by ~8%. Necessary?
-
-	T = Td(Q, d, theta, v)
-
-	one_at_the_end = unit_vector(size(T)[1], size(T)[1])
-
-	# @warn "result needs to be a polynomial, otherwise the moduli space is singular."
-	solution = solve(T, one_at_the_end)[1] * (1 - v)
-	if denominator(solution) != 1
-		throw(DomainError("Moduli space is singular!"))
-	end
-	result = numerator(solution)
-
-	S, (x, y) = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, ["x", "y"])
-	return result(x * y)
-end
-
-"""
-Returns the Hodge diamond of the moduli space of
-``\\theta``-semistable representations of ``Q`` with dimension vector ``d``.
-"""
-function Hodge_diamond(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int})
-	g = Hodge_polynomial(Q, d, theta)
-	return map(
-		ind -> coeff(g, [ind[1] - 1, ind[2] - 1]).num,
-		Iterators.product(1:degree(g, 1)+1, 1:degree(g, 2)+1),
-	)
-end
-
-"""
-Computes the Picard rank of the moduli space of
-``\\theta``-semistable representations of ``Q`` with dimension vector ``d``.
-"""
-function Picard_rank(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int})
-	# TODO If over the complex numbers this should be h^{1,1},
-	# since the moduli space is rational.
-	# TODO This should follow from the long exact sequence in cohomology
-	# given by the exponential short exact sequence.
-
-	return coeff(Hodge_polynomial(Q, d, theta), 2).num
-end
-
-function _Hodge_polynomial_fast(
-	Q::Quiver,
-	d::AbstractVector{Int},
-	theta::AbstractVector{Int},
-)
-	# unsafe, curate input!
-	# this is about 2% faster than the above, and occupies about 2% less memory.
-
-	R, q = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, "q")
-	F = AbstractAlgebra.fraction_field(R)
-	v = F(q) # worsens performance by ~8%. Necessary?
-
-	T = Td(Q, d, theta, v)
-
-	one_at_the_end = unit_vector(size(T)[1], size(T)[1])
-
-	result = numerator(solve(T, one_at_the_end)[1] * (1 - v))
-	# return [coeff(result, i) for i in 0:degree(result)] # this is actually all
-	# we need for the Hodge diamond because the matrix is diagonal for quiver moduli
-end
-
-###############################################################################
-# tautological representation of the Chow ring.
-# Implements the results of [arXiv:1307.3066](https://doi.org/10.48550/arXiv.1307.3066) and
-# [arXiv.2307.01711](https://doi.org/10.48550/arXiv.2307.01711).
-###############################################################################
-
-# partial order on the forbidden dimension vectors as in https://doi.org/10.48550/arXiv.1307.3066
-function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int})
-	if !all(f[i] <= g[i] for i ∈ 1:nvertices(Q) if is_source(Q, i))
-		return false
-	elseif !all(f[i] >= g[i] for i ∈ 1:nvertices(Q) if is_sink(Q, i))
-		return false
-	elseif !all(f[i] == g[i] for i ∈ 1:nvertices(Q) if !is_source(Q, i) && !is_sink(Q, i))
-		return false
-	end
-	return true
-end
-
-
-"""
-Returns the symmetric polynomial of degree ``degree`` in the variables ``vars``.
-"""
-function symmetric_polynomial(vars, degree::Int)
-	return sum(prod(e) for e in IterTools.subsets(vars, degree))
-end
-
-function Chow_ring(
-	Q::Quiver,
-	d::AbstractVector{Int},
-	theta::AbstractVector{Int},
-	a::AbstractVector{Int},
-)
-	# TODO cover case d[i] = 0
-	# safety checks
-	if !is_coprime(d, theta)
-		throw(ArgumentError("d and theta are not coprime"))
-	elseif a' * d != 1
-		throw(ArgumentError("a is not a linearization"))
-	end
-
-	varnames = ["x$i$j" for i ∈ 1:nvertices(Q) for j ∈ 1:d[i] if d[i] > 0]
-	# R, vars = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, varnames)
-	R, vars = Singular.polynomial_ring(Singular.QQ, varnames)
-	function chi(i, j)
-		return vars[sum(d[1:i-1])+j]
-	end
-
-	function base_for_ring(name = "naive")
-		if name == "naive"
-			bounds = [0:(d[i]-nu) for i ∈ 1:nvertices(Q) for nu ∈ 1:d[i]]
-			lambdas = Iterators.product(bounds...)
-
-			build_elem(lambda) = prod(
-				prod(chi(i, nu)^lambda[sum(d[1:i-1])+nu] for nu ∈ 1:d[i]) for
-				i ∈ 1:nvertices(Q)
-			)
-
-			return map(l -> build_elem(l), lambdas)
-		else
-			throw(ArgumentError("unknown base."))
-		end
-	end
-
-	# build the permutation group W
-	W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i ∈ 1:nvertices(Q)]...)
-	sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
-
-	permute(f, sigma) = f([chi(i, sigma[i][j]) for i ∈ 1:nvertices(Q) for j ∈ 1:d[i]]...)
-
-	delta = prod(
-		prod(chi(i, l) - chi(i, k) for k ∈ 1:d[i]-1 for l ∈ k+1:d[i]) for
-		i ∈ 1:nvertices(Q) if d[i] > 1
-	)
-	antisymmetrize(f) = sum(sign(w) * permute(f, w) for w in W) / delta
-
-	function all_forbidden(Q, d, theta, denom::Function = sum)
-		dest = all_destabilizing_subdimension_vectors(d, theta, denom)
-		return filter(
-			e -> !any(f -> partial_order(Q, f, e), filter(f -> f != e, dest)),
-			dest,
-		)
-	end
-
-	forbidden_polynomials = [
-		prod(
-			prod((chi(j, s) - chi(i, r))^Q.adjacency[i, j]
-				 for r ∈ 1:e[i], s ∈ e[j]+1:d[j])
-			for j ∈ 1:nvertices(Q), i ∈ 1:nvertices(Q) if
-			Q.adjacency[i, j] > 0 && e[i] > 0 && d[j] > 1
-		) for e in all_forbidden(Q, d, theta)
-	]
-
-	varnames2 = ["x$i$j" for i ∈ 1:nvertices(Q) for j ∈ 1:d[i] if d[i] > 0]
-	A, Avars = Singular.polynomial_ring(Singular.QQ, varnames2)
-
-	function xs(i, j)
-		return Avars[sum(d[1:i-1])+j]
-	end
-
-	targets = [
-		[symmetric_polynomial([chi(i, j) for j ∈ 1:d[i]], k) for k ∈ 1:d[i]] for
-		i ∈ 1:nvertices(Q)
-	]
-	targets = reduce(vcat, targets)
-
-	inclusion = AlgebraHomomorphism(A, R, targets)
-
-	anti = [antisymmetrize(f * b) for f in forbidden_polynomials for b in base_for_ring()]
-	tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
-	linear = [sum(a[i] * xs(i, 1) for i ∈ 1:nvertices(Q))]
-
-	return QuotientRing(A, std(Ideal(A, [tautological; linear])))
-end
-
-# TODO todd class
-# TODO point class
-# TODO universal bundle class
-
-
-
-# TODO these should be defined on a quiver moduli?
-"""
-Computes the quiver ``\\hat{Q}`` defined in [arXiv:0706.4306](https://doi.org/10.48550/arXiv.0706.4306)
-for the given quiver ``Q`` and a given subdimension vector ``e``.
-"""
-function smooth_model_quiver(Q::Quiver, e::AbstractVector{Int})
-	n = nvertices(Q)
-	A = zeros(Int, n + 1, n + 1)
-	A[2:n+1, 2:n+1] = Q.adjacency
-	A[1, 2:n+1] = e
-	return Quiver(A, "Smooth model quiver of " * Q.name * " for the dimension vector " * e)
-end
-
-# TODO think of a better way to do this?
-function smooth_model_root(d::AbstractVector{Int}; inclusion::Bool = false)
-	if inclusion
-		return coerce_vector([0, d...])
-	end
-	return coerce_vector([1, d...])
-end
 
 
 
