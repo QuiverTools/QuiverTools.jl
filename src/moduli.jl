@@ -420,9 +420,9 @@ function _Hodge_polynomial_fast(
     # unsafe, curate input!
     # this is about 2% faster than the above, and occupies about 2% less memory.
 
-    R, q = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, "q")
-    F = AbstractAlgebra.fraction_field(R)
-    v = F(q) # worsens performance by ~8%. Necessary?
+    R, q = polynomial_ring(AbstractAlgebra.QQ, ["q"])
+    F = fraction_field(R)
+    v = F(q[1]) # worsens performance by ~8%. Necessary?
 
     T = Td(Q, d, theta, v)
 
