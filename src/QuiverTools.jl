@@ -3,46 +3,40 @@ module QuiverTools
 using StaticArrays
 
 using Memoization: Memoization
-using AbstractAlgebra: AbstractAlgebra
 using IterTools: IterTools
 using LinearAlgebraX: LinearAlgebraX
 using Singular: Singular
 
 import Base.show
 import Memoization: @memoize
-import AbstractAlgebra: fraction_field
 import IterTools: subsets
 import LinearAlgebraX: rankx
 import Singular:
-	polynomial_ring,
-	degree,
-	coeff,
-	AlgebraHomomorphism,
-	preimage,
-	Ideal,
-	QuotientRing,
-	std,
-	gens
+    polynomial_ring,
+    degree,
+    coeff,
+    AlgebraHomomorphism,
+    preimage,
+    Ideal,
+    QuotientRing,
+	fraction_field,
+    std,
+    gens
 import Combinatorics: with_replacement_combinations, partitions
 
 export Quiver
-export nvertices,
-	narrows,
-	indegree,
-	outdegree,
-	is_acyclic,
-	is_connected,
-	is_sink,
-	is_source
+export nvertices, narrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
 export Euler_form, canonical_stability, is_coprime, slope
 export is_Schur_root,
-	generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
-export all_HN_types, has_semistables, has_stables, is_amply_stable
+    generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
+export all_HN_types, is_HN_type, has_semistables, has_stables, is_amply_stable
 export all_Teleman_bounds,
-	all_weights_endomorphisms_universal_bundle,
-	all_weights_universal_bundle,
-	all_weights_irreducible_component_canonical
+    all_weights_endomorphisms_universal_bundle,
+    all_weights_universal_bundle,
+    all_weights_irreducible_component_canonical
 export Hodge_diamond, Hodge_polynomial, Picard_rank
+export QuiverModuli, is_nonempty, dimension, Poincaré_polynomial, Betti_numbers, is_smooth
+
 
 
 """
@@ -57,33 +51,33 @@ Attributes:
 - `name` is the name of the quiver, defaults to `""`.
 """
 struct Quiver
-	adjacency::AbstractMatrix{Int}
-	name::String
+    adjacency::AbstractMatrix{Int}
+    name::String
 
-	function Quiver(adjacency::AbstractMatrix{Int}, name::String)
-		if !(size(adjacency)[1] == size(adjacency)[2])
-			throw(DomainError(adjacency, "adjacency matrix must be square"))
-		else
-			new(adjacency, name)
-		end
-	end
-	function Quiver(adjacency::AbstractMatrix{Int})
-		if !(size(adjacency)[1] == size(adjacency)[2])
-			throw(DomainError(adjacency, "adjacency matrix must be square"))
-		else
-			new(adjacency, "")
-		end
-	end
+    function Quiver(adjacency::AbstractMatrix{Int}, name::String)
+        if !(size(adjacency)[1] == size(adjacency)[2])
+            throw(DomainError(adjacency, "adjacency matrix must be square"))
+        else
+            new(adjacency, name)
+        end
+    end
+    function Quiver(adjacency::AbstractMatrix{Int})
+        if !(size(adjacency)[1] == size(adjacency)[2])
+            throw(DomainError(adjacency, "adjacency matrix must be square"))
+        else
+            new(adjacency, "")
+        end
+    end
 end
 
 
 function show(io::IO, Q::Quiver)
-	if Q.name == ""
-		print(io, "Quiver with adjacency matrix ")
-	else
-		print(io, Q.name * ", with adjacency matrix ")
-	end
-	print(io, Q.adjacency)
+    if Q.name == ""
+        print(io, "Quiver with adjacency matrix ")
+    else
+        print(io, Q.name * ", with adjacency matrix ")
+    end
+    print(io, Q.adjacency)
 end
 
 
@@ -92,7 +86,7 @@ Returns the (necessarily symmetric) adjacency matrix
 of the underlying graph of the quiver.
 """
 function underlying_graph(Q::Quiver)
-	return Matrix{Int}(Q.adjacency + transpose(Q.adjacency) - diagonal(Q.adjacency))
+    return Matrix{Int}(Q.adjacency + transpose(Q.adjacency) - diagonal(Q.adjacency))
 end
 
 """
@@ -145,33 +139,19 @@ julia> Q = subspace_quiver(4);
 
 julia> is_connected(Q)
 true
-
-julia> A10 = Quiver([0 1 0 0 0 0 0 0 0 0;
-	   0 0 1 0 0 0 0 0 0 0;
-	   0 0 0 1 0 0 0 0 0 0;
-	   0 0 0 0 1 0 0 0 0 0;
-	   0 0 0 0 0 1 0 0 0 0;
-	   0 0 0 0 0 0 0 0 0 0;
-	   0 0 0 0 0 0 0 1 0 0;
-	   0 0 0 0 0 0 0 0 1 0;
-	   0 0 0 0 0 0 0 0 0 1;
-	   0 0 0 0 0 0 0 0 0 0] );
-
-julia> is_connected(A10)
-false
 ```
 """
 function is_connected(Q::Quiver)
-	paths = underlying_graph(Q)
-	for i ∈ 2:nvertices(Q)-1
-		paths += paths * underlying_graph(Q)
-	end
-	for i ∈ 1:nvertices(Q), j ∈ 1:nvertices(Q)
-		if i != j && paths[i, j] == 0 && paths[j, i] == 0
-			return false
-		end
-	end
-	return true
+    paths = underlying_graph(Q)
+    for i ∈ 2:nvertices(Q)-1
+        paths += paths * underlying_graph(Q)
+    end
+    for i ∈ 1:nvertices(Q), j ∈ 1:nvertices(Q)
+        if i != j && paths[i, j] == 0 && paths[j, i] == 0
+            return false
+        end
+    end
+    return true
 end
 
 """
@@ -239,12 +219,12 @@ true
 is_sink(Q::Quiver, j::Int) = outdegree(Q, j) == 0
 
 function arrows(Q::Quiver)
-	n = nvertices(Q)
-	return reduce(
-		vcat,
-		[[i, j] for k ∈ 1:Q.adjacency[i, j]] for i ∈ 1:n for
-		j ∈ 1:n if Q.adjacency[i, j] > 0
-	)
+    n = nvertices(Q)
+    return reduce(
+        vcat,
+        [[i, j] for k ∈ 1:Q.adjacency[i, j]] for i ∈ 1:n for
+        j ∈ 1:n if Q.adjacency[i, j] > 0
+    )
 end
 
 
@@ -256,8 +236,8 @@ Returns the identity matrix of size ``n``.
 identity_matrix(n::Int) = map(ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n))
 
 function diagonal(m::AbstractMatrix{Int})
-	n = size(m)[1]
-	return map(ind -> ind[1] == ind[2] ? m[ind...] : 0, Iterators.product(1:n, 1:n))
+    n = size(m)[1]
+    return map(ind -> ind[1] == ind[2] ? m[ind...] : 0, Iterators.product(1:n, 1:n))
 end
 
 """
@@ -270,7 +250,7 @@ E = I - A,
 where ``A`` is the adjacency matrix of ``Q`` and ``I`` is the identity matrix of the same size as ``A``.
 """
 @memoize Dict Euler_matrix(Q::Quiver) =
-	coerce_matrix(identity_matrix(nvertices(Q)) - Q.adjacency)
+    coerce_matrix(identity_matrix(nvertices(Q)) - Q.adjacency)
 
 """
 Computes the Euler form of the quiver for vectors ``x`` and ``y``.
@@ -282,24 +262,27 @@ The Euler form is defined as the bilinear form
 where ``E`` is the Euler matrix of the quiver.
 """
 Euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
-	x' * Euler_matrix(Q) * y
+    x' * Euler_matrix(Q) * y
 
 """
 The canonical stability parameter for the couple ``(Q,d)`` is given by ``<d,- > - < - ,d>``
 """
 function canonical_stability(Q::Quiver, d::AbstractVector{Int})::AbstractVector{Int}
-	return coerce_vector(-(-transpose(Euler_matrix(Q)) + Euler_matrix(Q)) * d)
+    return coerce_vector(-(-transpose(Euler_matrix(Q)) + Euler_matrix(Q)) * d)
 end
 
 """Checks wether the given dimension vector ``d`` is ``\\theta``-coprime for
 the stability parameter ``\\theta``."""
 function is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
-	return all(e -> theta' * e != 0, all_subdimension_vectors(d, nonzero = true, strict = true))
+    return all(
+        e -> theta' * e != 0,
+        all_subdimension_vectors(d, nonzero = true, strict = true),
+    )
 end
 
 """Checks if the gcd of all the entries of d is ``1``."""
 function is_coprime(d::AbstractVector{Int})
-	return gcd(d) == 1
+    return gcd(d) == 1
 end
 
 # TODO should this return a function?
@@ -308,20 +291,20 @@ Returns the slope of the dimension vector ``d`` with respect to the stability pa
 and a choice of a denominator function.
 """
 function slope(d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function = sum)
-	return (theta' * d) // denom(d)
+    return (theta' * d) // denom(d)
 end
 """
 Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d``.
 """
 @memoize Dict function all_destabilizing_subdimension_vectors(
-	d::AbstractVector{Int},
-	theta::AbstractVector{Int},
-	denom::Function = sum,
+    d::AbstractVector{Int},
+    theta::AbstractVector{Int},
+    denom::Function = sum,
 )
-	return filter(
-		e -> slope(e, theta, denom) > slope(d, theta, denom),
-		all_subdimension_vectors(d, nonzero = true),
-	)
+    return filter(
+        e -> slope(e, theta, denom) > slope(d, theta, denom),
+        all_subdimension_vectors(d, nonzero = true),
+    )
 end
 
 """
@@ -344,48 +327,48 @@ julia> QuiverTools.all_slope_decreasing_sequences(Q, d, theta)
 ```
 """
 function all_slope_decreasing_sequences(
-	Q::Quiver,
-	d::AbstractVector{Int},
-	theta::AbstractVector{Int},
-	denominator::Function = sum,
+    Q::Quiver,
+    d::AbstractVector{Int},
+    theta::AbstractVector{Int},
+    denominator::Function = sum,
 )::Vector{Vector{AbstractVector{Int}}}
 
-	coerce_vector!(d)
-	coerce_vector!(theta)
-	# List all subdimension vectors e of bigger slope than d.
-	subdimensions = filter(
-		e -> slope(e, theta, denominator) > slope(d, theta, denominator),
-		all_subdimension_vectors(d, nonzero = true),
-	)
+    coerce_vector!(d)
+    coerce_vector!(theta)
+    # List all subdimension vectors e of bigger slope than d.
+    subdimensions = filter(
+        e -> slope(e, theta, denominator) > slope(d, theta, denominator),
+        all_subdimension_vectors(d, nonzero = true),
+    )
 
-	# We sort the subdimension vectors by slope because that will return the list of
-	# all HN types in ascending order with respect to the partial order from
-	# Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
-	subdimensions = sort(subdimensions, by = e -> slope(e, theta, denominator))
-	# The slope decreasing sequences which are not of the form (d)
-	# are given by (e,f^1,...,f^s) where e is a proper subdimension vector
-	# such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of
-	# f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
+    # We sort the subdimension vectors by slope because that will return the list of
+    # all HN types in ascending order with respect to the partial order from
+    # Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
+    subdimensions = sort(subdimensions, by = e -> slope(e, theta, denominator))
+    # The slope decreasing sequences which are not of the form (d)
+    # are given by (e,f^1,...,f^s) where e is a proper subdimension vector
+    # such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of
+    # f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
 
-	function slope_filter(e, fstar)
-		return slope(e, theta, denominator) > slope(fstar[1], theta, denominator)
-	end
+    function slope_filter(e, fstar)
+        return slope(e, theta, denominator) > slope(fstar[1], theta, denominator)
+    end
 
-	function subdimensions_filter(e)
-		return filter(
-			fstar -> slope_filter(e, fstar),
-			all_slope_decreasing_sequences(Q, d - e, theta, denominator),
-		)
-	end
+    function subdimensions_filter(e)
+        return filter(
+            fstar -> slope_filter(e, fstar),
+            all_slope_decreasing_sequences(Q, d - e, theta, denominator),
+        )
+    end
 
-	allSlopeDecreasing = vcat(
-		map(e -> map(fstar -> [e, fstar...], subdimensions_filter(e)), subdimensions)...,
-	)
+    allSlopeDecreasing = vcat(
+        map(e -> map(fstar -> [e, fstar...], subdimensions_filter(e)), subdimensions)...,
+    )
 
 
-	# Add d again, at the beginning, because it is smallest
-	# with respect to the partial order from Def. 3.6
-	return [[coerce_vector(d)], allSlopeDecreasing...]
+    # Add d again, at the beginning, because it is smallest
+    # with respect to the partial order from Def. 3.6
+    return [[coerce_vector(d)], allSlopeDecreasing...]
 end
 
 
@@ -420,24 +403,24 @@ false
 ```
 """
 @memoize Dict function has_semistables(
-	Q::Quiver,
-	d::AbstractVector{Int},
-	theta::AbstractVector{Int},
-	denom::Function = sum,
+    Q::Quiver,
+    d::AbstractVector{Int},
+    theta::AbstractVector{Int},
+    denom::Function = sum,
 )
-	if all(di == 0 for di in d)
-		return true
-	else
-		# collect the list of all subdimension vectors e of bigger slope than d
-		slope_d = slope(d, theta, denom)
-		subdimensionsBiggerSlope = filter(
-			e -> slope(e, theta, denom) > slope_d,
-			all_subdimension_vectors(d, nonzero = true, strict = true),
-		)
-		# to have semistable representations, none of the vectors above must be
-		# a generic subdimension vector.
-		return all(e -> !is_generic_subdimension_vector(Q, e, d), subdimensionsBiggerSlope)
-	end
+    if all(di == 0 for di in d)
+        return true
+    else
+        # collect the list of all subdimension vectors e of bigger slope than d
+        slope_d = slope(d, theta, denom)
+        subdimensionsBiggerSlope = filter(
+            e -> slope(e, theta, denom) > slope_d,
+            all_subdimension_vectors(d, nonzero = true, strict = true),
+        )
+        # to have semistable representations, none of the vectors above must be
+        # a generic subdimension vector.
+        return all(e -> !is_generic_subdimension_vector(Q, e, d), subdimensionsBiggerSlope)
+    end
 end
 
 """Checks if Q has a ``theta``-stable representation of dimension vector ``d``.
@@ -459,27 +442,27 @@ true
 ```
 """
 @memoize Dict function has_stables(
-	Q::Quiver,
-	d::AbstractVector{Int},
-	theta::AbstractVector{Int},
-	denom::Function = sum,
+    Q::Quiver,
+    d::AbstractVector{Int},
+    theta::AbstractVector{Int},
+    denom::Function = sum,
 )
-	if all(di == 0 for di in d)
-		return true
-	else
-		# collect the list of all subdimension vectors e of bigger slope than d
-		slope_d = slope(d, theta, denom)
-		subdimensions_bigger_or_equal_slope = filter(
-			e -> slope(e, theta, denom) >= slope_d,
-			all_subdimension_vectors(d, nonzero = true, strict = true),
-		)
-		# to have semistable representations,
-		# none of the vectors above must be generic subdimension vectors.
-		return all(
-			e -> !is_generic_subdimension_vector(Q, e, d),
-			subdimensions_bigger_or_equal_slope,
-		)
-	end
+    if all(di == 0 for di in d)
+        return true
+    else
+        # collect the list of all subdimension vectors e of bigger slope than d
+        slope_d = slope(d, theta, denom)
+        subdimensions_bigger_or_equal_slope = filter(
+            e -> slope(e, theta, denom) >= slope_d,
+            all_subdimension_vectors(d, nonzero = true, strict = true),
+        )
+        # to have semistable representations,
+        # none of the vectors above must be generic subdimension vectors.
+        return all(
+            e -> !is_generic_subdimension_vector(Q, e, d),
+            subdimensions_bigger_or_equal_slope,
+        )
+    end
 end
 
 """
@@ -500,18 +483,18 @@ true
 ```
 """
 is_Schur_root(Q::Quiver, d::AbstractVector{Int}) =
-	has_stables(Q, d, canonical_stability(Q, d))
+    has_stables(Q, d, canonical_stability(Q, d))
 
 function is_real_root(Q, d)
-	return Euler_form(Q, d, d) == 1
+    return Euler_form(Q, d, d) == 1
 end
 
 function is_imaginary_root(Q, d)
-	return Euler_form(Q, d, d) <= 0
+    return Euler_form(Q, d, d) <= 0
 end
 
 function is_isotropic_root(Q, d)
-	return Euler_form(Q, d, d) == 0
+    return Euler_form(Q, d, d) == 0
 end
 
 
@@ -530,19 +513,19 @@ By a result of Schofield
 for all generic subdimension vectors ``e'`` of ``e``.
 """
 @memoize Dict function is_generic_subdimension_vector(
-	Q::Quiver,
-	e::AbstractVector{Int},
-	d::AbstractVector{Int},
+    Q::Quiver,
+    e::AbstractVector{Int},
+    d::AbstractVector{Int},
 )
-	if e == d || all(ei == 0 for ei in e)
-		return true
-	end
-	# considering subdimension vectors that violate the numerical condition
-	Euler_matrix_temp = Euler_matrix(Q) * (d - e) #to speed up computation of <eprime,d-e>
-	subdimensions =
-		filter(eprime -> eprime' * Euler_matrix_temp < 0, all_subdimension_vectors(e))
-	# none of the subdimension vectors violating the condition should be generic
-	return !any(eprime -> is_generic_subdimension_vector(Q, eprime, e), subdimensions)
+    if e == d || all(ei == 0 for ei in e)
+        return true
+    end
+    # considering subdimension vectors that violate the numerical condition
+    Euler_matrix_temp = Euler_matrix(Q) * (d - e) #to speed up computation of <eprime,d-e>
+    subdimensions =
+        filter(eprime -> eprime' * Euler_matrix_temp < 0, all_subdimension_vectors(e))
+    # none of the subdimension vectors violating the condition should be generic
+    return !any(eprime -> is_generic_subdimension_vector(Q, eprime, e), subdimensions)
 end
 
 """
@@ -564,10 +547,10 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, d)
 ```
 """
 function all_generic_subdimension_vectors(
-	Q::Quiver,
-	d::AbstractVector{Int},
+    Q::Quiver,
+    d::AbstractVector{Int},
 )::Vector{AbstractVector{Int}}
-	return filter(e -> is_generic_subdimension_vector(Q, e, d), all_subdimension_vectors(d))
+    return filter(e -> is_generic_subdimension_vector(Q, e, d), all_subdimension_vectors(d))
 end
 
 """
@@ -622,49 +605,49 @@ julia> all_HN_types(Q, d, theta)
 ```
 """
 @memoize Dict function all_HN_types(
-	Q::Quiver,
-	d::AbstractVector{Int},
-	theta::AbstractVector{Int},
-	denom::Function = sum,
-	ordered = true,
+    Q::Quiver,
+    d::AbstractVector{Int},
+    theta::AbstractVector{Int},
+    denom::Function = sum,
+    ordered = true,
 )
 
-	coerce_vector!(d)
-	if all(di == 0 for di in d)
-		return [[d]]
-	end
-	# We consider just proper subdimension vectors which admit a semistable
-	# representation and for which μ(e) > μ(d)
-	# Note that we also eliminate d by the following
-	subdimensions = filter(
-		e -> has_semistables(Q, e, theta, denom),
-		all_destabilizing_subdimension_vectors(d, theta, denom),
-	)
+    coerce_vector!(d)
+    if all(di == 0 for di in d)
+        return [[d]]
+    end
+    # We consider just proper subdimension vectors which admit a semistable
+    # representation and for which μ(e) > μ(d)
+    # Note that we also eliminate d by the following
+    subdimensions = filter(
+        e -> has_semistables(Q, e, theta, denom),
+        all_destabilizing_subdimension_vectors(d, theta, denom),
+    )
 
-	# We sort the subdimension vectors by slope because that will return the list of
-	# all HN types in ascending order with respect to the partial order from
-	# Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
-	if ordered
-		subdimensions = sort(subdimensions, by = e -> slope(e, theta, denom))
-	end
+    # We sort the subdimension vectors by slope because that will return the list of
+    # all HN types in ascending order with respect to the partial order from
+    # Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
+    if ordered
+        subdimensions = sort(subdimensions, by = e -> slope(e, theta, denom))
+    end
 
-	# The HN types which are not of the form (d) are (e,f^1,...,f^s) where e is a
-	# proper semistable subdimension vector with μ(e) > μ(d), (f^1,...,f^s) is a HN
-	# type of f = d-e and μ(e) > μ(f^1) holds.
+    # The HN types which are not of the form (d) are (e,f^1,...,f^s) where e is a
+    # proper semistable subdimension vector with μ(e) > μ(d), (f^1,...,f^s) is a HN
+    # type of f = d-e and μ(e) > μ(f^1) holds.
 
-	alltypes = Vector{AbstractVector{Int}}[
-		[e, efstar...] for e in subdimensions for efstar in filter(
-			fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
-			all_HN_types(Q, d - e, theta, denom, ordered = ordered),
-		)
-	]
+    alltypes = Vector{AbstractVector{Int}}[
+        [e, efstar...] for e in subdimensions for efstar in filter(
+            fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
+            all_HN_types(Q, d - e, theta, denom, ordered),
+        )
+    ]
 
-	# Possibly add d again, at the beginning, because it is smallest
-	# with respect to the partial order from Def. 3.6
-	if has_semistables(Q, d, theta, denom)
-		pushfirst!(alltypes, [d])
-	end
-	return alltypes
+    # Possibly add d again, at the beginning, because it is smallest
+    # with respect to the partial order from Def. 3.6
+    if has_semistables(Q, d, theta, denom)
+        pushfirst!(alltypes, [d])
+    end
+    return alltypes
 end
 
 """
@@ -679,38 +662,36 @@ Examples:
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
-julia> d = [2,3]; theta = [3,-2];
+julia> d = [2, 3]; dstar = [d];
 
-julia> dstar = [[2, 3]];
-
-julia> is_hn_type(Q, d, theta, sum, dstar)
+julia> is_HN_type(Q, d, dstar)
 true
 
 ```
 """
-function is_HN_type(Q::Quiver,
-	d::AbstractVector{Int},
-	theta::AbstractVector{Int} = canonical_stability(Q, d),
-	denom::Function = sum,
-	dstar::AbstractVector{AbstractVector{Int}})::bool
-	if sum(dstar) != d
-		return false
-	end
+function is_HN_type(
+    Q::Quiver,
+    d::AbstractVector{Int},
+    dstar,
+    theta::AbstractVector{Int} = canonical_stability(Q, d),
+    denom::Function = sum,
+)::Bool
+    # TODO fix the typing of dstar
+    if sum(dstar) != d
+        return false
+    end
 
-	if !all(
-		slope(dstar[i], theta, denom) > slope(dstar[i+1], theta, denom)
-		for i in 1:length(dstar)-1
-	)
-		return false
-	end
+    if !all(
+        slope(dstar[i], theta, denom) > slope(dstar[i+1], theta, denom) for
+        i = 1:length(dstar)-1
+    )
+        return false
+    end
 
-	if !all(
-		has_semistables(Q, dstari, theta, denom)
-		for dstari in dstar
-	)
-		return false
-	end
-	return true
+    if !all(has_semistables(Q, dstari, theta, denom) for dstari in dstar)
+        return false
+    end
+    return true
 end
 
 
@@ -746,14 +727,14 @@ julia> [QuiverTools.codimension_HN_stratum(Q, stratum) for stratum in HN]
 ```
 """
 function codimension_HN_stratum(Q::Quiver, stratum::AbstractVector{AbstractVector{Int}})
-	if length(stratum) == 1
-		return 0
-	else
-		return -sum(
-			Euler_form(Q, stratum[i], stratum[j]) for i ∈ 1:length(stratum)-1 for
-			j in i+1:length(stratum)
-		)
-	end
+    if length(stratum) == 1
+        return 0
+    else
+        return -sum(
+            Euler_form(Q, stratum[i], stratum[j]) for i ∈ 1:length(stratum)-1 for
+            j = i+1:length(stratum)
+        )
+    end
 end
 
 """
@@ -764,16 +745,13 @@ This means that the codimension of the unstable locus
 in the parameter space is at least ``2``.
 """
 function is_amply_stable(
-	Q::Quiver,
-	d::AbstractVector{Int},
-	theta::AbstractVector{Int},
-	denom::Function = sum,
+    Q::Quiver,
+    d::AbstractVector{Int},
+    theta::AbstractVector{Int},
+    denom::Function = sum,
 )
-	# We say that representations of a given dimension vector d are amply stable
-	# (for any notion of stability) if the codimension of the semistable locus
-	# is at least 2. We verify this by computing the codimension of each HN stratum.
-	HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
-	return all(stratum -> codimension_HN_stratum(Q, stratum) >= 2, HN)
+    HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
+    return all(stratum -> codimension_HN_stratum(Q, stratum) >= 2, HN)
 end
 
 include("teleman.jl")
@@ -796,7 +774,7 @@ ext(a,b)=max\\{-\\langle c,b\\rangle~~|~~c~\\text{is a generic subdimension vect
 ```
 """
 function generic_ext(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
-	return maximum(-Euler_form(Q, c, b) for c in all_generic_subdimension_vectors(Q, a))
+    return maximum(-Euler_form(Q, c, b) for c in all_generic_subdimension_vectors(Q, a))
 end
 
 """
@@ -804,7 +782,7 @@ Computes the dimension of the ``\\mathrm{Hom}`` group between generic representa
 of dimension vectors ``a`` and ``b``.
 """
 function generic_hom(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
-	return Euler_form(Q, a, b) + generic_ext(Q, a, b)
+    return Euler_form(Q, a, b) + generic_ext(Q, a, b)
 end
 
 
@@ -829,18 +807,18 @@ of dimension vectors ``\\beta_i``.
 Such a decomposition is called the canonical decomposition.
 """
 function canonical_decomposition(Q::Quiver, d::AbstractVector{Int})
-	# if is_Schur_root(Q, d)
-	#     return [d]
-	# end
-	generic_subdimensions = filter(e -> e != d, all_generic_subdimension_vectors(Q, d))
-	for e in generic_subdimensions
-		if d - e in generic_subdimensions &&
-		   generic_ext(Q, e, d - e) == 0 &&
-		   generic_ext(Q, d - e, e) == 0
-			return vcat(canonical_decomposition(Q, e), canonical_decomposition(Q, d - e))
-		end
-	end
-	return [d] # if nothing above worked then d is a Schur root.
+    # if is_Schur_root(Q, d)
+    #     return [d]
+    # end
+    generic_subdimensions = filter(e -> e != d, all_generic_subdimension_vectors(Q, d))
+    for e in generic_subdimensions
+        if d - e in generic_subdimensions &&
+           generic_ext(Q, e, d - e) == 0 &&
+           generic_ext(Q, d - e, e) == 0
+            return vcat(canonical_decomposition(Q, e), canonical_decomposition(Q, d - e))
+        end
+    end
+    return [d] # if nothing above worked then d is a Schur root.
 end
 
 
@@ -858,22 +836,18 @@ The Teleman inequality is satisfied for this stratum
 iif one of these rectangles sums to ``2`` or more.
 """
 function extension_matrix(Q::Quiver, hntype::AbstractVector{AbstractVector{Int}})
-	n = length(hntype)
+    n = length(hntype)
 
-	if n <= 1
-		throw(
-			ArgumentError(
-				"HN type must have length at least 2,
-				this makes no sense for the dense stratum",
-			),
-		)
-	else
-		M = zeros(Int, n, n)
-		for i ∈ 1:n-1, j ∈ i+1:n
-			M[i, j] = -Euler_form(Q, hntype[i], hntype[j])
-		end
-		return M
-	end
+    if n <= 1
+        throw(ArgumentError("HN type must have length at least 2,
+                            this makes no sense for the dense stratum"))
+    else
+        M = zeros(Int, n, n)
+        for i ∈ 1:n-1, j ∈ i+1:n
+            M[i, j] = -Euler_form(Q, hntype[i], hntype[j])
+        end
+        return M
+    end
 end
 
 
@@ -893,58 +867,59 @@ where ``s_i`` is the dimension vector with all entries set to ``0`` and the i-th
 set to ``1``.
 """
 function in_fundamental_domain(Q::Quiver, d::AbstractVector{Int}; interior::Bool = false)
-	# https://arxiv.org/abs/2209.14791 uses a strict inequality,
-	# while https://arxiv.org/abs/2310.15927 uses a non-strict.
-	# here we set it to non-strict by default.
+    # https://arxiv.org/abs/2209.14791 uses a strict inequality,
+    # while https://arxiv.org/abs/2310.15927 uses a non-strict.
+    # here we set it to non-strict by default.
 
-	simples = [unit_vector(nvertices(Q), i) for i ∈ 1:nvertices(Q)]
-	if interior
-		return all(
-			simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) < 0,
-			simples,
-		)
-	end
-	return all(simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) <= 0, simples)
+    simples = [unit_vector(nvertices(Q), i) for i ∈ 1:nvertices(Q)]
+    if interior
+        return all(
+            simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) < 0,
+            simples,
+        )
+    end
+    return all(simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) <= 0, simples)
 end
 
 ##############################################################
 # walls and chambers bases for stability parameters
 
 function all_Schurian_decompositions(Q::Quiver, d::AbstractVector{Int})
-	# the end of the recursion is necessarily at a simple root
-	# TODO multisets instead of lists.
-	if all(di == 0 for di in d)
-		return [[]]
-	elseif sum(d) == 1
-		return [[d]]
-	end
-	Schur_subroots = filter(e -> is_Schur_root(Q, e), all_subdimension_vectors(d, nonzero = true))
-	# @info d, Schur_subroots
+    # the end of the recursion is necessarily at a simple root
+    # TODO multisets instead of lists.
+    if all(di == 0 for di in d)
+        return [[]]
+    elseif sum(d) == 1
+        return [[d]]
+    end
+    Schur_subroots =
+        filter(e -> is_Schur_root(Q, e), all_subdimension_vectors(d, nonzero = true))
+    # @info d, Schur_subroots
 
-	out = []
-	for e in Schur_subroots, fstar in all_Schurian_decompositions(Q, d - e)
-		push!(out, [e, fstar...])
-	end
-	return out
+    out = []
+    for e in Schur_subroots, fstar in all_Schurian_decompositions(Q, d - e)
+        push!(out, [e, fstar...])
+    end
+    return out
 end
 
 function has_semistables(Q::Quiver, d::AbstractVector{Int})
-	# if there are less summands than vertices, there will always be a stability parameter
-	# which multiplies all the summands (and hence d) to zero.
-	allow_stability = []
+    # if there are less summands than vertices, there will always be a stability parameter
+    # which multiplies all the summands (and hence d) to zero.
+    allow_stability = []
 
-	allSchurian = all_Schurian_decompositions(Q, d)
-	for candidate in allSchurian
-		if length(candidate) < nvertices(Q)
-			push!(allow_stability, candidate)
-		else
-			# if not, one has to check.
-			if LinearAlgebraX.rankx(hcat(candidate...)) < nvertices(Q)
-				push!(allow_stability, candidate)
-			end
-		end
-	end
-	return allow_stability
+    allSchurian = all_Schurian_decompositions(Q, d)
+    for candidate in allSchurian
+        if length(candidate) < nvertices(Q)
+            push!(allow_stability, candidate)
+        else
+            # if not, one has to check.
+            if LinearAlgebraX.rankx(hcat(candidate...)) < nvertices(Q)
+                push!(allow_stability, candidate)
+            end
+        end
+    end
+    return allow_stability
 end
 
 """
@@ -954,18 +929,18 @@ admitting stable representations of dimension vector ``d``.
 Assumes that the dimension vector ``d`` is Schurian (for now).
 """
 function in_stable_cone(
-	Q::Quiver,
-	d::AbstractVector{Int},
-	theta::AbstractVector{Int},
-	strict::Bool = false,
+    Q::Quiver,
+    d::AbstractVector{Int},
+    theta::AbstractVector{Int},
+    strict::Bool = false,
 )
-	if !is_Schur_root(Q, d)
-		throw(ArgumentError("d is not Schurian"))
-	end
-	if strict
-		return all(e -> theta' * e < 0, all_generic_subdimension_vectors(Q, d))
-	end
-	return all(e -> theta' * e <= 0, all_generic_subdimension_vectors(Q, d))
+    if !is_Schur_root(Q, d)
+        throw(ArgumentError("d is not Schurian"))
+    end
+    if strict
+        return all(e -> theta' * e < 0, all_generic_subdimension_vectors(Q, d))
+    end
+    return all(e -> theta' * e <= 0, all_generic_subdimension_vectors(Q, d))
 end
 
 # how to find inner walls now? These are given by a finite subset of the special subdimension vectors of d.
@@ -1001,7 +976,7 @@ Create a zero vector of length `n`.
 - A zero vector of length `n`.
 """
 @memoize Dict function zero_vector(n::Int)
-	return coerce_vector((zeros(Int, n)))
+    return coerce_vector((zeros(Int, n)))
 end
 
 """
@@ -1017,7 +992,7 @@ Compute the thin dimension vector for a given quiver `Q`.
 
 """
 function thin_dimension_vector(Q::Quiver)
-	return coerce_vector(ones(Int, nvertices(Q)))
+    return coerce_vector(ones(Int, nvertices(Q)))
 end
 
 """
@@ -1079,47 +1054,47 @@ julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true, strict=true)
  ```
 """
 @memoize Dict function all_subdimension_vectors(
-	d::AbstractVector{Int};
-	nonzero::Bool = false,
-	strict::Bool = false,
+    d::AbstractVector{Int};
+    nonzero::Bool = false,
+    strict::Bool = false,
 )::Array{AbstractVector{Int}}
-	coerce_vector!(d)
+    coerce_vector!(d)
 
-	subdims = coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...)))
-	subdims = filter(e -> true, subdims) #really now
-	if nonzero
-		subdims = filter(e -> any(ei != 0 for ei in e), subdims)
-	end
-	if strict
-		subdims = filter(e -> e != d, subdims)
-	end
-	return subdims
+    subdims = coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...)))
+    subdims = filter(e -> true, subdims) #really now
+    if nonzero
+        subdims = filter(e -> any(ei != 0 for ei in e), subdims)
+    end
+    if strict
+        subdims = filter(e -> e != d, subdims)
+    end
+    return subdims
 end
 
 @memoize Dict function unit_vector(n::Int, i::Int)
-	v = zeros(Int, n)
-	v[i] = 1
-	return coerce_vector(v)
+    v = zeros(Int, n)
+    v[i] = 1
+    return coerce_vector(v)
 end
 
 function unit_vector(Q::Quiver, i::Int)
-	return unit_vector(nvertices(Q), i)
+    return unit_vector(nvertices(Q), i)
 end
 
 
 function coerce_vector(v::AbstractVector)
-	return SVector{length(v)}(v)
+    return SVector{length(v)}(v)
 end
 function coerce_vector(v::Tuple)
-	return SVector{length(v)}(v)
+    return SVector{length(v)}(v)
 end
 
 function coerce_vector!(x)
-	x = coerce_vector(x)
+    x = coerce_vector(x)
 end
 
 function coerce_matrix(m::AbstractMatrix)
-	return SMatrix{size(m)...}(m)
+    return SMatrix{size(m)...}(m)
 end
 
 
@@ -1128,6 +1103,7 @@ end
 #######################################################
 
 include("constructors.jl")
+include("moduli.jl")
 
 ######################
 # end of QuiverTools

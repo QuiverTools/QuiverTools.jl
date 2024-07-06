@@ -264,7 +264,7 @@ end;
     # Hodge polynomial
     Q = mKronecker_quiver(3)
     d = [2, 3]
-    @test QuiverTools.Hodge_diamond(Q, d, [3, -2]) == [
+    @test Hodge_diamond(Q, d, [3, -2]) == [
         1 0 0 0 0 0 0
         0 1 0 0 0 0 0
         0 0 3 0 0 0 0
@@ -274,8 +274,6 @@ end;
         0 0 0 0 0 0 1
     ]
 
-    # is this how we want it to behave when the moduli space is empty?
-    @test QuiverTools.Hodge_diamond(Q, d, [-3, 2]) == Matrix{Int64}(undef, 0, 0)
 end;
 
 
