@@ -116,9 +116,30 @@ end
 #TODO: constructors
 ExtendedDynkinQuiver(T::String) = throw(ArgumentError("not implemented"))
 
-CyclicQuiver(n::Int) = throw(ArgumentError("not implemented"))
+function CyclicQuiver(n::Int)
+    if n < 1
+        throw(ArgumentError("n must be greater than 0"))
+    end
+    A = zeros(Int, n, n)
+    for i = 1:n-1
+        A[i, i+1] = 1
+    end
+    A[n, 1] = 1
+    return Quiver(A, "Cyclic quiver on $n vertices")
+end
 
-BipartiteQuiver(m::Int, n::Int) = throw(ArgumentError("not implemented"))
+function BipartiteQuiver(m::Int, n::Int)
+    if m < 1 || n < 1
+        throw(ArgumentError("m and n must be greater than 0"))
+    end
+    A = zeros(Int, m+n, m+n)
+    for i = 1:m
+        for j = m+1:m+n
+            A[i, j] = 1
+        end
+    end
+    return Quiver(A, "Bipartite quiver on $m and $n vertices")
+end
 
 """"
 Returns a Quiver with the same vertices and an arrow ``j \\to i`` for every arrow  ``i \\to j`` in the original quiver.
