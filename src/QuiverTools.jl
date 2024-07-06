@@ -14,6 +14,7 @@ import AbstractAlgebra: fraction_field
 import IterTools: subsets
 import LinearAlgebraX: rankx
 import Singular: polynomial_ring, degree, coeff, AlgebraHomomorphism, preimage, Ideal, QuotientRing, std, gens
+import Combinatorics: with_replacement_combinations
 
 export Quiver
 export nvertices, narrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
