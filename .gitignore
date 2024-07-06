@@ -2,6 +2,7 @@
 docs/build/
 docs/site/
 
+experiments/
 Manifest.toml
 
 #MacOS
