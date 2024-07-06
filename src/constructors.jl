@@ -4,7 +4,14 @@
 # Constructors
 #################
 
-export mKronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver
+export mKronecker_quiver,
+    loop_quiver,
+    subspace_quiver,
+    three_vertex_quiver,
+    cyclic_quiver,
+    bipartite_quiver,
+    opposite_quiver,
+    double_quiver
 
 
 """
@@ -23,7 +30,7 @@ A Kronecker quiver with `m` vertices.
 ```jldoctest
 julia> mKronecker_quiver(3)
 """
-function mKronecker_quiver(m::Int=2)
+function mKronecker_quiver(m::Int = 2)
     return Quiver([0 m; 0 0], string(m) * "-Kronecker quiver")
 end
 
@@ -170,7 +177,7 @@ end
 #TODO: constructors
 ExtendedDynkinQuiver(T::String) = throw(ArgumentError("not implemented"))
 
-function CyclicQuiver(n::Int)
+function cyclic_quiver(n::Int)
     if n < 1
         throw(ArgumentError("n must be greater than 0"))
     end
@@ -182,11 +189,11 @@ function CyclicQuiver(n::Int)
     return Quiver(A, "Cyclic quiver on $n vertices")
 end
 
-function BipartiteQuiver(m::Int, n::Int)
+function bipartite_quiver(m::Int, n::Int)
     if m < 1 || n < 1
         throw(ArgumentError("m and n must be greater than 0"))
     end
-    A = zeros(Int, m+n, m+n)
+    A = zeros(Int, m + n, m + n)
     for i = 1:m
         for j = m+1:m+n
             A[i, j] = 1
