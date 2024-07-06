@@ -1,6 +1,8 @@
-using Test, QuiverTools
+using Test, QuiverTools, Documenter
 
 # some unit tests. The majority of the tests are in the documentation.
+DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools))
+doctest(QuiverTools, manual=false, testset="Doctests")
 
 @testset "basic" begin
     #  basic methods
