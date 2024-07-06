@@ -6,27 +6,11 @@ export QuiverModuli,
 	is_smooth
 
 
-mutable struct QuiverModuli
-    Q::Quiver
-    d::Vector{Int}
-    theta::Vector{Int}
-    condition::String
-
-    function QuiverModuli(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, condition::String)
-        if condition in ["stable", "semistable"] &&
-           length(d) == nvertices(Q) &&
-           length(theta) == nvertices(Q)
-            return new(Q, d, theta, condition)
-        else
-            throw(DomainError("Invalid input"))
-        end
-    end
-    function QuiverModuli(Q::Quiver, d::Vector{Int}, condition::String)
-        return QuiverModuli(Q, d, canonical_stability(Q, d), condition)
-    end
-    function QuiverModuli(Q::Quiver, d::Vector{Int})
-        return QuiverModuli(Q, d, "stable")
-    end
+struct QuiverModuli
+	Q::Quiver
+	d::Vector{Int}
+	theta::Vector{Int}
+	condition::String
 
 end
 
@@ -148,6 +132,75 @@ function Hodge_diamond(M::QuiverModuli)
 end
 
 function index(M::QuiverModuli)
-    # right? 
-    return gcd(canonical_stability(M.Q, M.d))
+	# right? 
+	return gcd(canonical_stability(M.Q, M.d))
+end
+
+struct QuiverModuliSpace <: QuiverModuli
+	Q::Quiver
+	d::AbstractVector{Int}
+	theta::AbstractVector{Int}
+	condition::String
+
+	function QuiverModuliSpace(Q::Quiver,
+        d::AbstractVector{Int},
+        theta::AbstractVector{Int},
+        condition::String)
+
+        if condition in ["stable", "semistable"] &&
+		   length(d) == nvertices(Q) &&
+		   length(theta) == nvertices(Q)
+
+			return new(Q, d, theta, condition)
+		end
+		throw(DomainError("Invalid input"))
+	end
+
+    function QuiverModuliSpace(Q::Quiver, d::AbstractVector{Int}, condition::String)
+        return QuiverModuliSpace(Q, d, canonical_stability(Q, d), condition)
+	end
+
+    function QuiverModuliSpace(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int})
+        return QuiverModuliSpace(Q, d, theta, "semistable")
+    end
+
+    function QuiverModuliSpace(Q::Quiver, d::AbstractVector{Int})
+        return QuiverModuliSpace(Q, d, "semistable")
+    end
+
+
+end
+
+struct QuiverModuliStack <: QuiverModuli
+	Q::Quiver
+	d::AbstractVector{Int}
+	theta::AbstractVector{Int}
+	condition::String
+
+	function QuiverModuliStack(Q::Quiver,
+        d::AbstractVector{Int},
+        theta::AbstractVector{Int},
+        condition::String)
+
+        if condition in ["stable", "semistable"] &&
+		   length(d) == nvertices(Q) &&
+		   length(theta) == nvertices(Q)
+
+			return new(Q, d, theta, condition)
+		end
+		throw(DomainError("Invalid input"))
+	end
+
+    function QuiverModuliStack(Q::Quiver, d::AbstractVector{Int}, condition::String)
+        return QuiverModuliStack(Q, d, canonical_stability(Q, d), condition)
+	end
+
+    function QuiverModuliStack(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int})
+        return QuiverModuliStack(Q, d, theta, "semistable")
+    end
+
+    function QuiverModuliStack(Q::Quiver, d::AbstractVector{Int})
+        return QuiverModuliStack(Q, d, "semistable")
+    end
+
 end
