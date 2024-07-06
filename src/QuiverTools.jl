@@ -37,7 +37,6 @@ export all_Teleman_bounds,
     all_weights_universal_bundle,
     all_weights_irreducible_component_canonical
 export Hodge_diamond, Hodge_polynomial, Picard_rank
-export mKronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver
 
 
 """
@@ -297,7 +296,7 @@ The canonical stability parameter for the couple ``(Q,d)`` is given by ``<d,- > 
 """
 function canonical_stability(Q::Quiver, d::AbstractVector{Int})::AbstractVector{Int}
     return coerce_vector(-(-transpose(Euler_matrix(Q)) + Euler_matrix(Q)) * d)
-
+end
     """Checks wether the given dimension vector ``d`` is ``\\theta``-coprime for
     the stability parameter ``\\theta``."""
     function is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
@@ -1541,4 +1540,4 @@ function canonical_stability(Q::Quiver, d::AbstractVector{Int})::AbstractVector{
     # end of QuiverTools
     ######################
 end
-end
+
