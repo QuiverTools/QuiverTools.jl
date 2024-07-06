@@ -173,8 +173,6 @@ function is_connected(Q::Quiver)
     return true
 end
 
-# the docstrings on these functions are from the file quiver.py
-
 """
 Returns the number of incoming arrows to the vertex ``j``.
 
@@ -276,9 +274,11 @@ Euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) = x' * Eul
 """
 The canonical stability parameter for the couple ``(Q,d)`` is given by ``<d,- > - < - ,d>``
 """
-canonical_stability(Q::Quiver, d::AbstractVector{Int})::AbstractVector{Int} = coerce_vector(-(-transpose(Euler_matrix(Q)) + Euler_matrix(Q)) * d)
+function canonical_stability(Q::Quiver, d::AbstractVector{Int})::AbstractVector{Int}
+    return coerce_vector(-(-transpose(Euler_matrix(Q)) + Euler_matrix(Q)) * d)
 
-"""Checks wether the given dimension vector ``d`` is ``\\theta``-coprime for the stability parameter ``\\theta``."""
+"""Checks wether the given dimension vector ``d`` is ``\\theta``-coprime for
+the stability parameter ``\\theta``."""
 function is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
     return all(e -> theta' * e != 0, all_proper_subdimension_vectors(d))
 end
@@ -293,14 +293,14 @@ end
 Returns the slope of the dimension vector ``d`` with respect to the stability parameter ``\\theta``
 and a choice of a denominator function.
 """
-function slope(d::AbstractVector{Int}, theta::AbstractVector{Int}, slope_denominator::Function=sum)
-    return (theta' * d) // slope_denominator(d)
+function slope(d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
+    return (theta' * d) // denom(d)
 end
 """
 Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d``.
 """
-@memoize Dict function all_destabilizing_subdimension_vectors(d::AbstractVector{Int}, theta::AbstractVector{Int}, slope_denominator::Function=sum)
-    return filter(e -> slope(e, theta, slope_denominator) > slope(d, theta, slope_denominator), all_nonzero_subdimension_vectors(d))
+@memoize Dict function all_destabilizing_subdimension_vectors(d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
+    return filter(e -> slope(e, theta, denom) > slope(d, theta, denom), all_nonzero_subdimension_vectors(d))
 end
 
 """
@@ -386,13 +386,13 @@ julia> has_semistables(K3, [1,4], theta)
 false
 ```
 """
-@memoize Dict function has_semistables(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, slope_denominator::Function=sum)
+@memoize Dict function has_semistables(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
     if all(di == 0 for di in d)
         return true
     else
         # collect the list of all subdimension vectors e of bigger slope than d
-        slope_d = slope(d, theta, slope_denominator)
-        subdimensionsBiggerSlope = filter(e -> slope(e, theta, slope_denominator) > slope_d, all_proper_subdimension_vectors(d))
+        slope_d = slope(d, theta, denom)
+        subdimensionsBiggerSlope = filter(e -> slope(e, theta, denom) > slope_d, all_proper_subdimension_vectors(d))
         # to have semistable representations, none of the vectors above must be generic subdimension vectors.
         return all(e -> !is_generic_subdimension_vector(Q, e, d), subdimensionsBiggerSlope)
     end
@@ -416,13 +416,13 @@ julia> has_semistables(Q, d, theta)
 true
 ```
 """
-@memoize Dict function has_stables(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, slope_denominator::Function=sum)
+@memoize Dict function has_stables(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
     if all(di == 0 for di in d)
         return true
     else
         # collect the list of all subdimension vectors e of bigger slope than d
-        slope_d = slope(d, theta, slope_denominator)
-        subdimensions_bigger_or_equal_slope = filter(e -> slope(e, theta, slope_denominator) >= slope_d, all_proper_subdimension_vectors(d))
+        slope_d = slope(d, theta, denom)
+        subdimensions_bigger_or_equal_slope = filter(e -> slope(e, theta, denom) >= slope_d, all_proper_subdimension_vectors(d))
         # to have semistable representations, none of the vectors above must be generic subdimension vectors.
         return all(e -> !is_generic_subdimension_vector(Q, e, d), subdimensions_bigger_or_equal_slope)
     end
@@ -506,7 +506,7 @@ end
 
 """
 Returns a list of all the Harder Narasimhan types of representations of ``Q``
-with dimension vector ``d``, with respect to the slope function theta/slope_denominator.
+with dimension vector ``d``, with respect to the slope function theta/denom.
 
 Examples:
 ```jldoctest
@@ -555,7 +555,7 @@ julia> all_HN_types(Q, d, theta)
  [[4, 0, 0], [0, 1, 0], [0, 0, 4]]
 ```
 """
-@memoize Dict function all_HN_types(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, slope_denominator::Function=sum; ordered=true)
+@memoize Dict function all_HN_types(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum; ordered=true)
 
     coerce_vector!(d)
     if all(di == 0 for di in d)
@@ -563,11 +563,11 @@ julia> all_HN_types(Q, d, theta)
     end
     # We consider just proper subdimension vectors which admit a semistable representation and for which μ(e) > μ(d)
     # Note that we also eliminate d by the following
-    subdimensions = filter(e -> has_semistables(Q, e, theta, slope_denominator), all_destabilizing_subdimension_vectors(d, theta, slope_denominator))
+    subdimensions = filter(e -> has_semistables(Q, e, theta, denom), all_destabilizing_subdimension_vectors(d, theta, denom))
 
     # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
     if ordered
-        subdimensions = sort(subdimensions, by=e -> slope(e, theta, slope_denominator))
+        subdimensions = sort(subdimensions, by=e -> slope(e, theta, denom))
     end
 
     # The HN types which are not of the form (d) are (e,f^1,...,f^s) where e is a proper semistable subdimension vector with μ(e) > μ(d), (f^1,...,f^s) is a HN type of f = d-e and μ(e) > μ(f^1) holds.
@@ -576,13 +576,13 @@ julia> all_HN_types(Q, d, theta)
         Vector{AbstractVector{Int}}[
             [e, efstar...] for e in subdimensions
             for efstar in filter(
-                fstar -> slope(e, theta, slope_denominator) > slope(fstar[1], theta, slope_denominator),
-                all_HN_types(Q, d - e, theta, slope_denominator, ordered=ordered)
+                fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
+                all_HN_types(Q, d - e, theta, denom, ordered=ordered)
             )
         ]
 
     # Possibly add d again, at the beginning, because it is smallest with respect to the partial order from Def. 3.6
-    if has_semistables(Q, d, theta, slope_denominator)
+    if has_semistables(Q, d, theta, denom)
         pushfirst!(alltypes, [d])
     end
     return alltypes
@@ -631,10 +631,10 @@ Checks wether the dimension vector ``d`` is amply stable with respect to the slo
 
 This means that the codimension of the unstable locus in the parameter space is at least ``2``.
 """
-function is_amply_stable(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, slope_denominator::Function=sum)
+function is_amply_stable(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
     # We say that representations of a given dimension vector d are amply stable (for any notion of stability) if the codimension of the semistable locus is at least 2.
     # We verify this by computing the codimension of each HN stratum.
-    HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, slope_denominator))
+    HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
     return all(stratum -> codimension_HN_stratum(Q, stratum) >= 2, HN)
 end
 
@@ -646,27 +646,27 @@ end
 
 """ Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS ``\\lambda``
 corresponding to the given HN type."""
-function Teleman_bound_onstratum(Q::Quiver, hntype::AbstractVector{AbstractVector{Int}}, theta::AbstractVector{Int}, slope_denominator::Function=sum)::Int
+function Teleman_bound_onstratum(Q::Quiver, hntype::AbstractVector{AbstractVector{Int}}, theta::AbstractVector{Int}, denom::Function=sum)::Int
     if length(hntype) == 1
         throw(ArgumentError("Weight not defined for HN type of length 1."))
     end
-    slopes = map(h -> slope(h, theta, slope_denominator), hntype)
+    slopes = map(h -> slope(h, theta, denom), hntype)
     slopes = lcm(denominator.(slopes)) .* slopes
     return sum((slopes[t] - slopes[s]) * Euler_form(Q, hntype[s], hntype[t]) for s in 1:length(hntype)-1 for t in s+1:length(hntype))
 end
 
 """ Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
-HN type for the given ``Q``, ``d``, ``\\theta`` and `slope_denominator``."""
-function all_Teleman_bounds(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, slope_denominator::Function=sum)
+HN type for the given ``Q``, ``d``, ``\\theta`` and `denom``."""
+function all_Teleman_bounds(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
     #This is only relevant on the unstable locus
-    HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, slope_denominator))
-    return Dict([hntype, Teleman_bound_onstratum(Q, hntype, theta, slope_denominator)] for hntype in HN)
+    HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
+    return Dict([hntype, Teleman_bound_onstratum(Q, hntype, theta, denom)] for hntype in HN)
 end
 
 """Returns the weights of a universal bundle ``U_i(a)`` for the linearization ``a``
 for the 1-PS corresponding to the given HN type."""
-function weights_universal_bundle_onstratum(theta::AbstractVector{Int}, a::AbstractVector{Int}, hntype, slope_denominator::Function=sum)::AbstractVector{Int}
-    slopes = map(h -> slope(h, theta, slope_denominator), hntype)
+function weights_universal_bundle_onstratum(theta::AbstractVector{Int}, a::AbstractVector{Int}, hntype, denom::Function=sum)::AbstractVector{Int}
+    slopes = map(h -> slope(h, theta, denom), hntype)
     slopes *= lcm(denominator.(slopes))
 
     constant_term = sum(slopes[i] * (a' * hntype[i]) for i in eachindex(hntype))
@@ -675,9 +675,9 @@ function weights_universal_bundle_onstratum(theta::AbstractVector{Int}, a::Abstr
 end
 """Computes the weights of the universal bundle ``U_i(a)`` for the linearization ``a``
 on all the non-dense Harder-Narasimhan strata for each 1-PS corresponding to each HN type."""
-function all_weights_universal_bundle(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, a::AbstractVector{Int}, slope_denominator::Function=sum)
-    HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, slope_denominator))
-    return Dict([hntype, weights_universal_bundle_onstratum(theta, a, hntype, slope_denominator)] for hntype in HN)
+function all_weights_universal_bundle(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, a::AbstractVector{Int}, denom::Function=sum)
+    HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
+    return Dict([hntype, weights_universal_bundle_onstratum(theta, a, hntype, denom)] for hntype in HN)
 end
 
 
@@ -685,8 +685,8 @@ end
 on a Harder-Narasimhan stratum for the 1-PS corresponding to each HN type.
 More explicitly, if ``\\omega_X = \\mathcal{O}(rH)``, this returns the weight of
 the pullback of O(H) on the given stratum."""
-function weight_irreducible_component_canonical_on_stratum(Q::Quiver, d::AbstractVector{Int}, hntype::AbstractVector{AbstractVector{Int}}, theta::AbstractVector{Int}, slope_denominator::Function=sum)::Int
-    kweights = map(di -> slope(di, theta, slope_denominator), hntype)
+function weight_irreducible_component_canonical_on_stratum(Q::Quiver, d::AbstractVector{Int}, hntype::AbstractVector{AbstractVector{Int}}, theta::AbstractVector{Int}, denom::Function=sum)::Int
+    kweights = map(di -> slope(di, theta, denom), hntype)
     kweights = kweights * lcm(denominator.(kweights))
 
     dd = sum(kweights[m] .* hntype[m] for m in 1:length(hntype))
@@ -701,16 +701,16 @@ end
 """Computes the weights of the irreducible component of ``\\omega_R|_Z``
 on all the non-dense Harder-Narasimhan strata for each 1-PS relative to the HN type.
 More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullback of ``\\mathcal{O}(H)`` on each stratum."""
-function all_weights_irreducible_component_canonical(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, slope_denominator::Function=sum)
+function all_weights_irreducible_component_canonical(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
     HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta))
-    return Dict([hntype, weight_irreducible_component_canonical_on_stratum(Q, d, hntype, theta, slope_denominator)] for hntype in HN)
+    return Dict([hntype, weight_irreducible_component_canonical_on_stratum(Q, d, hntype, theta, denom)] for hntype in HN)
 end
 
 """Computes the weights of the endomorphism of the universal bundle ``U_i \\otimes U_j``
 on the given Harder-Narasimhan stratum for the 1-PS relative to the HN type."""
-function weights_endomorphism_universal_bundle_on_stratum(hntype::AbstractVector{AbstractVector{Int}}, theta::AbstractVector{Int}, slope_denominator::Function=sum)::AbstractVector{Int}
+function weights_endomorphism_universal_bundle_on_stratum(hntype::AbstractVector{AbstractVector{Int}}, theta::AbstractVector{Int}, denom::Function=sum)::AbstractVector{Int}
     # the maximum weight of the tensors of the universal bundles U_i^\vee \otimes U_j is slope of first term in the HN type - slope of the last term in the HN type
-    kweights = map(di -> slope(di, theta, slope_denominator), hntype)
+    kweights = map(di -> slope(di, theta, denom), hntype)
     kweights = kweights * lcm(denominator.(kweights))
     # return kweights[1] - kweights[end] # this is the largest one
     return [kweights[i] - kweights[j] for i in 1:length(hntype) for j in 1:length(hntype)]
@@ -718,9 +718,9 @@ end
 
 """Computes the weights of the endomorphisms of the universal bundles ``U_i \\otimes U_j``
 on all the non-dense Harder-Narasimhan strata for each 1-PS relative to the HN type."""
-function all_weights_endomorphisms_universal_bundle(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, slope_denominator::Function=sum)
-    HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, slope_denominator))
-    return Dict([hntype, weights_endomorphism_universal_bundle_on_stratum(hntype, theta, slope_denominator)] for hntype in HN)
+function all_weights_endomorphisms_universal_bundle(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
+    HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
+    return Dict([hntype, weights_endomorphism_universal_bundle_on_stratum(hntype, theta, denom)] for hntype in HN)
 end
 
 
@@ -832,12 +832,12 @@ function Luna_type_from_vector(vec::Vector{AbstractVector{Int}})
     return Luna_type
 end
 
-function all_Luna_types(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}; slope_denominator::Function=sum)
-    same_slope = filter(e -> slope(e, theta, slope_denominator) == slope(d, theta, slope_denominator) && has_stables(Q, e, theta, slope_denominator), QuiverTools.all_nonzero_subdimension_vectors(d))
+function all_Luna_types(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}; denom::Function=sum)
+    same_slope = filter(e -> slope(e, theta, denom) == slope(d, theta, denom) && has_stables(Q, e, theta, denom), QuiverTools.all_nonzero_subdimension_vectors(d))
     Luna_types = []
     bound = sum(d) ÷ minimum(sum(e) for e in same_slope) # the highest possible amount of repetitions for a given stable dimension vector
     for i in 1:bound+1
-        for tau in Combinatorics.with_replacement_combinations(same_slope, i)
+        for tau in with_replacement_combinations(same_slope, i)
             if sum(tau) == d
                 push!(Luna_types, Luna_type_from_vector(tau))
             end
@@ -1152,8 +1152,8 @@ function Chow_ring(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}
     delta = prod(prod(chi(i, l) - chi(i, k) for k in 1:d[i]-1 for l in k+1:d[i]) for i in 1:nvertices(Q) if d[i] > 1)
     antisymmetrize(f) = sum(sign(w) * permute(f, w) for w in W) / delta
 
-    function all_forbidden(Q, d, theta, slope_denominator::Function=sum)
-        dest = all_destabilizing_subdimension_vectors(d, theta, slope_denominator)
+    function all_forbidden(Q, d, theta, denom::Function=sum)
+        dest = all_destabilizing_subdimension_vectors(d, theta, denom)
         return filter(e -> !any(f -> partial_order(Q, f, e), filter(f -> f != e, dest)), dest)
     end
 
