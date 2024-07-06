@@ -7,18 +7,72 @@
 export mKronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver
 
 
-function mKronecker_quiver(m::Int)
+"""
+    mKronecker_quiver(m::Int)
+
+Constructs a Kronecker quiver with `m` vertices.
+
+# Arguments
+- `m::Int`: (Default = 2) The number of vertices in the Kronecker quiver.
+
+# Returns
+A Kronecker quiver with `m` vertices.
+
+# Example
+
+```jldoctest
+julia> mKronecker_quiver(3)
+"""
+function mKronecker_quiver(m::Int=2)
     return Quiver([0 m; 0 0], string(m) * "-Kronecker quiver")
 end
 
+"""
+    three_vertex_quiver(m12::Int, m13::Int, m23::Int)
+
+Constructs a three-vertex quiver with the given edge weights.
+
+# Arguments
+- `m12::Int`: The weight of the edge from vertex 1 to vertex 2.
+- `m13::Int`: The weight of the edge from vertex 1 to vertex 3.
+- `m23::Int`: The weight of the edge from vertex 2 to vertex 3.
+
+# Returns
+A three-vertex quiver object.
+
+"""
 function three_vertex_quiver(m12::Int, m13::Int, m23::Int)
     return Quiver([0 m12 m13; 0 0 m23; 0 0 0], "Acyclic 3-vertex quiver")
 end
 
+"""
+    loop_quiver(m::Int)
+
+Constructs a loop quiver with `m` vertices.
+
+# Arguments
+- `m::Int`: The number of vertices in the loop quiver.
+
+# Returns
+A loop quiver with `m` vertices.
+"""
 function loop_quiver(m::Int)
     return Quiver(Matrix{Int}(reshape([m], 1, 1)), string(m) * "-loop quiver")
 end
 
+"""
+    subspace_quiver(m::Int)
+
+Constructs a subspace quiver with `m` vertices.
+
+# Arguments
+- `m::Int`: The number of subspace-vertices.
+
+# Returns
+A subspace quiver with `m` subspaces.
+
+# Examples
+"""
 function subspace_quiver(m::Int)
     A = zeros(Int, m + 1, m + 1)
     for i = 1:m
@@ -142,13 +196,21 @@ function BipartiteQuiver(m::Int, n::Int)
 end
 
 """"
-Returns a Quiver with the same vertices and an arrow ``j \\to i`` for every arrow  ``i \\to j`` in the original quiver.
+Returns a Quiver with the same vertices and an arrow
+``j \\to i`` for every arrow  ``i \\to j`` in the original quiver.
+
+# Arguments
+- `Q::Quiver`: The quiver to be reversed.
+
+# Returns
+A quiver with the same vertices and reversed arrows.
 """
 opposite_quiver(Q::Quiver) =
     Quiver(Matrix{Int}(transpose(Q.adjacency)), "Opposite of " * Q.name)
 
 """
-The adjacency matrix of the double of a quiver is the sum of the adjacency matrix of the original quiver and its transpose.
+The adjacency matrix of the double of a quiver is the sum of
+the adjacency matrix of the original quiver and its transpose.
 """
 double_quiver(Q::Quiver) =
     Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "Double of " * Q.name)
