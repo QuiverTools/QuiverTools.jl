@@ -56,7 +56,7 @@ Attributes:
 - `adjacency` is the adjacency matrix of the quiver
 - `name` is the name of the quiver, defaults to `""`.
 """
-mutable struct Quiver
+struct Quiver
 	adjacency::AbstractMatrix{Int}
 	name::String
 
