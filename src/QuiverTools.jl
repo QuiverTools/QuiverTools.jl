@@ -147,15 +147,15 @@ julia> is_connected(Q)
 true
 
 julia> A10 = Quiver([0 1 0 0 0 0 0 0 0 0;
-       0 0 1 0 0 0 0 0 0 0;
-       0 0 0 1 0 0 0 0 0 0;
-       0 0 0 0 1 0 0 0 0 0;
-       0 0 0 0 0 1 0 0 0 0;
-       0 0 0 0 0 0 0 0 0 0;
-       0 0 0 0 0 0 0 1 0 0;
-       0 0 0 0 0 0 0 0 1 0;
-       0 0 0 0 0 0 0 0 0 1;
-       0 0 0 0 0 0 0 0 0 0] );
+	   0 0 1 0 0 0 0 0 0 0;
+	   0 0 0 1 0 0 0 0 0 0;
+	   0 0 0 0 1 0 0 0 0 0;
+	   0 0 0 0 0 1 0 0 0 0;
+	   0 0 0 0 0 0 0 0 0 0;
+	   0 0 0 0 0 0 0 1 0 0;
+	   0 0 0 0 0 0 0 0 1 0;
+	   0 0 0 0 0 0 0 0 0 1;
+	   0 0 0 0 0 0 0 0 0 0] );
 
 julia> is_connected(A10)
 false
@@ -359,8 +359,8 @@ function all_slope_decreasing_sequences(
 	)
 
 	# We sort the subdimension vectors by slope because that will return the list of
-    # all HN types in ascending order with respect to the partial order from
-    # Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
+	# all HN types in ascending order with respect to the partial order from
+	# Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
 	subdimensions = sort(subdimensions, by = e -> slope(e, theta, denominator))
 	# The slope decreasing sequences which are not of the form (d)
 	# are given by (e,f^1,...,f^s) where e is a proper subdimension vector
@@ -384,7 +384,7 @@ function all_slope_decreasing_sequences(
 
 
 	# Add d again, at the beginning, because it is smallest
-    # with respect to the partial order from Def. 3.6
+	# with respect to the partial order from Def. 3.6
 	return [[coerce_vector(d)], allSlopeDecreasing...]
 end
 
@@ -435,7 +435,7 @@ false
 			all_subdimension_vectors(d, nonzero = true, strict = true),
 		)
 		# to have semistable representations, none of the vectors above must be
-        # a generic subdimension vector.
+		# a generic subdimension vector.
 		return all(e -> !is_generic_subdimension_vector(Q, e, d), subdimensionsBiggerSlope)
 	end
 end
@@ -668,7 +668,7 @@ julia> all_HN_types(Q, d, theta)
 end
 
 """
-    is_hn_type(Q, d, theta, denom, dstar)
+	is_hn_type(Q, d, theta, denom, dstar)
 
 Checks if the given ordered list of subdimension vectors ``dstar`` is an HN type
 for the datum ``(Q, d)`` and the slope stability given by ``(theta, denom)``.
@@ -689,28 +689,28 @@ true
 ```
 """
 function is_HN_type(Q::Quiver,
-                    d::AbstractVector{Int},
-                    theta::AbstractVector{Int}=canonical_stability(Q, d),
-                    denom::Function=sum,
-                    dstar::AbstractVector{AbstractVector{Int}})::bool
-    if sum(dstar) != d
-        return false
-    end
+	d::AbstractVector{Int},
+	theta::AbstractVector{Int} = canonical_stability(Q, d),
+	denom::Function = sum,
+	dstar::AbstractVector{AbstractVector{Int}})::bool
+	if sum(dstar) != d
+		return false
+	end
 
-    if !all(
-        slope(dstar[i], theta, denom) > slope(dstar[i+1], theta, denom)
-        for i in 1:length(dstar)-1
-    )
-        return false
-    end
+	if !all(
+		slope(dstar[i], theta, denom) > slope(dstar[i+1], theta, denom)
+		for i in 1:length(dstar)-1
+	)
+		return false
+	end
 
-    if !all(
-        has_semistables(Q, dstari, theta, denom)
-        for dstari in dstar
-    )
-        return false
-    end
-    return true
+	if !all(
+		has_semistables(Q, dstari, theta, denom)
+		for dstari in dstar
+	)
+		return false
+	end
+	return true
 end
 
 
@@ -864,7 +864,7 @@ function extension_matrix(Q::Quiver, hntype::AbstractVector{AbstractVector{Int}}
 		throw(
 			ArgumentError(
 				"HN type must have length at least 2,
-                this makes no sense for the dense stratum",
+				this makes no sense for the dense stratum",
 			),
 		)
 	else
@@ -918,7 +918,7 @@ function all_Schurian_decompositions(Q::Quiver, d::AbstractVector{Int})
 	elseif sum(d) == 1
 		return [[d]]
 	end
-	Schur_subroots = filter(e -> is_Schur_root(Q, e), all_subdimension_vectors(d, nonzero=true))
+	Schur_subroots = filter(e -> is_Schur_root(Q, e), all_subdimension_vectors(d, nonzero = true))
 	# @info d, Schur_subroots
 
 	out = []
