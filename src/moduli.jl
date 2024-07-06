@@ -109,7 +109,10 @@ end
 # TODO add safety checks everywhere in the codebase
 
 
-# TODO refactor
+function all_Luna_types(M::QuiverModuli; exclude_stable::Bool=false)
+	return all_Luna_types(M.Q, M.d, M.theta, M.denom, exclude_stable)
+end
+
 function all_Luna_types(
 	Q::Quiver,
 	d::AbstractVector{Int},
@@ -160,6 +163,27 @@ function all_Luna_types(
 	return Luna_types
 end
 
+function is_Luna_type(M::QuiverModuli, tau)
+	if sum(M.d) == 0
+		return tau == Dict(d => [1])
+	end
+
+	if sum(keys(tau)) != M.d
+		return false
+	end
+	if !all(slope(e, M.theta, M.denom) == slope(d, M.theta, M.denom) for e in keys(tau))
+		return false
+	end
+
+	if !all(has_semistables(M.Q, e, M.theta, M.denom) for e in keys(tau))
+		return false
+	end
+	return true
+end
+
+function dimension_of_Luna_stratum(M::QuiverModuli, tau)
+	return sum(length(tau[e]) * (1 - Euler_form(M.Q, e, e)) for e in keys(tau))
+end
 
 
 
