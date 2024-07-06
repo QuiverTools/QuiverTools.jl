@@ -1,5 +1,7 @@
 using Test, QuiverTools
 
+# some unit tests. The majority of the tests are in the documentation.
+
 @testset "basic" begin
     #  basic methods
     K = mKronecker_quiver(4)
