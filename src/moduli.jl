@@ -11,7 +11,36 @@ struct QuiverModuli
 	d::Vector{Int}
 	theta::Vector{Int}
 	condition::String
+    denom::Function
 
+	function QuiverModuli(Q::Quiver,
+		d::AbstractVector{Int},
+		theta::AbstractVector{Int}=canonical_stability(Q, d),
+		condition::String="semistable",
+        denom::Function=sum)
+
+        if condition in ["stable", "semistable"] &&
+		   length(d) == nvertices(Q) &&
+		   length(theta) == nvertices(Q)
+			return new(Q, d, theta, condition, denom)
+		end
+		throw(DomainError("Invalid input"))
+	end
+
+end
+
+"""
+Explicit coercion to a moduli space.
+"""
+function to_space(M::QuiverModuli)
+    return QuiverModuliSpace(M.Q, M.d, M.theta, M.condition)
+end
+
+"""
+Explicit coercion to a moduli stack.
+"""
+function to_stack(M::QuiverModuli)
+    return QuiverModuliStack(M.Q, M.d, M.theta, M.condition)
 end
 
 function show(io::IO, M::QuiverModuli)
