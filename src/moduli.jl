@@ -51,6 +51,26 @@ with dimension vector $(M.d) and stability parameter $(M.theta)",
 	)
 end
 
+
+"""
+Checks if the moduli space or stack is nonempty.
+
+
+Examples
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> M = QuiverModuli(Q, [2, 3]);
+
+julia> is_nonempty(M)
+true
+
+julia> M = QuiverModuli(Q, [2, 3], [-3, 2]);
+
+julia> is_nonempty(M)
+false
+```
+"""
 function is_nonempty(M::QuiverModuli)
 	if M.condition == "stable"
 		return has_stables(M.Q, M.d, M.theta)
