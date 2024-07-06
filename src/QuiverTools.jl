@@ -299,7 +299,7 @@ end
 """Checks wether the given dimension vector ``d`` is ``\\theta``-coprime for
 the stability parameter ``\\theta``."""
 function is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
-    return all(e -> theta' * e != 0, all_proper_subdimension_vectors(d))
+    return all(e -> theta' * e != 0, all_subdimension_vectors(d, nonzero=true, strict=true))
 end
 
 """Checks if the gcd of all the entries of d is ``1``."""
@@ -325,7 +325,7 @@ Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d`
 )
     return filter(
         e -> slope(e, theta, denom) > slope(d, theta, denom),
-        all_nonzero_subdimension_vectors(d),
+        all_subdimension_vectors(d, nonzero=true),
     )
 end
 
@@ -354,13 +354,13 @@ function all_slope_decreasing_sequences(
     theta::AbstractVector{Int},
     denominator::Function = sum,
 )::Vector{Vector{AbstractVector{Int}}}
-    
+
     coerce_vector!(d)
     coerce_vector!(theta)
     # List all subdimension vectors e of bigger slope than d.
     subdimensions = filter(
         e -> slope(e, theta, denominator) > slope(d, theta, denominator),
-        all_nonzero_subdimension_vectors(d),
+        all_subdimension_vectors(d, nonzero=true),
     )
 
     # We sort the subdimension vectors by slope because that will return the list of all HN types in ascending order with respect to the partial order from Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
@@ -430,7 +430,7 @@ false
         slope_d = slope(d, theta, denom)
         subdimensionsBiggerSlope = filter(
             e -> slope(e, theta, denom) > slope_d,
-            all_proper_subdimension_vectors(d),
+            all_subdimension_vectors(d, nonzero=true, strict=true),
         )
         # to have semistable representations, none of the vectors above must be generic subdimension vectors.
         return all(e -> !is_generic_subdimension_vector(Q, e, d), subdimensionsBiggerSlope)
@@ -468,7 +468,7 @@ true
         slope_d = slope(d, theta, denom)
         subdimensions_bigger_or_equal_slope = filter(
             e -> slope(e, theta, denom) >= slope_d,
-            all_proper_subdimension_vectors(d),
+            all_subdimension_vectors(d, nonzero=true, strict=true),
         )
         # to have semistable representations,
         # none of the vectors above must be generic subdimension vectors.
@@ -930,13 +930,6 @@ function canonical_decomposition(Q::Quiver, d::AbstractVector{Int})
     return [d] # if nothing above worked then d is a Schur root.
 end
 
-# """
-# Checks wether the stability parameter theta is on a wall with respect to the wall-and-chamber decomposition for the dimension vector d.
-# The wall and chamber decomposition is described in Section 2.2, MR4352662
-# """
-# function is_on_a_fake_wall(d::AbstractVector{Int}, theta::AbstractVector{Int}) 
-#     return any(e -> e'*theta == 0, all_proper_subdimension_vectors(d))
-# end
 
 # TODO this is not relevant for anyone who is not me right now.
 """
@@ -992,7 +985,7 @@ function all_Luna_types(
         e ->
             slope(e, theta, denom) == slope(d, theta, denom) &&
                 has_stables(Q, e, theta, denom),
-        QuiverTools.all_nonzero_subdimension_vectors(d),
+        QuiverTools.all_subdimension_vectors(d, nonzero=true),
     )
     Luna_types = []
     bound = sum(d) ÷ minimum(sum(e) for e in same_slope) # the highest possible amount of repetitions for a given stable dimension vector
@@ -1047,7 +1040,7 @@ function all_Schurian_decompositions(Q::Quiver, d::AbstractVector{Int})
     elseif sum(d) == 1
         return [[d]]
     end
-    Schur_subroots = filter(e -> is_Schur_root(Q, e), all_nonzero_subdimension_vectors(d))
+    Schur_subroots = filter(e -> is_Schur_root(Q, e), all_subdimension_vectors(d, nonzero=true))
     # @info d, Schur_subroots
 
     out = []
@@ -1164,7 +1157,9 @@ end
 
 function Td(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, q)
     # indexing set for the transfer matrix
-    I = filter(e -> slope(e, theta) > slope(d, theta), all_proper_subdimension_vectors(d))
+    I = filter(e -> slope(e, theta) > slope(d, theta),
+    all_subdimension_vectors(d, nonzero=true, strict=true)
+    )
     I = vcat([zero_vector(nvertices(Q))], I, [d])
 
     l = length(I)
@@ -1354,7 +1349,9 @@ function Chow_ring(
 
     forbidden_polynomials = [
         prod(
-            prod((chi(j, s) - chi(i, r))^Q.adjacency[i, j] for r = 1:e[i], s = e[j]+1:d[j]) for j = 1:nvertices(Q), i = 1:nvertices(Q) if
+            prod((chi(j, s) - chi(i, r))^Q.adjacency[i, j]
+                for r = 1:e[i], s = e[j]+1:d[j])
+                    for j = 1:nvertices(Q), i = 1:nvertices(Q) if
             Q.adjacency[i, j] > 0 && e[i] > 0 && d[j] > 1
         ) for e in all_forbidden(Q, d, theta)
     ]
@@ -1414,26 +1411,111 @@ end
 # Technical tools
 #################
 
+"""
+    zero_vector(n::Int)
+
+Create a zero vector of length `n`.
+
+# Arguments
+- `n::Int`: The length of the zero vector.
+
+# Returns
+- A zero vector of length `n`.
+"""
 @memoize Dict function zero_vector(n::Int)
     return coerce_vector((zeros(Int, n)))
 end
 
+"""
+    thin_dimension_vector(Q::Quiver)
+
+Compute the thin dimension vector for a given quiver `Q`.
+
+# Arguments
+- `Q::Quiver`: The input quiver.
+
+# Returns
+- A vector of ones of length `n`.
+
+"""
 function thin_dimension_vector(Q::Quiver)
     return coerce_vector(ones(Int, nvertices(Q)))
 end
 
+"""
+    all_subdimension_vectors(d::AbstractVector{Int})
+
+Compute all subdimension vectors of a given dimension vector `d`.
+
+# Arguments
+- `d::AbstractVector{Int}`: The input dimension vector.
+- `nonzero::Bool=false`: wether to exclude the zero vector.
+- `strict::Bool=false`: wether to exclude the input vector `d`.
+
+# Returns
+- An array of all subdimension vectors of `d`, with or without the zero vector and `d`.
+
+Examples
+```jldoctest
+julia> all_subdimension_vectors([2, 3])
+12-element Vector{AbstractVector{Int64}}:
+ [0, 0]
+ [1, 0]
+ [2, 0]
+ [0, 1]
+ [1, 1]
+ [2, 1]
+ [0, 2]
+ [1, 2]
+ [2, 2]
+ [0, 3]
+ [1, 3]
+ [2, 3]
+
+julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true)
+11-element Vector{AbstractVector{Int64}}:
+ [1, 0]
+ [2, 0]
+ [0, 1]
+ [1, 1]
+ [2, 1]
+ [0, 2]
+ [1, 2]
+ [2, 2]
+ [0, 3]
+ [1, 3]
+ [2, 3]
+
+julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true, strict=true)
+10-element Vector{AbstractVector{Int64}}:
+ [1, 0]
+ [2, 0]
+ [0, 1]
+ [1, 1]
+ [2, 1]
+ [0, 2]
+ [1, 2]
+ [2, 2]
+ [0, 3]
+ [1, 3]
+ ```
+"""
 @memoize Dict function all_subdimension_vectors(
-    d::AbstractVector{Int},
+    d::AbstractVector{Int};
+    nonzero::Bool = false,
+    strict::Bool = false
 )::Array{AbstractVector{Int}}
     coerce_vector!(d)
-    return coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...)))
-end
-@memoize Dict function all_nonzero_subdimension_vectors(d::AbstractVector{Int})
-    return filter(e -> !all(ei == 0 for ei in e), all_subdimension_vectors(d))
-end
 
-@memoize Dict function all_proper_subdimension_vectors(d::AbstractVector{Int})
-    return filter(e -> any(ei != 0 for ei in e) && e != d, all_subdimension_vectors(d))
+    subdims = coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...)))
+    subdims = filter(e -> true, subdims) #really now
+    if nonzero
+        subdims = filter(e -> any(ei != 0 for ei in e), subdims)
+    end
+    if strict
+        subdims = filter(e -> e != d, subdims)
+    end
+    return subdims
 end
 
 @memoize Dict function unit_vector(n::Int, i::Int)
