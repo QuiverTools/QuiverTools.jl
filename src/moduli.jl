@@ -387,7 +387,18 @@ function dimension_of_Luna_stratum(M::QuiverModuli, tau)
     return sum(length(tau[e]) * (1 - Euler_form(M.Q, e, e)) for e in keys(tau))
 end
 
+"""
+	local_quiver_setting(M::QuiverModuli, tau)
 
+Returns the local quiver and dimension vector for the given Luna type.
+
+INPUT:
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
+- `tau::Dict{AbstractVector{Int}, Vector{Int}}`: a Luna type for `M`.
+
+OUTPUT:
+- a dictionary with the local quiver `Q` and dimension vector `d` for the given Luna type.
+"""
 function local_quiver_setting(M::QuiverModuli, tau)
     if !is_Luna_type(M, tau)
         throw(DomainError("Not a Luna type"))
@@ -404,6 +415,39 @@ function local_quiver_setting(M::QuiverModuli, tau)
     return Dict("Q" => Qloc, "d" => dloc)
 end
 
+
+"""
+	semistable_equals_stable(M::QuiverModuli)
+
+Checks if stability and semistability are equivalent on the given moduli space.
+In other words, checks if there are no properly semistable points in the representation
+space.
+
+INPUT:
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
+
+OUTPUT:
+- whether every semistable representation is stable.
+
+EXAMPLES:
+
+If the dimension vector is coprime with the stability parameter, then semistability
+and stability are equivalent:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> semistable_equals_stable(M)
+true
+```
+
+However, this is not necessarily the case:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
+
+julia> semistable_equals_stable(M)
+false
+```
+"""
 function semistable_equals_stable(M::QuiverModuli)
 
     if is_coprime(M.d, M.theta) || !has_semistables(M.Q, M.d, M.theta, M.denom)
@@ -423,13 +467,20 @@ with respect to the slope function `theta`/`denominator`.
 This means that the codimension of the unstable locus
 in the parameter space is at least ``2``.
 
-Arguments:
-- `M::QuiverModuli`: a moduli space of representations of a quiver.
+INPUT:
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 
-Returns:
+OUTPUT:
+- whether the codimension of the unstable locus is at least `2`.
 
-- `true` if the moduli space is amply stable, false otherwise.
+EXAMPLES:
 
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> is_amply_stable(M)
+true
+```
 """
 function is_amply_stable(M::QuiverModuli)
     return codimension_unstable_locus(M) >= 2
