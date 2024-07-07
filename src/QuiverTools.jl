@@ -6,6 +6,7 @@ using Memoization: Memoization
 using IterTools: IterTools
 using LinearAlgebraX: LinearAlgebraX
 using Singular: Singular
+using AbstractAlgebra: AbstractAlgebra
 
 import Base.show
 import Memoization: @memoize
@@ -143,10 +144,10 @@ true
 """
 function is_connected(Q::Quiver)
     paths = underlying_graph(Q)
-    for i ∈ 2:nvertices(Q)-1
+    for i in 2:nvertices(Q)-1
         paths += paths * underlying_graph(Q)
     end
-    for i ∈ 1:nvertices(Q), j ∈ 1:nvertices(Q)
+    for i in 1:nvertices(Q), j in 1:nvertices(Q)
         if i != j && paths[i, j] == 0 && paths[j, i] == 0
             return false
         end
@@ -222,8 +223,8 @@ function arrows(Q::Quiver)
     n = nvertices(Q)
     return reduce(
         vcat,
-        [[i, j] for k ∈ 1:Q.adjacency[i, j]] for i ∈ 1:n for
-        j ∈ 1:n if Q.adjacency[i, j] > 0
+        [[i, j] for k in 1:Q.adjacency[i, j]] for i in 1:n for
+        j in 1:n if Q.adjacency[i, j] > 0
     )
 end
 
@@ -731,7 +732,7 @@ function codimension_HN_stratum(Q::Quiver, stratum::AbstractVector{AbstractVecto
         return 0
     else
         return -sum(
-            Euler_form(Q, stratum[i], stratum[j]) for i ∈ 1:length(stratum)-1 for
+            Euler_form(Q, stratum[i], stratum[j]) for i in 1:length(stratum)-1 for
             j = i+1:length(stratum)
         )
     end
@@ -843,7 +844,7 @@ function extension_matrix(Q::Quiver, hntype::AbstractVector{AbstractVector{Int}}
                             this makes no sense for the dense stratum"))
     else
         M = zeros(Int, n, n)
-        for i ∈ 1:n-1, j ∈ i+1:n
+        for i in 1:n-1, j in i+1:n
             M[i, j] = -Euler_form(Q, hntype[i], hntype[j])
         end
         return M
@@ -871,7 +872,7 @@ function in_fundamental_domain(Q::Quiver, d::AbstractVector{Int}; interior::Bool
     # while https://arxiv.org/abs/2310.15927 uses a non-strict.
     # here we set it to non-strict by default.
 
-    simples = [unit_vector(nvertices(Q), i) for i ∈ 1:nvertices(Q)]
+    simples = [unit_vector(nvertices(Q), i) for i in 1:nvertices(Q)]
     if interior
         return all(
             simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) < 0,
