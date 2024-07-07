@@ -2,6 +2,8 @@ export QuiverModuli, QuiverModuliSpace, QuiverModuliStack
 
 abstract type QuiverModuli end
 
+
+# TODO consider this: https://stackoverflow.com/questions/71738970/in-julia-declare-abstractvectorabstractvector
 struct QuiverModuliSpace <: QuiverModuli
     Q::Quiver
     d::AbstractVector{Int}
@@ -96,7 +98,7 @@ end
 
 
 """
-	is_theta_coprime(M::QuiverModuli)
+	is_coprime(M::QuiverModuli)
 
 Checks if the stability parameter is coprime with the dimension vector,
 i.e., if for all subdimension vectors `e` of `d`, \$\\theta\\cdot e \\neq 0\$.
@@ -114,11 +116,11 @@ julia> Q = mKronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> is_theta_coprime(M)
+julia> is_coprime(M)
 true
 ```
 """
-function is_theta_coprime(M::QuiverModuli)
+function is_coprime(M::QuiverModuli)
     return is_coprime(M.d, M.theta)
 end
 
@@ -206,21 +208,81 @@ function is_HN_type(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}})::Bo
     return is_HN_type(M.Q, M.d, hn_type, M.theta, M.denom)
 end
 
+
+"""
+	codimension_HN_stratum(M::QuiverModuli, hn_type::Vector{<AbstractVector{Int}})
+
+Computes the codimension of the Harder-Narasimhan stratum corresponding to the given HN type.
+
+INPUT:
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
+- `hn_type::Vector{<:AbstractVector{Int}}`: a HN type for `M`.
+
+OUTPUT:
+- the codimension of the Harder-Narasimhan stratum corresponding to the given HN type.
+
+EXAMPLES:
+
+Codimensions for the 3-Kronecker quiver with dimension vector `[2, 3]`:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> codimension_HN_stratum(M, [[2, 3]])
+0
+
+julia> codimension_HN_stratum(M, [[1, 1], [1, 2]])
+"""
 function codimension_HN_stratum(
     M::QuiverModuli,
-    hn_type::AbstractVector{AbstractVector{Int}},
+    hn_type::Vector{<:AbstractVector{Int}},
 )
     return codimension_HN_stratum(M.Q, hn_type)
 end
 
+
+"""
+	codimension_unstable_locus(M::QuiverModuli)
+
+Computes the codimension of the unstable locus in the parameter space.
+
+INPUT:
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
+
+OUTPUT:
+- the codimension of the unstable locus in the parameter space.
+
+EXAMPLES:
+
+Codimensions for the 3-Kronecker quiver with dimension vector `[2, 3]`:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> codimension_unstable_locus(M)
+2
+```
+"""
 function codimension_unstable_locus(M::QuiverModuli)
-    HN = all_HN_types(M, proper = true)
+    HN = all_HN_types(M, unstable = true)
     return minimum(codimension_HN_stratum(M, hn_type) for hn_type in HN)
 end
 
 # TODO add safety checks everywhere in the codebase
 
 
+# TODO add examples of Luna types
+"""
+	all_Luna_types(M::QuiverModuli; exclude_stable::Bool = false)
+
+Returns all Luna types of the moduli space.
+
+INPUT:
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
+- `exclude_stable::Bool = false`: if `true`, excludes the stable Luna type.
+
+OUTPUT:
+- a list of Luna types for the dimension vector and slope of `M`.
+
+"""
 function all_Luna_types(M::QuiverModuli; exclude_stable::Bool = false)
     return all_Luna_types(M.Q, M.d, M.theta, M.denom, exclude_stable)
 end
@@ -277,6 +339,19 @@ function all_Luna_types(
     return Luna_types
 end
 
+# TODO add examples
+"""
+	is_Luna_type(M::QuiverModuli, tau)
+
+Checks if the given tau is a valid Luna type for `M`.
+
+INPUT:
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
+- `tau::Dict{AbstractVector{Int}, Vector{Int}}`: a Luna type for `M`.
+
+OUTPUT:
+- whether the given tau is a valid Luna type for `M`.
+"""
 function is_Luna_type(M::QuiverModuli, tau)
     if sum(M.d) == 0
         return tau == Dict(d => [1])
@@ -295,6 +370,19 @@ function is_Luna_type(M::QuiverModuli, tau)
     return true
 end
 
+"""
+	dimension_of_Luna_stratum(M::QuiverModuli, tau)
+
+Computes the dimension of the Luna stratum corresponding to the given Luna type in the
+moduli space.
+
+INPUT:
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
+- `tau::Dict{AbstractVector{Int}, Vector{Int}}`: a Luna type for `M`.
+
+OUTPUT:
+- the dimension of the Luna stratum corresponding to the given Luna type.
+"""
 function dimension_of_Luna_stratum(M::QuiverModuli, tau)
     return sum(length(tau[e]) * (1 - Euler_form(M.Q, e, e)) for e in keys(tau))
 end
@@ -560,8 +648,8 @@ julia> using Singular;
 
 julia> R, vars = polynomial_ring(Singular.QQ, ["x", "y", "z"]);
 
-julia> symmetric_polynomial(vars, 2)
-x^2 + y^2 + z^2 + x*y + x*z + y*z
+julia> QuiverTools.symmetric_polynomial(vars, 2)
+x*y + x*z + y*z
 ```
 """
 function symmetric_polynomial(vars, degree::Int)
