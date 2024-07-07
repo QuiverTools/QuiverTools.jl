@@ -542,7 +542,27 @@ end
 
 
 """
+	symmetric_polynomial(vars, degree)
+
 Returns the symmetric polynomial of degree ``degree`` in the variables ``vars``.
+
+INPUT:
+- ``vars``: a list of variables.
+- ``degree``: the degree of the wanted symmetric polynomial.
+
+OUTPUT:
+- The symmetric polynomial of degree ``degree`` in the variables ``vars``.
+
+EXAMPLES:
+
+```jldoctest
+julia> using Singular;
+
+julia> R, vars = polynomial_ring(Singular.QQ, ["x", "y", "z"]);
+
+julia> symmetric_polynomial(vars, 2)
+x^2 + y^2 + z^2 + x*y + x*z + y*z
+```
 """
 function symmetric_polynomial(vars, degree::Int)
     return sum(prod(e) for e in IterTools.subsets(vars, degree))
