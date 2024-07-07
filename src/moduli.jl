@@ -359,8 +359,8 @@ function solve(A, b)
 
     x[n] = b[n] / A[n, n]
 
-    for i ∈ n-1:-1:1
-        x[i] = (b[i] - sum(A[i, j] * x[j] for j ∈ i+1:n)) / A[i, i]
+    for i in n-1:-1:1
+        x[i] = (b[i] - sum(A[i, j] * x[j] for j in i+1:n)) / A[i, i]
     end
     return x
 end
@@ -372,7 +372,7 @@ Cardinality of general linear group \$\\mathrm{GL}_n(\\mathbb{F}_v)\$.
     if n == 0
         return 1
     else
-        return prod(q^n - q^i for i ∈ 0:n-1)
+        return prod(q^n - q^i for i in 0:n-1)
     end
 end
 
@@ -380,7 +380,7 @@ end
 Cardinality of representation space \$\\mathrm{R}(Q,d)\$, over \$\\mathbb{F}_q\$.
 """
 function CardinalRd(Q::Quiver, d::AbstractVector{Int}, q)
-    return q^sum(d[i] * d[j] * Q.adjacency[i, j] for i ∈ 1:nvertices(Q), j ∈ 1:nvertices(Q))
+    return q^sum(d[i] * d[j] * Q.adjacency[i, j] for i in 1:nvertices(Q), j in 1:nvertices(Q))
 end
 
 """
@@ -415,7 +415,7 @@ function Td(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, q)
     T = Matrix{Any}(zeros(l, l))
 
     for (i, Ii) in enumerate(I)
-        for j ∈ i:l  # upper triangular
+        for j in i:l  # upper triangular
             T[i, j] = TransferMatrixEntry(Q, Ii, I[j], q)
         end
     end
@@ -448,7 +448,9 @@ julia> Hodge_polynomial(Q, d, theta)
 x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 ```
 """
-function Hodge_polynomial(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int})
+function Hodge_polynomial(Q::Quiver,
+	d::AbstractVector{Int},
+	theta::AbstractVector{Int})
 
     # safety checks
     if theta' * d == 0 && !is_coprime(d)
@@ -515,27 +517,6 @@ function Picard_rank(M::QuiverModuli)
     return Picard_rank(M.Q, M.d, M.theta)
 end
 
-function _Hodge_polynomial_fast(
-    Q::Quiver,
-    d::AbstractVector{Int},
-    theta::AbstractVector{Int},
-)
-    # unsafe, curate input!
-    # this is about 2% faster than the above, and occupies about 2% less memory.
-
-    R, q = polynomial_ring(AbstractAlgebra.QQ, ["q"])
-    F = fraction_field(R)
-    v = F(q[1]) # worsens performance by ~8%. Necessary?
-
-    T = Td(Q, d, theta, v)
-
-    one_at_the_end = unit_vector(size(T)[1], size(T)[1])
-
-    result = numerator(solve(T, one_at_the_end)[1] * (1 - v))
-    return [coeff(result, i) for i = 0:degree(result)] # this is actually all
-    # we need for the Hodge diamond because the matrix is diagonal for quiver moduli
-end
-
 
 
 
@@ -549,11 +530,11 @@ end
 
 # partial order on the forbidden dimension vectors as in https://doi.org/10.48550/arXiv.1307.3066
 function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int})
-    if !all(f[i] <= g[i] for i ∈ 1:nvertices(Q) if is_source(Q, i))
+    if !all(f[i] <= g[i] for i in 1:nvertices(Q) if is_source(Q, i))
         return false
-    elseif !all(f[i] >= g[i] for i ∈ 1:nvertices(Q) if is_sink(Q, i))
+    elseif !all(f[i] >= g[i] for i in 1:nvertices(Q) if is_sink(Q, i))
         return false
-    elseif !all(f[i] == g[i] for i ∈ 1:nvertices(Q) if !is_source(Q, i) && !is_sink(Q, i))
+    elseif !all(f[i] == g[i] for i in 1:nvertices(Q) if !is_source(Q, i) && !is_sink(Q, i))
         return false
     end
     return true
@@ -581,21 +562,23 @@ function Chow_ring(
         throw(ArgumentError("a is not a linearization"))
     end
 
-    varnames = ["x$i$j" for i ∈ 1:nvertices(Q) for j ∈ 1:d[i] if d[i] > 0]
-    # R, vars = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, varnames)
-    R, vars = Singular.polynomial_ring(Singular.QQ, varnames)
+    varnames = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
+    R, vars = polynomial_ring(Singular.QQ, varnames)
     function chi(i, j)
         return vars[sum(d[1:i-1])+j]
     end
 
+	"""
+	This is the naive base that is described in Hans's 2013 paper.
+	"""
     function base_for_ring(name = "naive")
         if name == "naive"
-            bounds = [0:(d[i]-nu) for i ∈ 1:nvertices(Q) for nu ∈ 1:d[i]]
+            bounds = [0:(d[i]-nu) for i in 1:nvertices(Q) for nu in 1:d[i]]
             lambdas = Iterators.product(bounds...)
 
             build_elem(lambda) = prod(
-                prod(chi(i, nu)^lambda[sum(d[1:i-1])+nu] for nu ∈ 1:d[i]) for
-                i ∈ 1:nvertices(Q)
+                prod(chi(i, nu)^lambda[sum(d[1:i-1])+nu] for nu in 1:d[i]) for
+                i in 1:nvertices(Q)
             )
 
             return map(l -> build_elem(l), lambdas)
@@ -605,14 +588,14 @@ function Chow_ring(
     end
 
     # build the permutation group W
-    W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i ∈ 1:nvertices(Q)]...)
+    W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i in 1:nvertices(Q)]...)
     sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
 
-    permute(f, sigma) = f([chi(i, sigma[i][j]) for i ∈ 1:nvertices(Q) for j ∈ 1:d[i]]...)
+    permute(f, sigma) = f([chi(i, sigma[i][j]) for i in 1:nvertices(Q) for j in 1:d[i]]...)
 
     delta = prod(
-        prod(chi(i, l) - chi(i, k) for k ∈ 1:d[i]-1 for l ∈ k+1:d[i]) for
-        i ∈ 1:nvertices(Q) if d[i] > 1
+        prod(chi(i, l) - chi(i, k) for k in 1:d[i]-1 for l in k+1:d[i]) for
+        i in 1:nvertices(Q) if d[i] > 1
     )
     antisymmetrize(f) = sum(sign(w) * permute(f, w) for w in W) / delta
 
@@ -626,21 +609,23 @@ function Chow_ring(
 
     forbidden_polynomials = [
         prod(
-            prod((chi(j, s) - chi(i, r))^Q.adjacency[i, j] for r ∈ 1:e[i], s ∈ e[j]+1:d[j]) for j ∈ 1:nvertices(Q), i ∈ 1:nvertices(Q) if
+            prod((chi(j, s) - chi(i, r))^Q.adjacency[i, j]
+			for r in 1:e[i], s in e[j]+1:d[j])
+				for j in 1:nvertices(Q), i in 1:nvertices(Q) if
             Q.adjacency[i, j] > 0 && e[i] > 0 && d[j] > 1
         ) for e in all_forbidden(Q, d, theta)
     ]
 
-    varnames2 = ["x$i$j" for i ∈ 1:nvertices(Q) for j ∈ 1:d[i] if d[i] > 0]
-    A, Avars = Singular.polynomial_ring(Singular.QQ, varnames2)
+    varnames2 = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
+    A, Avars = polynomial_ring(Singular.QQ, varnames2)
 
     function xs(i, j)
         return Avars[sum(d[1:i-1])+j]
     end
 
     targets = [
-        [symmetric_polynomial([chi(i, j) for j ∈ 1:d[i]], k) for k ∈ 1:d[i]] for
-        i ∈ 1:nvertices(Q)
+        [symmetric_polynomial([chi(i, j) for j in 1:d[i]], k) for k in 1:d[i]] for
+        i in 1:nvertices(Q)
     ]
     targets = reduce(vcat, targets)
 
@@ -648,7 +633,7 @@ function Chow_ring(
 
     anti = [antisymmetrize(f * b) for f in forbidden_polynomials for b in base_for_ring()]
     tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
-    linear = [sum(a[i] * xs(i, 1) for i ∈ 1:nvertices(Q))]
+    linear = [sum(a[i] * xs(i, 1) for i in 1:nvertices(Q))]
 
     return QuotientRing(A, std(Ideal(A, [tautological; linear])))
 end
