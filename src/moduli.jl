@@ -571,8 +571,8 @@ end
 function Chow_ring(
     Q::Quiver,
     d::AbstractVector{Int},
-    theta::AbstractVector{Int},
-    a::AbstractVector{Int},
+    theta::AbstractVector{Int}=canonical_stability(Q, d),
+    a::AbstractVector{Int}=extended_gcd(d)[2],
 )
     # TODO cover case d[i] = 0
     # safety checks
@@ -658,7 +658,84 @@ function Chow_ring(
     return QuotientRing(A, std(Ideal(A, [tautological; linear])))
 end
 
+
+# TODO this should be in a misc.jl file or something
+# TODO this should be in Base really...
+
+"""
+Computes the gcd and the Bezout coefficients of a list of integers.
+
+This exists for two integers but seemingly not for more than two.
+"""
+function extended_gcd(x)
+	n = length(x)
+	if n == 1
+		return [x, [1]]
+	elseif n == 2
+		g, a, b = gcdx(x[1], x[2])
+		return [g, [a, b]]
+	else
+		g, a, b = gcdx(x[1], x[2])
+		y = vcat([g],  [x[i] for i in 3:n])
+		d, c = extended_gcd(y)
+		m = vcat([c[1] * a, c[1] * b], [c[i] for i in 1:n - 1])
+		return [d, m]
+	end
+end
+
 # TODO todd class
+function todd_class(Q::Quiver,
+	d::AbstractVector{Int},
+	chi::AbstractVector{Int}=extended_gcd(d)[2]
+	)
+
+	"""
+	We call the series \$Q(t) = t/(1-e^{-t})\$ the Todd generating series.
+	The function computes the terms of this series up to degree n.
+	We use this instead of the more conventional notation `Q` to avoid a
+	clash with the notation for the quiver.
+	"""
+	function todd_Q(t, n)
+		return sum(
+			(-1) ^ i * (bernoulli(i) * t^i) / factorial(i) for i in 0:n
+		)
+	end
+
+	"""
+	Takes an element in a graded ring and discards all homogeneous components
+	of degree > n
+	"""
+	function truncate(f, n)
+		return sum([term for term in terms(f) if total_degree(term) <= n])
+	end
+
+	throw(NotImplementedError())
+
+	num = 1
+	den = 1
+
+	for a in Q.arrows()
+		i, j = a
+		for p in 1:d[i]
+			for q in 1:d[j]
+				num *= todd_Q(chi(j, q) - chi(i, p), sum(d))
+				num = truncate(num, sum(d))
+			end
+		end
+	end
+
+	for i in 1:nvertices(Q)
+		for p in 1:d[i]
+			for q in 1:d[i]
+				den *= todd_Q(chi(i, q) - chi(i, p), sum(d))
+				den = truncate(den, sum(d))
+			end
+		end
+	end
+
+	return num / den
+end
+
 # TODO point class
 # TODO universal bundle class
 
