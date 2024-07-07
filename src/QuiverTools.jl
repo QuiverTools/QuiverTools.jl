@@ -652,7 +652,7 @@ julia> all_HN_types(Q, d, theta)
 end
 
 """
-	is_hn_type(Q, d, theta, denom, dstar)
+	is_hn_type(Q, d, dstar, theta, denom)
 
 Checks if the given ordered list of subdimension vectors ``dstar`` is an HN type
 for the datum ``(Q, d)`` and the slope stability given by ``(theta, denom)``.
@@ -673,7 +673,7 @@ true
 function is_HN_type(
     Q::Quiver,
     d::AbstractVector{Int},
-    dstar,
+    dstar::Vector{<:AbstractVector{Int}},
     theta::AbstractVector{Int} = canonical_stability(Q, d),
     denom::Function = sum,
 )::Bool
@@ -727,7 +727,7 @@ julia> [QuiverTools.codimension_HN_stratum(Q, stratum) for stratum in HN]
  18
 ```
 """
-function codimension_HN_stratum(Q::Quiver, stratum::AbstractVector{AbstractVector{Int}})
+function codimension_HN_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}})
     if length(stratum) == 1
         return 0
     else
@@ -836,7 +836,7 @@ and going all the way to the entry ``1,\\ell`` is at least ``1``.
 The Teleman inequality is satisfied for this stratum
 iif one of these rectangles sums to ``2`` or more.
 """
-function extension_matrix(Q::Quiver, hntype::AbstractVector{AbstractVector{Int}})
+function extension_matrix(Q::Quiver, hntype::Vector{<:AbstractVector{Int}})
     n = length(hntype)
 
     if n <= 1
