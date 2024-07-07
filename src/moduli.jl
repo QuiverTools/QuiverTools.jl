@@ -174,14 +174,14 @@ function all_HN_types(M::QuiverModuli; unstable::Bool = false, ordered::Bool = t
 end
 
 """
-	is_HN_type(M::QuiverModuli, hn_type::AbstractVector{AbstractVector{Int}})
+	is_HN_type(M::QuiverModuli, hn_type::AbstractVector{<:AbstractVector{Int}})
 
 Checks if the given sequence of dimension vectors is a valid HN type for
 the moduli space.
 
 INPUT:
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
-- `hn_type::AbstractVector{AbstractVector{Int}}`: a sequence of dimension vectors.
+- `hn_type::AbstractVector{<:AbstractVector{Int}}`: a sequence of dimension vectors.
 
 OUTPUT:
 - whether the given sequence is a valid Harder-Narasimhan type for `M`.
@@ -202,8 +202,8 @@ julia> is_HN_type(M, [[1, 2], [1, 1]])
 false
 ```
 """
-function is_HN_type(M::QuiverModuli, hn_type::AbstractVector{AbstractVector{Int}})::Bool
-    return is_HN_type(M.Q, M.d, M.theta, hn_type, M.denom)
+function is_HN_type(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}})::Bool
+    return is_HN_type(M.Q, M.d, hn_type, M.theta, M.denom)
 end
 
 function codimension_HN_stratum(
