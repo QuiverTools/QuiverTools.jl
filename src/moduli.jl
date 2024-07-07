@@ -61,10 +61,17 @@ end
 
 
 """
-Checks if the moduli space or stack is nonempty.
+	is_nonempty(M::QuiverModuli)
 
+Checks if the quiver moduli is nonempty.
 
-Examples
+INPUT:
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
+
+OUTPUT:
+- whether the moduli space is nonempty.
+
+EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
@@ -87,18 +94,114 @@ function is_nonempty(M::QuiverModuli)
     end
 end
 
+
+"""
+	is_theta_coprime(M::QuiverModuli)
+
+Checks if the stability parameter is coprime with the dimension vector,
+i.e., if for all subdimension vectors `e` of `d`, \$\\theta\\cdot e \\neq 0\$.
+
+INPUT:
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
+
+OUTPUT:
+- whether the dimension vector `M.d` is theta-coprime for `M.theta`.
+
+EXAMPLES:
+
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> is_theta_coprime(M)
+true
+```
+"""
 function is_theta_coprime(M::QuiverModuli)
     return is_coprime(M.d, M.theta)
 end
 
+"""
+	all_HN_types(M::QuiverModuli; unstable::Bool = false, ordered::Bool = true)
 
-function all_HN_types(M::QuiverModuli; proper::Bool = false, ordered::Bool = true)
-    HN = all_HN_types(M.Q, M.d, M.theta, M.denom, ordered = ordered)
-    if proper
+Returns all Harder-Narasimhan types of the moduli space.
+
+INPUT:
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
+- `unstable::Bool = false`: if `true`, returns only Harder-Narasimhan types
+corresponding to unstable representations.
+- `ordered::Bool = true`: if `true`, returns the Harder-Narasimhan types in
+the order introduced by Reineke. TODO link to the paper.
+
+OUTPUT:
+- a list of Harder-Narasimhan types for the dimension vector and slope of `M`.
+
+EXAMPLES:
+
+The HN types for a 3-Kronecker quiver with dimension vector `[2, 3]`:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> all_HN_types(M)
+8-element Vector{Vector{AbstractVector{Int64}}}:
+ [[2, 3]]
+ [[1, 1], [1, 2]]
+ [[2, 2], [0, 1]]
+ [[2, 1], [0, 2]]
+ [[1, 0], [1, 3]]
+ [[1, 0], [1, 2], [0, 1]]
+ [[1, 0], [1, 1], [0, 2]]
+ [[2, 0], [0, 3]]
+
+julia> all_HN_types(M, unstable = true)
+7-element Vector{Vector{AbstractVector{Int64}}}:
+ [[1, 1], [1, 2]]
+ [[2, 2], [0, 1]]
+ [[2, 1], [0, 2]]
+ [[1, 0], [1, 3]]
+ [[1, 0], [1, 2], [0, 1]]
+ [[1, 0], [1, 1], [0, 2]]
+ [[2, 0], [0, 3]]
+```
+"""
+function all_HN_types(M::QuiverModuli; unstable::Bool = false, ordered::Bool = true)
+    HN = all_HN_types(M.Q, M.d, M.theta, M.denom, ordered)
+    if unstable
         return filter(hn_type -> hn_type != [M.d], HN)
     end
+	return HN
 end
 
+"""
+	is_HN_type(M::QuiverModuli, hn_type::AbstractVector{AbstractVector{Int}})
+
+Checks if the given sequence of dimension vectors is a valid HN type for
+the moduli space.
+
+INPUT:
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
+- `hn_type::AbstractVector{AbstractVector{Int}}`: a sequence of dimension vectors.
+
+OUTPUT:
+- whether the given sequence is a valid Harder-Narasimhan type for `M`.
+
+EXAMPLES:
+
+Some HN types for the 3-Kronecker quiver with dimension vector `[2, 3]`:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> is_HN_type(M, [[2, 3]])
+true
+
+julia> is_HN_type(M, [[1, 1], [1, 2]])
+true
+
+julia> is_HN_type(M, [[1, 2], [1, 1]])
+false
+```
+"""
 function is_HN_type(M::QuiverModuli, hn_type::AbstractVector{AbstractVector{Int}})::Bool
     return is_HN_type(M.Q, M.d, M.theta, hn_type, M.denom)
 end
@@ -107,7 +210,7 @@ function codimension_HN_stratum(
     M::QuiverModuli,
     hn_type::AbstractVector{AbstractVector{Int}},
 )
-    return codimension_HN_stratum(M.Q, M.d, M.theta, hn_type, M.denom)
+    return codimension_HN_stratum(M.Q, hn_type)
 end
 
 function codimension_unstable_locus(M::QuiverModuli)
