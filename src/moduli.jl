@@ -1412,6 +1412,42 @@ end
 
 
 
+"""
+    semisimple_moduli_space(M::QuiverModuli)
+
+Returns the moduli space with the zero stability parameter.
+
+Any quiver moduli space is (quasi)projective-over-affine;
+this is the affine base.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+
+OUTPUT:
+- the moduli space with the zero stability parameter.
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> dimension(semisimple_moduli_space(M))
+0
+```
+"""
+function semisimple_moduli_space(M::QuiverModuli)
+    return QuiverModuliSpace(M.Q, M.d, zero_vector(nvertices(M.Q)))
+end
+
+
+
+
+
+
+
+
+
+
+
 """Returns the Chow ring for the given moduli space.
 The optional argument `a` is the linearization used to construct the universal bundles.
 If none is given, one is computed automatically."""
