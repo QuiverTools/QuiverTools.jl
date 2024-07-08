@@ -1284,8 +1284,7 @@ OUTPUT:
 
 EXAMPLES:
 
-The dimension of the moduli space of the 3-Kronecker quiver
-with dimension vector `[2, 3]`:
+The dimension of the moduli space of the 3-Kronecker quiver:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
@@ -1411,14 +1410,6 @@ end
 # TODO - smooth model should return a smooth model and
 #        somehow the information for the correspondence?
 
-# TODO what is this?
-"""Finds a linearization to construct the universal bundles on the moduli space."""
-function linearization(M::QuiverModuli)
-    if gcd(M.d) == 1
-        throw(NotImplementedError())
-    end
-    throw(DomainError("Linearization does not exist as gcd(d) = $(gcd(d)) != 1"))
-end
 
 
 """Returns the Chow ring for the given moduli space.
