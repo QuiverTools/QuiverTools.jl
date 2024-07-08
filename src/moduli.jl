@@ -589,7 +589,8 @@ x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 """
 function Hodge_polynomial(Q::Quiver,
 	d::AbstractVector{Int},
-	theta::AbstractVector{Int})
+	theta::AbstractVector{Int} = canonical_stability(Q, d)
+    )
 
     # safety checks
     if theta' * d == 0 && !is_coprime(d)
@@ -626,13 +627,15 @@ end
 Returns the Hodge diamond of the moduli space of
 ``\\theta``-semistable representations of ``Q`` with dimension vector ``d``.
 """
-function Hodge_diamond(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int})
+function Hodge_diamond(Q::Quiver,
+    d::AbstractVector{Int},
+    theta::AbstractVector{Int} = canonical_stability(Q, d)
+    )::Matrix{Int}
     g = Hodge_polynomial(Q, d, theta)
 
-    return map(
-        ind -> coeff(g, [1, 2], [ind[1] - 1, ind[2] - 1]),
-        Iterators.product(1:degree(g, 1)+1, 1:degree(g, 2)+1),
-    )
+    # collects the coefficients of the polynomial, converts them to integers
+    # and returns them in the diagonal of a matrix.
+    return diagonal(Int.(numerator.(collect(Singular.coefficients(g)))))
 end
 
 function Hodge_diamond(M::QuiverModuli)

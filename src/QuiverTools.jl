@@ -240,7 +240,10 @@ function diagonal(m::AbstractMatrix{Int})
     n = size(m)[1]
     return map(ind -> ind[1] == ind[2] ? m[ind...] : 0, Iterators.product(1:n, 1:n))
 end
-
+function diagonal(v::AbstractVector)
+    n = length(v)
+    return map(ind -> ind[1] == ind[2] ? v[ind[1]] : 0, Iterators.product(1:n, 1:n))
+end
 """
 Returns the Euler matrix of the quiver.
 
