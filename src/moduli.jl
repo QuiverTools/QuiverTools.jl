@@ -786,6 +786,55 @@ function Picard_rank(M::QuiverModuli)
     return Picard_rank(M.Q, M.d, M.theta)
 end
 
+
+"""
+    Betti_numbers(M::QuiverModuliSpace)
+
+Returns the Betti numbers of the moduli space ``M``.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+
+OUTPUT:
+- a list of Betti numbers of the moduli space.
+
+EXAMPLES:
+
+```jldoctest
+julia> Q = mKronecker_quiver(2);
+
+julia> M = QuiverModuliSpace(Q, [1, 1]);
+
+julia> Betti_numbers(M)
+3-element Vector{Int64}:
+ 1
+ 0
+ 1
+```
+
+Our favourite 6-fold:
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> Betti_numbers(M)
+13-element Vector{Int64}:
+ 1
+ 0
+ 1
+ 0
+ 3
+ 0
+ 3
+ 0
+ 3
+ 0
+ 1
+ 0
+ 1
+```
+ """
 function Betti_numbers(M::QuiverModuliSpace)
 
     if !is_coprime(M.d, M.theta)
@@ -793,8 +842,18 @@ function Betti_numbers(M::QuiverModuliSpace)
     end
 
     N = dimension(M)
+    P = Poincare_polynomial(M)
+    v = Singular.vars(P)[1]
+    # silly way to square the variables but not the coefficients
+    f = sum(term * v^Singular.degree(term, 1) for term in Singular.terms(P))
 
-
+    betti = [f(0)]
+    for i in 1:2*N
+        f = (f - f(0)) / v
+        push!(betti, f(0))
+    end
+    # returns in Ints
+    return Int.(numerator.(betti))
 end
 """
     Poincare_polynomial(M::QuiverModuliSpace)
