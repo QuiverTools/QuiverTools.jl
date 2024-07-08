@@ -1345,12 +1345,63 @@ function is_rigid(M::QuiverModuli)
     return "not known"
 end
 
-function Betti_numbers(M::QuiverModuli)
+"""
+    is_smooth(M::QuiverModuliSpace)
+
+Checks if the moduli space is smooth.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+
+OUTPUT:
+- whether the moduli space is smooth.
+
+EXAMPLES:
+
+Setups with `d` `theta`-coprime are smooth:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> is_smooth(M)
+true
+```
+"""
+function is_smooth(M::QuiverModuliSpace)
+    if M.condition == "stable"
+        return true
+    elseif is_coprime(M.d, M.theta)
+        return true
+    elseif semistable_equals_stable(M)
+        return true
+    end
+
     throw(NotImplementedError())
 end
 
-function is_smooth(M::QuiverModuli)
-    throw(NotImplementedError())
+"""
+    is_smooth(M::QuiverModuliStack)
+
+Checks if the moduli stack is smooth.
+
+This is always trus, as the quotient stack of a smooth variety is smooth.
+
+INPUT:
+- ``M``: a moduli stack of representations of a quiver.
+
+OUTPUT:
+- true
+
+EXAMPLES:
+
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
+
+julia> is_smooth(M)
+true
+```
+"""
+function is_smooth(M::QuiverModuliStack)
+    return true
 end
 
 # DONE - modify current Picard_rank, Hodge_diamond and so on
