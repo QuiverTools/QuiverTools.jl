@@ -409,7 +409,7 @@ false
 @memoize Dict function has_semistables(
     Q::Quiver,
     d::AbstractVector{Int},
-    theta::AbstractVector{Int},
+    theta::AbstractVector{Int} = canonical_stability(Q, d),
     denom::Function = sum,
 )
     if all(di == 0 for di in d)
@@ -444,15 +444,22 @@ false
 julia> has_semistables(Q, d, theta)
 true
 ```
+
+The zero dimension vector has no stables:
+```jldoctest
+julia> Q = mKronecker_quiver(3); d = [0,0];
+
+julia> has_stables(Q, d, theta)
+false
 """
 @memoize Dict function has_stables(
     Q::Quiver,
     d::AbstractVector{Int},
-    theta::AbstractVector{Int},
+    theta::AbstractVector{Int} = canonical_stability(Q, d),
     denom::Function = sum,
 )
     if all(di == 0 for di in d)
-        return true
+        return false
     else
         # collect the list of all subdimension vectors e of bigger slope than d
         slope_d = slope(d, theta, denom)
