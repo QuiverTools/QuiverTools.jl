@@ -785,12 +785,16 @@ function Picard_rank(M::QuiverModuli)
     return Picard_rank(M.Q, M.d, M.theta)
 end
 
-# TODO betti numbers
-# TODO Poincaré polynomial
-# TODO Motives
+function Betti_numbers(M::QuiverModuliSpace)
+
+    if !is_coprime(M.d, M.theta)
+        throw(ArgumentError("d and theta are not coprime"))
+    end
+
+    N = dimension(M)
 
 
-
+end
 """
     Poincare_polynomial(M::QuiverModuliSpace)
 
@@ -837,7 +841,16 @@ function Poincare_polynomial(M::QuiverModuliSpace)
     end
     return numerator(P)
 end
-    
+
+
+# oh my god
+function power(x, n::Int)
+    if n >= 0
+        return x^n
+    else
+        return 1 / x^(-n)
+    end
+end
 
 function motive(M::QuiverModuliStack)
 
@@ -847,22 +860,57 @@ function motive(M::QuiverModuliStack)
     return unsafe_motive(M.Q, M.d, M.theta)["motive"]
 end
 
+"""
+    unsafe_motive(Q, d, theta, denom)
 
+Returns the motive of the moduli stack of ``\\theta``-semistable representations, and
+the function field.
+
+This is an internal method. Use ``motive()`` instead.
+
+INPUT:
+- ``Q``: a quiver.
+- ``d``: a dimension vector.
+- ``theta``: a stability parameter. Default is the canonical stability.
+- ``denom``: a function. Default is the sum.
+
+OUTPUT:
+- a dictionary with the motive and the function field.
+
+EXAMPLES:
+
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> unsafe_motive(Q, [2, 3])
+julia> QuiverTools.unsafe_motive(Q, [2, 3])
+Dict{String, Any} with 2 entries:
+  "motive"         => (-L^6 - L^5 - 3*L^4 - 3*L^3 - 3*L^2 - L - 1)//(L - 1)
+  "function_field" => (Function field over Rational field with transcendence basis n_transExt[L], L)
+
+julia> unsafe_motive(Q, [2, 3])["motive"]
+(-L^6 - L^5 - 3*L^4 - 3*L^3 - 3*L^2 - L - 1)//(L - 1)
+```
+"""
 function unsafe_motive(Q::Quiver,
     d::AbstractVector{Int},
-    theta::AbstractVector{Int} = canonical_stability(Q, d)
+    theta::AbstractVector{Int} = canonical_stability(Q, d),
+    denom::Function = sum
     )
 
 
-    K, L = Singular.FunctionField(Singular.QQ, 1)
+    K, L = Singular.FunctionField(Singular.QQ, ["L"])
+    L = L[1]
 
     if all(ti == 0 for ti in theta)
-        out = L^(- Euler_form(M.Q, d, d)) / prod(
-            (1 - L^(- nu))
-            for nu in 1:d[i],
-            i in 1:nvertices(Q)
-        )
-        return out
+        out = power(L,(- Euler_form(Q, d, d)))
+        div = 1
+        for i in 1:nvertices(Q)
+            if d[i] > 0
+                div *= prod(1 - power(L, -nu) for nu in 1:d[i])
+            end
+        end
+        return out/div
     end
 
     ds = all_subdimension_vectors(d, nonzero = true, strict = true)
@@ -871,16 +919,19 @@ function unsafe_motive(Q::Quiver,
     push!(ds, zero_vector(nvertices(Q)), d)
     sort!(ds, by = e -> deglex_key(Q, e)) #hopefully
 
-    T = Matrix(zero, length(ds), length(ds))
-    for [i, j] in IterTools.product(1:length(ds), 1:length(ds))
+    T = Matrix{Any}(undef, length(ds), length(ds))
+    for (i, j) in IterTools.product(1:length(ds), 1:length(ds))
        if is_subdimension_vector(ds[i], ds[j])
-           T[i, j] = L^(- Euler_form(Q, ds[i] - ds[j], ds[i])) *
-           unsafe_motive(Q, ds[j] - ds[i], zero_vector(Q))
+           T[i, j] = power(L, Euler_form(Q, ds[i] - ds[j], ds[i])) *
+           unsafe_motive(Q, ds[j] - ds[i], zero_vector(nvertices(Q)))
+       else
+            T[i, j] = 0
        end
     end
 
-    y = zero_vector(nvertices(Q))
+    y = [0 for i in 1:length(ds)]
     y[end] = 1
+    y = coerce_vector(y)
 
     return Dict("motive" => solve(T, y)[1],  "function_field" => (K, L))
 end
@@ -1232,10 +1283,6 @@ function is_rigid(M::QuiverModuli)
         end
     end
     return "not known"
-end
-
-function Poincaré_polynomial(M::QuiverModuli)
-    throw(NotImplementedError())
 end
 
 function Betti_numbers(M::QuiverModuli)

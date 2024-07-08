@@ -36,7 +36,7 @@ export all_Teleman_bounds,
     all_weights_universal_bundle,
     all_weights_irreducible_component_canonical
 export Hodge_diamond, Hodge_polynomial, Picard_rank
-export QuiverModuli, is_nonempty, dimension, Poincaré_polynomial, Betti_numbers, is_smooth
+export QuiverModuli, is_nonempty, dimension, Poincare_polynomial, Betti_numbers, is_smooth
 
 
 
@@ -86,7 +86,7 @@ function deglex_key(Q::Quiver, e::AbstractVector{Int})::Int
     n = nvertices(Q)
 
     return (
-            sum(e[i] * b^(n - i - 1) for i in length(e))
+            sum(e[i] * b^(n - i) for i in 1:length(e))
             + sum(e) * b^n
         )
 end
@@ -923,7 +923,7 @@ function all_Schurian_decompositions(Q::Quiver, d::AbstractVector{Int})
     return out
 end
 
-function has_semistables(Q::Quiver, d::AbstractVector{Int})
+function admits_semistables(Q::Quiver, d::AbstractVector{Int})
     # if there are less summands than vertices, there will always be a stability parameter
     # which multiplies all the summands (and hence d) to zero.
     allow_stability = []
