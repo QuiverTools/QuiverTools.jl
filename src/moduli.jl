@@ -1,5 +1,6 @@
 export QuiverModuli, QuiverModuliSpace, QuiverModuliStack
 
+export motive
 abstract type QuiverModuli end
 
 
@@ -787,6 +788,9 @@ function Picard_rank(M::QuiverModuli)
 end
 
 
+
+
+
 """
     Betti_numbers(M::QuiverModuliSpace)
 
@@ -893,8 +897,9 @@ function Poincare_polynomial(M::QuiverModuliSpace)
         throw(ArgumentError("d and theta are not coprime"))
     end
 
-    mot = unsafe_motive(M.Q, M.d, M.theta)
-    P = (1 - mot["function_field"][2]) * mot["motive"] 
+    m = motive(M.Q, M.d, M.theta, M.denom)
+    v = Singular.transcendence_basis(Singular.parent(m))[1]
+    P = (1 - v) * m 
 
     if denominator(P) != 1
         throw(DomainError("must be a polynomial"))
@@ -918,7 +923,7 @@ function motive(M::QuiverModuliStack)
     if M.condition != "stable"
         throw(ArgumentError("Motive unknown if not stable"))
     end
-    return unsafe_motive(M.Q, M.d, M.theta)["motive"]
+    return motive(M.Q, M.d, M.theta)
 end
 
 """
@@ -943,16 +948,11 @@ EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
-julia> QuiverTools.unsafe_motive(Q, [2, 3])
-Dict{String, Any} with 2 entries:
-  "motive"         => (-L^6 - L^5 - 3*L^4 - 3*L^3 - 3*L^2 - L - 1)//(L - 1)
-  "function_field" => (Function field over Rational field with transcendence ba…
-
-julia> QuiverTools.unsafe_motive(Q, [2, 3])["motive"]
+julia> motive(Q, [2, 3])
 (-L^6 - L^5 - 3*L^4 - 3*L^3 - 3*L^2 - L - 1)//(L - 1)
 ```
 """
-function unsafe_motive(Q::Quiver,
+function motive(Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int} = canonical_stability(Q, d),
     denom::Function = sum
@@ -983,7 +983,7 @@ function unsafe_motive(Q::Quiver,
     for (i, j) in Iterators.product(1:length(ds), 1:length(ds))
        if is_subdimension_vector(ds[i], ds[j])
            T[i, j] = power(L, Euler_form(Q, ds[i] - ds[j], ds[i])) *
-           unsafe_motive(Q, ds[j] - ds[i], zero_vector(nvertices(Q)))
+           motive(Q, ds[j] - ds[i], zero_vector(nvertices(Q)))
        else
             T[i, j] = 0
        end
@@ -993,7 +993,7 @@ function unsafe_motive(Q::Quiver,
     y[end] = 1
     y = coerce_vector(y)
 
-    return Dict("motive" => solve(T, y)[1],  "function_field" => (K, L))
+    return solve(T, y)[1]
 end
 
 
@@ -1075,7 +1075,7 @@ function Chow_ring(
     varnames = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
     R, vars = polynomial_ring(Singular.QQ, varnames)
     function chi(i, j)
-        return vars[sum(d[1:i-1])+j]
+        return vars[sum(d[1:i-1]) + j]
     end
 
 	"""
@@ -1353,10 +1353,6 @@ function is_smooth(M::QuiverModuli)
     throw(NotImplementedError())
 end
 
-# TODO - dimension of Luna stratum
-# TODO - Poincaré polynomial
-# TODO - Betti numbers
-# TODO - is smooth 
 # DONE - modify current Picard_rank, Hodge_diamond and so on
 #        so that they behave correctly.
 # TODO - Chow ring, point class, Todd class, Chern classes,
@@ -1364,6 +1360,7 @@ end
 # TODO - smooth model should return a smooth model and
 #        somehow the information for the correspondence?
 
+# TODO what is this?
 """Finds a linearization to construct the universal bundles on the moduli space."""
 function linearization(M::QuiverModuli)
     if gcd(M.d) == 1
@@ -1379,9 +1376,8 @@ If none is given, one is computed automatically."""
 function Chow_ring(
     M::QuiverModuli,
     a::Vector{Int} = linearization(M),
-    standard::Bool = false,
 )
-    return Chow_ring(M.Q, M.d, M.theta, a, standard)
+    return Chow_ring(M.Q, M.d, M.theta, a)
 end
 
 """Returns the point class for the given moduli space.
