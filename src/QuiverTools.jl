@@ -36,7 +36,8 @@ export all_Teleman_bounds,
     all_weights_universal_bundle,
     all_weights_irreducible_component_canonical
 export Hodge_diamond, Hodge_polynomial, Picard_rank
-export QuiverModuli, is_nonempty, dimension, Poincare_polynomial, Betti_numbers, is_smooth
+export QuiverModuli, is_nonempty, dimension, Poincare_polynomial, Betti_numbers, is_smooth,
+    semistable_equals_stable, codimension_unstable_locus
 
 
 

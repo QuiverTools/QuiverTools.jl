@@ -34,6 +34,7 @@ struct QuiverModuliStack <: QuiverModuli
     d::AbstractVector{Int}
     theta::AbstractVector{Int}
     condition::String
+    denom::Function
 
     function QuiverModuliStack(
         Q::Quiver,
@@ -258,7 +259,7 @@ Codimensions for the 3-Kronecker quiver with dimension vector `[2, 3]`:
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> codimension_unstable_locus(M)
-2
+3
 ```
 """
 function codimension_unstable_locus(M::QuiverModuli)
@@ -331,9 +332,9 @@ function all_Luna_types(
 
                 new_Luna = [
                     Dict(zip(keys(partial), p)) for
-                    p in IterTools.product(values(partial)...)
+                    p in Iterators.product(values(partial)...)
                 ]
-                vcat!(Luna_types, new_Luna)
+                Luna_types = vcat(Luna_types, new_Luna)
             end
         end
     end
@@ -518,10 +519,10 @@ julia> A = [1 2 3; 0 4 5; 0 0 6];
 
 julia> b = [1, 2, 3];
 
-julia> solve(A, b)
+julia> QuiverTools.solve(A, b)
 3-element Vector{Any}:
-  1
- -0.5
+ -0.25
+ -0.125
   0.5
 ```
 """
@@ -839,7 +840,8 @@ function Poincare_polynomial(M::QuiverModuliSpace)
     if denominator(P) != 1
         throw(DomainError("must be a polynomial"))
     end
-    return numerator(P)
+    # returns a polynomial object instead of a FunctionField element.
+    return Singular.n_transExt_to_spoly(numerator(P))
 end
 
 
@@ -882,13 +884,12 @@ EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
-julia> unsafe_motive(Q, [2, 3])
 julia> QuiverTools.unsafe_motive(Q, [2, 3])
 Dict{String, Any} with 2 entries:
   "motive"         => (-L^6 - L^5 - 3*L^4 - 3*L^3 - 3*L^2 - L - 1)//(L - 1)
-  "function_field" => (Function field over Rational field with transcendence basis n_transExt[L], L)
+  "function_field" => (Function field over Rational field with transcendence ba…
 
-julia> unsafe_motive(Q, [2, 3])["motive"]
+julia> QuiverTools.unsafe_motive(Q, [2, 3])["motive"]
 (-L^6 - L^5 - 3*L^4 - 3*L^3 - 3*L^2 - L - 1)//(L - 1)
 ```
 """
@@ -920,7 +921,7 @@ function unsafe_motive(Q::Quiver,
     sort!(ds, by = e -> deglex_key(Q, e)) #hopefully
 
     T = Matrix{Any}(undef, length(ds), length(ds))
-    for (i, j) in IterTools.product(1:length(ds), 1:length(ds))
+    for (i, j) in Iterators.product(1:length(ds), 1:length(ds))
        if is_subdimension_vector(ds[i], ds[j])
            T[i, j] = power(L, Euler_form(Q, ds[i] - ds[j], ds[i])) *
            unsafe_motive(Q, ds[j] - ds[i], zero_vector(nvertices(Q)))
