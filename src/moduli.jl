@@ -1411,6 +1411,45 @@ end
 #        somehow the information for the correspondence?
 
 
+"""
+    is_projective(M::QuiverModuli)
+
+Checks if the moduli space is projective.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+
+OUTPUT:
+
+- whether the moduli space is projective.
+
+EXAMPLES:
+
+The moduli space of the 3-Kronecker quiver is projective:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> is_projective(M)
+true
+```
+"""
+function is_projective(M::QuiverModuli)
+    if is_acyclic(M.Q)
+        if M.condition == "semistable"
+            return true
+        elseif M.condition == "stable"
+            return semistable_equals_stable(M)
+        end
+    end
+
+    SSP = semisimple_moduli_space(M)
+    if M.condition == "semistable"
+        return dimension(SSP) in [0, "-∞"]
+    elseif M.condition == "stable"
+        return dimension(SSP) in [1, "-∞"] && semistable_equals_stable(M)
+    end
+end
+
 
 """
     semisimple_moduli_space(M::QuiverModuli)
