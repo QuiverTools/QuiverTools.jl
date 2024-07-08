@@ -81,6 +81,15 @@ function show(io::IO, Q::Quiver)
     print(io, Q.adjacency)
 end
 
+function deglex_key(Q::Quiver, e::AbstractVector{Int})::Int
+    b = maximum(e) + 1
+    n = nvertices(Q)
+
+    return (
+            sum(e[i] * b^(n - i - 1) for i in length(e))
+            + sum(e) * b^n
+        )
+end
 
 """
 Returns the (necessarily symmetric) adjacency matrix
@@ -1080,6 +1089,10 @@ julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true, strict=true)
         subdims = filter(e -> e != d, subdims)
     end
     return subdims
+end
+
+function is_subdimension_vector(e::AbstractVector{Int}, d::AbstractVector{Int})
+    return all(ei <= di for (ei, di) in zip(e, d))
 end
 
 @memoize Dict function unit_vector(n::Int, i::Int)
