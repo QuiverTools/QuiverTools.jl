@@ -790,12 +790,61 @@ end
 # TODO Motives
 
 
+
+"""
+    Poincare_polynomial(M::QuiverModuliSpace)
+
+Returns the Poincaré polynomial of the moduli space ``M``.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+
+OUTPUT:
+- the Poincaré polynomial of the moduli space.
+
+EXAMPLES:
+
+A Kronecker quiver setup where ``M`` is the projective line:
+```jldoctest
+julia> Q = mKronecker_quiver(2);
+
+julia> M = QuiverModuliSpace(Q, [1, 1]);
+
+julia> Poincare_polynomial(M)
+L + 1
+```
+
+The Poincaré polynomial of our favourite 6-fold:
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> Poincare_polynomial(M)
+L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1
+```
+"""
+function Poincare_polynomial(M::QuiverModuliSpace)
+    if !is_coprime(M.d, M.theta)
+        throw(ArgumentError("d and theta are not coprime"))
+    end
+
+    mot = unsafe_motive(M.Q, M.d, M.theta)
+    P = (1 - mot["function_field"][2]) * mot["motive"] 
+
+    if denominator(P) != 1
+        throw(DomainError("must be a polynomial"))
+    end
+    return numerator(P)
+end
+    
+
 function motive(M::QuiverModuliStack)
 
     if M.condition != "stable"
         throw(ArgumentError("Motive unknown if not stable"))
     end
-    return unsafe_motive(M.Q, M.d, M.theta)
+    return unsafe_motive(M.Q, M.d, M.theta)["motive"]
 end
 
 
@@ -807,33 +856,33 @@ function unsafe_motive(Q::Quiver,
 
     K, L = Singular.FunctionField(Singular.QQ, 1)
 
-    if all(ti == 0 for ti in M.theta)
-        out = L^(- Euler_form(M.Q, M.d, M.d)) / prod(
+    if all(ti == 0 for ti in theta)
+        out = L^(- Euler_form(M.Q, d, d)) / prod(
             (1 - L^(- nu))
             for nu in 1:d[i],
-            i in 1:nvertices(M.Q)
+            i in 1:nvertices(Q)
         )
         return out
     end
 
-    ds = all_subdimension_vectors(M.d, nonzero = true, strict = true)
-    ds = filter(e -> slope(e, M.theta, M.denom) > slope(M.d, M.theta, M.denom), ds)
+    ds = all_subdimension_vectors(d, nonzero = true, strict = true)
+    ds = filter(e -> slope(e, theta, denom) > slope(d, theta, denom), ds)
 
-    push!(ds, zero_vector(nvertices(M.Q)), M.d)
+    push!(ds, zero_vector(nvertices(Q)), d)
     sort!(ds, by = e -> deglex_key(Q, e)) #hopefully
 
     T = Matrix(zero, length(ds), length(ds))
     for [i, j] in IterTools.product(1:length(ds), 1:length(ds))
        if is_subdimension_vector(ds[i], ds[j])
-           T[i, j] = L^(- Euler_form(M.Q, ds[i] - ds[j], ds[i])) *
+           T[i, j] = L^(- Euler_form(Q, ds[i] - ds[j], ds[i])) *
            unsafe_motive(Q, ds[j] - ds[i], zero_vector(Q))
        end
     end
 
-    y = zero_vector(nvertices(M.Q))
+    y = zero_vector(nvertices(Q))
     y[end] = 1
 
-    return solve(T, y)[1]
+    return Dict("motive" => solve(T, y)[1],  "function_field" => (K, L))
 end
 
 
