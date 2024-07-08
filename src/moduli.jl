@@ -295,6 +295,11 @@ function all_Luna_types(
     exclude_stable::Bool = false,
 )
 
+    # treat the zero case separately
+    if all(di == 0 for di in d)
+        return [Dict(d => [1])]
+    end
+
     # subdimensions with the same slope as d
     same_slope = filter(
         e ->
@@ -305,8 +310,8 @@ function all_Luna_types(
 
     Luna_types = []
 
-    bound = sum(d) ÷ minimum(sum(e) for e in same_slope) # the highest possible amount of repetitions for a given stable dimension vector
-
+    # the highest possible amount of repetitions for a given stable dimension vector
+    bound = sum(d) ÷ minimum(sum(e) for e in same_slope)
     for i = 1:bound+1
         for tau in with_replacement_combinations(same_slope, i)
             if sum(tau) == d
@@ -370,6 +375,7 @@ function is_Luna_type(M::QuiverModuli, tau)
     return true
 end
 
+# TODO this should return 0 for the type Dict([0, 0] => [1])??
 """
 	dimension_of_Luna_stratum(M::QuiverModuli, tau)
 
@@ -744,7 +750,7 @@ julia> Q = mKronecker_quiver(3);
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> Hodge_diamond(M)
-7×7 Matrix{Singular.spoly{Singular.n_Q}}:
+7×7 Matrix{Int64}:
  1  0  0  0  0  0  0
  0  1  0  0  0  0  0
  0  0  3  0  0  0  0
@@ -771,12 +777,15 @@ function Picard_rank(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{In
     return coeff(Hodge_polynomial(Q, d, theta), 2).num
 end
 
+
+# TODO use betti numbers
 function Picard_rank(M::QuiverModuli)
     return Picard_rank(M.Q, M.d, M.theta)
 end
 
-
-
+# TODO betti numbers
+# TODO Poincaré polynomial
+# TODO Motives
 
 
 
@@ -968,7 +977,8 @@ function todd_class(Q::Quiver,
 	end
 
 	throw(NotImplementedError())
-
+    # TODO refactor Chow ring to return ideal, rings, inclusion, variables
+    # TODO then use that here
 	num = 1
 	den = 1
 
@@ -1007,23 +1017,89 @@ end
 
 
 
+"""
+    dimension(M::QuiverModuliStack)
 
+Returns the dimension of the moduli stack.
+This differs from the dimension of the moduli space by 1, as we do not quotient out
+the stabilizer \$ \\mathbb{G}\$.
 
+INPUT:
+- ``M``: a moduli stack of representations of a quiver.
 
+OUTPUT:
+- the dimension of the moduli stack.
 
-# TODO the case for stacks
+EXAMPLES:
+
+The dimension of the moduli stack of the 3-Kronecker quiver
+
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
+
+julia> dimension(M)
+5
+```
+"""
+function dimension(M::QuiverModuliStack)
+    if is_nonempty(M)
+        return -Euler_form(M.Q, M.d, M.d)        
+    end
+    return "-∞"
+end
+
+"""
+    dimension(M::QuiverModuliSpace)
+
+Returns the dimension of the moduli space.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+
+OUTPUT:
+- the dimension of the moduli space.
+
+EXAMPLES:
+
+The dimension of the moduli space of the 3-Kronecker quiver
+with dimension vector `[2, 3]`:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> dimension(M)
+6
+```
+"""
 function dimension(M::QuiverModuliSpace)
-    if M.condition == "stable"
+    # the zero representation is semistable, but not stable, for d = 0
+    if all(M.d .== 0)
+        if M.condition == "semistable"
+            return 0
+        else
+            return "-∞"
+        end
+    end
+
+    # if the stable locus is nonempty then the dimension is 1 - <d, d>
+    if has_stables(M.Q, M.d, M.theta, M.denom)
         return 1 - Euler_form(M.Q, M.d, M.d)
+    end
+
+    # if the stable locus is empty, the dimension is the maximum of the dimensions
+    # of the Luna strata
+    if M.condition == "stable"
+        return "-∞"
     elseif M.condition == "semistable"
         if has_semistables(M.Q, M.d, M.theta)
             return maximum(
-                dimension_of_luna_stratum(tau) for tau in all_luna_types(M.Q, M.d, M.theta)
+                dimension_of_Luna_stratum(M, tau) for tau in all_Luna_types(M.Q, M.d, M.theta)
             )
+            # TODO what are the Luna strata for d = 0?
+            # shouldn't the case d = 0 be handled correctly here?
+
         end
-    else
-        return "-∞" # how?
     end
+    # the semistable locus is also empty
     return "-∞"
 end
 
