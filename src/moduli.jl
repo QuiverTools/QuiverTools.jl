@@ -500,7 +500,9 @@ end
 
 Solve ``A\\cdot x = b`` for ``A`` upper triangular via back substitution.
 
-This is an internal method only used in the implementation of the Hodge polynomial.
+This is an internal method only used in the implementation of the Hodge polynomial
+and to compute motives.
+
 
 INPUT:
 - `A::AbstractMatrix`: an upper triangular matrix.
@@ -786,6 +788,67 @@ end
 # TODO betti numbers
 # TODO Poincaré polynomial
 # TODO Motives
+
+
+function motive(M::QuiverModuliStack)
+
+    if M.condition != "stable"
+        throw(ArgumentError("Motive unknown if not stable"))
+    end
+    return unsafe_motive(M.Q, M.d, M.theta)
+end
+
+
+function unsafe_motive(Q::Quiver,
+    d::AbstractVector{Int},
+    theta::AbstractVector{Int} = canonical_stability(Q, d)
+    )
+
+
+    K, L = Singular.FunctionField(Singular.QQ, 1)
+
+    if all(ti == 0 for ti in M.theta)
+        out = L^(- Euler_form(M.Q, M.d, M.d)) / prod(
+            (1 - L^(- nu))
+            for nu in 1:d[i],
+            i in 1:nvertices(M.Q)
+        )
+        return out
+    end
+
+    ds = all_subdimension_vectors(M.d, nonzero = true, strict = true)
+    ds = filter(e -> slope(e, M.theta, M.denom) > slope(M.d, M.theta, M.denom), ds)
+
+    push!(ds, zero_vector(nvertices(M.Q)), M.d)
+    sort!(ds, by = e -> deglex_key(Q, e)) #hopefully
+
+    T = Matrix(zero, length(ds), length(ds))
+    for [i, j] in IterTools.product(1:length(ds), 1:length(ds))
+       if is_subdimension_vector(ds[i], ds[j])
+           T[i, j] = L^(- Euler_form(M.Q, ds[i] - ds[j], ds[i])) *
+           unsafe_motive(Q, ds[j] - ds[i], zero_vector(Q))
+       end
+    end
+
+    y = zero_vector(nvertices(M.Q))
+    y[end] = 1
+
+    return solve(T, y)[1]
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1120,11 +1183,6 @@ function is_rigid(M::QuiverModuli)
         end
     end
     return "not known"
-end
-
-
-function dimension_of_luna_stratum(tau)
-    throw(NotImplementedError())
 end
 
 function Poincaré_polynomial(M::QuiverModuli)
