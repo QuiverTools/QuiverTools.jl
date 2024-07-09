@@ -908,17 +908,16 @@ function Betti_numbers(M::QuiverModuliSpace)
 
     N = dimension(M)
     P = Poincare_polynomial(M)
-    v = Singular.vars(P)[1]
-    # silly way to square the variables but not the coefficients
-    f = sum(term * v^Singular.degree(term, 1) for term in Singular.terms(P))
+    coeff = Int.(numerator.(Singular.coefficients(P)))
+    betti = reduce(vcat, [c, 0] for c in coeff[1:end-1])
+    push!(betti, coeff[end])
 
-    betti = [f(0)]
-    for i in 1:2*N
-        f = (f - f(0)) / v
-        push!(betti, f(0))
+    # if the polynomial did not have degree = N,
+    # we add zero coefficients
+    if length(betti) < 2*N + 1
+        betti = vcat(betti, zeros(2*N + 1 - length(betti)))
     end
-    # returns in Ints
-    return Int.(numerator.(betti))
+    return betti
 end
 """
     Poincare_polynomial(M::QuiverModuliSpace)
