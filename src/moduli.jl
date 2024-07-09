@@ -1222,7 +1222,72 @@ function extended_gcd(x)
 	end
 end
 
-# TODO todd class
+# TODO make it so that all the elements that belong to the Chow ring
+# are Polynomials of the same Ring object.
+
+
+# TODO add examples
+"""
+    Chern_class_line_bundle(M::QuiverModuliSpace, eta)
+
+Returns the first Chern class of the line bundle L(eta).
+
+This is given by \$L(eta) = \\bigoplus_{i \\in Q_0} \\det(U_i)^{-eta_i}\$.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+- ``eta``: a choice of linearization for the trivial line bundle.
+
+OUTPUT:
+- the first Chern class of the line bundle L(eta) as a polynomial.
+"""
+function Chern_class_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
+    A = Chow_ring(M)
+    return -sum(eta[i] * gens(A)[sum(d[j] for j in 1:i)] for i in 1:nvertices(M.Q))
+end
+
+# TODO add examples
+"""
+    Chern_character_line_bundle(M::QuiverModuliSpace, eta)
+
+Returns the Chern character of the line bundle L(eta).
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+- ``eta``: a choice of linearization for the trivial line bundle.
+
+OUTPUT:
+- the Chern character of the line bundle L(eta).
+
+"""
+function Chern_character_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
+    x = Chern_class_line_bundle(M, eta)
+    return sum(x^i * factorial(i) for i in 0:dimension(M)) 
+end
+
+
+"""
+    total_Chern_class_universal(M::QuiverModuliSpace, i, chi)
+
+Returns the total Chern class of the universal bundle \$U_i(\\chi)\$.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+- ``i``: the universal bundle we want the Chern class of.
+- ``chi``: a choice of linearization to construct \$U_i(\\chi)\$.
+
+OUTPUT:
+- the total Chern class of the universal bundle \$U_i(\\chi)\$.
+"""
+function total_Chern_class_universal(M::QuiverModuliSpace,
+    i::Int,
+    chi::AbstractVector{Int} = extended_gcd(M.d)[2]
+    )
+    A = Chow_ring(M, chi)
+    return 1 + sum(
+        gens(A)[sum(M.d[j] for j in 1:i - 1) + r] for r in 1:M.d[i] - 1
+    )
+end
 function todd_class(Q::Quiver,
 	d::AbstractVector{Int},
 	chi::AbstractVector{Int}=extended_gcd(d)[2]
