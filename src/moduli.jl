@@ -804,6 +804,51 @@ function Picard_rank(M::QuiverModuliSpace)
 end
 
 
+"""
+    index(M::QuiverModuliSpace)
+
+Returns the index of the moduli space ``M``.
+
+The index of a variety \$X\$ is the largest which divides the canonical divisor \$K_X\$
+in \$Pic(X)\$.
+
+This implementation currently only works for the canonical stability.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+
+OUTPUT:
+- the index of the moduli space.
+
+EXAMPLES:
+
+The 3-Kronecker quiver has index 3:
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> index(M)
+3
+```
+The subspace quiver moduli have index 1:
+```jldoctest
+julia> Q = subspace_quiver(5);
+
+julia> M = QuiverModuliSpace(Q, [1, 1, 1, 1, 1, 2]);
+
+julia> index(M)
+1
+```
+"""
+function index(M::QuiverModuliSpace)
+    if M.theta == canonical_stability(M.Q, M.d) &&
+        is_coprime(M.d, M.theta) &&
+        is_amply_stable(M)
+        return gcd.(M.theta)
+    end
+    throw(NotImplementedError())
+end
 
 
 
@@ -1523,9 +1568,4 @@ end
 """
 function Todd_class(M::QuiverModuli)
     return Todd_class(M.Q, M.d, M.theta)
-end
-
-function index(M::QuiverModuli)
-    # right? 
-    return gcd(canonical_stability(M.Q, M.d))
 end
