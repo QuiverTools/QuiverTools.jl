@@ -1057,22 +1057,6 @@ function motive(Q::Quiver,
     return solve(T, y)[1]
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ###############################################################################
 # tautological representation of the Chow ring.
 # Implements the results of [arXiv:1307.3066](https://doi.org/10.48550/arXiv.1307.3066) and
@@ -1287,10 +1271,6 @@ function todd_class(Q::Quiver,
 
 	return num / den
 end
-
-# TODO point class
-# TODO universal bundle class
-
 
 
 
@@ -1536,36 +1516,4 @@ julia> dimension(semisimple_moduli_space(M))
 """
 function semisimple_moduli_space(M::QuiverModuli)
     return QuiverModuliSpace(M.Q, M.d, zero_vector(nvertices(M.Q)))
-end
-
-
-
-
-
-
-
-
-
-
-
-"""Returns the Chow ring for the given moduli space.
-The optional argument `a` is the linearization used to construct the universal bundles.
-If none is given, one is computed automatically."""
-function Chow_ring(
-    M::QuiverModuli,
-    a::Vector{Int} = linearization(M),
-)
-    return Chow_ring(M.Q, M.d, M.theta, a)
-end
-
-"""Returns the point class for the given moduli space.
-"""
-function point_class(M::QuiverModuli)
-    return point_class(M.Q, M.d, M.theta)
-end
-
-"""Returns the Todd class for the given moduli space.
-"""
-function Todd_class(M::QuiverModuli)
-    return Todd_class(M.Q, M.d, M.theta)
 end
