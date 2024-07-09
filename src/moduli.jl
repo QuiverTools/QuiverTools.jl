@@ -1193,6 +1193,10 @@ function Chow_ring(
     return QuotientRing(A, std(Ideal(A, [tautological; linear])))
 end
 
+function Chow_ring(M::QuiverModuliSpace, chi::AbstractVector{Int}=extended_gcd(M.d)[2])
+    return Chow_ring(M.Q, M.d, M.theta, chi)
+end
+
 
 # TODO this should be in a misc.jl file or something
 # TODO this should be in Base really...
