@@ -495,6 +495,10 @@ function is_amply_stable(M::QuiverModuli)
 end
 
 
+########################################################################################
+# Methods to compute the Hodge polynomial and Hodge diamond of a moduli space below.
+########################################################################################
+
 
 
 """
@@ -768,23 +772,35 @@ function Hodge_diamond(M::QuiverModuli)
     return Hodge_diamond(M.Q, M.d, M.theta)
 end
 
+# TODO add examples
 """
-Computes the Picard rank of the moduli space of
-``\\theta``-semistable representations of ``Q`` with dimension vector ``d``.
+    Picard_rank(M::QuiverModuliSpace)
+
+Returns the Picard rank of the moduli space ``M``.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+
+OUTPUT:
+- the Picard rank of the moduli space.
+
+EXAMPLES:
+
+Kronecker quiver with dimension vector `[2, 3]`:
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> Picard_rank(M)
+1
+```
 """
-function Picard_rank(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int})
-    # TODO If over the complex numbers this should be h^{1,1},
-    # since the moduli space is rational.
-    # TODO This should follow from the long exact sequence in cohomology
-    # given by the exponential short exact sequence.
-
-    return coeff(Hodge_polynomial(Q, d, theta), 2).num
-end
-
-
-# TODO use betti numbers
-function Picard_rank(M::QuiverModuli)
-    return Picard_rank(M.Q, M.d, M.theta)
+function Picard_rank(M::QuiverModuliSpace)
+    if !(is_smooth(M) && is_projective(M))
+        throw(ArgumentError("Moduli space is not smooth and projective"))
+    end
+    return Betti_numbers(M)[3]
 end
 
 
