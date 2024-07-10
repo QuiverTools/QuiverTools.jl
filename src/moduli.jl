@@ -1172,10 +1172,16 @@ A tuple containing:
 
 
     # The discriminant in the definition of the antisymmetrization.
-    delta = prod(
-        prod(xi(i, l) - xi(i, k) for k in 1:d[i]-1 for l in k+1:d[i]) for
-        i in 1:nvertices(Q) if d[i] > 1
-    )
+    delta = 1
+    for i in 1:nvertices(Q)
+        if d[i] > 1
+            delta *= prod(xi(i, l) - xi(i, k) for k in 1:d[i]-1 for l in k+1:d[i])
+        end
+    end
+    # delta = prod(
+    #     prod(xi(i, l) - xi(i, k) for k in 1:d[i]-1 for l in k+1:d[i]) for
+    #     i in 1:nvertices(Q) if d[i] > 1
+    # )
     antisymmetrize(f) = sum(sign(w) * permute(f, w) for w in W) / delta
 
     # All the destabilizing subdimension vectors of `d` with respect to the slope
@@ -1184,13 +1190,18 @@ A tuple containing:
     minimal_forbidden = filter(
         e -> !any(f -> partial_order(Q, f, e), filter(f -> f != e, dest)), dest)
 
-    forbidden_polynomials = [
-        prod(
-            prod((xi(j, s) - xi(i, r))^Q.adjacency[i, j]
-			for r in 1:e[i], s in e[j]+1:d[j])
-				for j in 1:nvertices(Q), i in 1:nvertices(Q) if
-            Q.adjacency[i, j] > 0 && e[i] > 0 && d[j] > 1
-        ) for e in minimal_forbidden]
+    # builds a new forbidden polynomial for the given minimal forbidden dimension vector e.
+    function new_forbidden(e::AbstractVector{Int})
+        out = 1
+        for (i, j) in Iterators.product(1:nvertices(Q), 1:nvertices(Q))
+                for r in 1:e[i], s in e[j]+1:d[j]
+                    out *= (xi(j, s) - xi(i, r))^Q.adjacency[i, j]
+                end
+            end
+        return out
+    end
+    forbidden_polynomials = [new_forbidden(e) for e in minimal_forbidden]
+    print(forbidden_polynomials)
 
     varnames2 = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
     A, Avars = polynomial_ring(Singular.QQ, varnames2)
