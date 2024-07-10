@@ -1,6 +1,6 @@
 export QuiverModuli, QuiverModuliSpace, QuiverModuliStack
 
-export motive
+export motive, Chow_ring
 abstract type QuiverModuli end
 
 
