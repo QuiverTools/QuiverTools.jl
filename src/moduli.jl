@@ -1,6 +1,7 @@
 export QuiverModuli, QuiverModuliSpace, QuiverModuliStack
 
-export motive, Chow_ring
+export Chow_ring, motive, index, Betti_numbers, Poincare_polynomial,
+    is_smooth, is_projective, semisimple_moduli_space, point_class
 abstract type QuiverModuli end
 
 
@@ -845,7 +846,7 @@ function index(M::QuiverModuliSpace)
     if M.theta == canonical_stability(M.Q, M.d) &&
         is_coprime(M.d, M.theta) &&
         is_amply_stable(M)
-        return gcd.(M.theta)
+        return gcd(M.theta)
     end
     throw(NotImplementedError())
 end
@@ -899,7 +900,7 @@ julia> Betti_numbers(M)
  0
  1
 ```
- """
+"""
 function Betti_numbers(M::QuiverModuliSpace)
 
     if !is_coprime(M.d, M.theta)
@@ -1146,18 +1147,6 @@ A tuple containing:
         return vars[sum(d[1:i-1]) + j]
     end
 
-	"""
-	This is the naive base that is described in Hans's 2013 paper.
-	"""
-    function base_for_ring(name = "naive")
-        if name == "naive"
-            bounds = [0:(d[i]-nu) for i in 1:nvertices(Q) for nu in 1:d[i]]
-            lambdas = Iterators.product(bounds...)
-
-            build_elem(lambda) = prod(
-                prod(chi(i, nu)^lambda[sum(d[1:i-1])+nu] for nu in 1:d[i]) for
-                i in 1:nvertices(Q)
-            )
 
 	# This is the naive base that is described in Hans's 2013 paper.
     function base_for_ring(name = "naive")
@@ -1265,6 +1254,7 @@ function extended_gcd(x)
 		y = vcat([g],  [x[i] for i in 3:n])
 		d, c = extended_gcd(y)
 		m = vcat([c[1] * a, c[1] * b], [c[i] for i in 1:n - 1])
+		m = vcat([c[1] * a, c[1] * b], [c[i] for i in 2:n - 1])
 		return [d, m]
 	end
 end
