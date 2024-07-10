@@ -1240,7 +1240,27 @@ end
 """
 Computes the gcd and the Bezout coefficients of a list of integers.
 
-This exists for two integers but seemingly not for more than two.
+INPUT:
+- ``x``: a list of integers.
+
+OUTPUT:
+A tuple containing:
+- the gcd of the integers,
+- a choice of Bezout coefficients.
+
+EXAMPLES:
+
+```jldoctest
+julia> QuiverTools.extended_gcd([2, 3, 4])
+2-element Vector{Any}:
+ 1
+  [-1, 1, 0]
+  
+julia> QuiverTools.extended_gcd([2, 3])
+2-element Vector{Any}:
+ 1
+  [-1, 1]
+```
 """
 function extended_gcd(x)
 	n = length(x)
