@@ -1340,9 +1340,20 @@ function total_Chern_class_universal(M::QuiverModuliSpace,
     i::Int,
     chi::AbstractVector{Int} = extended_gcd(M.d)[2]
     )
+    if i < 1 || i > nvertices(M.Q)
+        throw(ArgumentError("i is not a vertex of the quiver."))
+    elseif M.d[i] == 0
+        return 1
+    end
     A = Chow_ring(M, chi)
     return 1 + sum(
         gens(A)[sum(M.d[j] for j in 1:i - 1) + r] for r in 1:M.d[i] - 1
+    
+    if i == 1
+        return sum(A[2][r] for r in 1:M.d[i]) + 1
+    end
+    return sum(A[2][sum(M.d[j] for j in 1:i - 1) + r] for r in 1:M.d[i]) + 1
+end
     )
 end
 function todd_class(Q::Quiver,
