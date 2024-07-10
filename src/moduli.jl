@@ -1102,7 +1102,29 @@ function symmetric_polynomial(vars, degree::Int)
     return sum(prod(e) for e in IterTools.subsets(vars, degree))
 end
 
-function Chow_ring(
+
+"""
+    Chow_ring(Q, d, theta, a)
+
+Computes the Chow ring of the moduli space of ``\\theta``-semistable representations of
+``Q`` with dimension vector ``d``, for a choice of linearization ``a``.
+
+This method of the function Chow_ring also returns the ambient ring \$R\$
+and the inclusion morphism.
+
+INPUT:
+- ``Q``: a quiver.
+- ``d``: a dimension vector.
+- ``theta``: a stability parameter. Default is the canonical stability.
+- ``a``: a linearization. Default is the extended gcd of ``d``.
+
+OUTPUT:
+A tuple containing:
+- the Chow ring of the moduli space,
+- the polynomial ring above it,
+- the inclusion map \$\\iota : A \\to R\$.
+"""
+@memoize Dict function Chow_ring(
     Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int}=canonical_stability(Q, d),
@@ -1116,9 +1138,11 @@ function Chow_ring(
         throw(ArgumentError("a is not a linearization"))
     end
 
-    varnames = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
+    varnames = ["xi$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
     R, vars = polynomial_ring(Singular.QQ, varnames)
-    function chi(i, j)
+
+    # Shorthand to address the variable `xi_{i,j}`.
+    function xi(i, j)
         return vars[sum(d[1:i-1]) + j]
     end
 
@@ -1135,50 +1159,60 @@ function Chow_ring(
                 i in 1:nvertices(Q)
             )
 
-            return map(l -> build_elem(l), lambdas)
-        else
+	# This is the naive base that is described in Hans's 2013 paper.
+    function base_for_ring(name = "naive")
+        if name != "naive"
             throw(ArgumentError("unknown base."))
         end
+        bounds = [0:(d[i]-nu) for i in 1:nvertices(Q) for nu in 1:d[i]]
+        lambdas = Iterators.product(bounds...)
+
+        build_elem(lambda) = prod(
+            prod(xi(i, nu)^lambda[sum(d[1:i-1])+nu] for nu in 1:d[i]) for
+            i in 1:nvertices(Q)
+        )
+        return map(l -> build_elem(l), lambdas)
     end
 
     # build the permutation group W
     W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i in 1:nvertices(Q)]...)
     sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
 
-    permute(f, sigma) = f([chi(i, sigma[i][j]) for i in 1:nvertices(Q) for j in 1:d[i]]...)
+    # Action of the symmetric group on R by permutation of the variables.
+    permute(f, sigma) = f([xi(i, sigma[i][j]) for i in 1:nvertices(Q) for j in 1:d[i]]...)
 
+
+    # The discriminant in the definition of the antisymmetrization.
     delta = prod(
-        prod(chi(i, l) - chi(i, k) for k in 1:d[i]-1 for l in k+1:d[i]) for
+        prod(xi(i, l) - xi(i, k) for k in 1:d[i]-1 for l in k+1:d[i]) for
         i in 1:nvertices(Q) if d[i] > 1
     )
     antisymmetrize(f) = sum(sign(w) * permute(f, w) for w in W) / delta
 
-    function all_forbidden(Q, d, theta, denom::Function = sum)
-        dest = all_destabilizing_subdimension_vectors(d, theta, denom)
-        return filter(
-            e -> !any(f -> partial_order(Q, f, e), filter(f -> f != e, dest)),
-            dest,
-        )
-    end
+    # All the destabilizing subdimension vectors of `d` with respect to the slope
+    # `theta/denom` that are minimal with respect to the total order.
+    dest = all_destabilizing_subdimension_vectors(d, theta)
+    minimal_forbidden = filter(
+        e -> !any(f -> partial_order(Q, f, e), filter(f -> f != e, dest)), dest)
 
     forbidden_polynomials = [
         prod(
-            prod((chi(j, s) - chi(i, r))^Q.adjacency[i, j]
+            prod((xi(j, s) - xi(i, r))^Q.adjacency[i, j]
 			for r in 1:e[i], s in e[j]+1:d[j])
 				for j in 1:nvertices(Q), i in 1:nvertices(Q) if
             Q.adjacency[i, j] > 0 && e[i] > 0 && d[j] > 1
-        ) for e in all_forbidden(Q, d, theta)
-    ]
+        ) for e in minimal_forbidden]
 
     varnames2 = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
     A, Avars = polynomial_ring(Singular.QQ, varnames2)
 
+    # Shorthand to address the variables of A `x_{i,j}`.
     function xs(i, j)
         return Avars[sum(d[1:i-1])+j]
     end
 
     targets = [
-        [symmetric_polynomial([chi(i, j) for j in 1:d[i]], k) for k in 1:d[i]] for
+        [symmetric_polynomial([xi(i, j) for j in 1:d[i]], k) for k in 1:d[i]] for
         i in 1:nvertices(Q)
     ]
     targets = reduce(vcat, targets)
@@ -1189,11 +1223,25 @@ function Chow_ring(
     tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
     linear = [sum(a[i] * xs(i, 1) for i in 1:nvertices(Q))]
 
-    return QuotientRing(A, std(Ideal(A, [tautological; linear])))
+    return (QuotientRing(A, std(Ideal(A, [tautological; linear]))), R, inclusion)
 end
 
+"""
+    Chow_ring(M::QuiverModuliSpace, chi)
+
+Computes the Chow ring of the moduli space ``M``.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+- ``chi``: a choice of linearization for the trivial line bundle.
+    It picks one by default if not provided.
+
+
+OUTPUT:
+- the Chow ring of the moduli space.
+"""
 function Chow_ring(M::QuiverModuliSpace, chi::AbstractVector{Int}=extended_gcd(M.d)[2])
-    return Chow_ring(M.Q, M.d, M.theta, chi)
+    return Chow_ring(M.Q, M.d, M.theta, chi)[1]
 end
 
 
