@@ -1354,7 +1354,72 @@ function total_Chern_class_universal(M::QuiverModuliSpace,
     end
     return sum(A[2][sum(M.d[j] for j in 1:i - 1) + r] for r in 1:M.d[i]) + 1
 end
+
+
+"""
+    point_class(M::QuiverModuliSpace)
+
+Returns the point class of the moduli space ``M``.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+- ``chi``: a choice of linearization to construct the universal bundles.
+
+OUTPUT:
+- the point class of the moduli space, as a polynomial in its Chow ring.
+
+EXAMPLES:
+
+A projective 7-fold:
+```jldoctest
+julia> Q = mKronecker_quiver(8);
+
+julia> M = QuiverModuliSpace(Q, [1, 1]);
+
+julia> point_class(M)
+x2^7
+```
+
+Our favourite 6-fold:
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> point_class(M)
+x23^2
+```
+"""
+function point_class(M::QuiverModuliSpace,
+    chi::AbstractVector{Int} = extended_gcd(M.d)[2],
     )
+    num = 1
+    den = 1
+
+    for i in 1:nvertices(M.Q)
+        c = total_Chern_class_universal(M, i, chi)
+        num *= c^(M.d' * M.Q.adjacency[:, i])
+        den *= c^M.d[i]
+    end
+
+    # this is because Singular does not support arbitrary gradings for
+    # polynomial rings.
+    mydegrees = vcat([collect(1:M.d[i]) for i in 1:nvertices(M.Q)]...)
+    my_total_degree(term) = sum(
+        mydegrees' * collect(Singular.exponent_vectors(term))[1]
+        )
+
+    # in what universe is div() not aliased by / or // ???
+    quot = div(num, den)
+
+    N = dimension(M)
+    out = 0
+    for term in Singular.terms(quot)
+        if my_total_degree(term) == N
+            out += term
+        end
+    end
+    return out
 end
 function todd_class(Q::Quiver,
 	d::AbstractVector{Int},
