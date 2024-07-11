@@ -351,6 +351,7 @@ function all_Luna_types(
         QuiverTools.all_subdimension_vectors(d, nonzero = true),
     )
 
+    # TODO keyword arguments across codebase
     Luna_types = []
 
     # the highest possible amount of repetitions for a given stable dimension vector
@@ -981,6 +982,7 @@ function Betti_numbers(M::QuiverModuliSpace)
     end
     return betti
 end
+
 """
     Poincare_polynomial(M::QuiverModuliSpace)
 
@@ -1085,14 +1087,14 @@ function motive(Q::Quiver,
     L = L[1]
 
     if all(ti == 0 for ti in theta)
-        out = power(L,(- Euler_form(Q, d, d)))
+        out = power(L,- Euler_form(Q, d, d))
         div = 1
         for i in 1:nvertices(Q)
             if d[i] > 0
                 div *= prod(1 - power(L, -nu) for nu in 1:d[i])
             end
         end
-        return out/div
+        return out / div
     end
 
     ds = all_subdimension_vectors(d, nonzero = true, strict = true)
@@ -1231,7 +1233,6 @@ A tuple containing:
     # Action of the symmetric group on R by permutation of the variables.
     permute(f, sigma) = f([xi(i, sigma[i][j]) for i in 1:nvertices(Q) for j in 1:d[i]]...)
 
-
     # The discriminant in the definition of the antisymmetrization.
     delta = 1
     for i in 1:nvertices(Q)
@@ -1239,10 +1240,7 @@ A tuple containing:
             delta *= prod(xi(i, l) - xi(i, k) for k in 1:d[i]-1 for l in k+1:d[i])
         end
     end
-    # delta = prod(
-    #     prod(xi(i, l) - xi(i, k) for k in 1:d[i]-1 for l in k+1:d[i]) for
-    #     i in 1:nvertices(Q) if d[i] > 1
-    # )
+
     antisymmetrize(f) = sum(sign(w) * permute(f, w) for w in W) / delta
 
     # All the destabilizing subdimension vectors of `d` with respect to the slope
@@ -1492,6 +1490,9 @@ function point_class(M::QuiverModuliSpace,
         end
     end
     return out
+    return sum(term for term in Singular.terms(quot) if my_total_degree(term) == N; init = 0)
+end
+
 end
 function todd_class(Q::Quiver,
 	d::AbstractVector{Int},
@@ -1629,8 +1630,9 @@ function dimension(M::QuiverModuliSpace)
     elseif M.condition == "semistable"
         if has_semistables(M.Q, M.d, M.theta)
             return maximum(
-                dimension_of_Luna_stratum(M, tau) for tau in all_Luna_types(M.Q, M.d, M.theta)
-            )
+                dimension_of_Luna_stratum(M, tau)
+                for tau in all_Luna_types(M.Q, M.d, M.theta)
+                    )
             # TODO what are the Luna strata for d = 0?
             # shouldn't the case d = 0 be handled correctly here?
 
@@ -1641,6 +1643,8 @@ function dimension(M::QuiverModuliSpace)
 end
 
 """
+    is_rigid(M::QuiverModuli)
+
 Checks if the moduli space is infinitesimally rigid by verifying wether
 the Teleman quantization criterion of
 [arXiv:2311.17003](https://doi.org/10.48550/arXiv.2311.17003) holds.
