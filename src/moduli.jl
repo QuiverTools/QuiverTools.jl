@@ -453,7 +453,7 @@ OUTPUT:
 - the dimension of the Luna stratum corresponding to the given Luna type.
 """
 function dimension_of_Luna_stratum(M::QuiverModuli, tau)
-    return sum(length(tau[e]) * (1 - Euler_form(M.Q, e, e)) for e in keys(tau))
+    return sum(length(tau[e]) * (1 - Euler_form(M.Q, e, e)) for e in collect(keys(tau)))
 end
 
 """
@@ -473,9 +473,10 @@ function local_quiver_setting(M::QuiverModuli, tau)
         throw(DomainError("Not a Luna type"))
     end
 
+    ks = collect(keys(tau))
     A = coerce_matrix([
-        [generic_ext(M.Q, e, eprime) for eprime in keys(tau) for n in tau[eprime]] for
-        e in keys(tau) for m in tau[e]
+        [generic_ext(M.Q, e, eprime) for eprime in ks for n in tau[eprime]] for
+        e in ks for m in tau[e]
     ])
 
     Qloc = Quiver(A)
@@ -1651,7 +1652,7 @@ function is_rigid(M::QuiverModuli)
     if is_acyclic(M.Q)
         bounds = all_Teleman_bounds(M.Q, M.d, M.theta)
         weights = all_weights_endomorphisms_universal_bundle(M.Q, M.d, M.theta)
-        if all(weights[hn] < bounds[hn] for hn in keys(bounds))
+        if all(weights[hn] < bounds[hn] for hn in collect(keys(bounds)))
             return true
         end
     end
