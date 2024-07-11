@@ -398,20 +398,41 @@ INPUT:
 
 OUTPUT:
 - whether the given tau is a valid Luna type for `M`.
+
+EXAMPLES:
+
+Nontrivial Luna types for the 3-Kronecker quiver:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
+
+julia> l = Dict([1, 1] => [1], [2, 2] => [1]);
+
+julia> is_Luna_type(M, l)
+true
+```
+
+The zero dimensional case:
+```jldoctest
+julia> Q = mKronecker_quiver(3); X = QuiverModuliSpace(Q, [0, 0]);
+
+julia> is_Luna_type(X, Dict([0, 0] => [1]))
+true
+```
 """
 function is_Luna_type(M::QuiverModuli, tau)
     if sum(M.d) == 0
-        return tau == Dict(d => [1])
+        return tau == Dict(M.d => [1])
     end
 
-    if sum(keys(tau)) != M.d
+    ks = collect(keys(tau))
+    if sum(ks) != M.d
         return false
     end
-    if !all(slope(e, M.theta, M.denom) == slope(d, M.theta, M.denom) for e in keys(tau))
+    if !all(slope(e, M.theta, M.denom) == slope(M.d, M.theta, M.denom) for e in ks)
         return false
     end
 
-    if !all(has_semistables(M.Q, e, M.theta, M.denom) for e in keys(tau))
+    if !all(has_semistables(M.Q, e, M.theta, M.denom) for e in ks)
         return false
     end
     return true
