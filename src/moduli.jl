@@ -2,6 +2,7 @@ export QuiverModuli, QuiverModuliSpace, QuiverModuliStack
 
 export Chow_ring, motive, index, Betti_numbers, Poincare_polynomial,
     is_smooth, is_projective, semisimple_moduli_space, point_class
+export all_Luna_types, is_Luna_type
 abstract type QuiverModuli end
 
 
@@ -290,13 +291,52 @@ function all_Luna_types(M::QuiverModuli; exclude_stable::Bool = false)
     return all_Luna_types(M.Q, M.d, M.theta, M.denom, exclude_stable)
 end
 
+"""
+    all_Luna_types(Q, d, theta, denom, exclude_stable)
+
+Computes all the possible Luna types for the given data.
+
+INPUT:
+- `Q`: a quiver.
+- `d`: a dimension vector.
+- `theta`: a stability parameter. Defaults to the canonical stability.
+- `denom`: a function defining the denominator of the slope. Defaults to sum.
+- `exclude_stable`: whether to exclude the Luna type of stable representations.
+
+OUTPUT:
+A list of Luna types.
+
+
+EXAMPLES:
+
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
+
+julia> all_Luna_types(M)
+5-element Vector{Dict{AbstractVector, Vector{Int64}}}:
+ Dict([3, 3] => [1])
+ Dict([1, 1] => [1], [2, 2] => [1])
+ Dict([1, 1] => [3])
+ Dict([1, 1] => [2, 1])
+ Dict([1, 1] => [1, 1, 1])
+
+julia> X = QuiverModuliSpace(Q, [2, 3]);
+
+julia> all_Luna_types(X)
+1-element Vector{Dict{AbstractVector, Vector{Int64}}}:
+ Dict([2, 3] => [1])
+```
+"""
 function all_Luna_types(
     Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int} = canonical_stability(Q, d),
     denom::Function = sum,
     exclude_stable::Bool = false,
-)
+)::Vector{Dict{AbstractVector, Vector{Int}}}
+
+    d = coerce_vector(d)
+    theta = coerce_vector(theta)
 
     # treat the zero case separately
     if all(di == 0 for di in d)
@@ -321,7 +361,7 @@ function all_Luna_types(
 
                 partial = Dict()
                 for e in tau
-                    if e in keys(partial)
+                    if e in collect(keys(partial))
                         partial[e] += 1
                     else
                         partial[e] = 1
@@ -332,11 +372,10 @@ function all_Luna_types(
                     partial[e] = partitions(partial[e])
                 end
 
-                new_Luna = [
-                    Dict(zip(keys(partial), p)) for
-                    p in Iterators.product(values(partial)...)
-                ]
-                Luna_types = vcat(Luna_types, new_Luna)
+                for p in Iterators.product(values(partial)...)
+                    new_Luna_type = Dict(zip(collect(keys(partial)), p))
+                    push!(Luna_types, new_Luna_type)
+                end
             end
         end
     end
