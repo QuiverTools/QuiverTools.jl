@@ -1260,7 +1260,6 @@ A tuple containing:
         return out
     end
     forbidden_polynomials = [new_forbidden(e) for e in minimal_forbidden]
-    print(forbidden_polynomials)
 
     varnames2 = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
     A, Avars = polynomial_ring(Singular.QQ, varnames2)
@@ -1343,7 +1342,6 @@ function extended_gcd(x)
 		g, a, b = gcdx(x[1], x[2])
 		y = vcat([g],  [x[i] for i in 3:n])
 		d, c = extended_gcd(y)
-		m = vcat([c[1] * a, c[1] * b], [c[i] for i in 1:n - 1])
 		m = vcat([c[1] * a, c[1] * b], [c[i] for i in 2:n - 1])
 		return [d, m]
 	end
@@ -1416,8 +1414,6 @@ function total_Chern_class_universal(M::QuiverModuliSpace,
         return 1
     end
     A = Chow_ring(M, chi)
-    return 1 + sum(
-        gens(A)[sum(M.d[j] for j in 1:i - 1) + r] for r in 1:M.d[i] - 1
     
     if i == 1
         return sum(A[2][r] for r in 1:M.d[i]) + 1
@@ -1446,8 +1442,8 @@ julia> Q = mKronecker_quiver(8);
 
 julia> M = QuiverModuliSpace(Q, [1, 1]);
 
-julia> point_class(M)
-x2^7
+julia> point_class(M, [1, 0])
+x21^7
 ```
 
 Our favourite 6-fold:
@@ -1481,15 +1477,7 @@ function point_class(M::QuiverModuliSpace,
 
     # in what universe is div() not aliased by / or // ???
     quot = div(num, den)
-
     N = dimension(M)
-    out = 0
-    for term in Singular.terms(quot)
-        if my_total_degree(term) == N
-            out += term
-        end
-    end
-    return out
     return sum(term for term in Singular.terms(quot) if my_total_degree(term) == N; init = 0)
 end
 
@@ -1792,6 +1780,6 @@ julia> dimension(semisimple_moduli_space(M))
 0
 ```
 """
-function semisimple_moduli_space(M::QuiverModuli)
+function semisimple_moduli_space(M::QuiverModuliSpace)
     return QuiverModuliSpace(M.Q, M.d, zero_vector(nvertices(M.Q)))
 end
