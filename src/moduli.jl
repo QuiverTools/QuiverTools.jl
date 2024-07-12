@@ -1392,10 +1392,25 @@ INPUT:
 
 OUTPUT:
 - the first Chern class of the line bundle L(eta) as a polynomial.
+
+EXAMPLES:
+
+The line bundles \$\\mathcal{O}(i)\$ on the projective line:
+```jldoctest
+julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
+
+julia> l = Chern_class_line_bundle(M, [1, -1])
+-x11
+```
 """
 function Chern_class_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
-    A = Chow_ring(M)
-    return -sum(eta[i] * gens(A)[sum(d[1:i])] for i in 1:nvertices(M.Q))
+    A, vars = Chow_ring(M)
+    return A(
+        -sum(
+        eta[i] * vars[sum(M.d[1:i])]
+        for i in 1:nvertices(M.Q)
+            )
+        )
 end
 
 # TODO add examples
@@ -1411,10 +1426,20 @@ INPUT:
 OUTPUT:
 - the Chern character of the line bundle L(eta).
 
+EXAMPLES:
+
+Some line bundles on the projective line:
+```jldoctest
+julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
+
+julia> l = QuiverTools.Chern_character_line_bundle(M, [1, -1])
+-x11 + 1
+```
 """
 function Chern_character_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
     x = Chern_class_line_bundle(M, eta)
-    return sum(x^i * factorial(i) for i in 0:dimension(M)) 
+    A = Chow_ring(M)[1]
+    return A(sum(x^i / factorial(i) for i in 0:dimension(M)))
 end
 
 
