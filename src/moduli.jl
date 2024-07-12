@@ -1517,22 +1517,35 @@ function point_class(M::QuiverModuliSpace,
         den *= c^M.d[i]
     end
 
-    # this is because Singular does not support arbitrary gradings for
-    # polynomial rings.
-    my_degrees = vcat([collect(1:M.d[i]) for i in 1:nvertices(M.Q)]...)
-    my_total_degree(mydegrees, term) = sum(
-        mydegrees' * collect(Singular.exponent_vectors(term))[1]
-        )
-
     # in what universe is div() not aliased by / or // ???
     quot = div(num, den)
     N = dimension(M)
-    return sum(term
-        for term in Singular.terms(quot)
-        if my_total_degree(my_degrees, term) == N; init = 0)
+    return sum(term for term in Singular.terms(quot)
+                    if __Chow_ring_monomial_grading(M, term) == N; init = 0) 
+end
+"""
+    Chow_ring__monomial_grading(M, f)
+
+Returns the "pseudodegree" of the monomial `f` in the Chow ring of the moduli
+space `M` passed.
+
+This method is unsafe, as it does not consider the actual degree of the MPolyRingElem
+objects passed. Instead, it assumes that the Chow ring passed has variables \$x_{i, j}\$
+as in the Chow ring paper.
+"""
+function __Chow_ring_monomial_grading(M::QuiverModuliSpace, f)
+    return __Chow_degrees(M.d)' * collect(Singular.exponent_vectors(f))[1]
 end
 
 
+"""
+    Chow_degrees(d)
+
+Returns the vector of degrees for the variables of a Chow ring.
+"""
+@memoize Dict function __Chow_degrees(d::AbstractVector{Int})
+    return vcat([collect(1:di) for di in d if di > 0]...)
+end
 """
     todd_class(M::QuiverModuliSpace, chi)
 
