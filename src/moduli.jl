@@ -1,7 +1,8 @@
 export QuiverModuli, QuiverModuliSpace, QuiverModuliStack
 
 export Chow_ring, motive, index, Betti_numbers, Poincare_polynomial,
-    is_smooth, is_projective, semisimple_moduli_space, point_class
+    is_smooth, is_projective, semisimple_moduli_space, point_class,
+    Todd_class
 export all_Luna_types, is_Luna_type, dimension_of_Luna_stratum
 abstract type QuiverModuli end
 
@@ -1507,9 +1508,30 @@ function point_class(M::QuiverModuliSpace,
 end
 
 end
-function todd_class(Q::Quiver,
-	d::AbstractVector{Int},
-	chi::AbstractVector{Int}=extended_gcd(d)[2]
+
+"""
+    todd_class(M::QuiverModuliSpace, chi)
+
+Returns the Todd class of the moduli space ``M``.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+- ``chi``: a choice of linearization to construct the universal bundles.
+
+OUTPUT:
+- the Todd class of the moduli space, as a polynomial in its Chow ring.
+
+EXAMPLES:
+The Todd class of our favourite 3-Kronecker quiver moduli:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> Todd_class(M)
+17//8*x12*x21 - x21^2 - 823//360*x12*x22 + 823//1080*x22^2 - 553//1080*x21*x23 + 77//60*x22*x23 - x23^2 - 5//12*x12 + 3//2*x21 - 9//8*x23 - 1
+```
+"""
+function Todd_class(M::QuiverModuliSpace,
+	chi::AbstractVector{Int}=extended_gcd(M.d)[2]
 	)
 
 	"""
@@ -1520,7 +1542,7 @@ function todd_class(Q::Quiver,
 	"""
 	function todd_Q(t, n)
 		return sum(
-			(-1) ^ i * (bernoulli(i) * t^i) / factorial(i) for i in 0:n
+			(-1)^i * (Nemo.bernoulli(i) * t^i) / factorial(i) for i in 0:n
 		)
 	end
 
@@ -1529,35 +1551,56 @@ function todd_class(Q::Quiver,
 	of degree > n
 	"""
 	function truncate(f, n)
-		return sum([term for term in terms(f) if total_degree(term) <= n])
+		return sum(
+            term for term in Singular.terms(f)
+                if Singular.total_degree(term) <= n
+                    )
 	end
 
-	throw(NotImplementedError())
-    # TODO refactor Chow ring to return ideal, rings, inclusion, variables
-    # TODO then use that here
+    N = dimension(M)
+
+    A, R, inclusion = Chow_ring(M.Q, M.d, M.theta, chi)
+    I = Singular.quotient_ideal(A[1])
+
+    function xi(i, p)
+        return gens(R)[sum(M.d[1:i-1]) + p]
+    end
+
 	num = 1
 	den = 1
 
-	for a in Q.arrows()
+	for a in arrows(M.Q)
 		i, j = a
-		for p in 1:d[i]
-			for q in 1:d[j]
-				num *= todd_Q(chi(j, q) - chi(i, p), sum(d))
-				num = truncate(num, sum(d))
+		for p in 1:M.d[i]
+			for q in 1:M.d[j]
+				num *= todd_Q(xi(j, q) - xi(i, p), N)
+				num = truncate(num, N)
 			end
 		end
 	end
 
-	for i in 1:nvertices(Q)
-		for p in 1:d[i]
-			for q in 1:d[i]
-				den *= todd_Q(chi(i, q) - chi(i, p), sum(d))
-				den = truncate(den, sum(d))
+	for i in 1:nvertices(M.Q)
+		for p in 1:M.d[i]
+			for q in 1:M.d[i]
+				den *= todd_Q(xi(i, q) - xi(i, p), N)
+				den = truncate(den, N)
 			end
 		end
 	end
 
-	return num / den
+    # this is because Singular does not have a method to get the preimage
+    # of a given element, only ideals.
+    # In Singular's implementation this does not result in a loss of time anyways...
+    num = gens(preimage(inclusion, Ideal(R, num)))[1]
+    den = gens(preimage(inclusion, Ideal(R, den)))[1]
+
+
+    # For some reason this is the only way to
+    # get Singular to coerce the polynomials in the Chow ring.
+    Inum = Ideal(A[1], num)
+    Iden = Ideal(A[1], den)
+
+    return div(A[1](gens(Inum)[1]), A[1](gens(Iden)[1]))
 end
 
 
@@ -1735,10 +1778,6 @@ function is_smooth(M::QuiverModuliStack)
     return true
 end
 
-# DONE - modify current Picard_rank, Hodge_diamond and so on
-#        so that they behave correctly.
-# TODO - Chow ring, point class, Todd class, Chern classes,
-#        Chern characters, degrees, diagonal.
 # TODO - smooth model should return a smooth model and
 #        somehow the information for the correspondence?
 

@@ -7,6 +7,7 @@ using IterTools: IterTools
 using LinearAlgebraX: LinearAlgebraX
 using Singular: Singular
 using AbstractAlgebra: AbstractAlgebra
+using Nemo: Nemo
 
 import Base.show
 import Memoization: @memoize
