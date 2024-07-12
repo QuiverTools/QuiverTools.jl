@@ -1637,7 +1637,7 @@ function Todd_class(M::QuiverModuliSpace,
     Inum = Ideal(A[1], num)
     Iden = Ideal(A[1], den)
 
-    return div(A[1](gens(Inum)[1]), A[1](gens(Iden)[1]))
+    return A[1](div(A[1](gens(Inum)[1]), A[1](gens(Iden)[1])))
 end
 
 
