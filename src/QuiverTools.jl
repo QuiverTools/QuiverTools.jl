@@ -26,7 +26,8 @@ import Singular:
 import Combinatorics: with_replacement_combinations, partitions
 
 export Quiver
-export nvertices, narrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
+export nvertices, narrows, arrows, indegree, outdegree,
+    is_acyclic, is_connected, is_sink, is_source
 export Euler_form, canonical_stability, is_coprime, slope
 export is_Schur_root,
     generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
@@ -229,6 +230,28 @@ true
 """
 is_sink(Q::Quiver, j::Int) = outdegree(Q, j) == 0
 
+"""
+    arrows(Q::Quiver)
+
+Returns a list of all arrows of the quiver ``Q``.
+
+INPUT:
+- `Q`: a quiver
+
+OUTPUT:
+- a list of all arrows of the quiver ``Q``.
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> arrows(Q)
+3-element Vector{Vector{Int64}}:
+ [1, 2]
+ [1, 2]
+ [1, 2]
+```
+"""
 function arrows(Q::Quiver)
     n = nvertices(Q)
     return reduce(
