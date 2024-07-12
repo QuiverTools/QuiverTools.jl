@@ -1493,15 +1493,17 @@ function point_class(M::QuiverModuliSpace,
 
     # this is because Singular does not support arbitrary gradings for
     # polynomial rings.
-    mydegrees = vcat([collect(1:M.d[i]) for i in 1:nvertices(M.Q)]...)
-    my_total_degree(term) = sum(
+    my_degrees = vcat([collect(1:M.d[i]) for i in 1:nvertices(M.Q)]...)
+    my_total_degree(mydegrees, term) = sum(
         mydegrees' * collect(Singular.exponent_vectors(term))[1]
         )
 
     # in what universe is div() not aliased by / or // ???
     quot = div(num, den)
     N = dimension(M)
-    return sum(term for term in Singular.terms(quot) if my_total_degree(term) == N; init = 0)
+    return sum(term
+        for term in Singular.terms(quot)
+        if my_total_degree(my_degrees, term) == N; init = 0)
 end
 
 end
