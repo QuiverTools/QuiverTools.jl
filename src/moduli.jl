@@ -2,7 +2,7 @@ export QuiverModuli, QuiverModuliSpace, QuiverModuliStack
 
 export Chow_ring, motive, index, Betti_numbers, Poincare_polynomial,
     is_smooth, is_projective, semisimple_moduli_space, point_class
-export all_Luna_types, is_Luna_type
+export all_Luna_types, is_Luna_type, dimension_of_Luna_stratum
 abstract type QuiverModuli end
 
 
@@ -273,7 +273,6 @@ end
 # TODO add safety checks everywhere in the codebase
 
 
-# TODO add examples of Luna types
 """
 	all_Luna_types(M::QuiverModuli; exclude_stable::Bool = false)
 
@@ -286,6 +285,20 @@ INPUT:
 OUTPUT:
 - a list of Luna types for the dimension vector and slope of `M`.
 
+EXAMPLES:
+
+Luna types for a 3-Kronecker quiver:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
+
+julia> all_Luna_types(M)
+5-element Vector{Dict{AbstractVector, Vector{Int64}}}:
+ Dict([3, 3] => [1])
+ Dict([1, 1] => [1], [2, 2] => [1])
+ Dict([1, 1] => [3])
+ Dict([1, 1] => [2, 1])
+ Dict([1, 1] => [1, 1, 1])
+```
 """
 function all_Luna_types(M::QuiverModuli; exclude_stable::Bool = false)
     return all_Luna_types(M.Q, M.d, M.theta, M.denom, exclude_stable)
@@ -387,7 +400,6 @@ function all_Luna_types(
     return Luna_types
 end
 
-# TODO add examples
 """
 	is_Luna_type(M::QuiverModuli, tau)
 
@@ -452,6 +464,21 @@ INPUT:
 
 OUTPUT:
 - the dimension of the Luna stratum corresponding to the given Luna type.
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [2, 2], [1, -1]);
+
+julia> luna = all_Luna_types(M)
+2-element Vector{Dict{AbstractVector, Vector{Int64}}}:
+ Dict([1, 1] => [2])
+ Dict([1, 1] => [1, 1])
+
+julia> [dimension_of_Luna_stratum(M, tau) for tau in luna]
+2-element Vector{Int64}:
+ 1
+ 2
+```
 """
 function dimension_of_Luna_stratum(M::QuiverModuli, tau)
     return sum(length(tau[e]) * (1 - Euler_form(M.Q, e, e)) for e in collect(keys(tau)))
@@ -835,7 +862,6 @@ function Hodge_diamond(M::QuiverModuli)
     return Hodge_diamond(M.Q, M.d, M.theta)
 end
 
-# TODO add examples
 """
     Picard_rank(M::QuiverModuliSpace)
 
@@ -1368,7 +1394,7 @@ OUTPUT:
 """
 function Chern_class_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
     A = Chow_ring(M)
-    return -sum(eta[i] * gens(A)[sum(d[j] for j in 1:i)] for i in 1:nvertices(M.Q))
+    return -sum(eta[i] * gens(A)[sum(d[1:i])] for i in 1:nvertices(M.Q))
 end
 
 # TODO add examples
@@ -1414,11 +1440,8 @@ function total_Chern_class_universal(M::QuiverModuliSpace,
         return 1
     end
     A = Chow_ring(M, chi)
-    
-    if i == 1
-        return sum(A[2][r] for r in 1:M.d[i]) + 1
-    end
-    return sum(A[2][sum(M.d[j] for j in 1:i - 1) + r] for r in 1:M.d[i]) + 1
+
+    return sum(A[2][sum(M.d[1:i - 1]) + r] for r in 1:M.d[i]) + 1
 end
 
 
