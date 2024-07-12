@@ -1507,7 +1507,6 @@ function point_class(M::QuiverModuliSpace,
         if my_total_degree(my_degrees, term) == N; init = 0)
 end
 
-end
 
 """
     todd_class(M::QuiverModuliSpace, chi)
