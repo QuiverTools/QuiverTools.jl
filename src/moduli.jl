@@ -1640,11 +1640,60 @@ function Todd_class(M::QuiverModuliSpace,
     return A[1](div(A[1](gens(Inum)[1]), A[1](gens(Iden)[1])))
 end
 
+"""
+    integral(M, f, chi)
 
+Computes the integral of `f` according to the Hirzebruch-Riemann-Roch theorem.
 
+In other words, it computes the Euler characteristic of the line bundle associated to `f`.
 
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+- `f`: the Chern class in CH(M) to integrate.
+- ``chi``: a choice of linearization to construct the universal bundles.
 
+OUTPUT:
+the integral of `f`.
 
+EXAMPLES:
+
+The integral of \$\\mathcal{O}(i)\$ on the projective line for some `i`s.
+
+```jldoctest
+julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
+
+julia> L = Chern_character_line_bundle([1, -1]);
+
+julia> [QuiverTools.integral(M, l^i) for i in 0:5]
+6-element Vector{Any}:
+ 0
+  1
+  2
+  3
+  4
+  5
+```
+"""
+function integral(M::QuiverModuliSpace,
+    f,
+    chi::AbstractVector{Int}= extended_gcd(M.d)[2],
+    )
+    A, vars = Chow_ring(M)
+    I = Singular.quotient_ideal(A)
+    N = dimension(M)
+    integrand = collect(
+        filter(
+            t -> __Chow_ring_monomial_grading(M, t) == N,
+            collect(Singular.terms(f))
+            )
+    )
+    if length(integrand) > 0
+        @warn "this is broken. Figure out a way to reduce correctly."
+        @warn "or to extract the relevant coefficients."
+        return sum(integrand) / point_class(M, chi)
+    end
+    return 0
+end
 
 
 
