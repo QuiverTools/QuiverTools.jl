@@ -12,13 +12,14 @@ DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools))
 makedocs(
     sitename = "QuiverTools",
     authors = "Gianni Petrella",
-    # format = Documenter.HTML(),
-    format = Documenter.LaTeX(), # builds pdf, does not like the github Documenter action for now. Use only in local build.
+    doctest = false,
     modules = [QuiverTools],
+    format = Documenter.HTML(),
+    # format = Documenter.LaTeX(), # builds pdf, does not like the github Documenter action for now. Use only in local build.
     pages = [   "QuiverTools" => "index.md", 
     "Tutorial" => "tutorial.md",
     "All methods" => "methods.md",
-    "Benchmarks" => "benchmarks.md"]
+    "Benchmarks" => "benchmarks.md"],
     )
 
 # deploydocs(
