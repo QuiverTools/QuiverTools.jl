@@ -844,9 +844,11 @@ function is_amply_stable(
     return all(stratum -> codimension_HN_stratum(Q, stratum) >= 2, HN)
 end
 
-#####################################################
+
+########################################################################################
 # Canonical decomposition
-#####################################################
+########################################################################################
+
 
 """
 Computes the dimension of the ``\\mathrm{Ext}^1`` group between generic representations
@@ -936,72 +938,9 @@ function in_fundamental_domain(Q::Quiver, d::AbstractVector{Int}; interior::Bool
     return all(simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) <= 0, simples)
 end
 
-##############################################################
-# walls and chambers bases for stability parameters
-
-function all_Schurian_decompositions(Q::Quiver, d::AbstractVector{Int})
-    # the end of the recursion is necessarily at a simple root
-    # TODO multisets instead of lists.
-    if all(di == 0 for di in d)
-        return [[]]
-    elseif sum(d) == 1
-        return [[d]]
-    end
-    Schur_subroots =
-        filter(e -> is_Schur_root(Q, e), all_subdimension_vectors(d, nonzero = true))
-    # @info d, Schur_subroots
-
-    out = []
-    for e in Schur_subroots, fstar in all_Schurian_decompositions(Q, d - e)
-        push!(out, [e, fstar...])
-    end
-    return out
-end
-
-function admits_semistables(Q::Quiver, d::AbstractVector{Int})
-    # if there are less summands than vertices, there will always be a stability parameter
-    # which multiplies all the summands (and hence d) to zero.
-    allow_stability = []
-
-    allSchurian = all_Schurian_decompositions(Q, d)
-    for candidate in allSchurian
-        if length(candidate) < nvertices(Q)
-            push!(allow_stability, candidate)
-        else
-            # if not, one has to check.
-            if LinearAlgebraX.rankx(hcat(candidate...)) < nvertices(Q)
-                push!(allow_stability, candidate)
-            end
-        end
-    end
-    return allow_stability
-end
-
-"""
-Checks if the stability parameter ``\\theta`` belongs to the cone of parameters
-admitting stable representations of dimension vector ``d``.
-
-Assumes that the dimension vector ``d`` is Schurian (for now).
-"""
-function in_stable_cone(
-    Q::Quiver,
-    d::AbstractVector{Int},
-    theta::AbstractVector{Int},
-    strict::Bool = false,
-)
-    if !is_Schur_root(Q, d)
-        throw(ArgumentError("d is not Schurian"))
-    end
-    if strict
-        return all(e -> theta' * e < 0, all_generic_subdimension_vectors(Q, d))
-    end
-    return all(e -> theta' * e <= 0, all_generic_subdimension_vectors(Q, d))
-end
-
-
-#################
+########################################################################################
 # Technical tools
-#################
+########################################################################################
 
 """
 	zero_vector(n::Int)
