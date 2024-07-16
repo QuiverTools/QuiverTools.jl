@@ -72,8 +72,18 @@ struct Quiver
         if !(size(adjacency)[1] == size(adjacency)[2])
             throw(DomainError(adjacency, "adjacency matrix must be square"))
         else
-            new(adjacency, "")
+            return Quiver(adjacency, "")
         end
+    end
+    function Quiver(arrows::String)
+        pairs = split(arrows, ",")
+        pairs = map(pair -> [parse(Int, pair[1]), parse(Int, pair[end]), length(pair) - 2], pairs)
+        n = maximum(maximum(pair[1:2]) for pair in pairs)
+        A = zeros(Int, n, n)
+        for pair in pairs
+            A[pair[1], pair[2]] = pair[3]
+        end
+        return Quiver(A)
     end
 end
 
@@ -809,8 +819,6 @@ function is_amply_stable(
     return all(stratum -> codimension_HN_stratum(Q, stratum) >= 2, HN)
 end
 
-include("teleman.jl")
-
 #####################################################
 # Canonical decomposition
 #####################################################
@@ -1128,6 +1136,7 @@ end
 
 include("constructors.jl")
 include("moduli.jl")
+include("teleman.jl")
 
 ######################
 # end of QuiverTools
