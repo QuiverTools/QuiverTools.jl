@@ -8,10 +8,11 @@
 corresponding to the given HN type."""
 function Teleman_bound_onstratum(
 	Q::Quiver,
-	hntype::AbstractVector{AbstractVector{Int}},
+	hntype::Vector{<:AbstractVector{Int}},
 	theta::AbstractVector{Int},
 	denom::Function = sum,
-)::Int
+	)::Int
+
 	if length(hntype) == 1
 		throw(ArgumentError("Weight not defined for HN type of length 1."))
 	end
@@ -20,8 +21,15 @@ function Teleman_bound_onstratum(
 	return sum(
 		(slopes[t] - slopes[s]) * Euler_form(Q, hntype[s], hntype[t]) for
 		s ∈ 1:length(hntype)-1 for t ∈ s+1:length(hntype)
+			(slopes[t] - slopes[s]) * Euler_form(Q, hntype[s], hntype[t])
+			for s in 1:length(hntype)-1
+			for t in s+1:length(hntype)
+		)
+end
+
 	)
 end
+
 
 """ Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
 HN type for the given ``Q``, ``d``, ``\\theta`` and `denom``."""
@@ -30,7 +38,8 @@ function all_Teleman_bounds(
 	d::AbstractVector{Int},
 	theta::AbstractVector{Int},
 	denom::Function = sum,
-)
+	)
+
 	#This is only relevant on the unstable locus
 	HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
 	return Dict([hntype, Teleman_bound_onstratum(Q, hntype, theta, denom)] for hntype in HN)
@@ -43,7 +52,8 @@ function weights_universal_bundle_onstratum(
 	a::AbstractVector{Int},
 	hntype,
 	denom::Function = sum,
-)::AbstractVector{Int}
+	)::AbstractVector{Int}
+
 	slopes = map(h -> slope(h, theta, denom), hntype)
 	slopes *= lcm(denominator.(slopes))
 
@@ -61,7 +71,8 @@ function all_weights_universal_bundle(
 	theta::AbstractVector{Int},
 	a::AbstractVector{Int},
 	denom::Function = sum,
-)
+	)
+	
 	HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
 	return Dict(
 		[hntype, weights_universal_bundle_onstratum(theta, a, hntype, denom)] for
@@ -80,11 +91,12 @@ function weight_irreducible_component_canonical_on_stratum(
 	hntype::AbstractVector{AbstractVector{Int}},
 	theta::AbstractVector{Int},
 	denom::Function = sum,
-)::Int
+	)::Int
+
 	kweights = map(di -> slope(di, theta, denom), hntype)
 	kweights = kweights * lcm(denominator.(kweights))
 
-	dd = sum(kweights[m] .* hntype[m] for m ∈ 1:length(hntype))
+	dd = sum(kweights[m] .* hntype[m] for m in 1:length(hntype))
 	# The Fano paper shows that under appropriate conditions,
 	# the canonical bundle is given by linearizing with minus
 	# the canonical stability parameter.
@@ -102,7 +114,8 @@ function all_weights_irreducible_component_canonical(
 	d::AbstractVector{Int},
 	theta::AbstractVector{Int},
 	denom::Function = sum,
-)
+	)
+
 	HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta))
 	return Dict(
 		[
@@ -118,13 +131,14 @@ function weights_endomorphism_universal_bundle_on_stratum(
 	hntype::AbstractVector{AbstractVector{Int}},
 	theta::AbstractVector{Int},
 	denom::Function = sum,
-)::AbstractVector{Int}
+	)::AbstractVector{Int}
+
 	# the maximum weight of the tensors of the universal bundles U_i^\vee \otimes U_j is
     # slope of first term in the HN type - slope of the last term in the HN type
 	kweights = map(di -> slope(di, theta, denom), hntype)
 	kweights = kweights * lcm(denominator.(kweights))
 	# return kweights[1] - kweights[end] # this is the largest one
-	return [kweights[i] - kweights[j] for i ∈ 1:length(hntype) for j ∈ 1:length(hntype)]
+	return [kweights[i] - kweights[j] for i in 1:length(hntype) for j in 1:length(hntype)]
 end
 
 """Computes the weights of the endomorphisms of the universal bundles ``U_i \\otimes U_j``
@@ -134,7 +148,8 @@ function all_weights_endomorphisms_universal_bundle(
 	d::AbstractVector{Int},
 	theta::AbstractVector{Int},
 	denom::Function = sum,
-)
+	)
+
 	HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
 	return Dict(
 		[hntype, weights_endomorphism_universal_bundle_on_stratum(hntype, theta, denom)] for
