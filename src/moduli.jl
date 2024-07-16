@@ -1853,26 +1853,6 @@ function dimension(M::QuiverModuliSpace)
     return "-∞"
 end
 
-"""
-    is_rigid(M::QuiverModuli)
-
-Checks if the moduli space is infinitesimally rigid by verifying wether
-the Teleman quantization criterion of
-[arXiv:2311.17003](https://doi.org/10.48550/arXiv.2311.17003) holds.
-
-Only a sufficent criterion is implemented,
-so the function may return "not known" even if the moduli space is rigid.
-"""
-function is_rigid(M::QuiverModuli)
-    if is_acyclic(M.Q)
-        bounds = all_Teleman_bounds(M.Q, M.d, M.theta)
-        weights = all_weights_endomorphisms_universal_bundle(M.Q, M.d, M.theta)
-        if all(weights[hn] < bounds[hn] for hn in collect(keys(bounds)))
-            return true
-        end
-    end
-    return "not known"
-end
 
 """
     is_smooth(M::QuiverModuliSpace)

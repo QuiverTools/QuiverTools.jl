@@ -141,3 +141,18 @@ function all_weights_endomorphisms_universal_bundle(
 		hntype in HN
 	)
 end
+
+"""
+    does_Teleman_inequality_hold(M::QuiverModuli)
+
+Checks if the Teleman quantization criterion of
+[arXiv:2311.17003](https://doi.org/10.48550/arXiv.2311.17003) holds.
+
+In case the quiver is acyclic, this ensures that the moduli space is infinitesimally
+rigid.
+"""
+function does_Teleman_inequality_hold(M::QuiverModuli)
+    bounds = all_Teleman_bounds(M.Q, M.d, M.theta)
+    weights = all_weights_endomorphisms_universal_bundle(M.Q, M.d, M.theta)
+    return all(weights[hn] < bounds[hn] for hn in collect(keys(bounds)))
+end
