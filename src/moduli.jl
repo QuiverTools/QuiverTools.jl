@@ -1686,35 +1686,54 @@ The integral of \$\\mathcal{O}(i)\$ on the projective line for some `i`s.
 ```jldoctest
 julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
-julia> L = Chern_character_line_bundle([1, -1]);
+julia> L = Chern_character_line_bundle(M, [1, -1]);
 
-julia> [QuiverTools.integral(M, l^i) for i in 0:5]
-6-element Vector{Any}:
- 0
-  1
-  2
-  3
-  4
-  5
+julia> [integral(M, L^i) for i in 0:5]
+6-element Vector{Int64}:
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+```
+
+Hilbert series for the 3-Kronecker quiver as in our favourite example:
+
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> L = Chern_character_line_bundle(M, [3, -2]);
+
+julia> [integral(M, L^i) for i in 0:5]
+6-element Vector{Int64}:
+    1
+   20
+  148
+  664
+ 2206
+ 5999
 ```
 """
 function integral(M::QuiverModuliSpace,
     f,
     chi::AbstractVector{Int}= extended_gcd(M.d)[2],
     )
-    A, vars = Chow_ring(M)
-    I = Singular.quotient_ideal(A)
+
     N = dimension(M)
-    integrand = collect(
-        filter(
-            t -> __Chow_ring_monomial_grading(M, t) == N,
-            collect(Singular.terms(f))
-            )
-    )
-    if length(integrand) > 0
-        @warn "this is broken. Figure out a way to reduce correctly."
-        @warn "or to extract the relevant coefficients."
-        return sum(integrand) / point_class(M, chi)
+    integrand = sum(
+                    t
+                    for t in collect(Singular.terms(f * Todd_class(M, chi)))
+                    if __Chow_ring_monomial_grading(M, t) == N;
+                    init = 0
+                )
+
+    integ = div(integrand, point_class(M, chi))
+    # coercion to Int
+    return Int(numerator(Singular.constant_coefficient(integ)))
+end
+
+
 """
 Takes a quotient ring R/I and a polynomial f in R and returns the image of f in R/I.
 """
