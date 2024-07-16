@@ -2,7 +2,8 @@ export QuiverModuli, QuiverModuliSpace, QuiverModuliStack
 
 export Chow_ring, motive, index, Betti_numbers, Poincare_polynomial,
     is_smooth, is_projective, semisimple_moduli_space, point_class,
-    Todd_class
+    Todd_class, Chern_class_line_bundle, Chern_character_line_bundle,
+    total_Chern_class_universal, integral
 export all_Luna_types, is_Luna_type, dimension_of_Luna_stratum
 abstract type QuiverModuli end
 
