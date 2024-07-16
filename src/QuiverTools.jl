@@ -36,13 +36,6 @@ export Euler_form, canonical_stability, is_coprime, slope
 export is_Schur_root,
     generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
 export all_HN_types, is_HN_type, has_semistables, has_stables, is_amply_stable
-export all_Teleman_bounds,
-    all_weights_endomorphisms_universal_bundle,
-    all_weights_universal_bundle,
-    all_weights_irreducible_component_canonical
-export Hodge_diamond, Hodge_polynomial, Picard_rank
-export QuiverModuli, is_nonempty, dimension, Poincare_polynomial, Betti_numbers,
-    is_smooth, semistable_equals_stable, codimension_unstable_locus
 
 # TODO add doctests to every method in this file.
 

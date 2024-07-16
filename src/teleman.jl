@@ -4,6 +4,12 @@
 ######################################################################
 
 # TODO: doctest every method in this file.
+export Teleman_bound_onstratum, all_Teleman_bounds, weights_universal_bundle_onstratum,
+	all_weights_universal_bundle, weight_irreducible_component_canonical_on_stratum,
+	all_weights_irreducible_component_canonical,
+	weights_endomorphism_universal_bundle_on_stratum,
+	all_weights_endomorphisms_universal_bundle,
+	does_Teleman_inequality_hold
 
 """ Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS ``\\lambda``
 corresponding to the given HN type."""
