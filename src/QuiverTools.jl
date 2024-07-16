@@ -486,7 +486,7 @@ The zero dimension vector has no stables:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [0,0];
 
-julia> has_stables(Q, d, theta)
+julia> has_stables(Q, d)
 false
 ```
 """
