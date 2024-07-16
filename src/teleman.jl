@@ -27,7 +27,10 @@ function Teleman_bound_onstratum(
 		)
 end
 
+function Teleman_bound_onstratum(M::QuiverModuliStack,
+	hntype::Vector{<:AbstractVector{Int}},
 	)
+	return Teleman_bound_onstratum(M.Q, hntype, M.theta, M.denom)
 end
 
 
@@ -43,6 +46,10 @@ function all_Teleman_bounds(
 	#This is only relevant on the unstable locus
 	HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
 	return Dict([hntype, Teleman_bound_onstratum(Q, hntype, theta, denom)] for hntype in HN)
+end
+
+function all_Teleman_bounds(M::QuiverModuli)
+	return all_Teleman_bounds(M.Q, M.d, M.theta, M.denom)
 end
 
 """Returns the weights of a universal bundle ``U_i(a)`` for the linearization ``a``
