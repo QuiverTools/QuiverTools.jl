@@ -5,8 +5,9 @@ export Chow_ring, motive, index, Betti_numbers, Poincare_polynomial,
     Todd_class, Chern_class_line_bundle, Chern_character_line_bundle,
     total_Chern_class_universal, integral
 export all_Luna_types, is_Luna_type, dimension_of_Luna_stratum
-abstract type QuiverModuli end
 
+
+abstract type QuiverModuli end
 
 # TODO consider this: https://stackoverflow.com/questions/71738970/in-julia-declare-abstractvectorabstractvector
 struct QuiverModuliSpace <: QuiverModuli
@@ -661,7 +662,6 @@ Cardinality of product of general linear groups \$\\mathrm{GL}_{d}(\\mathbb{F}_q
 end
 
 
-# TODO document this
 """Entry of the transfer matrix, as per Corollary 6.9"""
 function TransferMatrixEntry(Q, e, f, q)
     fe = f - e
@@ -693,7 +693,6 @@ function Td(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, q)
 end
 
 
-# TODO DOI below is not open access.
 # auxiliary functions for Hodge_polynomial() above
 ###################################################
 
@@ -1330,7 +1329,7 @@ function Chow_ring(M::QuiverModuliSpace, chi::AbstractVector{Int}=extended_gcd(M
 end
 
 
-# TODO this should be in a misc.jl file or something
+# this should be in a misc.jl file or something
 # this should be in Base really...
 
 """
