@@ -1469,19 +1469,30 @@ INPUT:
 
 OUTPUT:
 - the total Chern class of the universal bundle \$U_i(\\chi)\$.
+
+EXAMPLES:
+
+The universal Chern classes on both vertices of our favourite 3-Kronecker quiver:
+```jldoctest
+julia> Q  = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> total_Chern_class_universal(M, 1)
+x11 + x12 + 1
+
+julia> total_Chern_class_universal(M, 2)
+x21 + x22 + x23 + 1
+```
 """
 function total_Chern_class_universal(M::QuiverModuliSpace,
     i::Int,
-    chi::AbstractVector{Int} = extended_gcd(M.d)[2]
-    )
-    if i < 1 || i > nvertices(M.Q)
-        throw(ArgumentError("i is not a vertex of the quiver."))
-    elseif M.d[i] == 0
-        return 1
-    end
-    A = Chow_ring(M, chi)
+    chi::AbstractVector{Int} = extended_gcd(M.d)[2])
 
-    return sum(A[2][sum(M.d[1:i - 1]) + r] for r in 1:M.d[i]) + 1
+    A, Avars = Chow_ring(M, chi)    
+    cUi = sum(
+        Avars[sum(M.d[1:i - 1]) + r]
+        for r in 1:M.d[i]; init=0
+            ) + 1
+    return cUi
 end
 
 
