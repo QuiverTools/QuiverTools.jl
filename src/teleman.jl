@@ -19,8 +19,6 @@ function Teleman_bound_onstratum(
 	slopes = map(h -> slope(h, theta, denom), hntype)
 	slopes = lcm(denominator.(slopes)) .* slopes
 	return sum(
-		(slopes[t] - slopes[s]) * Euler_form(Q, hntype[s], hntype[t]) for
-		s ∈ 1:length(hntype)-1 for t ∈ s+1:length(hntype)
 			(slopes[t] - slopes[s]) * Euler_form(Q, hntype[s], hntype[t])
 			for s in 1:length(hntype)-1
 			for t in s+1:length(hntype)
