@@ -1588,7 +1588,7 @@ The Todd class of our favourite 3-Kronecker quiver moduli:
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> Todd_class(M)
-17//8*x12*x21 - x21^2 - 823//360*x12*x22 + 823//1080*x22^2 - 553//1080*x21*x23 + 77//60*x22*x23 - x23^2 - 5//12*x12 + 3//2*x21 - 9//8*x23 - 1
+-17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
 ```
 """
 function Todd_class(M::QuiverModuliSpace,
@@ -1655,13 +1655,14 @@ function Todd_class(M::QuiverModuliSpace,
     num = gens(preimage(inclusion, Ideal(R, num)))[1]
     den = gens(preimage(inclusion, Ideal(R, den)))[1]
 
+    # renormalizing the constant term because Singular is silly like that
+    num /= constant_coefficient(num)
+    den /= constant_coefficient(den)
 
-    # For some reason this is the only way to
-    # get Singular to coerce the polynomials in the Chow ring.
-    Inum = Ideal(A[1], num)
-    Iden = Ideal(A[1], den)
+    num = coerce_to_quotient(A[1], num)
+    den = coerce_to_quotient(A[1], den)
 
-    return A[1](div(A[1](gens(Inum)[1]), A[1](gens(Iden)[1])))
+    return div(num, den)
 end
 
 """
