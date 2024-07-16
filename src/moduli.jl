@@ -1181,7 +1181,7 @@ OUTPUT:
 
 EXAMPLES:
 
-```jldoctest
+```julia-repl
 julia> using Singular;
 
 julia> R, vars = polynomial_ring(Singular.QQ, ["x", "y", "z"]);
