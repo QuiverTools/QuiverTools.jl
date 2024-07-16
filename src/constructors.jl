@@ -170,9 +170,6 @@ function Dynkin_quiver(T::String, n::Int)
     end
 end
 
-#TODO: constructors
-ExtendedDynkinQuiver(T::String) = throw(ArgumentError("not implemented"))
-
 function cyclic_quiver(n::Int)
     if n < 1
         throw(ArgumentError("n must be greater than 0"))

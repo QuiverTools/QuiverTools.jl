@@ -61,18 +61,11 @@ struct Quiver
     adjacency::AbstractMatrix{Int}
     name::String
 
-    function Quiver(adjacency::AbstractMatrix{Int}, name::String)
+    function Quiver(adjacency::AbstractMatrix{Int}, name::String = "")
         if !(size(adjacency)[1] == size(adjacency)[2])
             throw(DomainError(adjacency, "adjacency matrix must be square"))
         else
             new(adjacency, name)
-        end
-    end
-    function Quiver(adjacency::AbstractMatrix{Int})
-        if !(size(adjacency)[1] == size(adjacency)[2])
-            throw(DomainError(adjacency, "adjacency matrix must be square"))
-        else
-            return Quiver(adjacency, "")
         end
     end
     function Quiver(arrows::String)
