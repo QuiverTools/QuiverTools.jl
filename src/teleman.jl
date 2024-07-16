@@ -47,6 +47,7 @@ function all_Teleman_bounds(
 end
 
 function all_Teleman_bounds(M::QuiverModuli)
+
 	return all_Teleman_bounds(M.Q, M.d, M.theta, M.denom)
 end
 
@@ -67,6 +68,13 @@ function weights_universal_bundle_onstratum(
 	return -constant_term .+ slopes
 end
 
+function weights_universal_bundle_onstratum(M::QuiverModuli,
+	hntype::Vector{<:AbstractVector{Int}},
+	a::AbstractVector{Int} = extended_gcd(M.d)[2])
+
+	return weights_universal_bundle_onstratum(M.theta, a, hntype, M.denom)
+end
+
 """Computes the weights of the universal bundle ``U_i(a)`` for the linearization ``a``
 on all the non-dense Harder-Narasimhan strata for each 1-PS
 corresponding to each HN type."""
@@ -85,6 +93,12 @@ function all_weights_universal_bundle(
 	)
 end
 
+function all_weights_universal_bundle(M::QuiverModuli,
+	a::AbstractVector{Int} = extended_gcd(M.d)[2])
+
+	return all_weights_universal_bundle(M.Q, M.d, M.theta, a, M.denom)
+end
+
 
 """Computes the weight of the irreducible component of ``\\omega_R|_Z``
 on a Harder-Narasimhan stratum for the 1-PS corresponding to each HN type.
@@ -93,7 +107,7 @@ the pullback of O(H) on the given stratum."""
 function weight_irreducible_component_canonical_on_stratum(
 	Q::Quiver,
 	d::AbstractVector{Int},
-	hntype::AbstractVector{AbstractVector{Int}},
+	hntype::Vector{<:AbstractVector{Int}},
 	theta::AbstractVector{Int},
 	denom::Function = sum,
 	)::Int
@@ -109,6 +123,17 @@ function weight_irreducible_component_canonical_on_stratum(
 	can /= gcd(can)
 	return can' * dd
 end
+
+function weight_irreducible_component_canonical_on_stratum(M::QuiverModuli,
+	hntype::Vector{<:AbstractVector{Int}})
+
+	return weight_irreducible_component_canonical_on_stratum(M.Q,
+															M.d,
+															hntype,
+															M.theta,
+															M.denom)
+end
+
 
 """Computes the weights of the irreducible component of ``\\omega_R|_Z``
 on all the non-dense Harder-Narasimhan strata for each 1-PS relative to the HN type.
@@ -130,6 +155,12 @@ function all_weights_irreducible_component_canonical(
 	)
 end
 
+function all_weights_irreducible_component_canonical(M::QuiverModuli)
+
+	return all_weights_irreducible_component_canonical(M.Q, M.d, M.theta, M.denom)
+end
+
+
 """Computes the weights of the endomorphism of the universal bundle ``U_i \\otimes U_j``
 on the given Harder-Narasimhan stratum for the 1-PS relative to the HN type."""
 function weights_endomorphism_universal_bundle_on_stratum(
@@ -146,6 +177,14 @@ function weights_endomorphism_universal_bundle_on_stratum(
 	return [kweights[i] - kweights[j] for i in 1:length(hntype) for j in 1:length(hntype)]
 end
 
+function weights_endomorphism_universal_bundle_on_stratum(M::QuiverModuli,
+	hntype::Vector{<:AbstractVector{Int}}
+	)
+
+	return weights_endomorphism_universal_bundle_on_stratum(hntype, M.theta, M.denom)
+end
+
+
 """Computes the weights of the endomorphisms of the universal bundles ``U_i \\otimes U_j``
 on all the non-dense Harder-Narasimhan strata for each 1-PS relative to the HN type."""
 function all_weights_endomorphisms_universal_bundle(
@@ -161,6 +200,12 @@ function all_weights_endomorphisms_universal_bundle(
 		hntype in HN
 	)
 end
+
+function all_weights_endomorphisms_universal_bundle(M::QuiverModuli)
+
+	return all_weights_endomorphisms_universal_bundle(M.Q, M.d, M.theta, M.denom)
+end
+
 
 """
     does_Teleman_inequality_hold(M::QuiverModuli)
