@@ -1419,7 +1419,6 @@ function Chern_class_line_bundle(M::QuiverModuliSpace,
     return coerce_to_quotient(A, Chern_class)
 end
 
-# TODO add examples
 """
     Chern_character_line_bundle(M::QuiverModuliSpace, eta)
 
@@ -1438,16 +1437,25 @@ Some line bundles on the projective line:
 ```jldoctest
 julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
-julia> l = QuiverTools.Chern_character_line_bundle(M, [1, -1])
+julia> Chern_character_line_bundle(M, [1, -1])
 -x11 + 1
 ```
-"""
-function Chern_character_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
-    x = Chern_class_line_bundle(M, eta)
-    A = Chow_ring(M)[1]
-    return A(sum(x^i / factorial(i) for i in 0:dimension(M)))
-end
+Some Chern characters for our favourite 6-fold:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
+julia> Chern_character_line_bundle(M, [3, -2])
+1//720*x21^6 - 1//120*x21^5 + 1//24*x21^4 - 1//6*x21^3 + 1//2*x21^2 - x21 + 1
+```
+"""
+function Chern_character_line_bundle(M::QuiverModuliSpace,
+    eta::AbstractVector{Int})
+
+    x = Chern_class_line_bundle(M, eta)
+    Chern_character = sum(x^i / factorial(i) for i in 0:dimension(M))
+
+    return Chern_character
+end
 
 """
     total_Chern_class_universal(M::QuiverModuliSpace, i, chi)
