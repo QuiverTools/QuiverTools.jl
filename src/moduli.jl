@@ -1374,11 +1374,6 @@ function extended_gcd(x)
 	end
 end
 
-# TODO make it so that all the elements that belong to the Chow ring
-# are Polynomials of the same Ring object.
-
-
-# TODO add examples
 """
     Chern_class_line_bundle(M::QuiverModuliSpace, eta)
 
@@ -1402,15 +1397,26 @@ julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 julia> l = Chern_class_line_bundle(M, [1, -1])
 -x11
 ```
+
+The line bundle corresponding to the canonical stability condition on our favourite
+6-fold:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> Chern_class_line_bundle(M, [9, -6])
+-3*x21
+```
 """
-function Chern_class_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
+function Chern_class_line_bundle(M::QuiverModuliSpace,
+    eta::AbstractVector{Int})
+
     A, vars = Chow_ring(M)
-    return A(
-        -sum(
-        eta[i] * vars[sum(M.d[1:i])]
-        for i in 1:nvertices(M.Q)
-            )
-        )
+    I = quotient_ideal(A)
+    Rvars = gens(base_ring(I))
+
+    Chern_class = -sum( eta[i] * Rvars[1 + sum(M.d[1:i-1])] for i in 1:nvertices(M.Q))
+
+    return coerce_to_quotient(A, Chern_class)
 end
 
 # TODO add examples
