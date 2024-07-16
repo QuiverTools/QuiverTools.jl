@@ -1,5 +1,3 @@
-### Here go the constructors for standard quivers.
-
 #################
 # Constructors
 #################
@@ -19,16 +17,17 @@ export mKronecker_quiver,
 
 Constructs a Kronecker quiver with `m` vertices.
 
-# Arguments
-- `m::Int`: (Default = 2) The number of vertices in the Kronecker quiver.
+INPUT:
+- `m`: (Default = 2) The number of arrows in the Kronecker quiver.
 
-# Returns
+OUTPUT:
 A Kronecker quiver with `m` vertices.
 
-# Example
-
+EXAMPLES:
 ```jldoctest
 julia> mKronecker_quiver(3)
+3-Kronecker quiver
+```
 """
 function mKronecker_quiver(m::Int = 2)
     return Quiver([0 m; 0 0], string(m) * "-Kronecker quiver")
@@ -39,14 +38,13 @@ end
 
 Constructs a three-vertex quiver with the given edge weights.
 
-# Arguments
-- `m12::Int`: The weight of the edge from vertex 1 to vertex 2.
-- `m13::Int`: The weight of the edge from vertex 1 to vertex 3.
-- `m23::Int`: The weight of the edge from vertex 2 to vertex 3.
+INPUT:
+- `m12`: The number of arrows from vertex 1 to vertex 2.
+- `m13`: The number of arrows from vertex 1 to vertex 3.
+- `m23`: The number of arrows from vertex 2 to vertex 3.
 
-# Returns
-A three-vertex quiver object.
-
+OUTPUT:
+A three-vertex quiver with the specified arrows.
 """
 function three_vertex_quiver(m12::Int, m13::Int, m23::Int)
     return Quiver([0 m12 m13; 0 0 m23; 0 0 0], "Acyclic 3-vertex quiver")
@@ -57,10 +55,10 @@ end
 
 Constructs a loop quiver with `m` vertices.
 
-# Arguments
-- `m::Int`: The number of vertices in the loop quiver.
+INPUT:
+- `m`: The number of vertices in the loop quiver.
 
-# Returns
+OUTPUT:
 A loop quiver with `m` vertices.
 """
 function loop_quiver(m::Int)
@@ -72,13 +70,11 @@ end
 
 Constructs a subspace quiver with `m` vertices.
 
-# Arguments
-- `m::Int`: The number of subspace-vertices.
+INPUT:
+- `m`: The number of subspace-vertices.
 
-# Returns
+OUTPUT:
 A subspace quiver with `m` subspaces.
-
-# Examples
 """
 function subspace_quiver(m::Int)
     A = zeros(Int, m + 1, m + 1)
@@ -186,7 +182,7 @@ function cyclic_quiver(n::Int)
         A[i, i+1] = 1
     end
     A[n, 1] = 1
-    return Quiver(A, "Cyclic quiver on $n vertices")
+    return Quiver(A, "cyclic quiver on $n vertices")
 end
 
 function bipartite_quiver(m::Int, n::Int)
@@ -199,25 +195,25 @@ function bipartite_quiver(m::Int, n::Int)
             A[i, j] = 1
         end
     end
-    return Quiver(A, "Bipartite quiver on $m and $n vertices")
+    return Quiver(A, "bipartite quiver on $m and $n vertices")
 end
 
 """"
 Returns a Quiver with the same vertices and an arrow
 ``j \\to i`` for every arrow  ``i \\to j`` in the original quiver.
 
-# Arguments
+INPUT:
 - `Q::Quiver`: The quiver to be reversed.
 
-# Returns
+OUTPUT:
 A quiver with the same vertices and reversed arrows.
 """
 opposite_quiver(Q::Quiver) =
-    Quiver(Matrix{Int}(transpose(Q.adjacency)), "Opposite of " * Q.name)
+    Quiver(Matrix{Int}(transpose(Q.adjacency)), "opposite of " * Q.name)
 
 """
 The adjacency matrix of the double of a quiver is the sum of
 the adjacency matrix of the original quiver and its transpose.
 """
 double_quiver(Q::Quiver) =
-    Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "Double of " * Q.name)
+    Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "double of " * Q.name)
