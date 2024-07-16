@@ -1535,6 +1535,7 @@ function point_class(M::QuiverModuliSpace,
     )
     num = 1
     den = 1
+    N = dimension(M)
 
     for i in 1:nvertices(M.Q)
         c = total_Chern_class_universal(M, i, chi)
@@ -1542,9 +1543,7 @@ function point_class(M::QuiverModuliSpace,
         den *= c^M.d[i]
     end
 
-    # in what universe is div() not aliased by / or // ???
     quot = div(num, den)
-    N = dimension(M)
     return sum(term for term in Singular.terms(quot)
                     if __Chow_ring_monomial_grading(M, term) == N; init = 0) 
 end
@@ -1622,10 +1621,10 @@ function Todd_class(M::QuiverModuliSpace,
     N = dimension(M)
 
     A, R, inclusion = Chow_ring(M.Q, M.d, M.theta, chi)
-    I = Singular.quotient_ideal(A[1])
+    Rvars = gens(R)
 
     function xi(i, p)
-        return gens(R)[sum(M.d[1:i-1]) + p]
+        return Rvars[sum(M.d[1:i-1]) + p]
     end
 
 	num = 1
