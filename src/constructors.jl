@@ -9,7 +9,8 @@ export mKronecker_quiver,
     cyclic_quiver,
     bipartite_quiver,
     opposite_quiver,
-    double_quiver
+    double_quiver,
+    Dynkin_quiver
 
 
 """
@@ -45,6 +46,12 @@ INPUT:
 
 OUTPUT:
 A three-vertex quiver with the specified arrows.
+
+EXAMPLES:
+```jldoctest
+julia> three_vertex_quiver(1, 2, 3)
+Acyclic 3-vertex quiver, with adjacency matrix [0 1 2; 0 0 3; 0 0 0]
+```
 """
 function three_vertex_quiver(m12::Int, m13::Int, m23::Int)
     return Quiver([0 m12 m13; 0 0 m23; 0 0 0], "Acyclic 3-vertex quiver")
@@ -60,6 +67,12 @@ INPUT:
 
 OUTPUT:
 A loop quiver with `m` vertices.
+
+EXAMPLES:
+```jldoctest
+julia> loop_quiver(4)
+4-loop quiver, with adjacency matrix [4;;]
+```
 """
 function loop_quiver(m::Int)
     return Quiver(Matrix{Int}(reshape([m], 1, 1)), string(m) * "-loop quiver")
@@ -75,6 +88,13 @@ INPUT:
 
 OUTPUT:
 A subspace quiver with `m` subspaces.
+
+
+EXAMPLES:
+```jldoctest
+julia> subspace_quiver(3)
+3-subspace quiver, with adjacency matrix [0 0 0 1; 0 0 0 1; 0 0 0 1; 0 0 0 0]
+```
 """
 function subspace_quiver(m::Int)
     A = zeros(Int, m + 1, m + 1)
@@ -84,6 +104,7 @@ function subspace_quiver(m::Int)
     return Quiver(A, string(m) * "-subspace quiver")
 end
 
+
 function Dynkin_quiver(Tn::String)
     #parse the string Tn
     T = Tn[1:end-1]
@@ -91,6 +112,17 @@ function Dynkin_quiver(Tn::String)
     return Dynkin_quiver(T, n)
 end
 
+"""
+    Dynkin_quiver(T, n)
+
+Constructs the Dynkin quiver, with arbitrary orientation of the arrows.
+
+EXAMPLES:
+```jldoctest
+julia> Dynkin_quiver("D4")
+Dynkin quiver of type D4, with adjacency matrix [0 1 0 0; 0 0 1 1; 0 0 0 0; 0 0 0 0]
+```
+"""
 function Dynkin_quiver(T::String, n::Int)
 
     if T == "A"
@@ -169,7 +201,17 @@ function Dynkin_quiver(T::String, n::Int)
         throw(ArgumentError("not implemented"))
     end
 end
+"""
+    cyclic_quiver(n)
 
+Returns a cyclic quiver on n vertices.
+
+EXAMPLES:
+```jldoctest
+julia> cyclic_quiver(4)
+cyclic quiver on 4 vertices, with adjacency matrix [0 1 0 0; 0 0 1 0; 0 0 0 1; 1 0 0 0]
+```
+"""
 function cyclic_quiver(n::Int)
     if n < 1
         throw(ArgumentError("n must be greater than 0"))
@@ -182,6 +224,22 @@ function cyclic_quiver(n::Int)
     return Quiver(A, "cyclic quiver on $n vertices")
 end
 
+"""
+    bipartite_quiver(m, n)
+
+Constructs the bipartite quiver on `m` and `n` vertices.
+
+EXAMPLES:
+```jldoctest
+julia> bipartite_quiver(2, 3).adjacency
+5×5 Matrix{Int64}:
+ 0  0  1  1  1
+ 0  0  1  1  1
+ 0  0  0  0  0
+ 0  0  0  0  0
+ 0  0  0  0  0
+```
+"""
 function bipartite_quiver(m::Int, n::Int)
     if m < 1 || n < 1
         throw(ArgumentError("m and n must be greater than 0"))
@@ -204,6 +262,15 @@ INPUT:
 
 OUTPUT:
 A quiver with the same vertices and reversed arrows.
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver()
+2-Kronecker quiver, with adjacency matrix [0 2; 0 0]
+
+julia> opposite_quiver(Q)
+opposite of 2-Kronecker quiver, with adjacency matrix [0 0; 2 0]
+```
 """
 opposite_quiver(Q::Quiver) =
     Quiver(Matrix{Int}(transpose(Q.adjacency)), "opposite of " * Q.name)
@@ -211,6 +278,15 @@ opposite_quiver(Q::Quiver) =
 """
 The adjacency matrix of the double of a quiver is the sum of
 the adjacency matrix of the original quiver and its transpose.
+
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver();
+
+julia> double_quiver(Q)
+double of 2-Kronecker quiver, with adjacency matrix [0 2; 2 0]
+```
 """
 double_quiver(Q::Quiver) =
     Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "double of " * Q.name)
