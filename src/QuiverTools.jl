@@ -288,7 +288,8 @@ The Euler matrix of a quiver ``Q`` is defined as
 ```math
 E = I - A,
 ```
-where ``A`` is the adjacency matrix of ``Q`` and ``I`` is the identity matrix of the same size as ``A``.
+where ``A`` is the adjacency matrix of ``Q`` and ``I``
+is the identity matrix of the same size as ``A``.
 """
 @memoize Dict Euler_matrix(Q::Quiver) =
     coerce_matrix(identity_matrix(nvertices(Q)) - Q.adjacency)
@@ -326,9 +327,10 @@ function is_coprime(d::AbstractVector{Int})
     return gcd(d) == 1
 end
 
-# TODO should this return a function?
+
 """
-Returns the slope of the dimension vector ``d`` with respect to the stability parameter ``\\theta``
+Returns the slope of the dimension vector ``d``
+with respect to the stability parameter ``\\theta``
 and a choice of a denominator function.
 """
 function slope(d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function = sum)
@@ -349,7 +351,8 @@ Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d`
 end
 
 """
-Returns the list of all sequences ``(d^1,...,d^l)`` which sum to ``d`` such that ``\\mu(d^1) > ... > \\mu(d^l).``
+Returns the list of all sequences ``(d^1,...,d^l)`` which sum to ``d``
+such that ``\\mu(d^1) > ... > \\mu(d^l).``
 
 Examples:
 ```jldoctest
@@ -517,8 +520,7 @@ end
 """
 Checks if ``d`` is a Schur root for ``Q``.
 
-By a lemma of Schofield
-(See Lemma 4.2 of [arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)),
+By [Lemma 4.2, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147),
 this is equivalent to the existence of a stable representation of dimension vector ``d``
 for the canonical stability parameter.
 	
@@ -553,8 +555,7 @@ A dimension vector ``e`` is called a generic subdimension vector of ``d``
 if a generic representation of dimension vector ``d`` possesses a subrepresentation
 of dimension vector ``e``.
 
-By a result of Schofield
-(see Thm. 5.3 of [arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)),
+By [Theorem 5.3, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147),
 ``e`` is a generic subdimension vector of ``d`` if and only if
 ```math
 <e',d-e> \\geq 0
@@ -725,7 +726,6 @@ function is_HN_type(
     theta::AbstractVector{Int} = canonical_stability(Q, d),
     denom::Function = sum,
 )::Bool
-    # TODO fix the typing of dstar
     if sum(dstar) != d
         return false
     end
@@ -809,13 +809,12 @@ include("teleman.jl")
 # Canonical decomposition
 #####################################################
 
-# TODO check if the paper of Schofield is open access
 """
 Computes the dimension of the ``\\mathrm{Ext}^1`` group between generic representations
 of dimension vectors ``a`` and ``b``.
 
-According to Thm. 5.4 in Schofield's
-[*General representations of quivers*](https://doi.org/10.1112/plms/s3-65.1.46),
+According to [Theorem 5.4, MR1162487]
+(https://mathscinet.ams.org/mathscinet/relay-station?mr=1162487),
 we have
 
 ```math
@@ -835,8 +834,6 @@ function generic_hom(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
 end
 
 
-# TODO add references
-# TODO implement Derksen-Weyman?
 # TODO add examples
 """
 Computes the canonical decomposition of the dimension vector ``d``
