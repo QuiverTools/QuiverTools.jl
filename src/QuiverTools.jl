@@ -871,36 +871,6 @@ function canonical_decomposition(Q::Quiver, d::AbstractVector{Int})
 end
 
 
-# TODO this is not relevant for anyone who is not me right now.
-"""
-Given an HN type ``(d^1,...,d^l)`` for the quiver Q,
-returns the upper triangular matrix whose ``i,j``-th entry is ``\\mathrm{ext}(d^i,d^j)``.
-
-The sum of all the entries is the codimension of the HN stratum;
-the sum of all the rectangles starting on the "up-diagonal"
-(where the 1s go in a Jordan form)
-and going all the way to the entry ``1,\\ell`` is at least ``1``.
-
-The Teleman inequality is satisfied for this stratum
-iif one of these rectangles sums to ``2`` or more.
-"""
-function extension_matrix(Q::Quiver, hntype::Vector{<:AbstractVector{Int}})
-    n = length(hntype)
-
-    if n <= 1
-        throw(ArgumentError("HN type must have length at least 2,
-                            this makes no sense for the dense stratum"))
-    else
-        M = zeros(Int, n, n)
-        for i in 1:n-1, j in i+1:n
-            M[i, j] = -Euler_form(Q, hntype[i], hntype[j])
-        end
-        return M
-    end
-end
-
-
-
 """
 Checks if the dimension vector ``d`` is in the fundamental domain of the quiver ``Q``.
 
