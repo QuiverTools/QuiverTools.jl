@@ -13,20 +13,8 @@ import Base.show
 import Memoization: @memoize
 import IterTools: subsets
 import LinearAlgebraX: rankx
-import Singular:
-    polynomial_ring,
-    degree,
-    coeff,
-    constant_coefficient,
-    AlgebraHomomorphism,
-    preimage,
-    Ideal,
-    quotient_ideal,
-    QuotientRing,
-	fraction_field,
-    std,
-    gens,
-    base_ring
+import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHomomorphism,
+    preimage, Ideal, quotient_ideal, QuotientRing, fraction_field, std, gens, base_ring
 import Combinatorics: with_replacement_combinations, partitions
 
 export Quiver
