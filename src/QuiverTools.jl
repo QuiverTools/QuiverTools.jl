@@ -998,19 +998,6 @@ function in_stable_cone(
     return all(e -> theta' * e <= 0, all_generic_subdimension_vectors(Q, d))
 end
 
-######################################################################################
-# Below lie methods to compute Hodge diamonds translated from the Hodge diamond cutter.
-# In turn, these are based on M. Reineke's paper
-# "The Harder-Narasimhan system in quantum groups and cohomology of quiver moduli", 
-# https://doi.org/10.1007/s00222-002-0273-4
-######################################################################################
-
-
-###################################################
-# auxiliary functions for Hodge_polynomial() below
-
-
-
 
 #################
 # Technical tools
