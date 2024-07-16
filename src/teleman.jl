@@ -3,6 +3,7 @@
 # Weights of various standard vector bundles for the HN stratification
 ######################################################################
 
+# TODO: doctest every method in this file.
 
 """ Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS ``\\lambda``
 corresponding to the given HN type."""

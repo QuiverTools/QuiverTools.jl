@@ -44,7 +44,7 @@ export Hodge_diamond, Hodge_polynomial, Picard_rank
 export QuiverModuli, is_nonempty, dimension, Poincare_polynomial, Betti_numbers,
     is_smooth, semistable_equals_stable, codimension_unstable_locus
 
-
+# TODO add doctests to every method in this file.
 
 """
 A quiver is represented by its adjacency
@@ -307,7 +307,7 @@ Euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
     x' * Euler_matrix(Q) * y
 
 """
-The canonical stability parameter for the couple ``(Q,d)`` is given by ``<d,- > - < - ,d>``
+The canonical stability parameter for the couple ``(Q,d)`` is given by ``<d,-> - <-,d>``
 """
 function canonical_stability(Q::Quiver, d::AbstractVector{Int})::AbstractVector{Int}
     return coerce_vector(-(-transpose(Euler_matrix(Q)) + Euler_matrix(Q)) * d)
@@ -333,7 +333,10 @@ Returns the slope of the dimension vector ``d``
 with respect to the stability parameter ``\\theta``
 and a choice of a denominator function.
 """
-function slope(d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function = sum)
+function slope(d::AbstractVector{Int},
+    theta::AbstractVector{Int},
+    denom::Function = sum)
+
     return (theta' * d) // denom(d)
 end
 """
@@ -377,8 +380,8 @@ function all_slope_decreasing_sequences(
     denominator::Function = sum,
 )::Vector{Vector{AbstractVector{Int}}}
 
-    coerce_vector!(d)
-    coerce_vector!(theta)
+    d = coerce_vector(d)
+    theta = coerce_vector(theta)
     # List all subdimension vectors e of bigger slope than d.
     subdimensions = filter(
         e -> slope(e, theta, denominator) > slope(d, theta, denominator),
@@ -599,8 +602,11 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, d)
 function all_generic_subdimension_vectors(
     Q::Quiver,
     d::AbstractVector{Int},
-)::Vector{AbstractVector{Int}}
-    return filter(e -> is_generic_subdimension_vector(Q, e, d), all_subdimension_vectors(d))
+    )::Vector{AbstractVector{Int}}
+
+    return filter(e -> is_generic_subdimension_vector(Q, e, d),
+                    all_subdimension_vectors(d)
+                    )
 end
 
 """
@@ -660,9 +666,9 @@ julia> all_HN_types(Q, d, theta)
     theta::AbstractVector{Int},
     denom::Function = sum,
     ordered = true,
-)
+    )
 
-    coerce_vector!(d)
+    d = coerce_vector(d)
     if all(di == 0 for di in d)
         return [[d]]
     end
@@ -959,7 +965,8 @@ function in_stable_cone(
     return all(e -> theta' * e <= 0, all_generic_subdimension_vectors(Q, d))
 end
 
-# how to find inner walls now? These are given by a finite subset of the special subdimension vectors of d.
+# how to find inner walls now?
+# These are given by a finite subset of the special subdimension vectors of d.
 # which ones? and how to find them?
 
 ######################################################################################
@@ -1073,8 +1080,9 @@ julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true, strict=true)
     d::AbstractVector{Int};
     nonzero::Bool = false,
     strict::Bool = false,
-)::Array{AbstractVector{Int}}
-    coerce_vector!(d)
+    )::Array{AbstractVector{Int}}
+
+    d = coerce_vector(d)
 
     subdims = coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...)))
     subdims = filter(e -> true, subdims) #really now
@@ -1107,10 +1115,6 @@ function coerce_vector(v::AbstractVector)
 end
 function coerce_vector(v::Tuple)
     return SVector{length(v)}(v)
-end
-
-function coerce_vector!(x)
-    x = coerce_vector(x)
 end
 
 function coerce_matrix(m::AbstractMatrix)
