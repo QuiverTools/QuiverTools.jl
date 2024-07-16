@@ -61,6 +61,19 @@ struct Quiver
     adjacency::AbstractMatrix{Int}
     name::String
 
+    """
+        Quiver(adjacency, name = "")
+
+    Constructs a quiver starting from its adjacency matrix, and an optional name.
+
+    EXAMPLES:
+    ```jldoctest
+    julia> m = [0 1; 2 0];
+
+    julia> Quiver(m, "my quiver")
+    my quiver, with adjacency matrix [0 1; 2 0]
+    ```
+    """
     function Quiver(adjacency::AbstractMatrix{Int}, name::String = "")
         if !(size(adjacency)[1] == size(adjacency)[2])
             throw(DomainError(adjacency, "adjacency matrix must be square"))
@@ -68,9 +81,30 @@ struct Quiver
             new(adjacency, name)
         end
     end
+
+    """
+        Quiver(arrows)
+
+    Constructs a quiver based on its arrows encoded in a string.
+
+    the string `arrows` must be of the form
+    
+    ```i---j,k-...-s```
+
+    where `i`, `j` and all the vertices are positive integers.
+    The amount of characters between `i` and  `j` is then the number of arrows i -> j.
+
+    EXAMPLE:
+    ```jldoctest
+    julia> Q = Quiver("1--2,1---3,2----3")
+    Quiver with adjacency matrix [0 2 3; 0 0 4; 0 0 0]
+    ```
+    """
     function Quiver(arrows::String)
         pairs = split(arrows, ",")
-        pairs = map(pair -> [parse(Int, pair[1]), parse(Int, pair[end]), length(pair) - 2], pairs)
+        pairs = map(p -> split(p, "-"), pairs)
+        pairs = map( p -> [parse(Int, p[1]), parse(Int, p[end]), length(p) - 1], pairs)
+
         n = maximum(maximum(pair[1:2]) for pair in pairs)
         A = zeros(Int, n, n)
         for pair in pairs
