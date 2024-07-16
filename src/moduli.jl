@@ -1715,11 +1715,59 @@ function integral(M::QuiverModuliSpace,
         @warn "this is broken. Figure out a way to reduce correctly."
         @warn "or to extract the relevant coefficients."
         return sum(integrand) / point_class(M, chi)
+"""
+Takes a quotient ring R/I and a polynomial f in R and returns the image of f in R/I.
+"""
+function coerce_to_quotient(R, f)
+    I = quotient_ideal(R)
+    q = Singular.reduce(f, I)
+
+    B = base_ring(R)
+    g = Singular.MPolyBuildCtx(R)
+    for (c, e) = zip(Singular.coefficients(q), Singular.exponent_vectors(q))
+        Singular.push_term!(g, B(c), e)
     end
-    return 0
+    return Singular.finish(g)
+end
+
+"""
+Takes a ring R and a polynomial in R/I and returns the canonical preimage of f in R.
+"""
+function pullback_from_quotient(R, f)
+    B = base_ring(R)
+    g = Singular.MPolyBuildCtx(R)
+    for (c, e) = zip(Singular.coefficients(f), Singular.exponent_vectors(f))
+        Singular.push_term!(g, B(c), e)
+    end
+    return Singular.finish(g)
 end
 
 
+"""
+    __Chow_ring__monomial_grading(M, f)
+
+Returns the "pseudodegree" of the monomial `f` in the Chow ring of the moduli
+space `M` passed.
+
+This method is unsafe, as it does not consider the actual degree of the MPolyRingElem
+objects passed. Instead, it assumes that the Chow ring passed has variables \$x_{i, j}\$
+as in the Chow ring paper.
+"""
+function __Chow_ring_monomial_grading(M::QuiverModuliSpace, f)
+    return __Chow_degrees(M.d)' * collect(Singular.exponent_vectors(f))[1]
+end
+
+
+"""
+    __Chow_degrees(d)
+
+Returns the vector of degrees for the variables of a Chow ring.
+
+For internal use only.
+"""
+@memoize Dict function __Chow_degrees(d::AbstractVector{Int})
+    return vcat([collect(1:di) for di in d if di > 0]...)
+end
 
 
 """
