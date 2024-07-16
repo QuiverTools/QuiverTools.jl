@@ -1116,13 +1116,13 @@ function motive(Q::Quiver,
 
     if all(ti == 0 for ti in theta)
         out = power(L,- Euler_form(Q, d, d))
-        div = 1
+        den = 1
         for i in 1:nvertices(Q)
             if d[i] > 0
-                div *= prod(1 - power(L, -nu) for nu in 1:d[i])
+                den *= prod(1 - power(L, -nu) for nu in 1:d[i])
             end
         end
-        return out / div
+        return out / den
     end
 
     ds = all_subdimension_vectors(d, nonzero = true, strict = true)
@@ -1230,6 +1230,7 @@ A tuple containing:
         throw(ArgumentError("a is not a linearization"))
     end
 
+    # j varies first, then i
     varnames = ["xi$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
     R, vars = polynomial_ring(Singular.QQ, varnames)
 
@@ -1240,10 +1241,8 @@ A tuple containing:
 
 
 	# This is the naive base that is described in Hans's 2013 paper.
-    function base_for_ring(name = "naive")
-        if name != "naive"
-            throw(ArgumentError("unknown base."))
-        end
+    function base_for_ring()
+
         bounds = [0:(d[i]-nu) for i in 1:nvertices(Q) for nu in 1:d[i]]
         lambdas = Iterators.product(bounds...)
 
@@ -1269,7 +1268,7 @@ A tuple containing:
         end
     end
 
-    antisymmetrize(f) = sum(sign(w) * permute(f, w) for w in W) / delta
+    antisymmetrize(f) = div(sum(sign(w) * permute(f, w) for w in W), R(delta))
 
     # All the destabilizing subdimension vectors of `d` with respect to the slope
     # `theta/denom` that are minimal with respect to the total order.
@@ -1332,7 +1331,7 @@ end
 
 
 # TODO this should be in a misc.jl file or something
-# TODO this should be in Base really...
+# this should be in Base really...
 
 """
 Computes the gcd and the Bezout coefficients of a list of integers.
