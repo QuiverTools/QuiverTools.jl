@@ -26,7 +26,7 @@ A Kronecker quiver with `m` vertices.
 EXAMPLES:
 ```jldoctest
 julia> mKronecker_quiver(3)
-3-Kronecker quiver
+3-Kronecker quiver, with adjacency matrix [0 3; 0 0]
 ```
 """
 function mKronecker_quiver(m::Int = 2)

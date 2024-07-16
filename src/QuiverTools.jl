@@ -160,7 +160,7 @@ is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^nvertices(Q))
 """
 Checks wether the underlying graph of the quiver is connected.
 
-Examples:
+EXAMPLES:
 ```jldoctest
 julia> Q = Quiver([0 1 0; 0 0 1; 1 0 0]);
 
@@ -210,7 +210,7 @@ end
 """
 Returns the number of incoming arrows to the vertex ``j``.
 
-Examples:
+EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(4);
 
@@ -226,7 +226,7 @@ indegree(Q::Quiver, j::Int) = sum(Q.adjacency[:, j])
 """
 Returns the number of outgoing arrows from the vertex ``i``.
 
-Examples:
+EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(4);
 
@@ -242,7 +242,7 @@ outdegree(Q::Quiver, i::Int) = sum(Q.adjacency[i, :])
 """
 Checks if the vertex ``i`` is a source, i.e., a vertex with no incoming arrows.
 
-Examples:
+EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(4);
 
@@ -258,7 +258,7 @@ is_source(Q::Quiver, i::Int) = indegree(Q, i) == 0
 """
 Checks if the vertex ``j`` is a sink, i.e., a vertex with no outgoing arrows.
 
-Examples:
+EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(4);
 
@@ -394,7 +394,7 @@ end
 Returns the list of all sequences ``(d^1,...,d^l)`` which sum to ``d``
 such that ``\\mu(d^1) > ... > \\mu(d^l).``
 
-Examples:
+EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
@@ -458,7 +458,7 @@ end
 
 """Checks if there is a ``\\theta``-semistable representation of dimension vector ``d``.
 
-Examples:
+EXAMPLES:
 ```jldoctest
 julia> A2 = mKronecker_quiver(1); theta = [1,-1];
 
@@ -509,7 +509,7 @@ end
 
 """Checks if Q has a ``theta``-stable representation of dimension vector ``d``.
 
-Examples:
+EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
@@ -564,8 +564,7 @@ By [Lemma 4.2, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147),
 this is equivalent to the existence of a stable representation of dimension vector ``d``
 for the canonical stability parameter.
 	
-Examples:
-
+EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3];
 
@@ -621,7 +620,7 @@ end
 """
 Returns the list of all generic subdimension vectors of ``d``.
 
-Examples:
+EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3];
 
@@ -650,7 +649,7 @@ end
 Returns a list of all the Harder Narasimhan types of representations of ``Q``
 with dimension vector ``d``, with respect to the slope function theta/denom.
 
-Examples:
+EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
@@ -750,8 +749,7 @@ Checks if the given ordered list of subdimension vectors ``dstar`` is an HN type
 for the datum ``(Q, d)`` and the slope stability given by ``(theta, denom)``.
 
 
-Examples:
-
+EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
@@ -791,7 +789,7 @@ end
 """
 Returns the codimension of the given HN stratum.
 
-Examples:
+EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
@@ -1000,10 +998,6 @@ function in_stable_cone(
     return all(e -> theta' * e <= 0, all_generic_subdimension_vectors(Q, d))
 end
 
-# how to find inner walls now?
-# These are given by a finite subset of the special subdimension vectors of d.
-# which ones? and how to find them?
-
 ######################################################################################
 # Below lie methods to compute Hodge diamonds translated from the Hodge diamond cutter.
 # In turn, these are based on M. Reineke's paper
@@ -1027,14 +1021,14 @@ end
 
 Create a zero vector of length `n`.
 
-# Arguments
+INPUT:
 - `n::Int`: The length of the zero vector.
 
-# Returns
+OUTPUT:
 - A zero vector of length `n`.
 """
 @memoize Dict function zero_vector(n::Int)
-    return coerce_vector((zeros(Int, n)))
+    return coerce_vector(zeros(Int, n))
 end
 
 """
@@ -1042,10 +1036,10 @@ end
 
 Compute the thin dimension vector for a given quiver `Q`.
 
-# Arguments
+INPUT:
 - `Q::Quiver`: The input quiver.
 
-# Returns
+OUTPUT:
 - A vector of ones of length `n`.
 
 """
@@ -1058,12 +1052,12 @@ end
 
 Compute all subdimension vectors of a given dimension vector `d`.
 
-# Arguments
+INPUT:
 - `d::AbstractVector{Int}`: The input dimension vector.
 - `nonzero::Bool=false`: wether to exclude the zero vector.
 - `strict::Bool=false`: wether to exclude the input vector `d`.
 
-# Returns
+OUTPUT:
 - An array of all subdimension vectors of `d`, with or without the zero vector and `d`.
 
 Examples
