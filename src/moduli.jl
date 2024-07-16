@@ -1548,7 +1548,7 @@ julia> point_class(M)
 x23^2
 ```
 """
-function point_class(M::QuiverModuliSpace,
+@memoize Dict function point_class(M::QuiverModuliSpace,
     chi::AbstractVector{Int} = extended_gcd(M.d)[2],
     )
     num = 1
@@ -1587,7 +1587,7 @@ julia> Todd_class(M)
 -17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
 ```
 """
-function Todd_class(M::QuiverModuliSpace,
+@memoize Dict function Todd_class(M::QuiverModuliSpace,
 	chi::AbstractVector{Int}=extended_gcd(M.d)[2]
 	)
 
