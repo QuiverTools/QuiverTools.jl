@@ -12,8 +12,8 @@ DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools))
 makedocs(
     sitename = "QuiverTools",
     authors = "Gianni Petrella",
-    format = Documenter.HTML(),
-    # format = Documenter.LaTeX(), # builds pdf, does not like the github Documenter action for now. Use only in local build.
+    # format = Documenter.HTML(),
+    format = Documenter.LaTeX(), # builds pdf, does not like the github Documenter action for now. Use only in local build.
     modules = [QuiverTools],
     pages = [   "QuiverTools" => "index.md", 
     "Tutorial" => "tutorial.md",

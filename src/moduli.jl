@@ -1905,7 +1905,7 @@ function is_smooth(M::QuiverModuliSpace)
         return true
     end
 
-    throw(NotImplementedError())
+    throw(NotImplementedError("Not implemented for properly semistable cases."))
 end
 
 """
