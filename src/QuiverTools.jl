@@ -488,6 +488,7 @@ julia> Q = mKronecker_quiver(3); d = [0,0];
 
 julia> has_stables(Q, d, theta)
 false
+```
 """
 @memoize Dict function has_stables(
     Q::Quiver,
