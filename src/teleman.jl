@@ -25,7 +25,7 @@ function Teleman_bound_onstratum(
 		)
 end
 
-function Teleman_bound_onstratum(M::QuiverModuliStack,
+function Teleman_bound_onstratum(M::QuiverModuli,
 	hntype::Vector{<:AbstractVector{Int}},
 	)
 	return Teleman_bound_onstratum(M.Q, hntype, M.theta, M.denom)
