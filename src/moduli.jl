@@ -9,7 +9,8 @@ export all_Luna_types, is_Luna_type, dimension_of_Luna_stratum
 
 abstract type QuiverModuli end
 
-# TODO consider this: https://stackoverflow.com/questions/71738970/in-julia-declare-abstractvectorabstractvector
+# TODO consider this:
+# https://stackoverflow.com/questions/71738970/in-julia-declare-abstractvectorabstractvector
 struct QuiverModuliSpace <: QuiverModuli
     Q::Quiver
     d::AbstractVector{Int}
@@ -219,7 +220,8 @@ end
 """
 	codimension_HN_stratum(M::QuiverModuli, hn_type::Vector{<AbstractVector{Int}})
 
-Computes the codimension of the Harder-Narasimhan stratum corresponding to the given HN type.
+Computes the codimension of the Harder-Narasimhan stratum
+corresponding to the given HN type.
 
 INPUT:
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
@@ -651,7 +653,10 @@ end
 Cardinality of representation space \$\\mathrm{R}(Q,d)\$, over \$\\mathbb{F}_q\$.
 """
 function CardinalRd(Q::Quiver, d::AbstractVector{Int}, q)
-    return q^sum(d[i] * d[j] * Q.adjacency[i, j] for i in 1:nvertices(Q), j in 1:nvertices(Q))
+    return q^sum(
+                d[i] * d[j] * Q.adjacency[i, j]
+                for i in 1:nvertices(Q),
+                    j in 1:nvertices(Q))
 end
 
 """
@@ -1149,11 +1154,12 @@ end
 
 ###############################################################################
 # tautological representation of the Chow ring.
-# Implements the results of [arXiv:1307.3066](https://doi.org/10.48550/arXiv.1307.3066) and
-# [arXiv.2307.01711](https://doi.org/10.48550/arXiv.2307.01711).
+# Implements the results of [arXiv:1307.3066](https://doi.org/10.48550/arXiv.1307.3066)
+# and [arXiv.2307.01711](https://doi.org/10.48550/arXiv.2307.01711).
 ###############################################################################
 
-# partial order on the forbidden dimension vectors as in https://doi.org/10.48550/arXiv.1307.3066
+# partial order on the forbidden dimension vectors as defined in
+# https://doi.org/10.48550/arXiv.1307.3066
 function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int})
     if !all(f[i] <= g[i] for i in 1:nvertices(Q) if is_source(Q, i))
         return false
@@ -1253,7 +1259,10 @@ A tuple containing:
     end
 
     # build the permutation group W
-    W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i in 1:nvertices(Q)]...)
+    W = Iterators.product([
+                            AbstractAlgebra.SymmetricGroup(d[i])
+                            for i in 1:nvertices(Q)
+                                ]...)
     sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
 
     # Action of the symmetric group on R by permutation of the variables.
@@ -1275,7 +1284,7 @@ A tuple containing:
     minimal_forbidden = filter(
         e -> !any(f -> partial_order(Q, f, e), filter(f -> f != e, dest)), dest)
 
-    # builds a new forbidden polynomial for the given minimal forbidden dimension vector e.
+    # builds a new forbidden polynomial for the minimal forbidden dimension vector e.
     function new_forbidden(e::AbstractVector{Int})
         out = 1
         for (i, j) in Iterators.product(1:nvertices(Q), 1:nvertices(Q))
