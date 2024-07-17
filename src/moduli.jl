@@ -1933,10 +1933,6 @@ function is_smooth(M::QuiverModuliStack)
     return true
 end
 
-# TODO - smooth model should return a smooth model and
-#        somehow the information for the correspondence?
-
-
 """
     is_projective(M::QuiverModuli)
 
