@@ -25,7 +25,7 @@ export is_Schur_root,
     generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
 export all_HN_types, is_HN_type, has_semistables, has_stables, is_amply_stable
 
-# TODO add doctests to every method in this file.
+# TODO add missing doctests to all the methods.
 # TODO keyword arguments across codebase
 # TODO add safety checks everywhere in the codebase
 

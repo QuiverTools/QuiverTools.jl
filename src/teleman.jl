@@ -3,7 +3,6 @@
 # Weights of various standard vector bundles for the HN stratification
 ######################################################################
 
-# TODO: doctest every method in this file.
 export Teleman_bound_onstratum, all_Teleman_bounds, weights_universal_bundle_onstratum,
 	all_weights_universal_bundle, weight_irreducible_component_canonical_on_stratum,
 	all_weights_irreducible_component_canonical,

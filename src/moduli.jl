@@ -1675,11 +1675,12 @@ end
 
 Computes the integral of `f` according to the Hirzebruch-Riemann-Roch theorem.
 
-In other words, it computes the Euler characteristic of the line bundle associated to `f`.
+In other words, it computes the Euler characteristic of the vector bundle
+whose Chern character is `f`.
 
 INPUT:
 - ``M``: a moduli space of representations of a quiver.
-- `f`: the Chern class in CH(M) to integrate.
+- `f`: the Chern character in CH(M) to integrate.
 - ``chi``: a choice of linearization to construct the universal bundles.
 
 OUTPUT:
@@ -1704,7 +1705,7 @@ julia> [integral(M, L^i) for i in 0:5]
  6
 ```
 
-Hilbert series for the 3-Kronecker quiver as in our favourite example:
+Hilbert series for the 3-Kronecker quiver as in our favourite 6-fold:
 
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
