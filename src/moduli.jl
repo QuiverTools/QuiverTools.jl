@@ -16,6 +16,7 @@ abstract type QuiverModuli end
 
 # TODO consider this:
 # https://stackoverflow.com/questions/71738970/in-julia-declare-abstractvectorabstractvector
+# this is also necessary to be able to type function outputs correctly.
 struct QuiverModuliSpace <: QuiverModuli
     Q::Quiver
     d::AbstractVector{Int}
