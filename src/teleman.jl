@@ -39,8 +39,26 @@ function Teleman_bound_onstratum(M::QuiverModuli,
 end
 
 
-""" Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
-HN type for the given ``Q``, ``d``, ``\\theta`` and `denom``."""
+"""
+Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
+HN type for the given ``Q``, ``d``, ``\\theta`` and `denom``.
+	
+	
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> all_Teleman_bounds(Q, [2, 3], [3, -2])
+Dict{Vector{AbstractVector{Int64}}, Int64} with 7 entries:
+  [[2, 2], [0, 1]]         => 20
+  [[2, 1], [0, 2]]         => 100
+  [[1, 0], [1, 2], [0, 1]] => 100
+  [[1, 0], [1, 3]]         => 120
+  [[1, 0], [1, 1], [0, 2]] => 90
+  [[1, 1], [1, 2]]         => 15
+  [[2, 0], [0, 3]]         => 90
+```
+"""
 function all_Teleman_bounds(
 	Q::Quiver,
 	d::AbstractVector{Int},
@@ -52,7 +70,38 @@ function all_Teleman_bounds(
 	HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
 	return Dict([hntype, Teleman_bound_onstratum(Q, hntype, theta, denom)] for hntype in HN)
 end
+"""
 
+Interface for `all_Teleman_bounds(Q, d, theta)`.
+
+EXAMPLE:
+```jldoctest
+julia> Q = three_vertex_quiver(1, 2, 3); d = [3, 1, 2]; theta = [5, 3, -9];
+
+julia> all_Teleman_bounds(Q, d, theta)
+Dict{Vector{AbstractVector{Int64}}, Int64} with 24 entries:
+  [[2, 1, 1], [1, 0, 1]]                       => 12
+  [[1, 0, 0], [0, 1, 0], [2, 0, 1], [0, 0, 1]] => 306
+  [[1, 0, 0], [1, 1, 0], [1, 0, 1], [0, 0, 1]] => 131
+  [[2, 0, 0], [1, 0, 1], [0, 1, 1]]            => 64
+  [[3, 0, 0], [0, 1, 2]]                       => 150
+  [[1, 1, 0], [2, 0, 1], [0, 0, 1]]            => 312
+  [[2, 0, 0], [1, 1, 1], [0, 0, 1]]            => 336
+  [[2, 0, 0], [1, 1, 0], [0, 0, 2]]            => 242
+  [[3, 0, 0], [0, 1, 1], [0, 0, 1]]            => 168
+  [[3, 1, 1], [0, 0, 1]]                       => 432
+  [[3, 0, 0], [0, 1, 0], [0, 0, 2]]            => 246
+  [[0, 1, 0], [3, 0, 2]]                       => 108
+  [[0, 1, 0], [2, 0, 1], [1, 0, 1]]            => 76
+  [[1, 0, 0], [2, 0, 1], [0, 1, 1]]            => 122
+  [[1, 0, 0], [2, 1, 1], [0, 0, 1]]            => 92
+  [[2, 0, 0], [0, 1, 0], [1, 0, 2]]            => 312
+  [[1, 0, 0], [2, 1, 2]]                       => 18
+  [[2, 0, 0], [0, 1, 0], [1, 0, 1], [0, 0, 1]] => 132
+  [[1, 0, 0], [1, 1, 1], [1, 0, 1]]            => 68
+  ⋮                                            => ⋮
+```
+"""
 function all_Teleman_bounds(M::QuiverModuli)
 
 	return all_Teleman_bounds(M.Q, M.d, M.theta, M.denom)

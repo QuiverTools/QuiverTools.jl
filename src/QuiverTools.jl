@@ -118,6 +118,13 @@ end
 """
 Returns the (necessarily symmetric) adjacency matrix
 of the underlying graph of the quiver.
+
+```jldoctest
+julia> Q = mKronecker_quiver(4);
+
+julia> QuiverTools.underlying_graph(Q) == [0 4; 4 0]
+true
+```
 """
 function underlying_graph(Q::Quiver)
     return Matrix{Int}(Q.adjacency + transpose(Q.adjacency) - diagonal(Q.adjacency))
@@ -125,16 +132,34 @@ end
 
 """
 Returns the number of vertices of the quiver.
+```jldoctest
+julia> Q = mKronecker_quiver(4);
+
+julia> nvertices(Q) == 2
+true
+```
 """
 nvertices(Q::Quiver) = size(Q.adjacency)[1]
 
 """
 Returns the number of arrows of the quiver.
+```jldoctest
+julia> Q = mKronecker_quiver(4);
+
+julia> narrows(Q) == 4
+true
+```
 """
 narrows(Q::Quiver) = sum(Q.adjacency)
 
 """
 Checks wether the quiver is acyclic, i.e. has no oriented cycles.
+```jldoctest
+julia> Q = mKronecker_quiver(4);
+
+julia> is_acyclic(Q)
+true
+```
 """
 is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^nvertices(Q))
 
@@ -308,9 +333,17 @@ E = I - A,
 ```
 where ``A`` is the adjacency matrix of ``Q`` and ``I``
 is the identity matrix of the same size as ``A``.
+
+EXAMPLE:
+```jldoctest
+julia> Q = mKronecker_quiver(4);
+
+julia> QuiverTools.Euler_matrix(Q) == [1 -4; 0 1]
+true
+```
 """
 @memoize Dict Euler_matrix(Q::Quiver) =
-    coerce_matrix(identity_matrix(nvertices(Q)) - Q.adjacency)
+coerce_matrix(identity_matrix(nvertices(Q)) - Q.adjacency)
 
 """
 Computes the Euler form of the quiver for vectors ``x`` and ``y``.
@@ -320,6 +353,14 @@ The Euler form is defined as the bilinear form
 \\langle x,y\\rangle = x^T * E * y,
 ```
 where ``E`` is the Euler matrix of the quiver.
+
+EXAMPLE:
+```jldoctest
+julia> Q = mKronecker_quiver(4);
+
+julia> Euler_form(Q, [1, 1], [1, 1]) == -2
+true
+```
 """
 Euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
     x' * Euler_matrix(Q) * y
@@ -492,7 +533,7 @@ end
 
 EXAMPLES:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
+julia> Q = mKronecker_quiver(3); d = [2, 3]; theta = [3, -2];
 
 julia> has_stables(Q, d, theta)
 true
@@ -603,9 +644,9 @@ Returns the list of all generic subdimension vectors of ``d``.
 
 EXAMPLES:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); d = [2,3];
+julia> Q = mKronecker_quiver(3);
 
-julia> QuiverTools.all_generic_subdimension_vectors(Q, d)
+julia> QuiverTools.all_generic_subdimension_vectors(Q, [2, 3])
 7-element Vector{AbstractVector{Int64}}:
  [0, 0]
  [0, 1]
@@ -614,6 +655,13 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, d)
  [0, 3]
  [1, 3]
  [2, 3]
+
+julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
+4-element Vector{AbstractVector{Int64}}:
+ [0, 0]
+ [1, 0]
+ [2, 0]
+ [3, 0]
 ```
 """
 function all_generic_subdimension_vectors(
@@ -649,7 +697,7 @@ julia> all_HN_types(Q, [3,0], [0,0])
 1-element Vector{Vector{AbstractVector{Int64}}}:
  [[3, 0]]
 
-julia> Q = three_vertex_quiver(1,4,1); d = [4,1,4];
+julia> Q = three_vertex_quiver(1, 4, 1); d = [4, 1, 4];
 
 julia> theta = canonical_stability(Q, d);
 
@@ -814,6 +862,20 @@ with respect to the slope function `theta`/`denominator`.
 
 This means that the codimension of the unstable locus
 in the parameter space is at least ``2``.
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3); d = [2, 3];
+
+julia> is_amply_stable(Q, d, [3, -2])
+true
+
+julia> is_amply_stable(Q, d, [-3, 2])
+false
+
+julia> is_amply_stable(Q, [3, 0], [0, -3])
+true
+```
 """
 function is_amply_stable(
     Q::Quiver,
@@ -842,6 +904,22 @@ we have
 ```math
 ext(a,b)=max\\{-\\langle c,b\\rangle~~|~~c~\\text{is a generic subdimension vector of }a\\}.
 ```
+
+EXAMPLES:
+```jldoctest
+julia> Q1 = mKronecker_quiver(3);
+
+julia> generic_ext(Q1, [2, 3], [6, 7])
+9
+
+julia> generic_ext(Q1, [1, 1], [1, 0])
+0
+
+julia> Q2 = three_vertex_quiver(1, 6, 7);
+
+julia> generic_ext(Q2, [5, 6, 7], [6, 7, 8])
+483
+```
 """
 function generic_ext(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
     return maximum(-Euler_form(Q, c, b) for c in all_generic_subdimension_vectors(Q, a))
@@ -850,13 +928,28 @@ end
 """
 Computes the dimension of the ``\\mathrm{Hom}`` group between generic representations
 of dimension vectors ``a`` and ``b``.
+
+EXAMPLES:
+```jldoctest
+julia> Q1 = mKronecker_quiver(3);
+
+julia> generic_hom(Q1, [2, 3], [6, 7])
+0
+
+julia> generic_hom(Q1, [1, 1], [1, 0])
+1
+
+julia> Q2 = three_vertex_quiver(1, 6, 7);
+
+julia> generic_hom(Q2, [5, 6, 7], [6, 7, 8])
+0
+```
 """
 function generic_hom(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
     return Euler_form(Q, a, b) + generic_ext(Q, a, b)
 end
 
 
-# TODO add examples
 """
 Computes the canonical decomposition of the dimension vector ``d``
 for the given quiver ``Q``.
@@ -873,6 +966,25 @@ isomorphic to the direct sum of irreducible representations
 of dimension vectors ``\\beta_i``.
 
 Such a decomposition is called the canonical decomposition.
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> canonical_decomposition(Q, [6, 7]) == [[6, 7]]
+true
+
+julia> canonical_decomposition(Q, [1, 1]) == [[1, 1]]
+true
+
+julia> canonical_decomposition(Q, [6, 2]) == [[3, 1], [3, 1]]
+true
+
+julia> Q = mKronecker_quiver(2);
+
+julia> canonical_decomposition(Q, [8, 8]) == [[1, 1] for i in 1:8]
+true
+```
 """
 function canonical_decomposition(Q::Quiver, d::AbstractVector{Int})
     # if is_Schur_root(Q, d)
@@ -903,6 +1015,23 @@ for all vertices i,
 
 where ``s_i`` is the dimension vector with all entries set to ``0`` and the i-th
 set to ``1``.
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> in_fundamental_domain(Q, [2, 3])
+true
+
+julia> in_fundamental_domain(Q, [1, 1])
+true
+
+julia> in_fundamental_domain(Q, [2, 2])
+true
+
+julia> in_fundamental_domain(Q, [1, 2])
+false
+```
 """
 function in_fundamental_domain(Q::Quiver, d::AbstractVector{Int}; interior::Bool = false)
     # https://arxiv.org/abs/2209.14791 uses a strict inequality,
