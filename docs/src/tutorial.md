@@ -47,7 +47,15 @@ julia> three_vertex_quiver(1, 6, 7)
 An acyclic 3-vertex quiver, with adjacency matrix [0 1 6; 0 0 7; 0 0 0]
 ```
 
-Dimension vectors and stability parameters are represented by `Vector{Int}` objects:
+Lastly, there is a handy constructor using strings:
+
+```julia-repl
+julia> Q = Quiver("1--2,1---3,2-4,2--3")
+Quiver with adjacency matrix [0 2 3 0; 0 0 2 1; 0 0 0 0; 0 0 0 0]
+```
+
+Dimension vectors and stability parameters are represented by `AbstractVector{Int}`
+objects, while under the hood these are encoded using the StaticArrays package.
 
 ```julia-repl
 julia> Q = mKronecker_quiver(3); d = [2,3];
@@ -137,6 +145,23 @@ julia> QuiverTools.is_Schur_root(K2, d)
 false
 ```
 
+## Quiver Moduli
+
+QuiverTools implements the abstract `QuiverModuli` type and the two concrete types
+`QuiverModuliSpace` and `QuiverModuliStack`.
+
+```julia-repl
+julia> Q = mKronecker_quiver(3);
+
+julia> M = QuiverModuliSpace(Q, [2, 3])
+Moduli space of semistable representations of 3-Kronecker quiver, with adjacency matrix [0 3; 0 0]
+      with dimension vector [2, 3] and stability parameter [9, -6]
+```
+
+All the functionalities of QuiverTools are accessible either directly, by passing a quiver,
+dimension vector, stability parameter etc, or directly via these objects. See the docstring
+of each method for more information and examples.
+
 ## Harder-Narasimhan types
 
 This module provides methods to investigate
@@ -144,9 +169,9 @@ the Harder-Narasimhan stratification of the parameter space
 ``\mathrm{R}(Q,\mathbf{d})``.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); d = [2, 3]; θ = [3, -2];
+julia> Q = mKronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
 
-julia> allHNtypes(Q, d, θ)
+julia> allHNtypes(M)
 8-element Vector{Vector{Vector{Int64}}}:
  [[2, 3]]
  [[1, 1], [1, 2]]
@@ -157,7 +182,7 @@ julia> allHNtypes(Q, d, θ)
  [[1, 0], [1, 1], [0, 2]]
  [[2, 0], [0, 3]]
 
-julia> is_amply_stable(Q, d, θ)
+julia> is_amply_stable(M)
 true
 ```
 
@@ -175,9 +200,9 @@ The output is a dictionary whose keys are the HN types
 and whose values are the weights themselves.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); d = [2, 3]; θ = [3, -2];
+julia> Q = mKronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
 
-julia> all_Teleman_bounds(Q, d, θ)
+julia> all_Teleman_bounds(M)
 Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
   [[2, 2], [0, 1]]         => 20
   [[2, 1], [0, 2]]         => 100
@@ -195,9 +220,9 @@ we compute the weight of ``\mathcal{U}_i^\vee \otimes \mathcal{U}_j`` relative t
 1-PS corresponding to the HN stratum. These are then compared to the Teleman bounds.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); d = [2, 3]; θ = [3, -2];
+julia> Q = mKronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
 
-julia> hn = all_Teleman_bounds(Q, d, θ)
+julia> hn = all_Teleman_bounds(M)
 Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
   [[2, 2], [0, 1]]         => 20
   [[2, 1], [0, 2]]         => 100
@@ -207,7 +232,7 @@ Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
   [[1, 1], [1, 2]]         => 15
   [[2, 0], [0, 3]]         => 90
 
-julia> endom = all_weights_endomorphisms_universal_bundle(Q, d, θ)
+julia> endom = all_weights_endomorphisms_universal_bundle(M)
 Dict{Vector{Vector{Int64}}, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [0, 5, -5, 0]
   [[2, 1], [0, 2]]         => [0, 10, -10, 0]
@@ -218,6 +243,9 @@ Dict{Vector{Vector{Int64}}, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [0, 5, -5, 0]
 
 julia> all(maximum(endom[key]) < hn[key] for key in keys(hn))
+true
+
+julia> does_Teleman_inequality_hold(M)
 true
 ```
 
@@ -231,15 +259,15 @@ QuiverTools provides a method to compute
 the canonical decomposition of a dimension vector.
 
 Given a dimension vector ``d``, the canonical decomposition
-is a list of Shur roots ``\beta_i`` such that
+is a list of Schur roots ``\beta_i`` such that
 ``d = \sum_i \beta_i`` and
-``\mathrm{ext}(\beta_i,\beta_j) = 0`` for all ``i \neq j``.
+``\mathrm{ext}(\beta_i,\beta_j) = 0`` for all ``i, j``.
 
 It is a theorem of Schofield that the canonical decomposition exists and
 is described by the condition above.
-If this is the canonical deconstruction of ``d``,
-then the general representation of dimension vector ``d`` decomposes
-as a direct sum of indecomposable representations of dimension vector ``\beta_i``.
+If this is the canonical decomposition of ``d``,
+then the general representation of dimension vector ``d`` is
+a direct sum of indecomposable representations of dimension vector ``\beta_i``.
 
 ```julia-repl
 julia> canonical_decomposition(Q, d)
@@ -281,7 +309,8 @@ julia> generic_ext(Q, e, d)
 1
 ```
 
-This allows to determine wether a root is real, imaginary isotropic or imaginary anisotropic.
+This allows to determine whether a root is real, imaginary isotropic
+or imaginary anisotropic.
 
 ```julia-repl
 julia> ds = QuiverTools.all_subdimension_vectors([5, 5])
@@ -334,12 +363,12 @@ QuiverTools features an implementation of the Hodge polynomial of quiver moduli,
 if the base field is ``\mathbb{C}`` and the dimension vector is a coprime Schurian root.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); d = [2, 3]; θ = canonical_stability(Q, d);
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> Hodge_polynomial(Q, d, θ)
+julia> Hodge_polynomial(M)
 x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 
-julia> Hodge_diamond(Q, d, θ)
+julia> Hodge_diamond(M)
 7×7 Matrix{Int64}:
  1  0  0  0  0  0  0
  0  1  0  0  0  0  0
@@ -357,42 +386,27 @@ In other words, the point of the diamond is on the upper left side of the matrix
 This allows us to conclude that the Picard rank of the moduli space is 1.
 
 ```julia-repl
-julia> Picard_rank(Q, d, θ)
+julia> Picard_rank(M)
 1
 ```
 
-For performance-oriented computations, one can use some theoretical results
-to get a slightly faster computation of the Hodge polynomial,
-which skips some safety checks and returns the Hodge polynomial
-without performing the change of variables ``q \to x \cdot y``.
+## Chow rings
+
+QuiverTools allows to compute the Chow ring for a given quiver moduli space, as well as
+the point class, the Todd class and the Euler characteristic of a vector bundle, given
+its Chern character.
 
 ```julia-repl
-julia> QuiverTools._Hodge_polynomial_fast(Q, d, θ)
-q^6 + q^5 + 3*q^4 + 3*q^3 + 3*q^2 + q + 1
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> using BenchmarkTools
+julia> L = Chern_character_line_bundle(M, [3, -2]);
 
-julia> @benchmark Hodge_polynomial(Q, d, θ)
-BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  117.500 μs … 109.571 ms  ┊ GC (min … max):  0.00% … 41.09%
- Time  (median):     123.188 μs               ┊ GC (median):     0.00%
- Time  (mean ± σ):   230.718 μs ±   3.241 ms  ┊ GC (mean ± σ):  18.81% ±  1.36%
-
-  	   ▂▄██▇▅▄▃▂▂                                                  
-  ▂▄▇███████████▇▆▅▅▄▄▃▃▂▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▃
-  118 μs           Histogram: frequency by time          155 μs <
-
- Memory estimate: 136.06 KiB, allocs estimate: 3408.
-
-julia> @benchmark QuiverTools._Hodge_polynomial_fast(Q, d, θ)
-BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  114.625 μs … 110.717 ms  ┊ GC (min … max):  0.00% … 40.68%
- Time  (median):     120.042 μs               ┊ GC (median):     0.00%
- Time  (mean ± σ):   219.409 μs ±   3.148 ms  ┊ GC (mean ± σ):  18.09% ±  1.28%
-
-        ▄▅▆▆█▇▆▇▅▄▂▂▁▁                                           
-  ▁▂▃▅▇███████████████▇█▆▆▆▄▅▄▄▃▃▃▃▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▃
-  115 μs           Histogram: frequency by time          139 μs <
-
- Memory estimate: 132.34 KiB, allocs estimate: 3327.
+julia> [integral(M, L^i) for i in 0:5]
+6-element Vector{Int64}:
+    1
+   20
+  148
+  664
+ 2206
+ 5999
 ```
