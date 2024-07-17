@@ -1238,7 +1238,6 @@ A tuple containing:
     theta::AbstractVector{Int}=canonical_stability(Q, d),
     a::AbstractVector{Int}=extended_gcd(d)[2],
 )
-    # TODO cover case d[i] = 0
     # safety checks
     if !is_coprime(d, theta)
         throw(ArgumentError("d and theta are not coprime"))
@@ -1247,11 +1246,14 @@ A tuple containing:
     end
 
     # j varies first, then i
-    varnames = ["xi$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
+    varnames = ["xi$i$j" for i in 1:nvertices(Q) for j in 1:d[i]]
     R, vars = polynomial_ring(Singular.QQ, varnames)
 
     # Shorthand to address the variable `xi_{i,j}`.
     function xi(i, j)
+        if d[i] == 0
+            throw(ArgumentError("i is not in the support of d."))
+        end
         return vars[sum(d[1:i-1]) + j]
     end
 
@@ -1263,8 +1265,9 @@ A tuple containing:
         lambdas = Iterators.product(bounds...)
 
         build_elem(lambda) = prod(
-            prod(xi(i, nu)^lambda[sum(d[1:i-1])+nu] for nu in 1:d[i]) for
-            i in 1:nvertices(Q)
+            prod(xi(i, nu)^lambda[sum(d[1:i-1])+nu] for nu in 1:d[i])
+            for i in 1:nvertices(Q)
+                if d[i] > 0
         )
         return map(l -> build_elem(l), lambdas)
     end
@@ -1277,7 +1280,10 @@ A tuple containing:
     sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
 
     # Action of the symmetric group on R by permutation of the variables.
-    permute(f, sigma) = f([xi(i, sigma[i][j]) for i in 1:nvertices(Q) for j in 1:d[i]]...)
+    permute(f, sigma) = f([xi(i, sigma[i][j])
+                            for i in 1:nvertices(Q)
+                            for j in 1:d[i]
+                                if d[i] > 0]...)
 
     # The discriminant in the definition of the antisymmetrization.
     delta = 1
@@ -1307,17 +1313,21 @@ A tuple containing:
     end
     forbidden_polynomials = [new_forbidden(e) for e in minimal_forbidden]
 
-    varnames2 = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]
+    varnames2 = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i]]
     A, Avars = polynomial_ring(Singular.QQ, varnames2)
 
     # Shorthand to address the variables of A `x_{i,j}`.
     function xs(i, j)
+        if d[i] == 0
+            throw(ArgumentError("i is not in the support of d."))
+        end
         return Avars[sum(d[1:i-1])+j]
     end
 
     targets = [
-        [symmetric_polynomial([xi(i, j) for j in 1:d[i]], k) for k in 1:d[i]] for
-        i in 1:nvertices(Q)
+        [symmetric_polynomial([xi(i, j) for j in 1:d[i]], k) for k in 1:d[i]]
+                                for i in 1:nvertices(Q)
+                                    if d[i] > 0
     ]
     targets = reduce(vcat, targets)
 
@@ -1325,7 +1335,7 @@ A tuple containing:
 
     anti = [antisymmetrize(f * b) for f in forbidden_polynomials for b in base_for_ring()]
     tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
-    linear = [sum(a[i] * xs(i, 1) for i in 1:nvertices(Q))]
+    linear = [sum(a[i] * xs(i, 1) for i in 1:nvertices(Q) if d[i] > 0)]
 
     return (QuotientRing(A, std(Ideal(A, [tautological; linear]))), R, inclusion)
 end
@@ -1864,9 +1874,6 @@ function dimension(M::QuiverModuliSpace)
                 dimension_of_Luna_stratum(M, tau)
                 for tau in all_Luna_types(M.Q, M.d, M.theta)
                     )
-            # TODO what are the Luna strata for d = 0?
-            # shouldn't the case d = 0 be handled correctly here?
-
         end
     end
     # the semistable locus is also empty
