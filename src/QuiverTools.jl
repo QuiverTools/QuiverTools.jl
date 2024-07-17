@@ -26,6 +26,8 @@ export is_Schur_root,
 export all_HN_types, is_HN_type, has_semistables, has_stables, is_amply_stable
 
 # TODO add doctests to every method in this file.
+# TODO keyword arguments across codebase
+# TODO add safety checks everywhere in the codebase
 
 """
 A quiver is represented by its adjacency

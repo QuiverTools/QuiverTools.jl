@@ -281,8 +281,6 @@ function codimension_unstable_locus(M::QuiverModuli)
     return minimum(codimension_HN_stratum(M, hn_type) for hn_type in HN)
 end
 
-# TODO add safety checks everywhere in the codebase
-
 
 """
 	all_Luna_types(M::QuiverModuli; exclude_stable::Bool = false)
@@ -375,7 +373,7 @@ function all_Luna_types(
         QuiverTools.all_subdimension_vectors(d, nonzero = true),
     )
 
-    # TODO keyword arguments across codebase
+
     Luna_types = []
 
     # the highest possible amount of repetitions for a given stable dimension vector
@@ -1210,7 +1208,7 @@ function symmetric_polynomial(vars, degree::Int)
     return sum(prod(e) for e in IterTools.subsets(vars, degree))
 end
 
-
+# TODO test Chow ring
 """
     Chow_ring(Q, d, theta, a)
 
