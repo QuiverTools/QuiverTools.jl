@@ -22,11 +22,6 @@ QuiverTools is being developed by [P. Belmans](https://pbelmans.ncag.info/),
 H. Franzen and [G. Petrella](https://www.giannipetrella.eu).
 
 The Julia version is developed and maintained by
-[G. Petrella](https://www.giannipetrella.eu).
+[G. Petrella](https://giannipetrella.eu).
 
 G. Petrella was supported by the Luxembourg National Research Fund (FNR–17953441).
-
-## Contents
-
-```@contents
-```
