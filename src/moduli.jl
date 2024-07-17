@@ -147,7 +147,7 @@ INPUT:
 - `unstable::Bool = false`: if `true`, returns only Harder-Narasimhan types
 corresponding to unstable representations.
 - `ordered::Bool = true`: if `true`, returns the Harder-Narasimhan types in
-the order introduced by Reineke. TODO link to the paper.
+the order introduced by [MR1974891](https://doi.org/10.1007/s00222-002-0273-4).
 
 OUTPUT:
 - a list of Harder-Narasimhan types for the dimension vector and slope of `M`.
