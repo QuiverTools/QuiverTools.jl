@@ -13,7 +13,6 @@ makedocs(
     sitename = "QuiverTools",
     authors = "Gianni Petrella",
     doctest = false,
-    remotes=nothing,
     modules = [QuiverTools],
     format = Documenter.HTML(),
     # format = Documenter.LaTeX(), # builds pdf, does not like the github Documenter action for now. Use only in local build.
