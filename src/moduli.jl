@@ -184,6 +184,8 @@ julia> codimension_HN_stratum(M, [[2, 3]])
 0
 
 julia> codimension_HN_stratum(M, [[1, 1], [1, 2]])
+3
+```
 """
 function codimension_HN_stratum(
     M::QuiverModuli,

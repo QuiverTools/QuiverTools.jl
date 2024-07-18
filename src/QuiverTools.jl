@@ -1117,7 +1117,7 @@ julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true, strict=true)
  [2, 2]
  [0, 3]
  [1, 3]
- ```
+```
 """
 @memoize Dict function all_subdimension_vectors(
     d::AbstractVector{Int};
