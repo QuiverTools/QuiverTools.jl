@@ -1028,7 +1028,7 @@ EXAMPLE:
 
 There is not much to it:
 ```jldoctest
-julia> zero_vector(3) == [0, 0, 0]
+julia> QuiverTools.zero_vector(3) == [0, 0, 0]
 true
 ```
 """
@@ -1053,7 +1053,7 @@ There is not much to it:
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
-julia> thin_dimension_vector(Q) == [1, 1]
+julia> QuiverTools.thin_dimension_vector(Q) == [1, 1]
 true
 ```
 """
@@ -1152,13 +1152,13 @@ whether `e` is a subdimension of `d`.
 
 EXAMPLE:
 ```jldoctest
-julia> is_subdimension_vector([1, 1], [2, 3])
+julia> QuiverTools.is_subdimension_vector([1, 1], [2, 3])
 true
 
-julia> is_subdimension_vector([1, 1], [1, 1])
+julia> QuiverTools.is_subdimension_vector([1, 1], [1, 1])
 true
 
-julia> is_subdimension_vector([1, 2], [1, 1])
+julia> QuiverTools.is_subdimension_vector([1, 2], [1, 1])
 false
 ```
 """
@@ -1171,16 +1171,16 @@ end
 
 Return a vector of length `n` with a `1` at index `i` and `0` elsewhere.
 
-# Arguments
+INPUT:
 - `n::Int`: The length of the unit vector.
 - `i::Int`: The index at which to place the `1` in the unit vector.
 
-# Returns
+OUTPUT:
 A unit vector of length `n` with a `1` at index `i` and `0` elsewhere.
 
 EXAMPLES:
 ```jldoctest
-julia> unit_vector(3, 2) == [0, 1, 0]
+julia> QuiverTools.unit_vector(3, 2) == [0, 1, 0]
 true
 ```
 """
@@ -1206,8 +1206,10 @@ EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
-julia> unit_vector(Q, 2) == [0, 1]
+julia> QuiverTools.unit_vector(Q, 2) == [0, 1]
 true
+```
+"""
 function unit_vector(Q::Quiver, i::Int)
     return unit_vector(nvertices(Q), i)
 end
