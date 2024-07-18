@@ -23,7 +23,8 @@ export nvertices, narrows, arrows, indegree, outdegree,
 export Euler_form, canonical_stability, is_coprime, slope
 export is_Schur_root,
     generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
-export all_HN_types, is_HN_type, has_semistables, has_stables, is_amply_stable
+export all_HN_types, is_HN_type, has_semistables, has_stables, codimension_HN_stratum,
+    is_amply_stable
 
 # TODO add missing doctests across codebase.
 # TODO keyword arguments across codebase
@@ -368,14 +369,39 @@ Euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
     x' * Euler_matrix(Q) * y
 
 """
-The canonical stability parameter for the couple ``(Q,d)`` is given by ``<d,-> - <-,d>``
+The canonical stability parameter for the couple ``(Q, d)`` is given by ``<d,-> - <-,d>``
+
+INPUT:
+- `Q`: a quiver
+- `d`: a dimension vector
+
+OUTPUT:
+- the canonical stability parameter for the couple ``(Q, d)``
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3); d = [2,3];
+
+julia> canonical_stability(Q, d)
+[9, -6]
+```
 """
 function canonical_stability(Q::Quiver, d::AbstractVector{Int})::AbstractVector{Int}
     return coerce_vector(-(-transpose(Euler_matrix(Q)) + Euler_matrix(Q)) * d)
 end
 
-"""Checks wether the given dimension vector ``d`` is ``\\theta``-coprime for
-the stability parameter ``\\theta``."""
+"""
+Checks wether the given dimension vector ``d`` is ``\\theta``-coprime for
+the stability parameter ``\\theta``.
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3); d = [2, 3]; theta = [3, -2];
+
+julia> is_coprime(Q, d, theta)
+true
+```
+"""
 function is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
     return all(
         e -> theta' * e != 0,
@@ -383,7 +409,9 @@ function is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
     )
 end
 
-"""Checks if the gcd of all the entries of d is ``1``."""
+"""
+Checks if the gcd of all the entries of d is ``1``.
+"""
 function is_coprime(d::AbstractVector{Int})
     return gcd(d) == 1
 end
@@ -393,6 +421,12 @@ end
 Returns the slope of the dimension vector ``d``
 with respect to the stability parameter ``\\theta``
 and a choice of a denominator function.
+
+EXAMPLE:
+```jldoctest
+julia> slope([2,3], [3,-2])
+0//1
+```
 """
 function slope(d::AbstractVector{Int},
     theta::AbstractVector{Int},
@@ -400,6 +434,7 @@ function slope(d::AbstractVector{Int},
 
     return (theta' * d) // denom(d)
 end
+
 """
 Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d``.
 """
@@ -677,6 +712,8 @@ function all_generic_subdimension_vectors(
 end
 
 """
+    all_HN_types(Q, d, theta, denom, ordered=true)
+
 Returns a list of all the Harder Narasimhan types of representations of ``Q``
 with dimension vector ``d``, with respect to the slope function theta/denom.
 
