@@ -1145,7 +1145,6 @@ function symmetric_polynomial(vars, degree::Int)
     return sum(prod(e) for e in IterTools.subsets(vars, degree))
 end
 
-# TODO test Chow ring
 """
     Chow_ring(Q, d, theta, a)
 
@@ -1166,6 +1165,30 @@ A tuple containing:
 - the Chow ring of the moduli space,
 - the polynomial ring above it,
 - the inclusion map \$\\iota : A \\to R\$.
+
+EXAMPLES:
+
+The Chow ring for the projective line has two generators:
+```jldoctest
+julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
+
+julia> CH = Chow_ring(M)[1];
+
+julia> QuiverTools.gens(QuiverTools.quotient_ideal(CH))
+2-element Vector{Singular.spoly{Singular.n_Q}}:
+ x21
+ x11^2
+```
+
+The Chow ring for our favourite 6-fold has, in this implementation, 16 generators:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> CH = Chow_ring(M)[1]; I = QuiverTools.quotient_ideal(CH);
+
+julia> length(QuiverTools.gens(I))
+16
+```
 """
 @memoize Dict function Chow_ring(
     Q::Quiver,
