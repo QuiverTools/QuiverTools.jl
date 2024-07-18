@@ -951,7 +951,7 @@ function index(M::QuiverModuliSpace)
         is_amply_stable(M)
         return gcd(M.theta)
     end
-    throw(NotImplementedError())
+    throw(NotImplementedError("Only implemented for canonical stability."))
 end
 
 
