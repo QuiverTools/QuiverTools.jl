@@ -1,7 +1,7 @@
 name = "QuiverTools"
 uuid = "dc2e10be-62a3-4315-9c95-46bb97ac152d"
 authors = ["Gianni Petrella <gianni.petrella99@gmail.com>"]
-version = "0.1.0"
+version = "1.0.0"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
