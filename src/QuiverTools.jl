@@ -25,7 +25,7 @@ export is_Schur_root,
     generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
 export all_HN_types, is_HN_type, has_semistables, has_stables, is_amply_stable
 
-# TODO add missing doctests to all the methods.
+# TODO add missing doctests across codebase.
 # TODO keyword arguments across codebase
 # TODO add safety checks everywhere in the codebase
 
@@ -86,7 +86,7 @@ struct Quiver
     function Quiver(arrows::String)
         pairs = split(arrows, ",")
         pairs = map(p -> split(p, "-"), pairs)
-        pairs = map( p -> [parse(Int, p[1]), parse(Int, p[end]), length(p) - 1], pairs)
+        pairs = map(p -> [parse(Int, p[1]), parse(Int, p[end]), length(p) - 1], pairs)
 
         n = maximum(maximum(pair[1:2]) for pair in pairs)
         A = zeros(Int, n, n)
