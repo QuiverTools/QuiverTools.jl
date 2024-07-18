@@ -12,68 +12,6 @@ export is_nonempty, dimension, is_smooth, semistable_equals_stable,
     codimension_unstable_locus
 
 
-abstract type QuiverModuli end
-
-# TODO consider this:
-# https://stackoverflow.com/questions/71738970/in-julia-declare-abstractvectorabstractvector
-# this is also necessary to be able to type function outputs correctly.
-struct QuiverModuliSpace <: QuiverModuli
-    Q::Quiver
-    d::AbstractVector{Int}
-    theta::AbstractVector{Int}
-    condition::String
-    denom::Function
-
-    function QuiverModuliSpace(
-        Q::Quiver,
-        d::AbstractVector{Int},
-        theta::AbstractVector{Int} = canonical_stability(Q, d),
-        condition::String = "semistable",
-        denom::Function = sum,
-    )
-
-        if condition in ["stable", "semistable"] &&
-           length(d) == nvertices(Q) &&
-           length(theta) == nvertices(Q)
-
-            return new(Q, d, theta, condition, denom)
-        end
-        throw(DomainError("Invalid input"))
-    end
-end
-
-struct QuiverModuliStack <: QuiverModuli
-    Q::Quiver
-    d::AbstractVector{Int}
-    theta::AbstractVector{Int}
-    condition::String
-    denom::Function
-
-    function QuiverModuliStack(
-        Q::Quiver,
-        d::AbstractVector{Int},
-        theta::AbstractVector{Int} = canonical_stability(Q, d),
-        condition::String = "semistable",
-        denom::Function = sum,
-    )
-
-        if condition in ["stable", "semistable"] &&
-           length(d) == nvertices(Q) &&
-           length(theta) == nvertices(Q)
-
-            return new(Q, d, theta, condition, denom)
-        end
-        throw(DomainError("Invalid input"))
-    end
-end
-
-function show(io::IO, M::QuiverModuli)
-    print(
-        io,
-        "Moduli space of $(M.condition) representations of $(M.Q)
-      with dimension vector $(M.d) and stability parameter $(M.theta)",
-    )
-end
 
 
 """
