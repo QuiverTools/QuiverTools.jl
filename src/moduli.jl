@@ -1092,12 +1092,9 @@ function motive(M::QuiverModuliStack)
 end
 
 """
-    unsafe_motive(Q, d, theta, denom)
+    motive(Q, d, theta, denom)
 
-Returns the motive of the moduli stack of ``\\theta``-semistable representations, and
-the function field.
-
-This is an internal method. Use ``motive()`` instead.
+Returns the motive of the moduli stack of ``\\theta``-semistable representations.
 
 INPUT:
 - ``Q``: a quiver.
@@ -1106,7 +1103,7 @@ INPUT:
 - ``denom``: a function. Default is the sum.
 
 OUTPUT:
-- a dictionary with the motive and the function field.
+- The motive as an element in the function field \$\\mathbb{Q}(L)\$.
 
 EXAMPLES:
 
