@@ -382,8 +382,8 @@ EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3];
 
-julia> canonical_stability(Q, d)
-[9, -6]
+julia> canonical_stability(Q, d) == [9, -6]
+true
 ```
 """
 function canonical_stability(Q::Quiver, d::AbstractVector{Int})::AbstractVector{Int}
@@ -396,9 +396,9 @@ the stability parameter ``\\theta``.
 
 EXAMPLES:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); d = [2, 3]; theta = [3, -2];
+julia> d = [2, 3]; theta = [3, -2];
 
-julia> is_coprime(Q, d, theta)
+julia> is_coprime(d, theta)
 true
 ```
 """
