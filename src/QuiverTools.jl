@@ -1023,6 +1023,14 @@ INPUT:
 
 OUTPUT:
 - A zero vector of length `n`.
+
+EXAMPLE:
+
+There is not much to it:
+```jldoctest
+julia> zero_vector(3) == [0, 0, 0]
+true
+```
 """
 @memoize Dict function zero_vector(n::Int)
     return coerce_vector(zeros(Int, n))
@@ -1039,6 +1047,15 @@ INPUT:
 OUTPUT:
 - A vector of ones of length `n`.
 
+EXAMPLE:
+
+There is not much to it:
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> thin_dimension_vector(Q) == [1, 1]
+true
+```
 """
 function thin_dimension_vector(Q::Quiver)
     return coerce_vector(ones(Int, nvertices(Q)))
@@ -1057,7 +1074,7 @@ INPUT:
 OUTPUT:
 - An array of all subdimension vectors of `d`, with or without the zero vector and `d`.
 
-Examples
+EXAMPLES:
 ```jldoctest
 julia> all_subdimension_vectors([2, 3])
 12-element Vector{AbstractVector{Int64}}:
@@ -1121,16 +1138,76 @@ julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true, strict=true)
     return subdims
 end
 
+"""
+    is_subdimension_vector(e::AbstractVector{Int}, d::AbstractVector{Int})
+
+Check if vector `e` is a subdimension of vector `d`.
+
+INPUT:
+- `e`: An abstract vector of integers.
+- `d`: An abstract vector of integers.
+
+OUTPUT:
+whether `e` is a subdimension of `d`.
+
+EXAMPLE:
+```jldoctest
+julia> is_subdimension_vector([1, 1], [2, 3])
+true
+
+julia> is_subdimension_vector([1, 1], [1, 1])
+true
+
+julia> is_subdimension_vector([1, 2], [1, 1])
+false
+```
+"""
 function is_subdimension_vector(e::AbstractVector{Int}, d::AbstractVector{Int})
     return all(ei <= di for (ei, di) in zip(e, d))
 end
 
+"""
+    unit_vector(n::Int, i::Int)
+
+Return a vector of length `n` with a `1` at index `i` and `0` elsewhere.
+
+# Arguments
+- `n::Int`: The length of the unit vector.
+- `i::Int`: The index at which to place the `1` in the unit vector.
+
+# Returns
+A unit vector of length `n` with a `1` at index `i` and `0` elsewhere.
+
+EXAMPLES:
+```jldoctest
+julia> unit_vector(3, 2) == [0, 1, 0]
+true
+```
+"""
 @memoize Dict function unit_vector(n::Int, i::Int)
     v = zeros(Int, n)
     v[i] = 1
     return coerce_vector(v)
 end
 
+"""
+    unit_vector(Q::Quiver, i::Int)
+
+Return a dimension vector for the quiver `Q` with a `1` at index `i` and `0` elsewhere.
+
+INPUT:
+- `Q::Quiver`: The input quiver.
+- `i::Int`: The index at which to place the `1` in the unit vector.
+
+OUTPUT:
+- A dimension vector for the quiver `Q` with a `1` at index `i` and `0` elsewhere.
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> unit_vector(Q, 2) == [0, 1]
+true
 function unit_vector(Q::Quiver, i::Int)
     return unit_vector(nvertices(Q), i)
 end
