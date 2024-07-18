@@ -811,6 +811,60 @@ julia> all_HN_types(Q, d, theta)
 end
 
 """
+    all_HN_types(M, ordered=true)
+
+Returns a list of all the Harder Narasimhan types of the quiver moduli ``M``.
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> all_HN_types(M)
+8-element Vector{Vector{AbstractVector{Int64}}}:
+ [[2, 3]]
+ [[1, 1], [1, 2]]
+ [[2, 2], [0, 1]]
+ [[2, 1], [0, 2]]
+ [[1, 0], [1, 3]]
+ [[1, 0], [1, 2], [0, 1]]
+ [[1, 0], [1, 1], [0, 2]]
+ [[2, 0], [0, 3]]
+
+julia> all_HN_types(Q, [3,0], [0,0])
+1-element Vector{Vector{AbstractVector{Int64}}}:
+ [[3, 0]]
+
+julia> Q = three_vertex_quiver(1, 4, 1); M = QuiverModuliSpace(Q, [4, 1, 4]);
+
+julia> all_HN_types(M)
+106-element Vector{Vector{AbstractVector{Int64}}}:
+ [[4, 1, 4]]
+ [[4, 1, 3], [0, 0, 1]]
+ [[4, 0, 3], [0, 1, 1]]
+ [[4, 0, 3], [0, 1, 0], [0, 0, 1]]
+ [[3, 1, 2], [1, 0, 2]]
+ [[3, 1, 2], [1, 0, 1], [0, 0, 1]]
+ [[3, 0, 2], [1, 1, 2]]
+ [[3, 0, 2], [0, 1, 0], [1, 0, 2]]
+ [[3, 0, 2], [1, 0, 1], [0, 1, 1]]
+ [[3, 0, 2], [1, 1, 1], [0, 0, 1]]
+ ⋮
+ [[3, 0, 0], [1, 1, 2], [0, 0, 2]]
+ [[3, 0, 0], [0, 1, 0], [1, 0, 4]]
+ [[3, 0, 0], [0, 1, 0], [1, 0, 3], [0, 0, 1]]
+ [[3, 0, 0], [0, 1, 0], [1, 0, 2], [0, 0, 2]]
+ [[3, 0, 0], [1, 0, 1], [0, 1, 1], [0, 0, 2]]
+ [[3, 0, 0], [1, 1, 1], [0, 0, 3]]
+ [[3, 0, 0], [1, 1, 0], [0, 0, 4]]
+ [[4, 0, 0], [0, 1, 1], [0, 0, 3]]
+ [[4, 0, 0], [0, 1, 0], [0, 0, 4]]
+```
+"""
+function all_HN_types(M::QuiverModuli, ordered::Bool=true)
+    return all_HN_types(M.Q, M.d, M.theta, M.denom, ordered)
+end
+
+"""
 	is_hn_type(Q, d, dstar, theta, denom)
 
 Checks if the given ordered list of subdimension vectors ``dstar`` is an HN type
@@ -825,7 +879,6 @@ julia> d = [2, 3]; dstar = [d];
 
 julia> is_HN_type(Q, d, dstar)
 true
-
 ```
 """
 function is_HN_type(
@@ -852,7 +905,24 @@ function is_HN_type(
     return true
 end
 
+"""
+	is_hn_type(M, dstar)
 
+Checks if the given ordered list of subdimension vectors ``dstar`` is an HN type
+for the quiver moduli ``M``.
+
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> is_HN_type(M, [d])
+true
+```
+"""
+function is_HN_type(M::QuiverModuli, hntype::Vector{<:AbstractVector{Int}})
+    return is_HN_type(M.Q, M.d, hntype, M.theta, M.denom)
+end
 
 """
 Returns the codimension of the given HN stratum.
@@ -872,7 +942,7 @@ julia> HN = all_HN_types(Q, d, theta)
  [[1, 0], [1, 1], [0, 2]]
  [[2, 0], [0, 3]]
 
-julia> [QuiverTools.codimension_HN_stratum(Q, stratum) for stratum in HN]
+julia> [codimension_HN_stratum(Q, stratum) for stratum in HN]
 8-element Vector{Int64}:
   0
   3
@@ -893,6 +963,40 @@ function codimension_HN_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}
             j = i+1:length(stratum)
         )
     end
+end
+
+"""
+Returns the codimension of the given HN stratum.
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> HN = all_HN_types(M)
+8-element Vector{Vector{AbstractVector{Int64}}}:
+ [[2, 3]]
+ [[1, 1], [1, 2]]
+ [[2, 2], [0, 1]]
+ [[2, 1], [0, 2]]
+ [[1, 0], [1, 3]]
+ [[1, 0], [1, 2], [0, 1]]
+ [[1, 0], [1, 1], [0, 2]]
+ [[2, 0], [0, 3]]
+
+julia> [codimension_HN_stratum(M, stratum) for stratum in HN]
+8-element Vector{Int64}:
+  0
+  3
+  4
+ 10
+  8
+  9
+ 12
+ 18
+```
+"""
+function codimension_HN_stratum(M::QuiverModuli, stratum::Vector{<:AbstractVector{Int}})
+    return codimension_HN_stratum(M.Q, stratum)
 end
 
 """
