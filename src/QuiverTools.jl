@@ -1076,7 +1076,7 @@ OUTPUT:
 
 EXAMPLES:
 ```jldoctest
-julia> all_subdimension_vectors([2, 3])
+julia> QuiverTools.all_subdimension_vectors([2, 3])
 12-element Vector{AbstractVector{Int64}}:
  [0, 0]
  [1, 0]
