@@ -12,8 +12,9 @@ QuiverTools is not registered at the moment;
 to install the package, run the following command in the Julia REPL:
 
 ```julia
-using Pkg
-Pkg.add("github.com/QuiverTools/QuiverTools.jl")
+julia> using Pkg
+
+julia> Pkg.add(url="https://github.com/QuiverTools/QuiverTools.jl.git")
 ```
 
 ## Documentation
