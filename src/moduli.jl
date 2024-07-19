@@ -53,7 +53,7 @@ end
 	is_coprime(M::QuiverModuli)
 
 Checks if the stability parameter is coprime with the dimension vector,
-i.e., if for all subdimension vectors `e` of `d`, \$\\theta\\cdot e \\neq 0\$.
+i.e., if for all subdimension vectors ``e`` of ``d``, ``\\theta\\cdot e \\neq 0``.
 
 INPUT:
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
@@ -588,7 +588,7 @@ function solve(A, b)
 end
 
 """
-Cardinality of general linear group \$\\mathrm{GL}_n(\\mathbb{F}_v)\$.
+Cardinality of general linear group ``\\mathrm{GL}_n(\\mathbb{F}_v)``.
 """
 @memoize Dict function CardinalGl(n::Int, q)
     if n == 0
@@ -599,7 +599,7 @@ Cardinality of general linear group \$\\mathrm{GL}_n(\\mathbb{F}_v)\$.
 end
 
 """
-Cardinality of representation space \$\\mathrm{R}(Q,d)\$, over \$\\mathbb{F}_q\$.
+Cardinality of representation space ``\\mathrm{R}(Q,d), over \\mathbb{F}_q``.
 """
 function CardinalRd(Q::Quiver, d::AbstractVector{Int}, q)
     return q^sum(
@@ -609,14 +609,17 @@ function CardinalRd(Q::Quiver, d::AbstractVector{Int}, q)
 end
 
 """
-Cardinality of product of general linear groups \$\\mathrm{GL}_{d}(\\mathbb{F}_q)\$.
+Cardinality of product of general linear groups ``\\mathrm{GL}_{d}(\\mathbb{F}_q)``.
 """
 @memoize Dict function CardinalGd(d::AbstractVector{Int}, q)
     return prod(CardinalGl(di, q) for di in d)
 end
 
 
-"""Entry of the transfer matrix, as per Corollary 6.9"""
+"""
+Entry of the transfer matrix, as per Corollary 6.9 of
+[MR1974891](https://doi.org/10.1007/s00222-002-0273-4)
+"""
 function TransferMatrixEntry(Q, e, f, q)
     fe = f - e
 
@@ -853,8 +856,8 @@ end
 
 Returns the index of the moduli space ``M``.
 
-The index of a variety \$X\$ is the largest which divides the canonical divisor \$K_X\$
-in \$Pic(X)\$.
+The index of a variety ``X`` is the largest which divides
+the canonical divisor ``K_X`` in ``Pic(X)``.
 
 This implementation currently only works for the canonical stability.
 
@@ -1014,7 +1017,6 @@ function Poincare_polynomial(M::QuiverModuliSpace)
 end
 
 
-# oh my god
 function power(x, n::Int)
     if n >= 0
         return x^n
@@ -1043,7 +1045,7 @@ INPUT:
 - ``denom``: a function. Default is the sum.
 
 OUTPUT:
-- The motive as an element in the function field \$\\mathbb{Q}(L)\$.
+- The motive as an element in the function field \\mathbb{Q}(L).
 
 EXAMPLES:
 
@@ -1151,7 +1153,7 @@ end
 Computes the Chow ring of the moduli space of ``\\theta``-semistable representations of
 ``Q`` with dimension vector ``d``, for a choice of linearization ``a``.
 
-This method of the function Chow_ring also returns the ambient ring \$R\$
+This method of the function Chow_ring also returns the ambient ring ``R``
 and the inclusion morphism.
 
 INPUT:
@@ -1164,7 +1166,7 @@ OUTPUT:
 A tuple containing:
 - the Chow ring of the moduli space,
 - the polynomial ring above it,
-- the inclusion map \$\\iota : A \\to R\$.
+- the inclusion map ``\\iota : A \\to R``.
 
 EXAMPLES:
 
@@ -1366,7 +1368,7 @@ end
 
 Returns the first Chern class of the line bundle L(eta).
 
-This is given by \$L(eta) = \\bigoplus_{i \\in Q_0} \\det(U_i)^{-eta_i}\$.
+This is given by ``L(eta) = \\bigoplus_{i \\in Q_0} \\det(U_i)^{-eta_i}``.
 
 INPUT:
 - ``M``: a moduli space of representations of a quiver.
@@ -1377,7 +1379,7 @@ OUTPUT:
 
 EXAMPLES:
 
-The line bundles \$\\mathcal{O}(i)\$ on the projective line:
+The line bundles ``\\mathcal{O}(i)`` on the projective line:
 ```jldoctest
 julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
@@ -1447,15 +1449,15 @@ end
 """
     total_Chern_class_universal(M::QuiverModuliSpace, i, chi)
 
-Returns the total Chern class of the universal bundle \$U_i(\\chi)\$.
+Returns the total Chern class of the universal bundle ``U_i(\\chi)``.
 
 INPUT:
 - ``M``: a moduli space of representations of a quiver.
 - ``i``: the universal bundle we want the Chern class of.
-- ``chi``: a choice of linearization to construct \$U_i(\\chi)\$.
+- ``chi``: a choice of linearization to construct ``U_i(\\chi)``.
 
 OUTPUT:
-- the total Chern class of the universal bundle \$U_i(\\chi)\$.
+- the total Chern class of the universal bundle ``U_i(\\chi)``.
 
 EXAMPLES:
 
@@ -1561,7 +1563,7 @@ julia> Todd_class(M)
 	)
 
 	"""
-	We call the series \$Q(t) = t/(1-e^{-t})\$ the Todd generating series.
+	We call the series ``Q(t) = t/(1-e^{-t})`` the Todd generating series.
 	The function computes the terms of this series up to degree n.
 	We use this instead of the more conventional notation `Q` to avoid a
 	clash with the notation for the quiver.
@@ -1620,7 +1622,8 @@ julia> Todd_class(M)
     num = gens(preimage(inclusion, Ideal(R, num)))[1]
     den = gens(preimage(inclusion, Ideal(R, den)))[1]
 
-    # renormalizing the constant term because Singular is silly like that
+    # renormalizing the constant term because it should be 1, but Singular does not keep
+    # it fixed.
     num /= constant_coefficient(num)
     den /= constant_coefficient(den)
 
@@ -1648,7 +1651,7 @@ the integral of `f`.
 
 EXAMPLES:
 
-The integral of \$\\mathcal{O}(i)\$ on the projective line for some `i`s.
+The integral of ``\\mathcal{O}(i)`` on the projective line for some `i`s.
 
 ```jldoctest
 julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
@@ -1736,8 +1739,8 @@ Returns the "pseudodegree" of the monomial `f` in the Chow ring of the moduli
 space `M` passed.
 
 This method is unsafe, as it does not consider the actual degree of the MPolyRingElem
-objects passed. Instead, it assumes that the Chow ring passed has variables \$x_{i, j}\$
-as in the Chow ring paper.
+objects passed. Instead, it assumes that the Chow ring passed has variables
+``x_{i, j}`` as in the Chow ring paper.
 """
 function __Chow_ring_monomial_grading(M::QuiverModuliSpace, f)
     return __Chow_degrees(M.d)' * collect(Singular.exponent_vectors(f))[1]
@@ -1761,7 +1764,7 @@ end
 
 Returns the dimension of the moduli stack.
 This differs from the dimension of the moduli space by 1, as we do not quotient out
-the stabilizer \$ \\mathbb{G}\$.
+the stabilizer `` \\mathbb{G}``.
 
 INPUT:
 - ``M``: a moduli stack of representations of a quiver.
