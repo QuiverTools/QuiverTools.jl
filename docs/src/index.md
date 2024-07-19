@@ -2,10 +2,10 @@
 
 ## Introduction
 
-QuiverTools is a software suite in development for treatment of quiver representations,
+QuiverTools is a software suite for treatment of quiver representations,
 their roots, their moduli spaces and computations of several invariants of these.
 
-QuiverTools will be available as a Julia package and as a Sage library.
+QuiverTools is available as a Julia package and as a Sage library.
 
 ## Installation
 
@@ -13,12 +13,14 @@ At the moment the package is not registered, so you can install it by running
 the following command in the Julia REPL:
 
 ```julia-repl
-pkg> no-you-can-not-install-it-yet
+julia> using Pkg
+
+julia> Pkg.add(url="https://github.com/QuiverTools/QuiverTools.jl.git")
 ```
 
 ## Acknowledgements
 
-QuiverTools is being developed by [P. Belmans](https://pbelmans.ncag.info/),
+QuiverTools is developed by [P. Belmans](https://pbelmans.ncag.info/),
 H. Franzen and [G. Petrella](https://www.giannipetrella.eu).
 
 The Julia version is developed and maintained by

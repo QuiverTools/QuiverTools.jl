@@ -6,7 +6,9 @@ At the moment the package is not registered,
 so you can install it by running the following command in the Julia REPL:
 
 ```julia-repl
-pkg> no-you-can-not-install-it-yet
+julia> using Pkg
+
+julia> Pkg.add(url="https://github.com/QuiverTools/QuiverTools.jl.git")
 ```
 
 ## Basic functionalities
