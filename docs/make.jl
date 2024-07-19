@@ -24,6 +24,6 @@ makedocs(
     "Benchmarks" => "benchmarks.md"],
     )
 
-# deploydocs(
-#     branch = "docs",
-#     repo = "github.com/quiver-tools/QuiverTools.jl.git")
+deploydocs(
+    branch = "docs",
+    repo = "github.com/QuiverTools/QuiverTools.jl.git")
