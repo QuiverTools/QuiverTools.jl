@@ -26,4 +26,5 @@ makedocs(
 
 deploydocs(
     branch = "docs",
-    repo = "github.com/QuiverTools/QuiverTools.jl.git")
+    repo = "github.com/QuiverTools/QuiverTools.jl.git",
+    cname = "julia.quiver.tools")
