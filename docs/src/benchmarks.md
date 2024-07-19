@@ -16,14 +16,14 @@ This was done on a 2021 MacBook Pro with a M1 Pro chip and 16 GB of RAM.
 ### Datum: Quiver[5-Kronecker quiver, with adjacency matrix [0 5; 0 0]]
 
 ```julia
-BenchmarkTools.Trial: 10000 samples with 4 evaluations.
- Range (min … max):  7.312 μs …  31.698 μs  ┊ GC (min … max): 0.00% … 0.00%
- Time  (median):     7.615 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   7.691 μs ± 828.352 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+BenchmarkTools.Trial: 10000 samples with 6 evaluations.
+ Range (min … max):  6.181 μs …  1.057 ms  ┊ GC (min … max): 0.00% … 98.97%
+ Time  (median):     6.312 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   6.580 μs ± 14.238 μs  ┊ GC (mean ± σ):  3.04% ±  1.40%
 
-     ▃   ▁ ▁ █▄█                                               
-  ▂▆▆█▆▇▅█▆███████▄▄▂▃▃▂▃▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
-  7.31 μs         Histogram: frequency by time        8.86 μs <
+   ▂▄▇▇██▇▇▆▆▅▄▄▃▄▃▃▃▁▂▁ ▁ ▁    ▁▁▁ ▁  ▁ ▁▁                  ▃
+  ▅████████████████████████████████▇██▇████▇█▇█▆▆▇▆▆▅▆▅▄▄▅▄▄ █
+  6.18 μs      Histogram: log(frequency) by time     7.22 μs <
 
  Memory estimate: 1.72 KiB, allocs estimate: 29.
 ```
@@ -32,14 +32,14 @@ BenchmarkTools.Trial: 10000 samples with 4 evaluations.
 ### Datum: Quiver[5-Kronecker quiver, with adjacency matrix [0 5; 0 0]]
 
 ```julia
-BenchmarkTools.Trial: 10000 samples with 3 evaluations.
- Range (min … max):  8.708 μs …  17.208 μs  ┊ GC (min … max): 0.00% … 0.00%
- Time  (median):     8.889 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   9.006 μs ± 407.506 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+BenchmarkTools.Trial: 10000 samples with 4 evaluations.
+ Range (min … max):  7.542 μs …  1.071 ms  ┊ GC (min … max): 0.00% … 98.84%
+ Time  (median):     7.698 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   7.914 μs ± 10.648 μs  ┊ GC (mean ± σ):  1.34% ±  0.99%
 
-     ▆█▇▅▁                                                     
-  ▁▃██████▆▅▃▃▃▂▂▃▃▃▃▃▂▂▂▂▂▂▁▂▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
-  8.71 μs         Histogram: frequency by time        10.4 μs <
+   ▄▇▇██▇▅▅▄▄▄▄▄▃▁▃▂▂ ▁▁      ▁      ▁                       ▂
+  ███████████████████████▆██████████████▇▇▇▆▆▅▅▅▆▅▅▃▅▄▂▄▃▄▂▃ █
+  7.54 μs      Histogram: log(frequency) by time      9.2 μs <
 
  Memory estimate: 2.41 KiB, allocs estimate: 45.
 ```
@@ -49,29 +49,29 @@ BenchmarkTools.Trial: 10000 samples with 3 evaluations.
 
 ```julia
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  131.792 μs …   6.021 ms  ┊ GC (min … max): 0.00% … 95.25%
- Time  (median):     137.458 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   149.601 μs ± 241.364 μs  ┊ GC (mean ± σ):  6.86% ±  4.15%
+ Range (min … max):  103.916 μs …   3.862 ms  ┊ GC (min … max): 0.00% … 95.05%
+ Time  (median):     106.750 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   116.208 μs ± 172.582 μs  ┊ GC (mean ± σ):  7.16% ±  4.67%
 
-   ▂█▆▃  ▁▄▂                                                     
-  ▃█████▇████▇▆▅▅▅▅▄▅▄▄▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▁▂▂▂▂▂▂▂▂▂▂ ▃
-  132 μs           Histogram: frequency by time          176 μs <
+      ▃▇█▇▅▂                                                     
+  ▁▁▃▅███████▆▆▅▄▄▄▃▃▃▃▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  104 μs           Histogram: frequency by time          124 μs <
 
- Memory estimate: 162.94 KiB, allocs estimate: 2349.
+ Memory estimate: 162.81 KiB, allocs estimate: 2347.
 ```
 ### Datum: (5-Kronecker quiver, with adjacency matrix [0 5; 0 0], [2, 3], [3, -2])
 
 ```julia
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  132.125 μs …   5.925 ms  ┊ GC (min … max): 0.00% … 95.40%
- Time  (median):     139.458 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   153.442 μs ± 238.650 μs  ┊ GC (mean ± σ):  6.40% ±  4.05%
+ Range (min … max):  103.750 μs …   3.788 ms  ┊ GC (min … max): 0.00% … 97.01%
+ Time  (median):     106.541 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   116.062 μs ± 171.101 μs  ┊ GC (mean ± σ):  7.12% ±  4.68%
 
-     █▄                                                          
-  ▄▆▆███▆▅▄▄▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▂▂▂▂▂▁▂▂▂▂▂▂▁▂▂▂▂ ▃
-  132 μs           Histogram: frequency by time          235 μs <
+      ▃▅█▆▇▃▂                                                    
+  ▁▂▃▆███████▇▆▅▅▄▄▃▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  104 μs           Histogram: frequency by time          123 μs <
 
- Memory estimate: 162.84 KiB, allocs estimate: 2347.
+ Memory estimate: 162.80 KiB, allocs estimate: 2346.
 ```
 ## Benchmarking `all_Teleman_bounds`
 
@@ -79,57 +79,57 @@ BenchmarkTools.Trial: 10000 samples with 1 evaluation.
 
 ```julia
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  162.875 μs …   5.935 ms  ┊ GC (min … max): 0.00% … 94.14%
- Time  (median):     166.417 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   179.764 μs ± 250.318 μs  ┊ GC (mean ± σ):  6.20% ±  4.31%
+ Range (min … max):  134.417 μs …   4.111 ms  ┊ GC (min … max): 0.00% … 93.35%
+ Time  (median):     136.834 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   147.842 μs ± 185.772 μs  ┊ GC (mean ± σ):  6.39% ±  4.88%
 
-    ▇█▅▂▂                                                        
-  ▃▆██████▇▆▅▄▄▃▃▃▃▃▃▃▃▃▃▂▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▂▂▂▂▂▂▂▂▂▂▂ ▃
-  163 μs           Histogram: frequency by time          202 μs <
+     ▄██▅▁                                                       
+  ▁▃▆█████▇▅▅▅▄▄▃▃▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  134 μs           Histogram: frequency by time          157 μs <
 
- Memory estimate: 185.22 KiB, allocs estimate: 2763.
+ Memory estimate: 185.09 KiB, allocs estimate: 2761.
 ```
 ### Datum: (5-Kronecker quiver, with adjacency matrix [0 5; 0 0], [2, 3], [3, -2])
 
 ```julia
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  163.375 μs …  18.910 ms  ┊ GC (min … max): 0.00% … 0.00%
- Time  (median):     167.542 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   186.526 μs ± 346.495 μs  ┊ GC (mean ± σ):  6.37% ± 4.43%
+ Range (min … max):  133.917 μs …   3.997 ms  ┊ GC (min … max): 0.00% … 94.00%
+ Time  (median):     137.083 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   147.908 μs ± 185.843 μs  ┊ GC (mean ± σ):  6.37% ±  4.87%
 
-   ▂█▄▁▁                                                         
-  ▃██████▆▅▃▃▃▃▃▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
-  163 μs           Histogram: frequency by time          214 μs <
+      ▃▇█▇▇▅▃▁                                                   
+  ▁▁▃▅█████████▇▆▅▅▄▄▄▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▃
+  134 μs           Histogram: frequency by time          154 μs <
 
- Memory estimate: 185.12 KiB, allocs estimate: 2761.
+ Memory estimate: 185.08 KiB, allocs estimate: 2760.
 ```
 ## Benchmarking `Euler_form`
 
 ### Datum: (3-Kronecker quiver, with adjacency matrix [0 3; 0 0], [2, 3], [3, -2])
 
 ```julia
-BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  8.958 μs …  37.500 μs  ┊ GC (min … max): 0.00% … 0.00%
- Time  (median):     9.250 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   9.394 μs ± 832.278 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+BenchmarkTools.Trial: 10000 samples with 4 evaluations.
+ Range (min … max):  7.760 μs …  1.150 ms  ┊ GC (min … max): 0.00% … 98.61%
+ Time  (median):     7.948 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   8.260 μs ± 15.429 μs  ┊ GC (mean ± σ):  2.62% ±  1.39%
 
-  ▂▅▆█▇▆▇▅▅▅▃▃▂▃▁▁▂▁▁▁  ▂▁  ▁                                 ▂
-  ████████████████████████▇██▇██▇▇█▇▆▆▇▅▅▅▄▅▆▄▃▄▃▃▃▃▄▃▃▁▄▃▁▁▅ █
-  8.96 μs      Histogram: log(frequency) by time      12.2 μs <
+      █▆▇█▆▇                                                  
+  ▁▂▃▆███████▆▅▄▆▄▄▄▃▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  7.76 μs        Histogram: frequency by time        9.09 μs <
 
  Memory estimate: 4.09 KiB, allocs estimate: 66.
 ```
 ### Datum: (5-Kronecker quiver, with adjacency matrix [0 5; 0 0], [2, 3], [3, -2])
 
 ```julia
-BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  9.000 μs …  32.959 μs  ┊ GC (min … max): 0.00% … 0.00%
- Time  (median):     9.250 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   9.367 μs ± 723.138 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+BenchmarkTools.Trial: 10000 samples with 4 evaluations.
+ Range (min … max):  7.729 μs …  1.045 ms  ┊ GC (min … max): 0.00% … 98.43%
+ Time  (median):     7.938 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   8.212 μs ± 14.663 μs  ┊ GC (mean ± σ):  2.50% ±  1.39%
 
-  ▂▅████▇▇▇▆▆▅▄▄▄▃▃▃▂▁▁▁  ▁ ▁▁▁ ▁▁   ▁                        ▃
-  █████████████████████████████▁█████████▇▇▇█▆▇▇▆▆▇▇▅▅▆▃▄▃▃▁▄ █
-  9 μs         Histogram: log(frequency) by time      11.4 μs <
+       ▁▅▇█ ▆▄▂                                               
+  ▁▁▂▃▅█████████▆▅▄▅▄▃▄▄▃▄▃▃▂▂▁▂▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▃
+  7.73 μs        Histogram: frequency by time        8.88 μs <
 
  Memory estimate: 4.09 KiB, allocs estimate: 66.
 ```
@@ -139,43 +139,43 @@ BenchmarkTools.Trial: 10000 samples with 1 evaluation.
 
 ```julia
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  50.541 μs …   5.355 ms  ┊ GC (min … max): 0.00% … 97.43%
- Time  (median):     52.458 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   56.467 μs ± 134.521 μs  ┊ GC (mean ± σ):  6.22% ±  2.58%
+ Range (min … max):  41.833 μs …   3.493 ms  ┊ GC (min … max): 0.00% … 97.39%
+ Time  (median):     42.916 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   46.767 μs ± 108.437 μs  ┊ GC (mean ± σ):  7.26% ±  3.09%
 
-       ▁▂▃▄▅█▅█▆▂                                               
-  ▁▁▂▄▆███████████▆▅▄▄▃▃▃▃▃▃▃▂▃▂▂▂▂▁▂▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▃
-  50.5 μs         Histogram: frequency by time         60.3 μs <
+      ▄▆█▇▅▃                                                    
+  ▁▂▅▇███████▇▇▄▄▃▃▃▂▃▃▂▂▂▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  41.8 μs         Histogram: frequency by time         49.5 μs <
 
- Memory estimate: 68.67 KiB, allocs estimate: 937.
+ Memory estimate: 68.77 KiB, allocs estimate: 939.
 ```
 ### Datum: (5-Kronecker quiver, with adjacency matrix [0 5; 0 0], [2, 3], [3, -2])
 
 ```julia
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  51.041 μs …   5.126 ms  ┊ GC (min … max): 0.00% … 97.70%
- Time  (median):     52.792 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   57.190 μs ± 142.731 μs  ┊ GC (mean ± σ):  6.96% ±  2.76%
+ Range (min … max):  41.583 μs …   3.474 ms  ┊ GC (min … max): 0.00% … 97.66%
+ Time  (median):     42.709 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   46.576 μs ± 108.073 μs  ┊ GC (mean ± σ):  7.27% ±  3.09%
 
-           ▅▄█▃▅                                                
-  ▂▂▃▃▅▅▆▆███████▇▇▄▄▄▄▃▃▃▃▃▃▃▃▃▃▃▃▂▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▂▂▂▂▂ ▃
-  51 μs           Histogram: frequency by time         59.6 μs <
+       ▂▆▃█▇▄                                                   
+  ▁▁▂▃▇██████▇█▇▄▄▄▃▂▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  41.6 μs         Histogram: frequency by time         48.4 μs <
 
- Memory estimate: 68.77 KiB, allocs estimate: 939.
+ Memory estimate: 68.67 KiB, allocs estimate: 937.
 ```
 ## Benchmarking `_Hodge_polynomial_fast`
 
 ### Datum: (5-Kronecker quiver, with adjacency matrix [0 5; 0 0], [2, 3], [3, -2])
 
 ```julia
-BenchmarkTools.Trial: 491 samples with 1 evaluation.
- Range (min … max):   6.137 ms … 99.873 ms  ┊ GC (min … max):  0.00% … 41.34%
- Time  (median):      6.388 ms              ┊ GC (median):     0.00%
- Time  (mean ± σ):   10.170 ms ± 17.316 ms  ┊ GC (mean ± σ):  16.13% ±  8.44%
+BenchmarkTools.Trial: 662 samples with 1 evaluation.
+ Range (min … max):  4.882 ms … 53.823 ms  ┊ GC (min … max):  0.00% … 58.34%
+ Time  (median):     4.948 ms              ┊ GC (median):     0.00%
+ Time  (mean ± σ):   7.567 ms ± 10.714 ms  ┊ GC (mean ± σ):  21.53% ± 13.01%
 
-  █                                                            
-  █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄▁▁▁▄▁▁▁▁▁▁▁▁▁▄▁▄▁▄▁█ ▆
-  6.14 ms      Histogram: log(frequency) by time        93 ms <
+  █                                                        ▁  
+  █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄▁▁▄▁▁▁▁▁▁▁▁▁▄▁▁▁▄▄▅█ ▆
+  4.88 ms      Histogram: log(frequency) by time     52.8 ms <
 
  Memory estimate: 5.11 MiB, allocs estimate: 195437.
 ```
@@ -185,29 +185,29 @@ BenchmarkTools.Trial: 491 samples with 1 evaluation.
 
 ```julia
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  52.625 μs …   5.122 ms  ┊ GC (min … max): 0.00% … 97.55%
- Time  (median):     54.250 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   58.973 μs ± 142.264 μs  ┊ GC (mean ± σ):  6.72% ±  2.76%
+ Range (min … max):  43.834 μs …   3.520 ms  ┊ GC (min … max): 0.00% … 97.71%
+ Time  (median):     44.959 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   48.944 μs ± 108.817 μs  ┊ GC (mean ± σ):  6.97% ±  3.09%
 
-     ▂▃█▅▄                                                      
-  ▂▃▄██████▇▅▅▄▄▄▄▄▄▃▃▃▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▂▂▂▂▁▂▂▂▂▂ ▃
-  52.6 μs         Histogram: frequency by time         66.4 μs <
+     ▆▇██▃                                                      
+  ▂▄▇█████▇▆▅▄▄▄▄▃▃▃▃▃▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▂▂▂▂▂▂▂▂▂▂▂▂ ▃
+  43.8 μs         Histogram: frequency by time         54.5 μs <
 
- Memory estimate: 71.55 KiB, allocs estimate: 973.
+ Memory estimate: 71.45 KiB, allocs estimate: 971.
 ```
 ### Datum: (3-Kronecker quiver, with adjacency matrix [0 3; 0 0], [2, 3])
 
 ```julia
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  52.542 μs …   5.142 ms  ┊ GC (min … max): 0.00% … 97.51%
- Time  (median):     53.958 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   58.738 μs ± 142.469 μs  ┊ GC (mean ± σ):  6.76% ±  2.75%
+ Range (min … max):  44.083 μs …   3.779 ms  ┊ GC (min … max): 0.00% … 97.74%
+ Time  (median):     45.250 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   49.266 μs ± 109.633 μs  ┊ GC (mean ± σ):  6.97% ±  3.09%
 
-     ▅▆█▃▁                                                      
-  ▂▄██████▇▆▄▄▄▃▄▃▃▄▄▃▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂ ▃
-  52.5 μs         Histogram: frequency by time         65.9 μs <
+      ▃█▅▇▂▁                                                    
+  ▁▂▃███████▆▅▃▄▃▃▃▂▃▂▂▂▃▂▂▂▂▂▂▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  44.1 μs         Histogram: frequency by time         52.9 μs <
 
- Memory estimate: 71.45 KiB, allocs estimate: 971.
+ Memory estimate: 71.55 KiB, allocs estimate: 973.
 ```
 ## Benchmarking `canonical_decomposition`
 
@@ -215,29 +215,29 @@ BenchmarkTools.Trial: 10000 samples with 1 evaluation.
 
 ```julia
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  67.792 μs …   5.214 ms  ┊ GC (min … max): 0.00% … 96.74%
- Time  (median):     69.625 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   76.013 μs ± 169.340 μs  ┊ GC (mean ± σ):  7.28% ±  3.22%
+ Range (min … max):  57.083 μs …   3.772 ms  ┊ GC (min … max): 0.00% … 96.77%
+ Time  (median):     58.500 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   64.116 μs ± 129.639 μs  ┊ GC (mean ± σ):  7.48% ±  3.64%
 
-     ▄▅█▆▂▁                                                     
-  ▂▃▅██████▆▅▄▄▄▄▄▃▄▃▃▃▂▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▂▂▂▂▂▂▁▂▂▂▂▂ ▃
-  67.8 μs         Histogram: frequency by time         84.2 μs <
+     ▂█▅▃                                                       
+  ▁▃▅█████▆▅▄▃▃▃▂▃▂▂▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  57.1 μs         Histogram: frequency by time         70.1 μs <
 
- Memory estimate: 97.75 KiB, allocs estimate: 1333.
+ Memory estimate: 97.84 KiB, allocs estimate: 1335.
 ```
 ### Datum: (3-Kronecker quiver, with adjacency matrix [0 3; 0 0], [2, 3])
 
 ```julia
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  67.625 μs …   5.245 ms  ┊ GC (min … max): 0.00% … 97.05%
- Time  (median):     69.500 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   76.020 μs ± 170.289 μs  ┊ GC (mean ± σ):  7.32% ±  3.22%
+ Range (min … max):  57.166 μs …   3.794 ms  ┊ GC (min … max): 0.00% … 97.14%
+ Time  (median):     58.542 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   64.229 μs ± 129.496 μs  ┊ GC (mean ± σ):  7.47% ±  3.64%
 
-     ▃█▆▃                                                       
-  ▁▂▅█████▅▅▃▃▃▃▃▃▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
-  67.6 μs         Histogram: frequency by time         85.7 μs <
+    ▁▆█▆▂                                                       
+  ▂▄█████▇▅▄▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  57.2 μs         Histogram: frequency by time         71.9 μs <
 
- Memory estimate: 96.95 KiB, allocs estimate: 1333.
+ Memory estimate: 96.81 KiB, allocs estimate: 1330.
 ```
 ## Benchmarking `in_fundamental_domain`
 
@@ -245,13 +245,13 @@ BenchmarkTools.Trial: 10000 samples with 1 evaluation.
 
 ```julia
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  15.250 μs …  5.787 ms  ┊ GC (min … max): 0.00% … 98.23%
- Time  (median):     16.000 μs              ┊ GC (median):    0.00%
- Time  (mean ± σ):   16.943 μs ± 57.719 μs  ┊ GC (mean ± σ):  3.36% ±  0.98%
+ Range (min … max):  13.625 μs …  3.864 ms  ┊ GC (min … max): 0.00% … 99.19%
+ Time  (median):     14.167 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   14.862 μs ± 38.516 μs  ┊ GC (mean ± σ):  2.58% ±  0.99%
 
-   ▂▄▅▆▇█▇▇▆▆▅▄▄▃▃▃▃▄▄▃▃▂▁▁▁▁     ▁                           ▂
-  ▇████████████████████████████████▇▇██▇▆▇▇▇▇▆▇█████▇██▇▇▅▄▅▆ █
-  15.2 μs      Histogram: log(frequency) by time      20.5 μs <
+      ▅█ ▆▃                                                    
+  ▁▂▄▅█████▅▇▅▃▄▃▂▃▃▂▃▃▂▃▂▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  13.6 μs         Histogram: frequency by time        17.8 μs <
 
  Memory estimate: 11.45 KiB, allocs estimate: 166.
 ```
@@ -259,13 +259,13 @@ BenchmarkTools.Trial: 10000 samples with 1 evaluation.
 
 ```julia
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  15.291 μs …  5.627 ms  ┊ GC (min … max): 0.00% … 98.32%
- Time  (median):     15.833 μs              ┊ GC (median):    0.00%
- Time  (mean ± σ):   16.703 μs ± 56.122 μs  ┊ GC (mean ± σ):  3.31% ±  0.98%
+ Range (min … max):  13.625 μs …  3.847 ms  ┊ GC (min … max): 0.00% … 99.20%
+ Time  (median):     14.083 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   14.723 μs ± 38.341 μs  ┊ GC (mean ± σ):  2.59% ±  0.99%
 
-      ▇█▁▇▄                                                    
-  ▁▄█▇██████▄▆▄▂▃▂▃▂▃▄▂▄▄▃▂▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
-  15.3 μs         Histogram: frequency by time        19.5 μs <
+    ▃▇█▇ ▂                                                     
+  ▂▅████▇█▇▅▄▃▂▂▃▃▃▃▃▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  13.6 μs         Histogram: frequency by time        18.2 μs <
 
  Memory estimate: 11.45 KiB, allocs estimate: 166.
 ```
