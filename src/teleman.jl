@@ -274,5 +274,5 @@ rigid.
 function does_Teleman_inequality_hold(M::QuiverModuli)
     bounds = all_Teleman_bounds(M.Q, M.d, M.theta)
     weights = all_weights_endomorphisms_universal_bundle(M.Q, M.d, M.theta)
-    return all(weights[hn] < bounds[hn] for hn in collect(keys(bounds)))
+    return all(maximum(weights[hn]) < bounds[hn] for hn in collect(keys(bounds)))
 end
