@@ -270,6 +270,24 @@ Checks if the Teleman quantization criterion of
 
 In case the quiver is acyclic, this ensures that the moduli space is infinitesimally
 rigid.
+
+EXAMPLES:
+
+Our favourite 6-fold is rigid:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> does_Teleman_inequality_hold(M)
+true
+```
+
+Some quiver moduli are rigid, but it can't be proved by this criterion:
+```jldoctest
+julia> Q = three_vertex_quiver(1, 6, 1); M = QuiverModuliSpace(Q, [1, 6, 6], [42, 5, -12]);
+
+julia> does_Teleman_inequality_hold(M)
+false
+```
 """
 function does_Teleman_inequality_hold(M::QuiverModuli)
     bounds = all_Teleman_bounds(M.Q, M.d, M.theta)
