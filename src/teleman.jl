@@ -8,7 +8,7 @@ export Teleman_bound_onstratum, all_Teleman_bounds, weights_universal_bundle_ons
 	all_weights_irreducible_component_canonical,
 	weights_endomorphism_universal_bundle_on_stratum,
 	all_weights_endomorphisms_universal_bundle,
-	does_Teleman_inequality_hold
+	does_rigidity_inequality_hold
 
 """ Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS ``\\lambda``
 corresponding to the given HN type."""
@@ -263,7 +263,7 @@ end
 
 
 """
-    does_Teleman_inequality_hold(M::QuiverModuli)
+    does_rigidity_inequality_hold(M::QuiverModuli)
 
 Checks if the Teleman quantization criterion of
 [arXiv:2311.17003](https://doi.org/10.48550/arXiv.2311.17003) holds.
@@ -277,7 +277,7 @@ Our favourite 6-fold is rigid:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> does_Teleman_inequality_hold(M)
+julia> does_rigidity_inequality_hold(M)
 true
 ```
 
@@ -289,11 +289,11 @@ the Teleman inequality does not hold:
 ```jldoctest
 julia> Q = three_vertex_quiver(1, 6, 1); M = QuiverModuliSpace(Q, [1, 6, 6], [42, 5, -12]);
 
-julia> does_Teleman_inequality_hold(M)
+julia> does_rigidity_inequality_hold(M)
 false
 ```
 """
-function does_Teleman_inequality_hold(M::QuiverModuli)
+function does_rigidity_inequality_hold(M::QuiverModuli)
     bounds = all_Teleman_bounds(M.Q, M.d, M.theta)
     weights = all_weights_endomorphisms_universal_bundle(M.Q, M.d, M.theta)
     return all(maximum(weights[hn]) < bounds[hn] for hn in collect(keys(bounds)))
