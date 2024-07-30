@@ -1523,6 +1523,18 @@ function Chern_character_from_classes(M::QuiverModuliSpace, classes)
 end
 
 """
+    Chern_character_universal_bundle(M, i)
+
+Returns the Chern character of the universal bundle ``\\mathcal{U}_i``
+on the given moduli space ``M``.
+"""
+function Chern_character_universal_bundle(M::QuiverModuliSpace, i::Int)
+    CH, CHvars = Chow_ring(M)
+    Ui_classes = CHvars[sum(M.d[1:i-1]) + 1:sum(M.d[1:i])]
+    return Chern_character_from_classes(M, Ui_classes)
+end
+
+"""
     point_class(M::QuiverModuliSpace)
 
 Returns the point class of the moduli space ``M``.
