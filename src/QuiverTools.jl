@@ -1014,6 +1014,31 @@ end
 ########################################################################################
 
 """
+    Newton_polynomial(n::Int)
+
+Returns the "base change" function from the symmetric base
+to the power sum base for the ring of symmetric polynomials.
+
+Denoting the symmetric polynomial base by ``e_i``,
+the power sum base by ``p_i`` and the base change function by ``\\nu_n``
+such that ``p_n = \\nu_n(e_1,...,e_n)``, this function returns ``\\nu_n``.
+"""
+@memoize Dict function Newton_polynomial(n)
+    if n == 0
+        throw(ArgumentError("Newtonpolynomial(0) is not defined"))
+    elseif n == 1
+        return x -> x[1]
+    else
+        function newPoly(x)
+            return ((-1)^(n - 1) * n * x[n]) +
+                sum( (-1)^(i + n + 1) * x[n - i] * Newton_polynomial(i)(x) for i in 1:n-1)
+        end
+    end
+    return newPoly
+end
+
+
+"""
 	zero_vector(n::Int)
 
 Create a zero vector of length `n`.
