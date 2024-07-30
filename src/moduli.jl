@@ -1630,7 +1630,7 @@ julia> Todd_class(M)
     num = coerce_to_quotient(A[1], num)
     den = coerce_to_quotient(A[1], den)
 
-    return div(num, den)
+    return A[1](div(A[1](num), A[1](den)))
 end
 
 """
