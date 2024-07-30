@@ -1538,7 +1538,7 @@ x23^2
 end
 
 """
-    todd_class(M::QuiverModuliSpace, chi)
+    Todd_class(M::QuiverModuliSpace, chi)
 
 Returns the Todd class of the moduli space ``M``.
 
