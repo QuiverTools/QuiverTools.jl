@@ -1484,6 +1484,43 @@ function total_Chern_class_universal(M::QuiverModuliSpace,
     return cUi
 end
 
+"""
+    Chern_character_from_classes(M, classes)
+
+Returns the Chern character of a vector bundle
+with the given Chern classes.
+
+INPUT:
+- ``M``: a moduli space of representations of a quiver.
+- ``classes``: a list of polynomials in the Chow ring of ``M``, ``[c_1, ..., c_n]``.
+
+OUTPUT:
+- An element in the Chow ring of ``M``.
+
+EXAMPLES:
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> CH, CHvars = Chow_ring(M);
+
+julia> u1 = QuiverTools.Chern_character_from_classes(M, CHvars[1:2])
+1//720*x11^6 + 1//120*x11^5 - 1//120*x11^4*x12 + 1//24*x11^4 - 1//24*x11^3*x12 + 1//80*x11^2*x12^2 + 1//6*x11^3 - 1//6*x11^2*x12 + 1//24*x11*x12^2 - 1//360*x12^3 + 1//2*x11^2 - 1//2*x11*x12 + 1//12*x12^2 + x11 - x12 + 2
+
+julia> u2 = QuiverTools.Chern_character_from_classes(M, CHvars[3:5])
+1//720*x21^6 + 1//120*x21^5 - 1//120*x21^4*x22 + 1//24*x21^4 - 1//24*x21^3*x22 + 1//80*x21^2*x22^2 + 1//120*x21^3*x23 + 1//6*x21^3 - 1//6*x21^2*x22 + 1//24*x21*x22^2 - 1//360*x22^3 + 1//24*x21^2*x23 - 1//60*x21*x22*x23 + 1//2*x21^2 - 1//2*x21*x22 + 1//12*x22^2 + 1//6*x21*x23 - 1//24*x22*x23 + 1//240*x23^2 + x21 - x22 + 1//2*x23 + 3
+"""
+function Chern_character_from_classes(M::QuiverModuliSpace, classes)
+    CH, CHvars = Chow_ring(M)
+    n = length(classes)
+    d = dimension(M)
+    if n < d
+        classes = vcat(classes,[0 for i in n:d])
+    end
+    return n + sum(
+        Newton_polynomial(i)(classes) / factorial(i)
+        for i in 1:d
+    )
+end
 
 """
     point_class(M::QuiverModuliSpace)
