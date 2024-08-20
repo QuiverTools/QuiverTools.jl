@@ -391,8 +391,8 @@ function all_slope_decreasing_sequences(
     Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
-    denom::Function = sum;
-    sorted::Bool = false,
+    denom::Function = sum,
+    ordered::Bool = false,
 )
 
     d = coerce_vector(d)
@@ -406,7 +406,7 @@ function all_slope_decreasing_sequences(
     # We sort the subdimension vectors by slope because that will return the list of
     # all HN types in ascending order with respect to the partial order from
     # Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
-    if sorted
+    if ordered
         subdimensions = sort(subdimensions, by = e -> slope(e, theta, denom))
     end
     # The slope decreasing sequences which are not of the form (d)
@@ -418,7 +418,7 @@ function all_slope_decreasing_sequences(
     function subdimensions_filter(e)
         return filter(
             fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
-            all_slope_decreasing_sequences(Q, d - e, theta, denom, sorted=sorted),
+            all_slope_decreasing_sequences(Q, d - e, theta, denom, ordered),
         )
     end
 
