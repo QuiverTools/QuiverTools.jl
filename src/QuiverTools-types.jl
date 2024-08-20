@@ -104,10 +104,12 @@ struct QuiverModuliSpace <: QuiverModuli
         denom::Function = sum,
     )
 
-        if condition in ["stable", "semistable"] &&
-           length(d) == nvertices(Q) &&
-           length(theta) == nvertices(Q)
-
+    if condition in ["stable", "semistable"] &&
+        length(d) == nvertices(Q) &&
+        length(theta) == nvertices(Q)
+        
+            d = coerce_vector(d)
+            theta = coerce_vector(theta)
             return new(Q, d, theta, condition, denom)
         end
         throw(DomainError("Invalid input"))
@@ -133,7 +135,9 @@ struct QuiverModuliStack <: QuiverModuli
            length(d) == nvertices(Q) &&
            length(theta) == nvertices(Q)
 
-            return new(Q, d, theta, condition, denom)
+           d = coerce_vector(d)
+           theta = coerce_vector(theta)
+           return new(Q, d, theta, condition, denom)
         end
         throw(DomainError("Invalid input"))
     end
