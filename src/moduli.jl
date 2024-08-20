@@ -98,7 +98,7 @@ The HN types for a 3-Kronecker quiver with dimension vector `[2, 3]`:
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> all_HN_types(M)
-8-element Vector{Vector{AbstractVector{Int64}}}:
+8-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
  [[2, 3]]
  [[1, 1], [1, 2]]
  [[2, 2], [0, 1]]
@@ -109,7 +109,7 @@ julia> all_HN_types(M)
  [[2, 0], [0, 3]]
 
 julia> all_HN_types(M, unstable = true)
-7-element Vector{Vector{AbstractVector{Int64}}}:
+7-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
  [[1, 1], [1, 2]]
  [[2, 2], [0, 1]]
  [[2, 1], [0, 2]]

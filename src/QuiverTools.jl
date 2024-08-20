@@ -602,7 +602,7 @@ EXAMPLES:
 julia> Q = mKronecker_quiver(3);
 
 julia> QuiverTools.all_generic_subdimension_vectors(Q, [2, 3])
-7-element Vector{AbstractVector{Int64}}:
+7-element Vector{StaticArraysCore.SVector{2, Int64}}:
  [0, 0]
  [0, 1]
  [0, 2]
@@ -612,7 +612,7 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, [2, 3])
  [2, 3]
 
 julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
-4-element Vector{AbstractVector{Int64}}:
+4-element Vector{StaticArraysCore.SVector{2, Int64}}:
  [0, 0]
  [1, 0]
  [2, 0]
@@ -622,7 +622,7 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
 function all_generic_subdimension_vectors(
     Q::Quiver,
     d::AbstractVector{Int},
-    )::Vector{AbstractVector{Int}}
+    )
 
     return filter(e -> is_generic_subdimension_vector(Q, e, d),
                     all_subdimension_vectors(d)
@@ -640,7 +640,7 @@ EXAMPLES:
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
 julia> all_HN_types(Q, d, theta)
-8-element Vector{Vector{AbstractVector{Int64}}}:
+8-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
  [[2, 3]]
  [[1, 1], [1, 2]]
  [[2, 2], [0, 1]]
@@ -650,16 +650,15 @@ julia> all_HN_types(Q, d, theta)
  [[1, 0], [1, 1], [0, 2]]
  [[2, 0], [0, 3]]
 
-julia> all_HN_types(Q, [3,0], [0,0])
-1-element Vector{Vector{AbstractVector{Int64}}}:
- [[3, 0]]
+julia> all_HN_types(Q, [3,0], [0,0]) == [[[3, 0]]]
+true
 
 julia> Q = three_vertex_quiver(1, 4, 1); d = [4, 1, 4];
 
 julia> theta = canonical_stability(Q, d);
 
 julia> all_HN_types(Q, d, theta)
-106-element Vector{Vector{AbstractVector{Int64}}}:
+106-element Vector{Vector{StaticArraysCore.SVector{3, Int64}}}:
  [[4, 1, 4]]
  [[4, 1, 3], [0, 0, 1]]
  [[4, 0, 3], [0, 1, 1]]
@@ -713,7 +712,7 @@ julia> all_HN_types(Q, d, theta)
     # proper semistable subdimension vector with μ(e) > μ(d), (f^1,...,f^s) is a HN
     # type of f = d-e and μ(e) > μ(f^1) holds.
 
-    alltypes = Vector{AbstractVector{Int}}[
+    alltypes = [
         [e, efstar...] for e in subdimensions for efstar in filter(
             fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
             all_HN_types(Q, d - e, theta, denom, ordered),
@@ -776,16 +775,7 @@ EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
-julia> HN = all_HN_types(Q, d, theta)
-8-element Vector{Vector{AbstractVector{Int64}}}:
- [[2, 3]]
- [[1, 1], [1, 2]]
- [[2, 2], [0, 1]]
- [[2, 1], [0, 2]]
- [[1, 0], [1, 3]]
- [[1, 0], [1, 2], [0, 1]]
- [[1, 0], [1, 1], [0, 2]]
- [[2, 0], [0, 3]]
+julia> HN = all_HN_types(Q, d, theta);
 
 julia> [codimension_HN_stratum(Q, stratum) for stratum in HN]
 8-element Vector{Int64}:
@@ -1096,7 +1086,7 @@ OUTPUT:
 EXAMPLES:
 ```jldoctest
 julia> QuiverTools.all_subdimension_vectors([2, 3])
-12-element Vector{AbstractVector{Int64}}:
+12-element Vector{StaticArraysCore.SVector{2, Int64}}:
  [0, 0]
  [1, 0]
  [2, 0]
@@ -1111,7 +1101,7 @@ julia> QuiverTools.all_subdimension_vectors([2, 3])
  [2, 3]
 
 julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true)
-11-element Vector{AbstractVector{Int64}}:
+11-element Vector{StaticArraysCore.SVector{2, Int64}}:
  [1, 0]
  [2, 0]
  [0, 1]
@@ -1125,7 +1115,7 @@ julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true)
  [2, 3]
 
 julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true, strict=true)
-10-element Vector{AbstractVector{Int64}}:
+10-element Vector{StaticArraysCore.SVector{2, Int64}}:
  [1, 0]
  [2, 0]
  [0, 1]
@@ -1142,7 +1132,7 @@ julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true, strict=true)
     d::AbstractVector{Int};
     nonzero::Bool = false,
     strict::Bool = false,
-    )::Array{AbstractVector{Int}}
+    )
 
     d = coerce_vector(d)
 

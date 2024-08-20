@@ -48,7 +48,7 @@ EXAMPLES:
 julia> Q = mKronecker_quiver(3);
 
 julia> all_Teleman_bounds(Q, [2, 3], [3, -2])
-Dict{Vector{AbstractVector{Int64}}, Int64} with 7 entries:
+Dict{Vector{StaticArraysCore.SVector{2, Int64}}, Int64} with 7 entries:
   [[2, 2], [0, 1]]         => 20
   [[2, 1], [0, 2]]         => 100
   [[1, 0], [1, 2], [0, 1]] => 100
@@ -70,15 +70,16 @@ function all_Teleman_bounds(
 	return Dict([hntype, Teleman_bound_onstratum(Q, hntype, theta, denom)] for hntype in HN)
 end
 """
-
-Interface for `all_Teleman_bounds(Q, d, theta)`.
+	all_Teleman_bounds(M).
 
 EXAMPLE:
 ```jldoctest
 julia> Q = three_vertex_quiver(1, 2, 3); d = [3, 1, 2]; theta = [5, 3, -9];
 
-julia> all_Teleman_bounds(Q, d, theta)
-Dict{Vector{AbstractVector{Int64}}, Int64} with 24 entries:
+julia> M = QuiverModuliSpace(Q, d, theta);
+
+julia> all_Teleman_bounds(M)
+Dict{Vector{StaticArraysCore.SVector{3, Int64}}, Int64} with 24 entries:
   [[2, 1, 1], [1, 0, 1]]                       => 12
   [[1, 0, 0], [0, 1, 0], [2, 0, 1], [0, 0, 1]] => 306
   [[1, 0, 0], [1, 1, 0], [1, 0, 1], [0, 0, 1]] => 131
@@ -219,7 +220,7 @@ end
 """Computes the weights of the endomorphism of the universal bundle ``U_i \\otimes U_j``
 on the given Harder-Narasimhan stratum for the 1-PS relative to the HN type."""
 function weights_endomorphism_universal_bundle_on_stratum(
-	hntype::AbstractVector{AbstractVector{Int}},
+	hntype::AbstractVector{<:AbstractVector{Int}},
 	theta::AbstractVector{Int},
 	denom::Function = sum,
 	)::AbstractVector{Int}
