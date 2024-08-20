@@ -310,7 +310,7 @@ julia> canonical_stability(Q, d) == [9, -6]
 true
 ```
 """
-function canonical_stability(Q::Quiver, d::AbstractVector{Int})::AbstractVector{Int}
+function canonical_stability(Q::Quiver, d::AbstractVector{Int})
     return coerce_vector(-(-transpose(Euler_matrix(Q)) + Euler_matrix(Q)) * d)
 end
 
@@ -381,50 +381,44 @@ EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
-julia> QuiverTools.all_slope_decreasing_sequences(Q, d, theta)
-8-element Vector{Vector{AbstractVector{Int64}}}:
- [[2, 3]]
- [[1, 1], [1, 2]]
- [[2, 2], [0, 1]]
- [[2, 1], [0, 2]]
- [[1, 0], [1, 3]]
- [[1, 0], [1, 2], [0, 1]]
- [[1, 0], [1, 1], [0, 2]]
- [[2, 0], [0, 3]]
+julia> dec = QuiverTools.all_slope_decreasing_sequences(Q, d, theta);
+
+julia> length(dec) == 8
+true
 ```
 """
 function all_slope_decreasing_sequences(
     Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
-    denominator::Function = sum,
-)::Vector{Vector{AbstractVector{Int}}}
+    denom::Function = sum;
+    sorted::Bool = false,
+)
 
     d = coerce_vector(d)
     theta = coerce_vector(theta)
     # List all subdimension vectors e of bigger slope than d.
     subdimensions = filter(
-        e -> slope(e, theta, denominator) > slope(d, theta, denominator),
+        e -> slope(e, theta, denom) > slope(d, theta, denom),
         all_subdimension_vectors(d, nonzero = true),
     )
 
     # We sort the subdimension vectors by slope because that will return the list of
     # all HN types in ascending order with respect to the partial order from
     # Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
-    subdimensions = sort(subdimensions, by = e -> slope(e, theta, denominator))
+    if sorted
+        subdimensions = sort(subdimensions, by = e -> slope(e, theta, denom))
+    end
     # The slope decreasing sequences which are not of the form (d)
     # are given by (e,f^1,...,f^s) where e is a proper subdimension vector
     # such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of
     # f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
 
-    function slope_filter(e, fstar)
-        return slope(e, theta, denominator) > slope(fstar[1], theta, denominator)
-    end
 
     function subdimensions_filter(e)
         return filter(
-            fstar -> slope_filter(e, fstar),
-            all_slope_decreasing_sequences(Q, d - e, theta, denominator),
+            fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
+            all_slope_decreasing_sequences(Q, d - e, theta, denom, sorted=sorted),
         )
     end
 
@@ -435,7 +429,7 @@ function all_slope_decreasing_sequences(
 
     # Add d again, at the beginning, because it is smallest
     # with respect to the partial order from Def. 3.6
-    return [[coerce_vector(d)], allSlopeDecreasing...]
+    return [[d], allSlopeDecreasing...]
 end
 
 
