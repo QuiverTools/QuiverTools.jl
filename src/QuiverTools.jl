@@ -381,10 +381,16 @@ EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
-julia> dec = QuiverTools.all_slope_decreasing_sequences(Q, d, theta);
-
-julia> length(dec) == 8
-true
+julia> QuiverTools.all_slope_decreasing_sequences(Q, d, theta)
+8-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
+ [[2, 3]]
+ [[1, 1], [1, 2]]
+ [[2, 2], [0, 1]]
+ [[2, 1], [0, 2]]
+ [[1, 0], [1, 3]]
+ [[1, 0], [1, 2], [0, 1]]
+ [[1, 0], [1, 1], [0, 2]]
+ [[2, 0], [0, 3]]
 ```
 """
 function all_slope_decreasing_sequences(
@@ -392,7 +398,7 @@ function all_slope_decreasing_sequences(
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
     denom::Function = sum,
-    ordered::Bool = false,
+    ordered::Bool = true,
 )
 
     d = coerce_vector(d)
