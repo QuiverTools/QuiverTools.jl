@@ -717,7 +717,10 @@ julia> all_HN_types(Q, d, theta)
     # type of f = d-e and μ(e) > μ(f^1) holds.
 
     alltypes = [
-        [e, efstar...] for e in subdimensions for efstar in filter(
+        vcat([e], efstar)
+
+        for e in subdimensions
+        for efstar in filter(
             fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
             all_HN_types(Q, d - e, theta, denom, ordered),
         )
