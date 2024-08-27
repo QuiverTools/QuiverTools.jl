@@ -690,7 +690,7 @@ julia> all_HN_types(Q, d, theta)
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
     denom::Function = sum,
-    ordered = true,
+    ordered::Bool = true,
     )
 
     d = coerce_vector(d)
