@@ -254,7 +254,7 @@ end
 """
 Returns the Euler matrix of the quiver.
 
-The Euler matrix of a quiver ``Q`` is defined as 
+The Euler matrix of a quiver ``Q`` is defined as
 ```math
 E = I - A,
 ```
@@ -417,8 +417,8 @@ function all_slope_decreasing_sequences(
     end
     # The slope decreasing sequences which are not of the form (d)
     # are given by (e,f^1,...,f^s) where e is a proper subdimension vector
-    # such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a HN type of
-    # f = d-e such that mu_theta(e) > mu_theta(f^1) holds.
+    # such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a slope decreasing
+    # sequence for d-e.
 
 
     function subdimensions_filter(e)
@@ -546,7 +546,7 @@ Checks if ``d`` is a Schur root for ``Q``.
 By [Lemma 4.2, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147),
 this is equivalent to the existence of a stable representation of dimension vector ``d``
 for the canonical stability parameter.
-	
+
 EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3];
