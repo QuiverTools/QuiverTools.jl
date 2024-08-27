@@ -420,22 +420,20 @@ function all_slope_decreasing_sequences(
     # such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a slope decreasing
     # sequence for d-e.
 
+    allSlopeDecreasing = [
+        pushfirst!(fstar, e)
+        # this is only ok because all_slope_decreasing_sequences() is not cached,
+        # because pushfirst! would modify the cached outputs otherwise.
 
-    function subdimensions_filter(e)
-        return filter(
-            fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
-            all_slope_decreasing_sequences(Q, d - e, theta, denom, ordered),
-        )
-    end
-
-    allSlopeDecreasing = vcat(
-        map(e -> map(fstar -> [e, fstar...], subdimensions_filter(e)), subdimensions)...,
-    )
-
+        for e in subdimensions
+        for fstar in all_slope_decreasing_sequences(Q, d - e, theta, denom, ordered)
+        if slope(e, theta, denom) > slope(fstar[1], theta, denom)
+        ]
 
     # Add d again, at the beginning, because it is smallest
     # with respect to the partial order from Def. 3.6
-    return [[d], allSlopeDecreasing...]
+    return pushfirst!(allSlopeDecreasing, [d])
+
 end
 
 
