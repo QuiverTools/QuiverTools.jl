@@ -313,6 +313,7 @@ function all_Luna_types(
         QuiverTools.all_subdimension_vectors(d, nonzero = true),
     )
 
+    # TODO if same_slope is empty this crashes
 
     Luna_types = []
 
@@ -537,7 +538,7 @@ end
 ########################################################################################
 # Below lie methods to compute Hodge diamonds translated from the Hodge diamond cutter.
 # In turn, these are based on M. Reineke's paper
-# "The Harder-Narasimhan system in quantum groups and cohomology of quiver moduli", 
+# "The Harder-Narasimhan system in quantum groups and cohomology of quiver moduli",
 # https://doi.org/10.1007/s00222-002-0273-4
 ########################################################################################
 
@@ -1007,7 +1008,7 @@ function Poincare_polynomial(M::QuiverModuliSpace)
 
     m = motive(M.Q, M.d, M.theta, M.denom)
     v = Singular.transcendence_basis(Singular.parent(m))[1]
-    P = (1 - v) * m 
+    P = (1 - v) * m
 
     if denominator(P) != 1
         throw(DomainError("must be a polynomial"))
@@ -1340,7 +1341,7 @@ julia> QuiverTools.extended_gcd([2, 3, 4])
 2-element Vector{Any}:
  1
   [-1, 1, 0]
-  
+
 julia> QuiverTools.extended_gcd([2, 3])
 2-element Vector{Any}:
  1
@@ -1429,6 +1430,7 @@ julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 julia> Chern_character_line_bundle(M, [1, -1])
 -x11 + 1
 ```
+
 Some Chern characters for our favourite 6-fold:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
@@ -1476,13 +1478,14 @@ function total_Chern_class_universal(M::QuiverModuliSpace,
     i::Int,
     chi::AbstractVector{Int} = extended_gcd(M.d)[2])
 
-    A, Avars = Chow_ring(M, chi)    
+    A, Avars = Chow_ring(M, chi)
     cUi = sum(
         Avars[sum(M.d[1:i - 1]) + r]
         for r in 1:M.d[i]; init=0
             ) + 1
     return cUi
 end
+
 
 """
     Chern_character_from_classes(M, classes)
@@ -1498,6 +1501,7 @@ OUTPUT:
 - An element in the Chow ring of ``M``.
 
 EXAMPLES:
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
@@ -1508,6 +1512,7 @@ julia> u1 = QuiverTools.Chern_character_from_classes(M, CHvars[1:2])
 
 julia> u2 = QuiverTools.Chern_character_from_classes(M, CHvars[3:5])
 1//720*x21^6 + 1//120*x21^5 - 1//120*x21^4*x22 + 1//24*x21^4 - 1//24*x21^3*x22 + 1//80*x21^2*x22^2 + 1//120*x21^3*x23 + 1//6*x21^3 - 1//6*x21^2*x22 + 1//24*x21*x22^2 - 1//360*x22^3 + 1//24*x21^2*x23 - 1//60*x21*x22*x23 + 1//2*x21^2 - 1//2*x21*x22 + 1//12*x22^2 + 1//6*x21*x23 - 1//24*x22*x23 + 1//240*x23^2 + x21 - x22 + 1//2*x23 + 3
+```
 """
 function Chern_character_from_classes(M::QuiverModuliSpace, classes)
     CH, CHvars = Chow_ring(M)
@@ -1522,6 +1527,7 @@ function Chern_character_from_classes(M::QuiverModuliSpace, classes)
     )
 end
 
+# TODO add tests
 """
     Chern_character_universal_bundle(M, i)
 
@@ -1583,7 +1589,7 @@ x23^2
 
     quot = div(num, den)
     return sum(term for term in Singular.terms(quot)
-                    if __Chow_ring_monomial_grading(M, term) == N; init = 0) 
+                    if __Chow_ring_monomial_grading(M, term) == N; init = 0)
 end
 
 """
@@ -1834,7 +1840,7 @@ julia> dimension(M)
 """
 function dimension(M::QuiverModuliStack)
     if is_nonempty(M)
-        return -Euler_form(M.Q, M.d, M.d)        
+        return -Euler_form(M.Q, M.d, M.d)
     end
     return "-∞"
 end
