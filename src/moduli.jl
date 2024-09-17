@@ -1541,6 +1541,37 @@ function Chern_character_universal_bundle(M::QuiverModuliSpace, i::Int)
 end
 
 """
+    dual_Chern_character(M, p)
+
+Returns the dual Chern character of a polynomial ``p`` on the quiver moduli ``M``.
+This is the original character with the signs of monomials of odd degree reversed.
+
+INPUT:
+- ``M``: a quiver moduli space;
+- ``p``: a Chern character.
+
+OUTPUT:
+- the dual Chern character of ``p``.
+
+EXAMPLES:
+
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> CH, CHvars = Chow_ring(M);
+
+julia> p = CHvars[1] + CHvars[2] + CHvars[3] + CHvars[4] + CHvars[5];
+
+julia> QuiverTools.dual_Chern_character(M, p)
+-x11 + x12 - x21 + x22 - x23
+```
+"""
+function dual_Chern_character(M::QuiverModuliSpace, p)
+    return sum( m*(-1)^__Chow_ring_monomial_grading(M, m) for m in Singular.terms(p))
+end
+
+
+"""
     point_class(M::QuiverModuliSpace)
 
 Returns the point class of the moduli space ``M``.
