@@ -5,7 +5,8 @@ export Hodge_diamond, Hodge_polynomial, Picard_rank
 export Chow_ring, motive, index, Betti_numbers, Poincare_polynomial,
     is_smooth, is_projective, semisimple_moduli_space, point_class,
     Todd_class, Chern_class_line_bundle, Chern_character_line_bundle,
-    total_Chern_class_universal, integral
+    total_Chern_class_universal, Chern_character_universal_bundle, integral,
+    dual_Chern_character
 export all_Luna_types, is_Luna_type, dimension_of_Luna_stratum
 
 export is_nonempty, dimension, is_smooth, semistable_equals_stable,
