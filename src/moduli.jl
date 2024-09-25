@@ -1789,12 +1789,14 @@ function integral(M::QuiverModuliSpace,
     chi::AbstractVector{Int}= extended_gcd(M.d)[2]
     )
 
+    CH, CHvars = Chow_ring(M; chi=chi)
+
     N = dimension(M)
     integrand = sum(
                     t
                     for t in collect(Singular.terms(f * Todd_class(M; chi=chi)))
                     if __Chow_ring_monomial_grading(M, t) == N;
-                    init = 0
+                    init = CH(0)
                 )
 
     integ = div(integrand, point_class(M; chi=chi))
