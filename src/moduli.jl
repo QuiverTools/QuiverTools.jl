@@ -1197,14 +1197,14 @@ julia> length(QuiverTools.gens(I))
 @memoize Dict function Chow_ring(
     Q::Quiver,
     d::AbstractVector{Int},
-    theta::AbstractVector{Int}=canonical_stability(Q, d),
-    a::AbstractVector{Int}=extended_gcd(d)[2],
+    theta::AbstractVector{Int}=canonical_stability(Q, d);
+    chi::AbstractVector{Int}=extended_gcd(d)[2],
 )
     # safety checks
     if !is_coprime(d, theta)
         throw(ArgumentError("d and theta are not coprime"))
-    elseif a' * d != 1
-        throw(ArgumentError("a is not a linearization"))
+    elseif chi' * d != 1
+        throw(ArgumentError("`ch`` is not a linearization"))
     end
 
     # j varies first, then i
@@ -1297,7 +1297,7 @@ julia> length(QuiverTools.gens(I))
 
     anti = [antisymmetrize(f * b) for f in forbidden_polynomials for b in base_for_ring()]
     tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
-    linear = [sum(a[i] * xs(i, 1) for i in 1:nvertices(Q) if d[i] > 0)]
+    linear = [sum(chi[i] * xs(i, 1) for i in 1:nvertices(Q) if d[i] > 0)]
 
     return (QuotientRing(A, std(Ideal(A, [tautological; linear]))), R, inclusion)
 end
@@ -1316,8 +1316,8 @@ INPUT:
 OUTPUT:
 - the Chow ring of the moduli space.
 """
-function Chow_ring(M::QuiverModuliSpace, chi::AbstractVector{Int}=extended_gcd(M.d)[2])
-    return Chow_ring(M.Q, M.d, M.theta, chi)[1]
+function Chow_ring(M::QuiverModuliSpace; chi::AbstractVector{Int}=extended_gcd(M.d)[2])
+    return Chow_ring(M.Q, M.d, M.theta; chi=chi)[1]
 end
 
 
@@ -1399,9 +1399,10 @@ julia> Chern_class_line_bundle(M, [9, -6])
 ```
 """
 function Chern_class_line_bundle(M::QuiverModuliSpace,
-    eta::AbstractVector{Int})
+    eta::AbstractVector{Int};
+    chi::AbstractVector{Int}=extended_gcd(M.d)[2])
 
-    A, vars = Chow_ring(M)
+    A, vars = Chow_ring(M; chi=chi)
     I = quotient_ideal(A)
     Rvars = gens(base_ring(I))
 
@@ -1441,9 +1442,10 @@ julia> Chern_character_line_bundle(M, [3, -2])
 ```
 """
 function Chern_character_line_bundle(M::QuiverModuliSpace,
-    eta::AbstractVector{Int})
+    eta::AbstractVector{Int};
+    chi::AbstractVector{Int}=extended_gcd(M.d)[2])
 
-    x = Chern_class_line_bundle(M, eta)
+    x = Chern_class_line_bundle(M, eta; chi=chi)
     Chern_character = sum(x^i / factorial(i) for i in 0:dimension(M))
 
     return Chern_character
@@ -1476,10 +1478,10 @@ x21 + x22 + x23 + 1
 ```
 """
 function total_Chern_class_universal(M::QuiverModuliSpace,
-    i::Int,
+    i::Int;
     chi::AbstractVector{Int} = extended_gcd(M.d)[2])
 
-    A, Avars = Chow_ring(M, chi)
+    A, Avars = Chow_ring(M, chi=chi)
     cUi = sum(
         Avars[sum(M.d[1:i - 1]) + r]
         for r in 1:M.d[i]; init=0
@@ -1515,8 +1517,10 @@ julia> u2 = QuiverTools.Chern_character_from_classes(M, CHvars[3:5])
 1//720*x21^6 + 1//120*x21^5 - 1//120*x21^4*x22 + 1//24*x21^4 - 1//24*x21^3*x22 + 1//80*x21^2*x22^2 + 1//120*x21^3*x23 + 1//6*x21^3 - 1//6*x21^2*x22 + 1//24*x21*x22^2 - 1//360*x22^3 + 1//24*x21^2*x23 - 1//60*x21*x22*x23 + 1//2*x21^2 - 1//2*x21*x22 + 1//12*x22^2 + 1//6*x21*x23 - 1//24*x22*x23 + 1//240*x23^2 + x21 - x22 + 1//2*x23 + 3
 ```
 """
-function Chern_character_from_classes(M::QuiverModuliSpace, classes)
-    CH, CHvars = Chow_ring(M)
+function Chern_character_from_classes(M::QuiverModuliSpace,
+    classes;
+    chi::AbstractVector{Int}=extended_gcd(M.d)[2])
+    CH, CHvars = Chow_ring(M; chi=chi)
     n = length(classes)
     d = dimension(M)
     if n < d
@@ -1535,10 +1539,13 @@ end
 Returns the Chern character of the universal bundle ``\\mathcal{U}_i``
 on the given moduli space ``M``.
 """
-function Chern_character_universal_bundle(M::QuiverModuliSpace, i::Int)
-    CH, CHvars = Chow_ring(M)
+function Chern_character_universal_bundle(M::QuiverModuliSpace,
+    i::Int;
+    chi::AbstractVector{Int}=extended_gcd(M.d)[2])
+
+    CH, CHvars = Chow_ring(M; chi=chi)
     Ui_classes = CHvars[sum(M.d[1:i-1]) + 1:sum(M.d[1:i])]
-    return Chern_character_from_classes(M, Ui_classes)
+    return Chern_character_from_classes(M, Ui_classes; chi=chi)
 end
 
 """
@@ -1571,6 +1578,11 @@ function dual_Chern_character(M::QuiverModuliSpace, p)
     return sum( m*(-1)^__Chow_ring_monomial_grading(M, m) for m in Singular.terms(p))
 end
 
+# handles constant polynomials
+function dual_Chern_character(M::QuiverModuliSpace, p::Int)
+    return p
+end
+
 
 """
     point_class(M::QuiverModuliSpace)
@@ -1592,7 +1604,7 @@ julia> Q = mKronecker_quiver(8);
 
 julia> M = QuiverModuliSpace(Q, [1, 1]);
 
-julia> point_class(M, [1, 0])
+julia> point_class(M; chi=[1, 0])
 x21^7
 ```
 
@@ -1606,7 +1618,7 @@ julia> point_class(M)
 x23^2
 ```
 """
-@memoize Dict function point_class(M::QuiverModuliSpace,
+@memoize Dict function point_class(M::QuiverModuliSpace;
     chi::AbstractVector{Int} = extended_gcd(M.d)[2],
     )
     num = 1
@@ -1614,7 +1626,7 @@ x23^2
     N = dimension(M)
 
     for i in 1:nvertices(M.Q)
-        c = total_Chern_class_universal(M, i, chi)
+        c = total_Chern_class_universal(M, i; chi=chi)
         num *= c^(M.d' * M.Q.adjacency[:, i])
         den *= c^M.d[i]
     end
@@ -1645,7 +1657,7 @@ julia> Todd_class(M)
 -17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
 ```
 """
-@memoize Dict function Todd_class(M::QuiverModuliSpace,
+@memoize Dict function Todd_class(M::QuiverModuliSpace;
 	chi::AbstractVector{Int}=extended_gcd(M.d)[2]
 	)
 
@@ -1674,7 +1686,7 @@ julia> Todd_class(M)
 
     N = dimension(M)
 
-    A, R, inclusion = Chow_ring(M.Q, M.d, M.theta, chi)
+    A, R, inclusion = Chow_ring(M.Q, M.d, M.theta; chi=chi)
     Rvars = gens(R)
 
     function xi(i, p)
@@ -1773,19 +1785,19 @@ julia> [integral(M, L^i) for i in 0:5]
 ```
 """
 function integral(M::QuiverModuliSpace,
-    f,
+    f;
     chi::AbstractVector{Int}= extended_gcd(M.d)[2],
     )
 
     N = dimension(M)
     integrand = sum(
                     t
-                    for t in collect(Singular.terms(f * Todd_class(M, chi)))
+                    for t in collect(Singular.terms(f * Todd_class(M; chi=chi)))
                     if __Chow_ring_monomial_grading(M, t) == N;
                     init = 0
                 )
 
-    integ = div(integrand, point_class(M, chi))
+    integ = div(integrand, point_class(M; chi=chi))
     # coercion to Int
     return Int(numerator(Singular.constant_coefficient(integ)))
 end
