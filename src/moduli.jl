@@ -1786,7 +1786,7 @@ julia> [integral(M, L^i) for i in 0:5]
 """
 function integral(M::QuiverModuliSpace,
     f;
-    chi::AbstractVector{Int}= extended_gcd(M.d)[2],
+    chi::AbstractVector{Int}= extended_gcd(M.d)[2]
     )
 
     N = dimension(M)
