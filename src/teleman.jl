@@ -41,8 +41,8 @@ end
 """
 Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
 HN type for the given ``Q``, ``d``, ``\\theta`` and `denom``.
-	
-	
+
+
 EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
@@ -111,48 +111,48 @@ end
 for the 1-PS corresponding to the given HN type."""
 function weights_universal_bundle_onstratum(
 	theta::AbstractVector{Int},
-	a::AbstractVector{Int},
 	hntype,
-	denom::Function = sum,
+	denom::Function = sum;
+	chi::AbstractVector{Int},
 	)::AbstractVector{Int}
 
 	slopes = map(h -> slope(h, theta, denom), hntype)
 	slopes *= lcm(denominator.(slopes))
 
-	constant_term = sum(slopes[i] * (a' * hntype[i]) for i in eachindex(hntype))
+	constant_term = sum(slopes[i] * (chi' * hntype[i]) for i in eachindex(hntype))
 
 	return -constant_term .+ slopes
 end
 
 function weights_universal_bundle_onstratum(M::QuiverModuli,
-	hntype::Vector{<:AbstractVector{Int}},
-	a::AbstractVector{Int} = extended_gcd(M.d)[2])
+	hntype::Vector{<:AbstractVector{Int}};
+	chi::AbstractVector{Int} = extended_gcd(M.d)[2])
 
-	return weights_universal_bundle_onstratum(M.theta, a, hntype, M.denom)
+	return weights_universal_bundle_onstratum(M.theta, hntype, M.denom; chi=chi)
 end
 
-"""Computes the weights of the universal bundle ``U_i(a)`` for the linearization ``a``
+"""Computes the weights of the universal bundle ``U_i(a)`` for the linearization ``chi``
 on all the non-dense Harder-Narasimhan strata for each 1-PS
 corresponding to each HN type."""
 function all_weights_universal_bundle(
 	Q::Quiver,
 	d::AbstractVector{Int},
 	theta::AbstractVector{Int},
-	a::AbstractVector{Int},
-	denom::Function = sum,
+	denom::Function = sum;
+	chi::AbstractVector{Int}
 	)
-	
+
 	HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
 	return Dict(
-		[hntype, weights_universal_bundle_onstratum(theta, a, hntype, denom)] for
+		[hntype, weights_universal_bundle_onstratum(theta, hntype, denom; chi=chi)] for
 		hntype in HN
 	)
 end
 
-function all_weights_universal_bundle(M::QuiverModuli,
-	a::AbstractVector{Int} = extended_gcd(M.d)[2])
+function all_weights_universal_bundle(M::QuiverModuli;
+	chi::AbstractVector{Int} = extended_gcd(M.d)[2])
 
-	return all_weights_universal_bundle(M.Q, M.d, M.theta, a, M.denom)
+	return all_weights_universal_bundle(M.Q, M.d, M.theta, M.denom; chi=chi)
 end
 
 
@@ -283,7 +283,7 @@ true
 ```
 
 Some quiver moduli are rigid, but it can't be proved by this criterion:
-the following moduli space can be shown to be ``\\mathbb{P}^6``, whose rigidity follows 
+the following moduli space can be shown to be ``\\mathbb{P}^6``, whose rigidity follows
 from the Euler sequence (see
 [Example 4.8, arXiv:2311.17003](https://doi.org/10.48550/arXiv.2311.17003)). However,
 the Teleman inequality does not hold:
