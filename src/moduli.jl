@@ -1481,11 +1481,11 @@ function total_Chern_class_universal(M::QuiverModuliSpace,
     i::Int;
     chi::AbstractVector{Int} = extended_gcd(M.d)[2])
 
-    A, Avars = Chow_ring(M, chi=chi)
+    CH, CHvars = Chow_ring(M, chi=chi)
     cUi = sum(
-        Avars[sum(M.d[1:i - 1]) + r]
-        for r in 1:M.d[i]; init=0
-            ) + 1
+            CHvars[sum(M.d[1:i - 1]) + r]
+                for r in 1:M.d[i]; init=CH(0)
+            ) + CH(1)
     return cUi
 end
 
@@ -1624,6 +1624,7 @@ x23^2
     num = 1
     den = 1
     N = dimension(M)
+    CH, CHvars = Chow_ring(M; chi=chi)
 
     for i in 1:nvertices(M.Q)
         c = total_Chern_class_universal(M, i; chi=chi)
@@ -1633,7 +1634,7 @@ x23^2
 
     quot = div(num, den)
     return sum(term for term in Singular.terms(quot)
-                    if __Chow_ring_monomial_grading(M, term) == N; init = 0)
+                    if __Chow_ring_monomial_grading(M, term) == N; init = CH(0))
 end
 
 """
