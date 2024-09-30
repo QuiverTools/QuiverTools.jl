@@ -1577,16 +1577,26 @@ x11 + x12 + x21 + x22 + x23
 julia> QuiverTools.dual_Chern_character(M, p)
 -x11 + x12 - x21 + x22 - x23
 ```
+
+This function coerces ``p`` in the Chow ring of ``M`` as provided.
+
+```jldoctest
+julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> CH, CHvars = Chow_ring(M);
+
+julia> p = 2;
+
+julia> QuiverTools.dual_Chern_character(M, p)
+2
+```
 """
-function dual_Chern_character(M::QuiverModuliSpace, p)
-    return sum( m*(-1)^__Chow_ring_monomial_grading(M, m) for m in Singular.terms(p))
+function dual_Chern_character(M::QuiverModuliSpace,
+    p;
+    chi::AbstractVector{Int}=extended_gcd(M.d)[2])
+    CH, CHvars = Chow_ring(M; chi=chi)
+    return sum(m*(-1)^__Chow_ring_monomial_grading(M, m) for m in Singular.terms(CH(p)))
 end
-
-# handles constant polynomials
-function dual_Chern_character(M::QuiverModuliSpace, p::Int)
-    return p
-end
-
 
 """
     point_class(M::QuiverModuliSpace; chi)
