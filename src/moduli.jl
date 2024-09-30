@@ -7,6 +7,7 @@ export Chow_ring, motive, index, Betti_numbers, Poincare_polynomial,
     Todd_class, Chern_class_line_bundle, Chern_character_line_bundle,
     total_Chern_class_universal, Chern_character_universal_bundle, integral,
     dual_Chern_character
+
 export all_Luna_types, is_Luna_type, dimension_of_Luna_stratum
 
 export is_nonempty, dimension, is_smooth, semistable_equals_stable,
@@ -1150,7 +1151,7 @@ function symmetric_polynomial(vars, degree::Int)
 end
 
 """
-    Chow_ring(Q, d, theta, a)
+    Chow_ring(Q, d, theta; chi)
 
 Computes the Chow ring of the moduli space of ``\\theta``-semistable representations of
 ``Q`` with dimension vector ``d``, for a choice of linearization ``a``.
@@ -1204,7 +1205,7 @@ julia> length(QuiverTools.gens(I))
     if !is_coprime(d, theta)
         throw(ArgumentError("d and theta are not coprime"))
     elseif chi' * d != 1
-        throw(ArgumentError("`ch`` is not a linearization"))
+        throw(ArgumentError("``chi`` is not a linearization"))
     end
 
     # j varies first, then i
@@ -1303,7 +1304,7 @@ julia> length(QuiverTools.gens(I))
 end
 
 """
-    Chow_ring(M::QuiverModuliSpace, chi)
+    Chow_ring(M::QuiverModuliSpace; chi)
 
 Computes the Chow ring of the moduli space ``M``.
 
@@ -1325,6 +1326,8 @@ end
 # this should be in Base really...
 
 """
+    extended_gcd(x)
+
 Computes the gcd and the Bezout coefficients of a list of integers.
 
 INPUT:
@@ -1366,7 +1369,7 @@ function extended_gcd(x)
 end
 
 """
-    Chern_class_line_bundle(M::QuiverModuliSpace, eta)
+    Chern_class_line_bundle(M::QuiverModuliSpace, eta; chi)
 
 Returns the first Chern class of the line bundle L(eta).
 
@@ -1412,7 +1415,7 @@ function Chern_class_line_bundle(M::QuiverModuliSpace,
 end
 
 """
-    Chern_character_line_bundle(M::QuiverModuliSpace, eta)
+    Chern_character_line_bundle(M::QuiverModuliSpace, eta; chi)
 
 Returns the Chern character of the line bundle L(eta).
 
@@ -1452,7 +1455,7 @@ function Chern_character_line_bundle(M::QuiverModuliSpace,
 end
 
 """
-    total_Chern_class_universal(M::QuiverModuliSpace, i, chi)
+    total_Chern_class_universal(M::QuiverModuliSpace, i; chi)
 
 Returns the total Chern class of the universal bundle ``U_i(\\chi)``.
 
@@ -1491,7 +1494,7 @@ end
 
 
 """
-    Chern_character_from_classes(M, classes)
+    Chern_character_from_classes(M, classes; chi)
 
 Returns the Chern character of a vector bundle
 with the given Chern classes.
@@ -1534,7 +1537,7 @@ end
 
 # TODO add tests
 """
-    Chern_character_universal_bundle(M, i)
+    Chern_character_universal_bundle(M, i; chi)
 
 Returns the Chern character of the universal bundle ``\\mathcal{U}_i``
 on the given moduli space ``M``.
@@ -1549,7 +1552,7 @@ function Chern_character_universal_bundle(M::QuiverModuliSpace,
 end
 
 """
-    dual_Chern_character(M, p)
+    dual_Chern_character(M, p; chi)
 
 Returns the dual Chern character of a polynomial ``p`` on the quiver moduli ``M``.
 This is the original character with the signs of monomials of odd degree reversed.
@@ -1568,7 +1571,8 @@ julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> CH, CHvars = Chow_ring(M);
 
-julia> p = CHvars[1] + CHvars[2] + CHvars[3] + CHvars[4] + CHvars[5];
+julia> p = sum(CHvars)
+x11 + x12 + x21 + x22 + x23
 
 julia> QuiverTools.dual_Chern_character(M, p)
 -x11 + x12 - x21 + x22 - x23
@@ -1585,7 +1589,7 @@ end
 
 
 """
-    point_class(M::QuiverModuliSpace)
+    point_class(M::QuiverModuliSpace; chi)
 
 Returns the point class of the moduli space ``M``.
 
@@ -1638,7 +1642,7 @@ x23^2
 end
 
 """
-    Todd_class(M::QuiverModuliSpace, chi)
+    Todd_class(M::QuiverModuliSpace; chi)
 
 Returns the Todd class of the moduli space ``M``.
 
@@ -1734,7 +1738,7 @@ julia> Todd_class(M)
 end
 
 """
-    integral(M, f, chi)
+    integral(M, f; chi)
 
 Computes the integral of `f` according to the Hirzebruch-Riemann-Roch theorem.
 
