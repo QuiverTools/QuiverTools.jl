@@ -717,7 +717,7 @@ function Hodge_polynomial(Q::Quiver,
     result = numerator(solution)
 
     S, (x, y) = polynomial_ring(Singular.QQ, ["x", "y"])
-    return result(x * y)
+    return S(result(x * y))
 end
 
 
@@ -777,6 +777,14 @@ julia> Hodge_diamond(Q, [2, 3])
  0  0  0  0  3  0  0
  0  0  0  0  0  1  0
  0  0  0  0  0  0  1
+```
+
+This method correctly handles the moduli spaces being empty or 0-dimensional:
+```jldoctest
+julia> Q = mKronecker_quiver(3);
+
+julia> Hodge_diamond(Q, [2, 3], [-3, 2])
+0×0 Matrix{Int64}
 ```
 """
 function Hodge_diamond(Q::Quiver,
