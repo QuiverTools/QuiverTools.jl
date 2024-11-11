@@ -380,9 +380,9 @@ such that ``\\mu(d^1) > ... > \\mu(d^l).``
 
 EXAMPLES:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
+julia> d = [2,3]; theta = [3,-2];
 
-julia> QuiverTools.all_slope_decreasing_sequences(Q, d, theta)
+julia> QuiverTools.all_slope_decreasing_sequences(d, theta)
 8-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
  [[2, 3]]
  [[1, 1], [1, 2]]
@@ -394,8 +394,7 @@ julia> QuiverTools.all_slope_decreasing_sequences(Q, d, theta)
  [[2, 0], [0, 3]]
 ```
 """
-function all_slope_decreasing_sequences(
-    Q::Quiver,
+@memoize function all_slope_decreasing_sequences(
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
     denom::Function = sum,
@@ -427,7 +426,7 @@ function all_slope_decreasing_sequences(
         # because pushfirst! would modify the cached outputs otherwise.
 
         for e in subdimensions
-        for fstar in all_slope_decreasing_sequences(Q, d - e, theta, denom, ordered)
+        for fstar in all_slope_decreasing_sequences(d - e, theta, denom, ordered)
         if slope(e, theta, denom) > slope(fstar[1], theta, denom)
         ]
 
