@@ -242,7 +242,7 @@ end
 """
 Returns the identity matrix of size ``n``.
 """
-identity_matrix(n::Int) = map(ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n))
+@memoize identity_matrix(n::Int) = map(ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n))
 
 function diagonal(m::AbstractMatrix{Int})
     n = size(m)[1]
