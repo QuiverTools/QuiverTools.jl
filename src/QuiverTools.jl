@@ -641,7 +641,7 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
 end
 
 """
-    all_HN_types(Q, d, theta, denom, ordered=true)
+    all_HN_types(Q, d, theta, denom; ordered=true)
 
 Returns a list of all the Harder Narasimhan types of representations of ``Q``
 with dimension vector ``d``, with respect to the slope function theta/denom.
