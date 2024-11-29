@@ -44,7 +44,7 @@ struct Quiver
     Constructs a quiver based on its arrows encoded in a string.
 
     the string `arrows` must be of the form
-    
+
     ```i---j,k-...-s```
 
     where `i`, `j` and all the vertices are positive integers.
@@ -66,7 +66,7 @@ struct Quiver
         for pair in pairs
             A[pair[1], pair[2]] = pair[3]
         end
-        return Quiver(A)
+        return Quiver(A,"")
     end
 end
 
@@ -107,7 +107,7 @@ struct QuiverModuliSpace <: QuiverModuli
     if condition in ["stable", "semistable"] &&
         length(d) == nvertices(Q) &&
         length(theta) == nvertices(Q)
-        
+
             d = coerce_vector(d)
             theta = coerce_vector(theta)
             return new(Q, d, theta, condition, denom)
