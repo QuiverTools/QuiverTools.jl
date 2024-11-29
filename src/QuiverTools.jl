@@ -397,7 +397,7 @@ julia> QuiverTools.all_slope_decreasing_sequences(d, theta)
  [[2, 0], [0, 3]]
 ```
 """
-@memoize function all_slope_decreasing_sequences(
+function all_slope_decreasing_sequences( # TODO remove useless method
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
     denom::Function = sum,
@@ -697,8 +697,8 @@ julia> all_HN_types(Q, d, theta)
     Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
-    ordered::Bool = true,
     denom::Function = sum;
+    ordered::Bool = false,
     )
 
 
