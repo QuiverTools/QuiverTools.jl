@@ -483,7 +483,7 @@ false
         slope_d = slope(d, theta, denom)
         subdimensionsBiggerSlope = filter(
             e -> slope(e, theta, denom) > slope_d,
-            all_subdimension_vectors(d, nonzero = true, strict = true),
+            all_subdimension_vectors(d; nonzero = true, strict = true),
         )
         # to have semistable representations, none of the vectors above must be
         # a generic subdimension vector.
@@ -692,13 +692,13 @@ julia> all_HN_types(Q, d, theta)
     Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
-    denom::Function = sum,
     ordered::Bool = true,
+    denom::Function = sum;
     )
 
-    d = coerce_vector(d)
+
     if all(di == 0 for di in d)
-        return [[d]]
+        return [[coerce_vector(d)]]
     end
     # We consider just proper subdimension vectors which admit a semistable
     # representation and for which μ(e) > μ(d)
@@ -725,7 +725,7 @@ julia> all_HN_types(Q, d, theta)
         for e in subdimensions
         for efstar in filter(
             fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
-            all_HN_types(Q, d - e, theta, denom, ordered),
+            all_HN_types(Q, d - e, theta, denom; ordered=ordered),
         )
     ]
 
