@@ -1,4 +1,3 @@
-__precompile__()
 module QuiverTools
 
 using StaticArrays
@@ -331,7 +330,7 @@ true
 function is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
     return all(
         e -> theta' * e != 0,
-        all_subdimension_vectors(d, nonzero = true, strict = true),
+        all_subdimension_vectors(d; nonzero = true, strict = true),
     )
 end
 
@@ -409,7 +408,7 @@ function all_slope_decreasing_sequences( # TODO remove useless method
     # List all subdimension vectors e of bigger slope than d.
     subdimensions = filter(
         e -> slope(e, theta, denom) > slope(d, theta, denom),
-        all_subdimension_vectors(d, nonzero = true),
+        all_subdimension_vectors(d; nonzero = true),
     )
 
     # We sort the subdimension vectors by slope because that will return the list of
@@ -530,7 +529,7 @@ false
         slope_d = slope(d, theta, denom)
         subdimensions_bigger_or_equal_slope = filter(
             e -> slope(e, theta, denom) >= slope_d,
-            all_subdimension_vectors(d, nonzero = true, strict = true),
+            all_subdimension_vectors(d; nonzero = true, strict = true),
         )
         # to have semistable representations,
         # none of the vectors above must be generic subdimension vectors.
@@ -1116,7 +1115,7 @@ julia> QuiverTools.all_subdimension_vectors([2, 3])
  [1, 3]
  [2, 3]
 
-julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true)
+julia> QuiverTools.all_subdimension_vectors([2, 3]; nonzero=true)
 11-element Vector{StaticArraysCore.SVector{2, Int64}}:
  [1, 0]
  [2, 0]
@@ -1130,7 +1129,7 @@ julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true)
  [1, 3]
  [2, 3]
 
-julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true, strict=true)
+julia> QuiverTools.all_subdimension_vectors([2, 3]; nonzero=true, strict=true)
 10-element Vector{StaticArraysCore.SVector{2, Int64}}:
  [1, 0]
  [2, 0]
@@ -1152,10 +1151,10 @@ julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true, strict=true)
 
     subdims = coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...)))
     if nonzero
-        return filter(e -> any(ei != 0 for ei in e), subdims)
+        subdims = filter(e -> any(ei != 0 for ei in e), subdims)
     end
     if strict
-        return filter(e -> e != d, subdims)
+        subdims = filter(e -> e != d, subdims)
     end
     return filter(e -> true, subdims) #really now
 end
