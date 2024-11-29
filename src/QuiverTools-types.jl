@@ -14,7 +14,7 @@ Attributes:
 - `name` is the name of the quiver, defaults to `""`.
 """
 struct Quiver
-    adjacency::AbstractMatrix{Int}
+    adjacency
     name::String
 
     """
@@ -34,7 +34,8 @@ struct Quiver
         if !(size(adjacency)[1] == size(adjacency)[2])
             throw(DomainError(adjacency, "adjacency matrix must be square"))
         else
-            new(adjacency, name)
+            adj = SMatrix{size(adjacency)...}(adjacency)
+            new(adj, name)
         end
     end
 
