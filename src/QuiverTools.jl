@@ -3,15 +3,16 @@ module QuiverTools
 
 using StaticArrays
 
-using Memoization: Memoization
+# using Memoization: Memoization
+using Memoize: Memoize
 using IterTools: IterTools
 using LinearAlgebraX: LinearAlgebraX
 using Singular: Singular
 using AbstractAlgebra: AbstractAlgebra
 using Nemo: Nemo
 
-import Base.show
-import Memoization: @memoize
+import Base.show, Base.==, Base.hash
+import Memoize: @memoize
 import IterTools: subsets
 import LinearAlgebraX: rankx
 import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHomomorphism,
@@ -242,7 +243,7 @@ end
 """
 Returns the identity matrix of size ``n``.
 """
-@memoize identity_matrix(n::Int) = map(ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n))
+@memoize Dict identity_matrix(n::Int) = map(ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n))
 
 function diagonal(m::AbstractMatrix{Int})
     n = size(m)[1]

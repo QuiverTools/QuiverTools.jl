@@ -70,6 +70,9 @@ struct Quiver
     end
 end
 
+==(Q1::Quiver, Q2::Quiver) = Q1.adjacency == Q2.adjacency
+hash(Q::Quiver) = hash(Q.adjacency)
+
 
 function show(io::IO, Q::Quiver)
     if Q.name == ""
