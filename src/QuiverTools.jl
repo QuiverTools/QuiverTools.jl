@@ -1142,17 +1142,14 @@ julia> QuiverTools.all_subdimension_vectors([2, 3], nonzero=true, strict=true)
     strict::Bool = false,
     )
 
-    d = coerce_vector(d)
-
     subdims = coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...)))
-    subdims = filter(e -> true, subdims) #really now
     if nonzero
-        subdims = filter(e -> any(ei != 0 for ei in e), subdims)
+        return filter(e -> any(ei != 0 for ei in e), subdims)
     end
     if strict
-        subdims = filter(e -> e != d, subdims)
+        return filter(e -> e != d, subdims)
     end
-    return subdims
+    return filter(e -> true, subdims) #really now
 end
 
 """
@@ -1238,11 +1235,11 @@ end
 function coerce_vector(v::Tuple)
     return SVector{length(v)}(v)
 end
-
+coerce_vector(v::SVector) = v
 function coerce_matrix(m::AbstractMatrix)
     return SMatrix{size(m)...}(m)
 end
-
+coerce_matrix(m::SMatrix) = m
 
 #######################################################
 # Include all the submodules
