@@ -110,7 +110,7 @@ julia> all_HN_types(M)
  [[1, 0], [1, 1], [0, 2]]
  [[2, 0], [0, 3]]
 
-julia> all_HN_types(M, unstable = true)
+julia> all_HN_types(M; unstable = true)
 7-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
  [[1, 1], [1, 2]]
  [[2, 2], [0, 1]]
@@ -122,7 +122,7 @@ julia> all_HN_types(M, unstable = true)
 ```
 """
 function all_HN_types(M::QuiverModuli; unstable::Bool = false, ordered::Bool = true)
-    HN = all_HN_types(M.Q, M.d, M.theta, M.denom, ordered)
+    HN = all_HN_types(M.Q, M.d, M.theta, M.denom; ordered)
     if unstable
         return filter(hn_type -> hn_type != [M.d], HN)
     end
@@ -219,7 +219,7 @@ julia> codimension_unstable_locus(M)
 ```
 """
 function codimension_unstable_locus(M::QuiverModuli)
-    HN = all_HN_types(M, unstable = true)
+    HN = all_HN_types(M; unstable = true)
     return minimum(codimension_HN_stratum(M, hn_type) for hn_type in HN)
 end
 
