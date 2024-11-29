@@ -650,7 +650,7 @@ EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
-julia> all_HN_types(Q, d, theta)
+julia> all_HN_types(Q, d, theta; ordered=true)
 8-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
  [[2, 3]]
  [[1, 1], [1, 2]]
@@ -668,7 +668,7 @@ julia> Q = three_vertex_quiver(1, 4, 1); d = [4, 1, 4];
 
 julia> theta = canonical_stability(Q, d);
 
-julia> all_HN_types(Q, d, theta)
+julia> all_HN_types(Q, d, theta; ordered=true)
 106-element Vector{Vector{StaticArraysCore.SVector{3, Int64}}}:
  [[4, 1, 4]]
  [[4, 1, 3], [0, 0, 1]]
@@ -789,7 +789,7 @@ EXAMPLES:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
-julia> HN = all_HN_types(Q, d, theta);
+julia> HN = all_HN_types(Q, d, theta; ordered=true);
 
 julia> [codimension_HN_stratum(Q, stratum) for stratum in HN]
 8-element Vector{Int64}:

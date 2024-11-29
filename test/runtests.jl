@@ -35,11 +35,11 @@ end;
         expected = readline(file)
     end
 
-    @test string(all_HN_types(Q, d, theta)) == expected
+    @test string(all_HN_types(Q, d, theta; ordered=true)) == expected
 end;
 
 
-# @testset "Testing weight handling" begin 
+# @testset "Testing weight handling" begin
 
 #     U = Bundle([1,2],2)
 #     V = Bundle([3,3,3],3)
