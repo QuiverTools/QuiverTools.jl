@@ -369,9 +369,11 @@ Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d`
     theta::AbstractVector{Int},
     denom::Function = sum,
 )
+    # as silly as it looks this is faster.
+    b = slope(d, theta, denom)
     return filter(
-        e -> slope(e, theta, denom) > slope(d, theta, denom),
-        all_subdimension_vectors(d, nonzero = true),
+        e -> slope(e, theta, denom) > b,
+        all_subdimension_vectors(d; nonzero = true),
     )
 end
 
@@ -587,7 +589,7 @@ for all generic subdimension vectors ``e'`` of ``e``.
     Q::Quiver,
     e::AbstractVector{Int},
     d::AbstractVector{Int},
-)
+)::Bool
     if e == d || all(ei == 0 for ei in e)
         return true
     end
@@ -624,7 +626,7 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
  [3, 0]
 ```
 """
-function all_generic_subdimension_vectors(
+@memoize Dict function all_generic_subdimension_vectors(
     Q::Quiver,
     d::AbstractVector{Int},
     )
