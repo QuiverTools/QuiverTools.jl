@@ -572,7 +572,10 @@ function is_isotropic_root(Q, d)
 end
 
 
-"""Checks if ``e`` is a generic subdimension vector of ``d``.
+"""
+    is_generic_subdimension_vector(Q, e, d)
+
+Checks if ``e`` is a generic subdimension vector of ``d``.
 
 A dimension vector ``e`` is called a generic subdimension vector of ``d``
 if a generic representation of dimension vector ``d`` possesses a subrepresentation
@@ -602,6 +605,8 @@ for all generic subdimension vectors ``e'`` of ``e``.
 end
 
 """
+    all_generic_subdimension_vectors(Q, d)
+
 Returns the list of all generic subdimension vectors of ``d``.
 
 EXAMPLES:
@@ -804,8 +809,9 @@ function codimension_HN_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}
         return 0
     else
         return -sum(
-            Euler_form(Q, stratum[i], stratum[j]) for i in 1:length(stratum)-1 for
-            j = i+1:length(stratum)
+            Euler_form(Q, stratum[i], stratum[j])
+            for i in 1:length(stratum)-1
+            for j in i+1:length(stratum)
         )
     end
 end
