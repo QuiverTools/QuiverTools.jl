@@ -270,8 +270,7 @@ julia> QuiverTools.Euler_matrix(Q) == [1 -4; 0 1]
 true
 ```
 """
-@memoize Dict Euler_matrix(Q::Quiver) =
-coerce_matrix(identity_matrix(nvertices(Q)) - Q.adjacency)
+@memoize Dict Euler_matrix(Q::Quiver) = identity_matrix(nvertices(Q)) - Q.adjacency
 
 """
 Computes the Euler form of the quiver for vectors ``x`` and ``y``.
@@ -312,7 +311,7 @@ true
 ```
 """
 function canonical_stability(Q::Quiver, d::AbstractVector{Int})
-    return coerce_vector(-(-transpose(Euler_matrix(Q)) + Euler_matrix(Q)) * d)
+    return -(-transpose(Euler_matrix(Q)) + Euler_matrix(Q)) * d
 end
 
 """
@@ -600,7 +599,7 @@ for all generic subdimension vectors ``e'`` of ``e``.
     subdimensions =
         filter(eprime -> eprime' * Euler_matrix_temp < 0, all_subdimension_vectors(e))
     # none of the subdimension vectors violating the condition should be generic
-    return !any(eprime -> is_generic_subdimension_vector(Q, eprime, e), subdimensions)
+    return all(eprime -> !is_generic_subdimension_vector(Q, eprime, e), subdimensions)
 end
 
 """
