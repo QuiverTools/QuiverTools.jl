@@ -595,12 +595,12 @@ for all generic subdimension vectors ``e'`` of ``e``.
         return true
     end
     # # considering subdimension vectors that violate the numerical condition
-    # Euler_matrix_temp = Euler_matrix(Q) * (d - e) #to speed up computation of <eprime,d-e>
-    # subdimensions =
-    #     filter(eprime -> eprime' * Euler_matrix_temp < 0, all_subdimension_vectors(e))
-    # # none of the subdimension vectors violating the condition should be generic
-    # return all(eprime -> !is_generic_subdimension_vector(Q, eprime, e), subdimensions)
-    return generic_ext(Q, e, d - e) == 0
+    Euler_matrix_temp = Euler_matrix(Q) * (d - e) #to speed up computation of <eprime,d-e>
+    subdimensions =
+        filter(eprime -> eprime' * Euler_matrix_temp < 0, all_subdimension_vectors(e))
+    # none of the subdimension vectors violating the condition should be generic
+    return all(eprime -> !is_generic_subdimension_vector(Q, eprime, e), subdimensions)
+    # return generic_ext(Q, e, d - e) == 0
 end
 
 """
