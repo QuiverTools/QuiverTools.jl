@@ -2,8 +2,8 @@ module QuiverTools
 
 using StaticArrays
 
-# using Memoization: Memoization
-using Memoize: Memoize
+using Memoization: Memoization
+# using Memoize: Memoize
 using IterTools: IterTools
 using LinearAlgebraX: LinearAlgebraX
 using Singular: Singular
@@ -11,7 +11,7 @@ using AbstractAlgebra: AbstractAlgebra
 using Nemo: Nemo
 
 import Base.show, Base.==, Base.hash
-import Memoize: @memoize
+import Memoization: @memoize
 import IterTools: subsets
 import LinearAlgebraX: rankx
 import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHomomorphism,
