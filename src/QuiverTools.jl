@@ -375,67 +375,69 @@ Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d`
     )
 end
 
-"""
-Returns the list of all sequences ``(d^1,...,d^l)`` which sum to ``d``
-such that ``\\mu(d^1) > ... > \\mu(d^l).``
+# """
+# Returns the list of all sequences ``(d^1,...,d^l)`` which sum to ``d``
+# such that ``\\mu(d^1) > ... > \\mu(d^l).``
 
-EXAMPLES:
-```jldoctest
-julia> d = [2,3]; theta = [3,-2];
+# EXAMPLES:
+# ```jldoctest
+# julia> d = [2,3]; theta = [3,-2];
 
-julia> QuiverTools.all_slope_decreasing_sequences(d, theta)
-8-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
- [[2, 3]]
- [[1, 1], [1, 2]]
- [[2, 2], [0, 1]]
- [[2, 1], [0, 2]]
- [[1, 0], [1, 3]]
- [[1, 0], [1, 2], [0, 1]]
- [[1, 0], [1, 1], [0, 2]]
- [[2, 0], [0, 3]]
-```
-"""
-function all_slope_decreasing_sequences( # TODO remove useless method
-    d::AbstractVector{Int},
-    theta::AbstractVector{Int},
-    denom::Function = sum,
-    ordered::Bool = true,
-)
+# julia> QuiverTools.all_slope_decreasing_sequences(d, theta)
+# 8-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
+#  [[2, 3]]
+#  [[1, 1], [1, 2]]
+#  [[2, 2], [0, 1]]
+#  [[2, 1], [0, 2]]
+#  [[1, 0], [1, 3]]
+#  [[1, 0], [1, 2], [0, 1]]
+#  [[1, 0], [1, 1], [0, 2]]
+#  [[2, 0], [0, 3]]
+# ```
+# """
+# function all_slope_decreasing_sequences( # TODO remove useless method
+#     d::AbstractVector{Int},
+#     theta::AbstractVector{Int};
+# #     denom::Function = sum,
+# #     ordered::Bool = true,
+# # )
 
-    d = coerce_vector(d)
-    theta = coerce_vector(theta)
-    # List all subdimension vectors e of bigger slope than d.
-    subdimensions = filter(
-        e -> slope(e, theta, denom) > slope(d, theta, denom),
-        all_subdimension_vectors(d; nonzero = true),
-    )
+# #     d = coerce_vector(d)
+# #     theta = coerce_vector(theta)
+# #     # List all subdimension vectors e of bigger slope than d.
+# #     subdimensions = filter(
+# #         e -> slope(e, theta, denom) > slope(d, theta, denom),
+# #         all_subdimension_vectors(d; nonzero=true)
+# #     )
+# #     @info "1"
+# #     # We sort the subdimension vectors by slope because that will return the list of
+# #     # all HN types in ascending order with respect to the partial order from
+# #     # Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
+# #     if ordered
+# #         subdimensions = sort(subdimensions, by = e -> slope(e, theta, denom))
+# #     end
+# #     @info "2"
+# #     # The slope decreasing sequences which are not of the form (d)
+# #     # are given by (e,f^1,...,f^s) where e is a proper subdimension vector
+# #     # such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a slope decreasing
+# #     # sequence for d-e.
 
-    # We sort the subdimension vectors by slope because that will return the list of
-    # all HN types in ascending order with respect to the partial order from
-    # Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
-    if ordered
-        subdimensions = sort(subdimensions, by = e -> slope(e, theta, denom))
-    end
-    # The slope decreasing sequences which are not of the form (d)
-    # are given by (e,f^1,...,f^s) where e is a proper subdimension vector
-    # such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a slope decreasing
-    # sequence for d-e.
+# #     allSlopeDecreasing = [
+# #         pushfirst!(fstar, e)
+# #         # this is only ok because all_slope_decreasing_sequences() is not cached,
+# #         # because pushfirst! would modify the cached outputs otherwise.
 
-    allSlopeDecreasing = [
-        pushfirst!(fstar, e)
-        # this is only ok because all_slope_decreasing_sequences() is not cached,
-        # because pushfirst! would modify the cached outputs otherwise.
+# #         for e in subdimensions
+# #         for fstar in all_slope_decreasing_sequences(d - e, theta; denom=denom, ordered=ordered)
+# #         if slope(e, theta, denom) > slope(fstar[1], theta, denom)
+# #         ]
 
-        for e in subdimensions
-        for fstar in all_slope_decreasing_sequences(d - e, theta, denom, ordered)
-        if slope(e, theta, denom) > slope(fstar[1], theta, denom)
-        ]
+# #     @info "3"
+# #     # Add d again, at the beginning, because it is smallest
+# #     # with respect to the partial order from Def. 3.6
+# #     return pushfirst!(allSlopeDecreasing, [d])
 
-    # Add d again, at the beginning, because it is smallest
-    # with respect to the partial order from Def. 3.6
-    return pushfirst!(allSlopeDecreasing, [d])
-
-end
+# # end
 
 
 """Checks if there is a ``\\theta``-semistable representation of dimension vector ``d``.
