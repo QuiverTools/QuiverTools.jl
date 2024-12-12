@@ -3,15 +3,14 @@
 #################
 
 export mKronecker_quiver,
-    loop_quiver,
-    subspace_quiver,
-    three_vertex_quiver,
-    cyclic_quiver,
-    bipartite_quiver,
-    opposite_quiver,
-    double_quiver,
-    Dynkin_quiver
-
+  loop_quiver,
+  subspace_quiver,
+  three_vertex_quiver,
+  cyclic_quiver,
+  bipartite_quiver,
+  opposite_quiver,
+  double_quiver,
+  Dynkin_quiver
 
 """
     mKronecker_quiver(m::Int)
@@ -30,8 +29,8 @@ julia> mKronecker_quiver(3)
 3-Kronecker quiver, with adjacency matrix [0 3; 0 0]
 ```
 """
-function mKronecker_quiver(m::Int = 2)
-    return Quiver([0 m; 0 0], string(m) * "-Kronecker quiver")
+function mKronecker_quiver(m::Int=2)
+  return Quiver([0 m; 0 0], string(m) * "-Kronecker quiver")
 end
 
 """
@@ -54,7 +53,7 @@ Acyclic 3-vertex quiver, with adjacency matrix [0 1 2; 0 0 3; 0 0 0]
 ```
 """
 function three_vertex_quiver(m12::Int, m13::Int, m23::Int)
-    return Quiver([0 m12 m13; 0 0 m23; 0 0 0], "Acyclic 3-vertex quiver")
+  return Quiver([0 m12 m13; 0 0 m23; 0 0 0], "Acyclic 3-vertex quiver")
 end
 
 """
@@ -75,7 +74,7 @@ julia> loop_quiver(4)
 ```
 """
 function loop_quiver(m::Int)
-    return Quiver(Matrix{Int}(reshape([m], 1, 1)), string(m) * "-loop quiver")
+  return Quiver(Matrix{Int}(reshape([m], 1, 1)), string(m) * "-loop quiver")
 end
 
 """
@@ -97,19 +96,18 @@ julia> subspace_quiver(3)
 ```
 """
 function subspace_quiver(m::Int)
-    A = zeros(Int, m + 1, m + 1)
-    for i = 1:m
-        A[i, m+1] = 1
-    end
-    return Quiver(A, string(m) * "-subspace quiver")
+  A = zeros(Int, m + 1, m + 1)
+  for i in 1:m
+    A[i, m + 1] = 1
+  end
+  return Quiver(A, string(m) * "-subspace quiver")
 end
 
-
 function Dynkin_quiver(Tn::String)
-    #parse the string Tn
-    T = Tn[1:end-1]
-    n = parse(Int, Tn[end])
-    return Dynkin_quiver(T, n)
+  #parse the string Tn
+  T = Tn[1:(end - 1)]
+  n = parse(Int, Tn[end])
+  return Dynkin_quiver(T, n)
 end
 
 """
@@ -124,82 +122,81 @@ Dynkin quiver of type D4, with adjacency matrix [0 1 0 0; 0 0 1 1; 0 0 0 0; 0 0 
 ```
 """
 function Dynkin_quiver(T::String, n::Int)
-
-    if T == "A"
-        if !(n >= 1)
-            throw(ArgumentError("$n is out of bounds"))
-        end
-        if n == 1
-            #            return Quiver([[1]], "Dynkin quiver of type A1")
-            return loop_quiver(1)
-        else
-            M = zeros(Int, n, n)
-            for i = 1:n-1
-                M[i, i+1] = 1
-            end
-            return Quiver(M, "Dynkin quiver of type A$n")
-        end
-    elseif T == "D"
-        if !(n >= 3)
-            throw(ArgumentError("$n is out of bounds."))
-        end
-        M = zeros(Int, n, n)
-        for i = 1:n-2
-            M[i, i+1] = 1
-        end
-        M[n-2, n] = 1
-
-        return Quiver(M, "Dynkin quiver of type D$n")
-    elseif T == "E"
-        if !(n in [6, 7, 8])
-            throw(ArgumentError("$n is out of bounds."))
-        end
-        if n == 6
-            return Quiver(
-                [
-                    0 1 0 0 0 0 0
-                    0 0 1 0 0 0 0
-                    0 0 0 1 1 0 0
-                    0 0 0 0 0 0 0
-                    0 0 0 0 0 1 0
-                    0 0 0 0 0 0 1
-                    0 0 0 0 0 0 0
-                ],
-                "Dynkin quiver of type E6",
-            )
-        elseif n == 7
-            return Quiver(
-                [
-                    0 1 0 0 0 0 0 0
-                    0 0 1 0 0 0 0 0
-                    0 0 0 1 1 0 0 0
-                    0 0 0 0 0 0 0 0
-                    0 0 0 0 0 1 0 0
-                    0 0 0 0 0 0 1 0
-                    0 0 0 0 0 0 0 1
-                    0 0 0 0 0 0 0 0
-                ],
-                "Dynkin quiver of type E7",
-            )
-        elseif n == 8
-            return Quiver(
-                [
-                    0 1 0 0 0 0 0 0 0
-                    0 0 1 0 0 0 0 0 0
-                    0 0 0 1 1 0 0 0 0
-                    0 0 0 0 0 0 0 0 0
-                    0 0 0 0 0 1 0 0 0
-                    0 0 0 0 0 0 1 0 0
-                    0 0 0 0 0 0 0 1 0
-                    0 0 0 0 0 0 0 0 1
-                    0 0 0 0 0 0 0 0 0
-                ],
-                "Dynkin quiver of type E8",
-            )
-        end
-    else
-        throw(ArgumentError("not implemented"))
+  if T == "A"
+    if !(n >= 1)
+      throw(ArgumentError("$n is out of bounds"))
     end
+    if n == 1
+      #            return Quiver([[1]], "Dynkin quiver of type A1")
+      return loop_quiver(1)
+    else
+      M = zeros(Int, n, n)
+      for i in 1:(n - 1)
+        M[i, i + 1] = 1
+      end
+      return Quiver(M, "Dynkin quiver of type A$n")
+    end
+  elseif T == "D"
+    if !(n >= 3)
+      throw(ArgumentError("$n is out of bounds."))
+    end
+    M = zeros(Int, n, n)
+    for i in 1:(n - 2)
+      M[i, i + 1] = 1
+    end
+    M[n - 2, n] = 1
+
+    return Quiver(M, "Dynkin quiver of type D$n")
+  elseif T == "E"
+    if !(n in [6, 7, 8])
+      throw(ArgumentError("$n is out of bounds."))
+    end
+    if n == 6
+      return Quiver(
+        [
+          0 1 0 0 0 0 0
+          0 0 1 0 0 0 0
+          0 0 0 1 1 0 0
+          0 0 0 0 0 0 0
+          0 0 0 0 0 1 0
+          0 0 0 0 0 0 1
+          0 0 0 0 0 0 0
+        ],
+        "Dynkin quiver of type E6",
+      )
+    elseif n == 7
+      return Quiver(
+        [
+          0 1 0 0 0 0 0 0
+          0 0 1 0 0 0 0 0
+          0 0 0 1 1 0 0 0
+          0 0 0 0 0 0 0 0
+          0 0 0 0 0 1 0 0
+          0 0 0 0 0 0 1 0
+          0 0 0 0 0 0 0 1
+          0 0 0 0 0 0 0 0
+        ],
+        "Dynkin quiver of type E7",
+      )
+    elseif n == 8
+      return Quiver(
+        [
+          0 1 0 0 0 0 0 0 0
+          0 0 1 0 0 0 0 0 0
+          0 0 0 1 1 0 0 0 0
+          0 0 0 0 0 0 0 0 0
+          0 0 0 0 0 1 0 0 0
+          0 0 0 0 0 0 1 0 0
+          0 0 0 0 0 0 0 1 0
+          0 0 0 0 0 0 0 0 1
+          0 0 0 0 0 0 0 0 0
+        ],
+        "Dynkin quiver of type E8",
+      )
+    end
+  else
+    throw(ArgumentError("not implemented"))
+  end
 end
 """
     cyclic_quiver(n)
@@ -213,15 +210,15 @@ cyclic quiver on 4 vertices, with adjacency matrix [0 1 0 0; 0 0 1 0; 0 0 0 1; 1
 ```
 """
 function cyclic_quiver(n::Int)
-    if n < 1
-        throw(ArgumentError("n must be greater than 0"))
-    end
-    A = zeros(Int, n, n)
-    for i = 1:n-1
-        A[i, i+1] = 1
-    end
-    A[n, 1] = 1
-    return Quiver(A, "cyclic quiver on $n vertices")
+  if n < 1
+    throw(ArgumentError("n must be greater than 0"))
+  end
+  A = zeros(Int, n, n)
+  for i in 1:(n - 1)
+    A[i, i + 1] = 1
+  end
+  A[n, 1] = 1
+  return Quiver(A, "cyclic quiver on $n vertices")
 end
 
 """
@@ -241,16 +238,16 @@ julia> bipartite_quiver(2, 3).adjacency
 ```
 """
 function bipartite_quiver(m::Int, n::Int)
-    if m < 1 || n < 1
-        throw(ArgumentError("m and n must be greater than 0"))
+  if m < 1 || n < 1
+    throw(ArgumentError("m and n must be greater than 0"))
+  end
+  A = zeros(Int, m + n, m + n)
+  for i in 1:m
+    for j in (m + 1):(m + n)
+      A[i, j] = 1
     end
-    A = zeros(Int, m + n, m + n)
-    for i = 1:m
-        for j = m+1:m+n
-            A[i, j] = 1
-        end
-    end
-    return Quiver(A, "bipartite quiver on $m and $n vertices")
+  end
+  return Quiver(A, "bipartite quiver on $m and $n vertices")
 end
 
 """"
@@ -273,7 +270,7 @@ opposite of 2-Kronecker quiver, with adjacency matrix [0 0; 2 0]
 ```
 """
 opposite_quiver(Q::Quiver) =
-    Quiver(Matrix{Int}(transpose(Q.adjacency)), "opposite of " * Q.name)
+  Quiver(Matrix{Int}(transpose(Q.adjacency)), "opposite of " * Q.name)
 
 """
 The adjacency matrix of the double of a quiver is the sum of
@@ -289,4 +286,4 @@ double of 2-Kronecker quiver, with adjacency matrix [0 2; 2 0]
 ```
 """
 double_quiver(Q::Quiver) =
-    Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "double of " * Q.name)
+  Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "double of " * Q.name)
