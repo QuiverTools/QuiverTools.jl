@@ -1,5 +1,6 @@
 module QuiverTools
 
+using Pkg
 using StaticArrays
 
 using Memoization: Memoization
@@ -44,6 +45,42 @@ export all_HN_types,
 # TODO add safety checks everywhere in the codebase
 
 include("QuiverTools-types.jl")
+
+import Pkg
+
+const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
+const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
+
+function _print_banner()
+  printstyled(raw"""   ___"""; color=:red)
+  printstyled(raw"""       _             """)
+  println("  |")
+  printstyled(raw"""  / _ \ """; color=:red)
+  printstyled(raw"""_  _(_)_ _____ _ _ """)
+  println("  |  Software package for")
+  printstyled(raw""" | (_) | """; color=:red)
+  printstyled(raw"""|| | \ V / -_) '_|""")
+  println("  |  quivers and moduli of their representations")
+  printstyled(raw"""  \__\_\\"""; color=:red)
+  printstyled(raw"""\_,_|_|\_/\___|_|  """)
+  println("  |")
+  printstyled(raw"""       _____         _    """; color=:yellow)
+  println("   |")
+  printstyled(raw"""      |_   _|__  ___| |___"""; color=:yellow)
+  println("   |  Manual: https://julia.quiver.tools")
+  printstyled(raw"""        | |/ _ \/ _ \ (_-<"""; color=:yellow)
+  println("   |  Version $(VERSION_NUMBER)")
+  printstyled(raw"""        |_|\___/\___/_/__/"""; color=:yellow)
+  println("   |")
+end
+
+function __init__()
+  if displaysize(stdout)[2] >= 80
+    _print_banner()
+  end
+
+  nothing
+end
 
 function deglex_key(Q::Quiver, e::AbstractVector{Int})::Int
   b = maximum(e) + 1
