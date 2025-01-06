@@ -3,7 +3,7 @@ using Test, QuiverTools, Documenter
 @info "Almost all the tests are in the documentation."
 
 DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools))
-doctest(QuiverTools, manual=false, testset="Doctests")
+doctest(QuiverTools, manual = false, testset = "Doctests")
 
 @testset "strict sst" begin
     # proper-semistability
@@ -35,7 +35,7 @@ end;
         expected = readline(file)
     end
 
-    @test string(all_HN_types(Q, d, theta; ordered=true)) == expected
+    @test string(all_HN_types(Q, d, theta; ordered = true)) == expected
 end;
 
 

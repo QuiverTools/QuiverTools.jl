@@ -695,6 +695,11 @@ julia> Hodge_polynomial(Q, d, theta)
 x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 ```
 """
+function Hodge_polynomial(
+    Q::Quiver,
+    d::AbstractVector{Int},
+    theta::AbstractVector{Int} = canonical_stability(Q, d),
+)
 
     # safety checks
     if theta' * d == 0 && !is_coprime(d)
@@ -976,6 +981,8 @@ function Betti_numbers(M::QuiverModuliSpace)
 
     # if the polynomial did not have degree = N,
     # we add zero coefficients
+    if length(betti) < 2 * N + 1
+        betti = vcat(betti, zeros(2 * N + 1 - length(betti)))
     end
     return betti
 end
@@ -1070,6 +1077,7 @@ julia> motive(Q, [2, 3])
 ```
 """
 function motive(
+    Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int} = canonical_stability(Q, d),
     denom::Function = sum,
@@ -1098,10 +1106,12 @@ function motive(
 
     T = Matrix{Any}(undef, length(ds), length(ds))
     for (i, j) in Iterators.product(1:length(ds), 1:length(ds))
-       if is_subdimension_vector(ds[i], ds[j])
         if is_subdimension_vector(ds[i], ds[j])
+            T[i, j] =
+                power(L, Euler_form(Q, ds[i] - ds[j], ds[i])) *
+                motive(Q, ds[j] - ds[i], zero_vector(nvertices(Q)))
+        else
             T[i, j] = 0
-       end
         end
     end
 
@@ -1244,8 +1254,7 @@ julia> length(QuiverTools.gens(I))
     end
 
     # build the permutation group W
-                            for i in 1:nvertices(Q)
-                                ]...)
+    W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i in 1:nvertices(Q)]...)
     sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
 
     # Action of the symmetric group on R by permutation of the variables.
@@ -1356,21 +1365,19 @@ julia> QuiverTools.extended_gcd([2, 3])
 ```
 """
 function extended_gcd(x)
-		return [x, [1]]
-	elseif n == 2
-		g, a, b = gcdx(x[1], x[2])
-		return [g, [a, b]]
-	else
-		g, a, b = gcdx(x[1], x[2])
-		y = vcat([g],  [x[i] for i in 3:n])
-		d, c = extended_gcd(y)
-		m = vcat([c[1] * a, c[1] * b], [c[i] for i in 2:n - 1])
-		return [d, m]
-	end
+    n = length(x)
+    if n == 1
+        return [x, [1]]
+    elseif n == 2
         g, a, b = gcdx(x[1], x[2])
         return [g, [a, b]]
     else
         g, a, b = gcdx(x[1], x[2])
+        y = vcat([g], [x[i] for i in 3:n])
+        d, c = extended_gcd(y)
+        m = vcat([c[1] * a, c[1] * b], [c[i] for i in 2:n-1])
+        return [d, m]
+    end
 end
 
 """
@@ -1492,7 +1499,7 @@ x21 + x22 + x23 + 1
 function total_Chern_class_universal(
     M::QuiverModuliSpace,
     i::Int;
-    chi::AbstractVector{Int} = extended_gcd(M.d)[2])
+    chi::AbstractVector{Int} = extended_gcd(M.d)[2],
 )
 
     CH, CHvars = Chow_ring(M, chi = chi)
@@ -1539,8 +1546,6 @@ function Chern_character_from_classes(
     if n < d
         classes = vcat(classes, [0 for i in n:d])
     end
-    return n + sum(
-        Newton_polynomial(i)(classes) / factorial(i)
     return n + sum(Newton_polynomial(i)(classes) / factorial(i) for i in 1:d)
 end
 
@@ -1557,9 +1562,7 @@ function Chern_character_universal_bundle(
     chi::AbstractVector{Int} = extended_gcd(M.d)[2],
 )
 
-    CH, CHvars = Chow_ring(M; chi=chi)
-    Ui_classes = CHvars[sum(M.d[1:i-1]) + 1:sum(M.d[1:i])]
-    return Chern_character_from_classes(M, Ui_classes; chi=chi)
+    CH, CHvars = Chow_ring(M; chi = chi)
     Ui_classes = CHvars[sum(M.d[1:i-1])+1:sum(M.d[1:i])]
     return Chern_character_from_classes(M, Ui_classes; chi = chi)
 end
