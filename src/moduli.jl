@@ -2,16 +2,27 @@ export QuiverModuli, QuiverModuliSpace, QuiverModuliStack
 
 export Hodge_diamond, Hodge_polynomial, Picard_rank
 
-export Chow_ring, motive, index, Betti_numbers, Poincare_polynomial,
-    is_smooth, is_projective, semisimple_moduli_space, point_class,
-    Todd_class, Chern_class_line_bundle, Chern_character_line_bundle,
-    total_Chern_class_universal, Chern_character_universal_bundle, integral,
+export Chow_ring,
+    motive,
+    index,
+    Betti_numbers,
+    Poincare_polynomial,
+    is_smooth,
+    is_projective,
+    semisimple_moduli_space,
+    point_class,
+    Todd_class,
+    Chern_class_line_bundle,
+    Chern_character_line_bundle,
+    total_Chern_class_universal,
+    Chern_character_universal_bundle,
+    integral,
     dual_Chern_character
 
 export all_Luna_types, is_Luna_type, dimension_of_Luna_stratum
 
-export is_nonempty, dimension, is_smooth, semistable_equals_stable,
-    codimension_unstable_locus
+export is_nonempty,
+    dimension, is_smooth, semistable_equals_stable, codimension_unstable_locus
 
 
 
@@ -126,7 +137,7 @@ function all_HN_types(M::QuiverModuli; unstable::Bool = false, ordered::Bool = t
     if unstable
         return filter(hn_type -> hn_type != [M.d], HN)
     end
-	return HN
+    return HN
 end
 
 """
@@ -189,10 +200,7 @@ julia> codimension_HN_stratum(M, [[1, 1], [1, 2]])
 3
 ```
 """
-function codimension_HN_stratum(
-    M::QuiverModuli,
-    hn_type::Vector{<:AbstractVector{Int}},
-)
+function codimension_HN_stratum(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}})
     return codimension_HN_stratum(M.Q, hn_type)
 end
 
@@ -297,7 +305,7 @@ function all_Luna_types(
     theta::AbstractVector{Int} = canonical_stability(Q, d),
     denom::Function = sum,
     exclude_stable::Bool = false,
-)::Vector{Dict{AbstractVector, Vector{Int}}}
+)::Vector{Dict{AbstractVector,Vector{Int}}}
 
     d = coerce_vector(d)
     theta = coerce_vector(theta)
@@ -321,7 +329,7 @@ function all_Luna_types(
 
     # the highest possible amount of repetitions for a given stable dimension vector
     bound = sum(d) ÷ minimum(sum(e) for e in same_slope)
-    for i = 1:bound+1
+    for i in 1:bound+1
         for tau in with_replacement_combinations(same_slope, i)
             if sum(tau) == d
 
@@ -455,8 +463,8 @@ function local_quiver_setting(M::QuiverModuli, tau)
 
     ks = collect(keys(tau))
     A = coerce_matrix([
-        [generic_ext(M.Q, e, eprime) for eprime in ks for n in tau[eprime]] for
-        e in ks for m in tau[e]
+        [generic_ext(M.Q, e, eprime) for eprime in ks for n in tau[eprime]] for e in ks
+        for m in tau[e]
     ])
 
     Qloc = Quiver(A)
@@ -606,9 +614,8 @@ Cardinality of representation space ``\\mathrm{R}(Q,d), over \\mathbb{F}_q``.
 """
 function CardinalRd(Q::Quiver, d::AbstractVector{Int}, q)
     return q^sum(
-                d[i] * d[j] * Q.adjacency[i, j]
-                for i in 1:nvertices(Q),
-                    j in 1:nvertices(Q))
+        d[i] * d[j] * Q.adjacency[i, j] for i in 1:nvertices(Q), j in 1:nvertices(Q)
+    )
 end
 
 """
@@ -688,10 +695,6 @@ julia> Hodge_polynomial(Q, d, theta)
 x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 ```
 """
-function Hodge_polynomial(Q::Quiver,
-	d::AbstractVector{Int},
-	theta::AbstractVector{Int} = canonical_stability(Q, d)
-    )
 
     # safety checks
     if theta' * d == 0 && !is_coprime(d)
@@ -787,10 +790,11 @@ julia> Hodge_diamond(Q, [2, 3], [-3, 2])
 0×0 Matrix{Int64}
 ```
 """
-function Hodge_diamond(Q::Quiver,
+function Hodge_diamond(
+    Q::Quiver,
     d::AbstractVector{Int},
-    theta::AbstractVector{Int} = canonical_stability(Q, d)
-    )::Matrix{Int}
+    theta::AbstractVector{Int} = canonical_stability(Q, d),
+)::Matrix{Int}
     g = Hodge_polynomial(Q, d, theta)
 
     # collects the coefficients of the polynomial, converts them to integers
@@ -901,8 +905,8 @@ julia> index(M)
 """
 function index(M::QuiverModuliSpace)
     if M.theta == canonical_stability(M.Q, M.d) &&
-        is_coprime(M.d, M.theta) &&
-        is_amply_stable(M)
+       is_coprime(M.d, M.theta) &&
+       is_amply_stable(M)
         return gcd(M.theta)
     end
     throw(NotImplementedError("Only implemented for canonical stability."))
@@ -972,8 +976,6 @@ function Betti_numbers(M::QuiverModuliSpace)
 
     # if the polynomial did not have degree = N,
     # we add zero coefficients
-    if length(betti) < 2*N + 1
-        betti = vcat(betti, zeros(2*N + 1 - length(betti)))
     end
     return betti
 end
@@ -1067,18 +1069,18 @@ julia> motive(Q, [2, 3])
 (-L^6 - L^5 - 3*L^4 - 3*L^3 - 3*L^2 - L - 1)//(L - 1)
 ```
 """
-function motive(Q::Quiver,
+function motive(
     d::AbstractVector{Int},
     theta::AbstractVector{Int} = canonical_stability(Q, d),
-    denom::Function = sum
-    )
+    denom::Function = sum,
+)
 
 
     K, L = Singular.FunctionField(Singular.QQ, ["L"])
     L = L[1]
 
     if all(ti == 0 for ti in theta)
-        out = power(L,- Euler_form(Q, d, d))
+        out = power(L, -Euler_form(Q, d, d))
         den = 1
         for i in 1:nvertices(Q)
             if d[i] > 0
@@ -1097,11 +1099,10 @@ function motive(Q::Quiver,
     T = Matrix{Any}(undef, length(ds), length(ds))
     for (i, j) in Iterators.product(1:length(ds), 1:length(ds))
        if is_subdimension_vector(ds[i], ds[j])
-           T[i, j] = power(L, Euler_form(Q, ds[i] - ds[j], ds[i])) *
-           motive(Q, ds[j] - ds[i], zero_vector(nvertices(Q)))
-       else
+        if is_subdimension_vector(ds[i], ds[j])
             T[i, j] = 0
        end
+        end
     end
 
     y = [0 for i in 1:length(ds)]
@@ -1206,8 +1207,8 @@ julia> length(QuiverTools.gens(I))
 @memoize Dict function Chow_ring(
     Q::Quiver,
     d::AbstractVector{Int},
-    theta::AbstractVector{Int}=canonical_stability(Q, d);
-    chi::AbstractVector{Int}=extended_gcd(d)[2],
+    theta::AbstractVector{Int} = canonical_stability(Q, d);
+    chi::AbstractVector{Int} = extended_gcd(d)[2],
 )
     # safety checks
     if !is_coprime(d, theta)
@@ -1225,7 +1226,7 @@ julia> length(QuiverTools.gens(I))
         if d[i] == 0
             throw(ArgumentError("i is not in the support of d."))
         end
-        return vars[sum(d[1:i-1]) + j]
+        return vars[sum(d[1:i-1])+j]
     end
 
 
@@ -1236,25 +1237,20 @@ julia> length(QuiverTools.gens(I))
         lambdas = Iterators.product(bounds...)
 
         build_elem(lambda) = prod(
-            prod(xi(i, nu)^lambda[sum(d[1:i-1])+nu] for nu in 1:d[i])
-            for i in 1:nvertices(Q)
-                if d[i] > 0
+            prod(xi(i, nu)^lambda[sum(d[1:i-1])+nu] for nu in 1:d[i]) for
+            i in 1:nvertices(Q) if d[i] > 0
         )
         return map(l -> build_elem(l), lambdas)
     end
 
     # build the permutation group W
-    W = Iterators.product([
-                            AbstractAlgebra.SymmetricGroup(d[i])
                             for i in 1:nvertices(Q)
                                 ]...)
     sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
 
     # Action of the symmetric group on R by permutation of the variables.
-    permute(f, sigma) = f([xi(i, sigma[i][j])
-                            for i in 1:nvertices(Q)
-                            for j in 1:d[i]
-                                if d[i] > 0]...)
+    permute(f, sigma) =
+        f([xi(i, sigma[i][j]) for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]...)
 
     # The discriminant in the definition of the antisymmetrization.
     delta = 1
@@ -1269,17 +1265,17 @@ julia> length(QuiverTools.gens(I))
     # All the destabilizing subdimension vectors of `d` with respect to the slope
     # `theta/denom` that are minimal with respect to the total order.
     dest = all_destabilizing_subdimension_vectors(d, theta)
-    minimal_forbidden = filter(
-        e -> !any(f -> partial_order(Q, f, e), filter(f -> f != e, dest)), dest)
+    minimal_forbidden =
+        filter(e -> !any(f -> partial_order(Q, f, e), filter(f -> f != e, dest)), dest)
 
     # builds a new forbidden polynomial for the minimal forbidden dimension vector e.
     function new_forbidden(e::AbstractVector{Int})
         out = 1
         for (i, j) in Iterators.product(1:nvertices(Q), 1:nvertices(Q))
-                for r in 1:e[i], s in e[j]+1:d[j]
-                    out *= (xi(j, s) - xi(i, r))^Q.adjacency[i, j]
-                end
+            for r in 1:e[i], s in e[j]+1:d[j]
+                out *= (xi(j, s) - xi(i, r))^Q.adjacency[i, j]
             end
+        end
         return out
     end
     forbidden_polynomials = [new_forbidden(e) for e in minimal_forbidden]
@@ -1296,9 +1292,8 @@ julia> length(QuiverTools.gens(I))
     end
 
     targets = [
-        [symmetric_polynomial([xi(i, j) for j in 1:d[i]], k) for k in 1:d[i]]
-                                for i in 1:nvertices(Q)
-                                    if d[i] > 0
+        [symmetric_polynomial([xi(i, j) for j in 1:d[i]], k) for k in 1:d[i]] for
+        i in 1:nvertices(Q) if d[i] > 0
     ]
     targets = reduce(vcat, targets)
 
@@ -1325,8 +1320,8 @@ INPUT:
 OUTPUT:
 - the Chow ring of the moduli space.
 """
-function Chow_ring(M::QuiverModuliSpace; chi::AbstractVector{Int}=extended_gcd(M.d)[2])
-    return Chow_ring(M.Q, M.d, M.theta; chi=chi)[1]
+function Chow_ring(M::QuiverModuliSpace; chi::AbstractVector{Int} = extended_gcd(M.d)[2])
+    return Chow_ring(M.Q, M.d, M.theta; chi = chi)[1]
 end
 
 
@@ -1361,8 +1356,6 @@ julia> QuiverTools.extended_gcd([2, 3])
 ```
 """
 function extended_gcd(x)
-	n = length(x)
-	if n == 1
 		return [x, [1]]
 	elseif n == 2
 		g, a, b = gcdx(x[1], x[2])
@@ -1374,6 +1367,10 @@ function extended_gcd(x)
 		m = vcat([c[1] * a, c[1] * b], [c[i] for i in 2:n - 1])
 		return [d, m]
 	end
+        g, a, b = gcdx(x[1], x[2])
+        return [g, [a, b]]
+    else
+        g, a, b = gcdx(x[1], x[2])
 end
 
 """
@@ -1409,15 +1406,17 @@ julia> Chern_class_line_bundle(M, [9, -6])
 -3*x21
 ```
 """
-function Chern_class_line_bundle(M::QuiverModuliSpace,
+function Chern_class_line_bundle(
+    M::QuiverModuliSpace,
     eta::AbstractVector{Int};
-    chi::AbstractVector{Int}=extended_gcd(M.d)[2])
+    chi::AbstractVector{Int} = extended_gcd(M.d)[2],
+)
 
-    A, vars = Chow_ring(M; chi=chi)
+    A, vars = Chow_ring(M; chi = chi)
     I = quotient_ideal(A)
     Rvars = gens(base_ring(I))
 
-    Chern_class = -sum( eta[i] * Rvars[1 + sum(M.d[1:i-1])] for i in 1:nvertices(M.Q))
+    Chern_class = -sum(eta[i] * Rvars[1+sum(M.d[1:i-1])] for i in 1:nvertices(M.Q))
 
     return coerce_to_quotient(A, Chern_class)
 end
@@ -1452,11 +1451,13 @@ julia> Chern_character_line_bundle(M, [3, -2])
 1//720*x21^6 - 1//120*x21^5 + 1//24*x21^4 - 1//6*x21^3 + 1//2*x21^2 - x21 + 1
 ```
 """
-function Chern_character_line_bundle(M::QuiverModuliSpace,
+function Chern_character_line_bundle(
+    M::QuiverModuliSpace,
     eta::AbstractVector{Int};
-    chi::AbstractVector{Int}=extended_gcd(M.d)[2])
+    chi::AbstractVector{Int} = extended_gcd(M.d)[2],
+)
 
-    x = Chern_class_line_bundle(M, eta; chi=chi)
+    x = Chern_class_line_bundle(M, eta; chi = chi)
     Chern_character = sum(x^i / factorial(i) for i in 0:dimension(M))
 
     return Chern_character
@@ -1488,15 +1489,14 @@ julia> total_Chern_class_universal(M, 2)
 x21 + x22 + x23 + 1
 ```
 """
-function total_Chern_class_universal(M::QuiverModuliSpace,
+function total_Chern_class_universal(
+    M::QuiverModuliSpace,
     i::Int;
     chi::AbstractVector{Int} = extended_gcd(M.d)[2])
+)
 
-    CH, CHvars = Chow_ring(M, chi=chi)
-    cUi = sum(
-            CHvars[sum(M.d[1:i - 1]) + r]
-                for r in 1:M.d[i]; init=CH(0)
-            ) + CH(1)
+    CH, CHvars = Chow_ring(M, chi = chi)
+    cUi = sum(CHvars[sum(M.d[1:i-1])+r] for r in 1:M.d[i]; init = CH(0)) + CH(1)
     return cUi
 end
 
@@ -1528,19 +1528,20 @@ julia> u2 = QuiverTools.Chern_character_from_classes(M, CHvars[3:5])
 1//720*x21^6 + 1//120*x21^5 - 1//120*x21^4*x22 + 1//24*x21^4 - 1//24*x21^3*x22 + 1//80*x21^2*x22^2 + 1//120*x21^3*x23 + 1//6*x21^3 - 1//6*x21^2*x22 + 1//24*x21*x22^2 - 1//360*x22^3 + 1//24*x21^2*x23 - 1//60*x21*x22*x23 + 1//2*x21^2 - 1//2*x21*x22 + 1//12*x22^2 + 1//6*x21*x23 - 1//24*x22*x23 + 1//240*x23^2 + x21 - x22 + 1//2*x23 + 3
 ```
 """
-function Chern_character_from_classes(M::QuiverModuliSpace,
+function Chern_character_from_classes(
+    M::QuiverModuliSpace,
     classes;
-    chi::AbstractVector{Int}=extended_gcd(M.d)[2])
-    CH, CHvars = Chow_ring(M; chi=chi)
+    chi::AbstractVector{Int} = extended_gcd(M.d)[2],
+)
+    CH, CHvars = Chow_ring(M; chi = chi) #TODO assert parent is the same for all and obtain it from there
     n = length(classes)
     d = dimension(M)
     if n < d
-        classes = vcat(classes,[0 for i in n:d])
+        classes = vcat(classes, [0 for i in n:d])
     end
     return n + sum(
         Newton_polynomial(i)(classes) / factorial(i)
-        for i in 1:d
-    )
+    return n + sum(Newton_polynomial(i)(classes) / factorial(i) for i in 1:d)
 end
 
 # TODO add tests
@@ -1550,13 +1551,17 @@ end
 Returns the Chern character of the universal bundle ``\\mathcal{U}_i``
 on the given moduli space ``M``.
 """
-function Chern_character_universal_bundle(M::QuiverModuliSpace,
+function Chern_character_universal_bundle(
+    M::QuiverModuliSpace,
     i::Int;
-    chi::AbstractVector{Int}=extended_gcd(M.d)[2])
+    chi::AbstractVector{Int} = extended_gcd(M.d)[2],
+)
 
     CH, CHvars = Chow_ring(M; chi=chi)
     Ui_classes = CHvars[sum(M.d[1:i-1]) + 1:sum(M.d[1:i])]
     return Chern_character_from_classes(M, Ui_classes; chi=chi)
+    Ui_classes = CHvars[sum(M.d[1:i-1])+1:sum(M.d[1:i])]
+    return Chern_character_from_classes(M, Ui_classes; chi = chi)
 end
 
 """
@@ -1599,11 +1604,13 @@ julia> QuiverTools.dual_Chern_character(M, p)
 2
 ```
 """
-function dual_Chern_character(M::QuiverModuliSpace,
+function dual_Chern_character(
+    M::QuiverModuliSpace,
     p;
-    chi::AbstractVector{Int}=extended_gcd(M.d)[2])
-    CH, CHvars = Chow_ring(M; chi=chi)
-    return sum(m*(-1)^__Chow_ring_monomial_grading(M, m) for m in Singular.terms(CH(p)))
+    chi::AbstractVector{Int} = extended_gcd(M.d)[2],
+)
+    CH, CHvars = Chow_ring(M; chi = chi) #TODO obtain parent and grading from p alone.
+    return sum(m * (-1)^__Chow_ring_monomial_grading(M, m) for m in Singular.terms(CH(p)))
 end
 
 """
@@ -1640,23 +1647,26 @@ julia> point_class(M)
 x23^2
 ```
 """
-@memoize Dict function point_class(M::QuiverModuliSpace;
+@memoize Dict function point_class(
+    M::QuiverModuliSpace;
     chi::AbstractVector{Int} = extended_gcd(M.d)[2],
-    )
+)
     num = 1
     den = 1
     N = dimension(M)
-    CH, CHvars = Chow_ring(M; chi=chi)
+    CH, CHvars = Chow_ring(M; chi = chi)
 
     for i in 1:nvertices(M.Q)
-        c = total_Chern_class_universal(M, i; chi=chi)
+        c = total_Chern_class_universal(M, i; chi = chi)
         num *= c^(M.d' * M.Q.adjacency[:, i])
         den *= c^M.d[i]
     end
 
     quot = div(num, den)
-    return sum(term for term in Singular.terms(quot)
-                    if __Chow_ring_monomial_grading(M, term) == N; init = CH(0))
+    return sum(
+        term for term in Singular.terms(quot) if __Chow_ring_monomial_grading(M, term) == N;
+        init = CH(0),
+    )
 end
 
 """
@@ -1680,63 +1690,59 @@ julia> Todd_class(M)
 -17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
 ```
 """
-@memoize Dict function Todd_class(M::QuiverModuliSpace;
-	chi::AbstractVector{Int}=extended_gcd(M.d)[2]
-	)
+@memoize Dict function Todd_class(
+    M::QuiverModuliSpace;
+    chi::AbstractVector{Int} = extended_gcd(M.d)[2],
+)
 
-	"""
-	We call the series ``Q(t) = t/(1-e^{-t})`` the Todd generating series.
-	The function computes the terms of this series up to degree n.
-	We use this instead of the more conventional notation `Q` to avoid a
-	clash with the notation for the quiver.
-	"""
-	function todd_Q(t, n)
-		return sum(
-			(-1)^i * (Nemo.bernoulli(i) * t^i) / factorial(i) for i in 0:n
-		)
-	end
+    """
+    We call the series ``Q(t) = t/(1-e^{-t})`` the Todd generating series.
+    The function computes the terms of this series up to degree n.
+    We use this instead of the more conventional notation `Q` to avoid a
+    clash with the notation for the quiver.
+    """
+    function todd_Q(t, n)
+        return sum((-1)^i * (Nemo.bernoulli(i) * t^i) / factorial(i) for i in 0:n)
+    end
 
-	"""
-	Takes an element in a graded ring and discards all homogeneous components
-	of degree > n
-	"""
-	function truncate(f, n)
-		return sum(
-            term for term in Singular.terms(f)
-                if Singular.total_degree(term) <= n
-                    )
-	end
+    """
+    Takes an element in a graded ring and discards all homogeneous components
+    of degree > n
+    """
+    function truncate(f, n)
+        return sum(term for term in Singular.terms(f) if Singular.total_degree(term) <= n)
+    end
 
     N = dimension(M)
 
-    A, R, inclusion = Chow_ring(M.Q, M.d, M.theta; chi=chi)
+    A, R, inclusion = Chow_ring(M.Q, M.d, M.theta; chi = chi)
     Rvars = gens(R)
 
     function xi(i, p)
-        return Rvars[sum(M.d[1:i-1]) + p]
+        return Rvars[sum(M.d[1:i-1])+p]
     end
 
-	num = 1
-	den = 1
+    num = 1
+    den = 1
 
-	for a in arrows(M.Q)
-		i, j = a
-		for p in 1:M.d[i]
-			for q in 1:M.d[j]
-				num *= todd_Q(xi(j, q) - xi(i, p), N)
-				num = truncate(num, N)
-			end
-		end
-	end
+    for a in arrows(M.Q)
+        i, j = a
+        for p in 1:M.d[i]
+            for q in 1:M.d[j]
+                num *= todd_Q(xi(j, q) - xi(i, p), N)
+                num = truncate(num, N)
+            end
+        end
+    end
 
-	for i in 1:nvertices(M.Q)
-		for p in 1:M.d[i]
-			for q in 1:M.d[i]
-				den *= todd_Q(xi(i, q) - xi(i, p), N)
-				den = truncate(den, N)
-			end
-		end
-	end
+    for i in 1:nvertices(M.Q)
+        for p in 1:M.d[i]
+            for q in 1:M.d[i]
+                den *= todd_Q(xi(i, q) - xi(i, p), N)
+                den = truncate(den, N)
+            end
+        end
+    end
 
     # this is because Singular does not have a method to get the preimage
     # of a given element, only ideals.
@@ -1807,22 +1813,18 @@ julia> [integral(M, L^i) for i in 0:5]
  5999
 ```
 """
-function integral(M::QuiverModuliSpace,
-    f;
-    chi::AbstractVector{Int}= extended_gcd(M.d)[2]
-    )
+function integral(M::QuiverModuliSpace, f; chi::AbstractVector{Int} = extended_gcd(M.d)[2])
 
-    CH, CHvars = Chow_ring(M; chi=chi)
+    CH, CHvars = Chow_ring(M; chi = chi)
 
     N = dimension(M)
     integrand = sum(
-                    t
-                    for t in collect(Singular.terms(f * Todd_class(M; chi=chi)))
-                    if __Chow_ring_monomial_grading(M, t) == N;
-                    init = CH(0)
-                )
+        t for t in collect(Singular.terms(f * Todd_class(M; chi = chi))) if
+        __Chow_ring_monomial_grading(M, t) == N;
+        init = CH(0),
+    )
 
-    integ = div(integrand, point_class(M; chi=chi))
+    integ = div(integrand, point_class(M; chi = chi))
     # coercion to Int
     return Int(numerator(Singular.constant_coefficient(integ)))
 end
@@ -1837,7 +1839,7 @@ function coerce_to_quotient(R, f)
 
     B = base_ring(R)
     g = Singular.MPolyBuildCtx(R)
-    for (c, e) = zip(Singular.coefficients(q), Singular.exponent_vectors(q))
+    for (c, e) in zip(Singular.coefficients(q), Singular.exponent_vectors(q))
         Singular.push_term!(g, B(c), e)
     end
     return Singular.finish(g)
@@ -1849,7 +1851,7 @@ Takes a ring R and a polynomial in R/I and returns the canonical preimage of f i
 function pullback_from_quotient(R, f)
     B = base_ring(R)
     g = Singular.MPolyBuildCtx(R)
-    for (c, e) = zip(Singular.coefficients(f), Singular.exponent_vectors(f))
+    for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
         Singular.push_term!(g, B(c), e)
     end
     return Singular.finish(g)
@@ -1957,9 +1959,9 @@ function dimension(M::QuiverModuliSpace)
     elseif M.condition == "semistable"
         if has_semistables(M.Q, M.d, M.theta)
             return maximum(
-                dimension_of_Luna_stratum(M, tau)
-                for tau in all_Luna_types(M.Q, M.d, M.theta)
-                    )
+                dimension_of_Luna_stratum(M, tau) for
+                tau in all_Luna_types(M.Q, M.d, M.theta)
+            )
         end
     end
     # the semistable locus is also empty

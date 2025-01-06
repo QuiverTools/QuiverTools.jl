@@ -98,7 +98,7 @@ julia> subspace_quiver(3)
 """
 function subspace_quiver(m::Int)
     A = zeros(Int, m + 1, m + 1)
-    for i = 1:m
+    for i in 1:m
         A[i, m+1] = 1
     end
     return Quiver(A, string(m) * "-subspace quiver")
@@ -134,7 +134,7 @@ function Dynkin_quiver(T::String, n::Int)
             return loop_quiver(1)
         else
             M = zeros(Int, n, n)
-            for i = 1:n-1
+            for i in 1:n-1
                 M[i, i+1] = 1
             end
             return Quiver(M, "Dynkin quiver of type A$n")
@@ -144,7 +144,7 @@ function Dynkin_quiver(T::String, n::Int)
             throw(ArgumentError("$n is out of bounds."))
         end
         M = zeros(Int, n, n)
-        for i = 1:n-2
+        for i in 1:n-2
             M[i, i+1] = 1
         end
         M[n-2, n] = 1
@@ -217,7 +217,7 @@ function cyclic_quiver(n::Int)
         throw(ArgumentError("n must be greater than 0"))
     end
     A = zeros(Int, n, n)
-    for i = 1:n-1
+    for i in 1:n-1
         A[i, i+1] = 1
     end
     A[n, 1] = 1
@@ -245,8 +245,8 @@ function bipartite_quiver(m::Int, n::Int)
         throw(ArgumentError("m and n must be greater than 0"))
     end
     A = zeros(Int, m + n, m + n)
-    for i = 1:m
-        for j = m+1:m+n
+    for i in 1:m
+        for j in m+1:m+n
             A[i, j] = 1
         end
     end

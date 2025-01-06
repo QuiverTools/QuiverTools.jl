@@ -17,14 +17,17 @@ makedocs(
     format = Documenter.HTML(),
     # builds pdf, does not like the github Documenter action for now.
     # Use only in local build.
-    # format = Documenter.LaTeX(),
-    pages = [   "QuiverTools" => "index.md", 
-    "Tutorial" => "tutorial.md",
-    "All methods" => "methods.md",
-    "Benchmarks" => "benchmarks.md"],
-    )
+    format = Documenter.LaTeX(),
+    pages = [
+        "QuiverTools" => "index.md",
+        "Tutorial" => "tutorial.md",
+        "All methods" => "methods.md",
+        "Benchmarks" => "benchmarks.md",
+    ],
+)
 
 deploydocs(
     branch = "docs",
     repo = "github.com/QuiverTools/QuiverTools.jl.git",
-    cname = "julia.quiver.tools")
+    cname = "julia.quiver.tools",
+)

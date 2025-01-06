@@ -14,18 +14,30 @@ import Base.show, Base.==, Base.hash
 import Memoization: @memoize
 import IterTools: subsets
 import LinearAlgebraX: rankx
-import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHomomorphism,
-    preimage, Ideal, quotient_ideal, QuotientRing, fraction_field, std, gens, base_ring
+import Singular:
+    polynomial_ring,
+    degree,
+    coeff,
+    constant_coefficient,
+    AlgebraHomomorphism,
+    preimage,
+    Ideal,
+    quotient_ideal,
+    QuotientRing,
+    fraction_field,
+    std,
+    gens,
+    base_ring
 import Combinatorics: with_replacement_combinations, partitions
 
 export Quiver
-export nvertices, narrows, arrows, indegree, outdegree,
-    is_acyclic, is_connected, is_sink, is_source
+export nvertices,
+    narrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
 export Euler_form, canonical_stability, is_coprime, slope
 export is_Schur_root,
     generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
-export all_HN_types, is_HN_type, has_semistables, has_stables, codimension_HN_stratum,
-    is_amply_stable
+export all_HN_types,
+    is_HN_type, has_semistables, has_stables, codimension_HN_stratum, is_amply_stable
 
 # TODO add missing doctests across codebase.
 # TODO keyword arguments across codebase
@@ -37,10 +49,7 @@ function deglex_key(Q::Quiver, e::AbstractVector{Int})::Int
     b = maximum(e) + 1
     n = nvertices(Q)
 
-    return (
-            sum(e[i] * b^(n - i) for i in 1:length(e))
-            + sum(e) * b^n
-        )
+    return (sum(e[i] * b^(n - i) for i in 1:length(e)) + sum(e) * b^n)
 end
 
 """
@@ -242,7 +251,8 @@ end
 """
 Returns the identity matrix of size ``n``.
 """
-@memoize Dict identity_matrix(n::Int) = map(ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n))
+@memoize Dict identity_matrix(n::Int) =
+    map(ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n))
 
 function diagonal(m::AbstractMatrix{Int})
     n = size(m)[1]
@@ -352,9 +362,7 @@ julia> slope([2,3], [3,-2])
 0//1
 ```
 """
-function slope(d::AbstractVector{Int},
-    theta::AbstractVector{Int},
-    denom::Function = sum)
+function slope(d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function = sum)
 
     return (theta' * d) // denom(d)
 end
@@ -632,14 +640,9 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
  [3, 0]
 ```
 """
-@memoize Dict function all_generic_subdimension_vectors(
-    Q::Quiver,
-    d::AbstractVector{Int},
-    )
+@memoize Dict function all_generic_subdimension_vectors(Q::Quiver, d::AbstractVector{Int})
 
-    return filter(e -> is_generic_subdimension_vector(Q, e, d),
-                    all_subdimension_vectors(d)
-                    )
+    return filter(e -> is_generic_subdimension_vector(Q, e, d), all_subdimension_vectors(d))
 end
 
 """
@@ -700,7 +703,7 @@ julia> all_HN_types(Q, d, theta; ordered=true)
     theta::AbstractVector{Int},
     denom::Function = sum;
     ordered::Bool = false,
-    )
+)
 
 
     if all(di == 0 for di in d)
@@ -728,10 +731,9 @@ julia> all_HN_types(Q, d, theta; ordered=true)
     alltypes = [
         vcat([e], efstar)
 
-        for e in subdimensions
-        for efstar in filter(
+        for e in subdimensions for efstar in filter(
             fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
-            all_HN_types(Q, d - e, theta, denom; ordered=ordered),
+            all_HN_types(Q, d - e, theta, denom; ordered = ordered),
         )
     ]
 
@@ -773,7 +775,7 @@ function is_HN_type(
 
     if !all(
         slope(dstar[i], theta, denom) > slope(dstar[i+1], theta, denom) for
-        i = 1:length(dstar)-1
+        i in 1:length(dstar)-1
     )
         return false
     end
@@ -810,9 +812,8 @@ function codimension_HN_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}
         return 0
     else
         return -sum(
-            Euler_form(Q, stratum[i], stratum[j])
-            for i in 1:length(stratum)-1
-            for j in i+1:length(stratum)
+            Euler_form(Q, stratum[i], stratum[j]) for i in 1:length(stratum)-1 for
+            j in i+1:length(stratum)
         )
     end
 end
@@ -1032,7 +1033,7 @@ such that ``p_n = \\nu_n(e_1,...,e_n)``, this function returns ``\\nu_n``.
     else
         function newPoly(x)
             return ((-1)^(n - 1) * n * x[n]) +
-                sum( (-1)^(i + n + 1) * x[n - i] * Newton_polynomial(i)(x) for i in 1:n-1)
+                   sum((-1)^(i + n + 1) * x[n-i] * Newton_polynomial(i)(x) for i in 1:n-1)
         end
     end
     return newPoly
@@ -1149,7 +1150,7 @@ julia> QuiverTools.all_subdimension_vectors([2, 3]; nonzero=true, strict=true)
     d::AbstractVector{Int};
     nonzero::Bool = false,
     strict::Bool = false,
-    )
+)
 
     subdims = coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...)))
     if nonzero

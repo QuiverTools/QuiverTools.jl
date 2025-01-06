@@ -67,7 +67,7 @@ struct Quiver
         for pair in pairs
             A[pair[1], pair[2]] = pair[3]
         end
-        return Quiver(A,"")
+        return Quiver(A, "")
     end
 end
 
@@ -83,10 +83,6 @@ function show(io::IO, Q::Quiver)
     end
     print(io, Q.adjacency)
 end
-
-
-
-
 
 abstract type QuiverModuli end
 
@@ -108,9 +104,9 @@ struct QuiverModuliSpace <: QuiverModuli
         denom::Function = sum,
     )
 
-    if condition in ["stable", "semistable"] &&
-        length(d) == nvertices(Q) &&
-        length(theta) == nvertices(Q)
+        if condition in ["stable", "semistable"] &&
+           length(d) == nvertices(Q) &&
+           length(theta) == nvertices(Q)
 
             d = coerce_vector(d)
             theta = coerce_vector(theta)
@@ -139,9 +135,9 @@ struct QuiverModuliStack <: QuiverModuli
            length(d) == nvertices(Q) &&
            length(theta) == nvertices(Q)
 
-           d = coerce_vector(d)
-           theta = coerce_vector(theta)
-           return new(Q, d, theta, condition, denom)
+            d = coerce_vector(d)
+            theta = coerce_vector(theta)
+            return new(Q, d, theta, condition, denom)
         end
         throw(DomainError("Invalid input"))
     end
