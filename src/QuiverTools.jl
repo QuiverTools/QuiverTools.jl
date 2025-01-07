@@ -4,7 +4,6 @@ using Pkg
 using StaticArrays
 
 using Memoization: Memoization
-# using Memoize: Memoize
 using IterTools: IterTools
 using LinearAlgebraX: LinearAlgebraX
 using Singular: Singular
