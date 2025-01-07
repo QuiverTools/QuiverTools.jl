@@ -19,7 +19,7 @@ function Teleman_bound_onstratum(
     Q::Quiver,
     hntype::Vector{<:AbstractVector{Int}},
     theta::AbstractVector{Int},
-    denom::Function = sum,
+    denom::Function=sum,
 )::Int
 
     if length(hntype) == 1
@@ -62,7 +62,7 @@ function all_Teleman_bounds(
     Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
-    denom::Function = sum,
+    denom::Function=sum,
 )
 
     #This is only relevant on the unstable locus
@@ -112,7 +112,7 @@ for the 1-PS corresponding to the given HN type."""
 function weights_universal_bundle_onstratum(
     theta::AbstractVector{Int},
     hntype,
-    denom::Function = sum;
+    denom::Function=sum;
     chi::AbstractVector{Int},
 )::AbstractVector{Int}
 
@@ -127,10 +127,10 @@ end
 function weights_universal_bundle_onstratum(
     M::QuiverModuli,
     hntype::Vector{<:AbstractVector{Int}};
-    chi::AbstractVector{Int} = extended_gcd(M.d)[2],
+    chi::AbstractVector{Int}=extended_gcd(M.d)[2],
 )
 
-    return weights_universal_bundle_onstratum(M.theta, hntype, M.denom; chi = chi)
+    return weights_universal_bundle_onstratum(M.theta, hntype, M.denom; chi=chi)
 end
 
 """Computes the weights of the universal bundle ``U_i(a)`` for the linearization ``chi``
@@ -140,23 +140,23 @@ function all_weights_universal_bundle(
     Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
-    denom::Function = sum;
+    denom::Function=sum;
     chi::AbstractVector{Int},
 )
 
     HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
     return Dict(
-        [hntype, weights_universal_bundle_onstratum(theta, hntype, denom; chi = chi)] for
+        [hntype, weights_universal_bundle_onstratum(theta, hntype, denom; chi=chi)] for
         hntype in HN
     )
 end
 
 function all_weights_universal_bundle(
     M::QuiverModuli;
-    chi::AbstractVector{Int} = extended_gcd(M.d)[2],
+    chi::AbstractVector{Int}=extended_gcd(M.d)[2],
 )
 
-    return all_weights_universal_bundle(M.Q, M.d, M.theta, M.denom; chi = chi)
+    return all_weights_universal_bundle(M.Q, M.d, M.theta, M.denom; chi=chi)
 end
 
 
@@ -169,7 +169,7 @@ function weight_irreducible_component_canonical_on_stratum(
     d::AbstractVector{Int},
     hntype::Vector{<:AbstractVector{Int}},
     theta::AbstractVector{Int},
-    denom::Function = sum,
+    denom::Function=sum,
 )::Int
 
     kweights = map(di -> slope(di, theta, denom), hntype)
@@ -207,7 +207,7 @@ function all_weights_irreducible_component_canonical(
     Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
-    denom::Function = sum,
+    denom::Function=sum,
 )
 
     HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta))
@@ -230,7 +230,7 @@ on the given Harder-Narasimhan stratum for the 1-PS relative to the HN type."""
 function weights_endomorphism_universal_bundle_on_stratum(
     hntype::AbstractVector{<:AbstractVector{Int}},
     theta::AbstractVector{Int},
-    denom::Function = sum,
+    denom::Function=sum,
 )::AbstractVector{Int}
 
     # the maximum weight of the tensors of the universal bundles U_i^\vee \otimes U_j is
@@ -256,7 +256,7 @@ function all_weights_endomorphisms_universal_bundle(
     Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
-    denom::Function = sum,
+    denom::Function=sum,
 )
 
     HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
