@@ -30,7 +30,7 @@ struct Quiver
     my quiver, with adjacency matrix [0 1; 2 0]
     ```
     """
-    function Quiver(adjacency::AbstractMatrix{Int}, name::String = "")
+    function Quiver(adjacency::AbstractMatrix{Int}, name::String="")
         if !(size(adjacency)[1] == size(adjacency)[2])
             throw(DomainError(adjacency, "adjacency matrix must be square"))
         else
@@ -99,9 +99,9 @@ struct QuiverModuliSpace <: QuiverModuli
     function QuiverModuliSpace(
         Q::Quiver,
         d::AbstractVector{Int},
-        theta::AbstractVector{Int} = canonical_stability(Q, d),
-        condition::String = "semistable",
-        denom::Function = sum,
+        theta::AbstractVector{Int}=canonical_stability(Q, d),
+        condition::String="semistable",
+        denom::Function=sum,
     )
 
         if condition in ["stable", "semistable"] &&
@@ -126,9 +126,9 @@ struct QuiverModuliStack <: QuiverModuli
     function QuiverModuliStack(
         Q::Quiver,
         d::AbstractVector{Int},
-        theta::AbstractVector{Int} = canonical_stability(Q, d),
-        condition::String = "semistable",
-        denom::Function = sum,
+        theta::AbstractVector{Int}=canonical_stability(Q, d),
+        condition::String="semistable",
+        denom::Function=sum,
     )
 
         if condition in ["stable", "semistable"] &&

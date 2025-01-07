@@ -339,7 +339,7 @@ true
 function is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
     return all(
         e -> theta' * e != 0,
-        all_subdimension_vectors(d; nonzero = true, strict = true),
+        all_subdimension_vectors(d; nonzero=true, strict=true),
     )
 end
 
@@ -362,7 +362,7 @@ julia> slope([2,3], [3,-2])
 0//1
 ```
 """
-function slope(d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function = sum)
+function slope(d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
 
     return (theta' * d) // denom(d)
 end
@@ -373,13 +373,13 @@ Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d`
 @memoize Dict function all_destabilizing_subdimension_vectors(
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
-    denom::Function = sum,
+    denom::Function=sum,
 )
     # as silly as it looks this is faster.
     b = slope(d, theta, denom)
     return filter(
         e -> slope(e, theta, denom) > b,
-        all_subdimension_vectors(d; nonzero = true),
+        all_subdimension_vectors(d; nonzero=true),
     )
 end
 
@@ -481,8 +481,8 @@ false
 @memoize Dict function has_semistables(
     Q::Quiver,
     d::AbstractVector{Int},
-    theta::AbstractVector{Int} = canonical_stability(Q, d),
-    denom::Function = sum,
+    theta::AbstractVector{Int}=canonical_stability(Q, d),
+    denom::Function=sum,
 )
     if all(di == 0 for di in d)
         return true
@@ -491,7 +491,7 @@ false
         slope_d = slope(d, theta, denom)
         subdimensionsBiggerSlope = filter(
             e -> slope(e, theta, denom) > slope_d,
-            all_subdimension_vectors(d; nonzero = true, strict = true),
+            all_subdimension_vectors(d; nonzero=true, strict=true),
         )
         # to have semistable representations, none of the vectors above must be
         # a generic subdimension vector.
@@ -528,8 +528,8 @@ false
 @memoize Dict function has_stables(
     Q::Quiver,
     d::AbstractVector{Int},
-    theta::AbstractVector{Int} = canonical_stability(Q, d),
-    denom::Function = sum,
+    theta::AbstractVector{Int}=canonical_stability(Q, d),
+    denom::Function=sum,
 )
     if all(di == 0 for di in d)
         return false
@@ -538,7 +538,7 @@ false
         slope_d = slope(d, theta, denom)
         subdimensions_bigger_or_equal_slope = filter(
             e -> slope(e, theta, denom) >= slope_d,
-            all_subdimension_vectors(d; nonzero = true, strict = true),
+            all_subdimension_vectors(d; nonzero=true, strict=true),
         )
         # to have semistable representations,
         # none of the vectors above must be generic subdimension vectors.
@@ -701,8 +701,8 @@ julia> all_HN_types(Q, d, theta; ordered=true)
     Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
-    denom::Function = sum;
-    ordered::Bool = false,
+    denom::Function=sum;
+    ordered::Bool=false,
 )
 
 
@@ -721,7 +721,7 @@ julia> all_HN_types(Q, d, theta; ordered=true)
     # all HN types in ascending order with respect to the partial order from
     # Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
     if ordered
-        subdimensions = sort(subdimensions, by = e -> slope(e, theta, denom))
+        subdimensions = sort(subdimensions, by=e -> slope(e, theta, denom))
     end
 
     # The HN types which are not of the form (d) are (e,f^1,...,f^s) where e is a
@@ -733,7 +733,7 @@ julia> all_HN_types(Q, d, theta; ordered=true)
 
         for e in subdimensions for efstar in filter(
             fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
-            all_HN_types(Q, d - e, theta, denom; ordered = ordered),
+            all_HN_types(Q, d - e, theta, denom; ordered=ordered),
         )
     ]
 
@@ -766,8 +766,8 @@ function is_HN_type(
     Q::Quiver,
     d::AbstractVector{Int},
     dstar::Vector{<:AbstractVector{Int}},
-    theta::AbstractVector{Int} = canonical_stability(Q, d),
-    denom::Function = sum,
+    theta::AbstractVector{Int}=canonical_stability(Q, d),
+    denom::Function=sum,
 )::Bool
     if sum(dstar) != d
         return false
@@ -844,7 +844,7 @@ function is_amply_stable(
     Q::Quiver,
     d::AbstractVector{Int},
     theta::AbstractVector{Int},
-    denom::Function = sum,
+    denom::Function=sum,
 )
     HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
     return all(stratum -> codimension_HN_stratum(Q, stratum) >= 2, HN)
@@ -996,7 +996,7 @@ julia> in_fundamental_domain(Q, [1, 2])
 false
 ```
 """
-function in_fundamental_domain(Q::Quiver, d::AbstractVector{Int}; interior::Bool = false)
+function in_fundamental_domain(Q::Quiver, d::AbstractVector{Int}; interior::Bool=false)
     # https://arxiv.org/abs/2209.14791 uses a strict inequality,
     # while https://arxiv.org/abs/2310.15927 uses a non-strict.
     # here we set it to non-strict by default.
@@ -1148,8 +1148,8 @@ julia> QuiverTools.all_subdimension_vectors([2, 3]; nonzero=true, strict=true)
 """
 @memoize Dict function all_subdimension_vectors(
     d::AbstractVector{Int};
-    nonzero::Bool = false,
-    strict::Bool = false,
+    nonzero::Bool=false,
+    strict::Bool=false,
 )
 
     subdims = coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...)))
