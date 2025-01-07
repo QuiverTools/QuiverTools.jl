@@ -3,9 +3,9 @@
 # Weights of various standard vector bundles for the HN stratification
 ######################################################################
 
-export Teleman_bound_onstratum,
+export Teleman_bound_on_stratum,
   all_Teleman_bounds,
-  weights_universal_bundle_onstratum,
+  weights_universal_bundle_on_stratum,
   all_weights_universal_bundle,
   weight_irreducible_component_canonical_on_stratum,
   all_weights_irreducible_component_canonical,
@@ -37,8 +37,8 @@ function Teleman_bound_on_stratum(
   )
 end
 
-function Teleman_bound_onstratum(M::QuiverModuli, hntype::Vector{<:AbstractVector{Int}})
-  return Teleman_bound_onstratum(M.Q, hntype, M.theta, M.denom)
+function Teleman_bound_on_stratum(M::QuiverModuli, hntype::Vector{<:AbstractVector{Int}})
+  return Teleman_bound_on_stratum(M.Q, hntype, M.theta, M.denom)
 end
 
 """
@@ -72,7 +72,7 @@ function all_Teleman_bounds(
 
   #This is only relevant on the unstable locus
   HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
-  return Dict([hntype, Teleman_bound_onstratum(Q, hntype, theta, denom)] for hntype in HN)
+  return Dict([hntype, Teleman_bound_on_stratum(Q, hntype, theta, denom)] for hntype in HN)
 end
 """
 	all_Teleman_bounds(M)
@@ -118,6 +118,7 @@ Returns the weights of a universal bundle ``U_i(a)`` for the linearization ``a``
 for the 1-PS corresponding to the given HN type.
 
 """
+function weights_universal_bundle_on_stratum(
   theta::AbstractVector{Int},
   hntype,
   denom::Function=sum;
@@ -131,12 +132,12 @@ for the 1-PS corresponding to the given HN type.
   return -constant_term .+ slopes
 end
 
-function weights_universal_bundle_onstratum(
+function weights_universal_bundle_on_stratum(
   M::QuiverModuli,
   hntype::Vector{<:AbstractVector{Int}};
   chi::AbstractVector{Int}=extended_gcd(M.d)[2],
 )
-  return weights_universal_bundle_onstratum(M.theta, hntype, M.denom; chi=chi)
+  return weights_universal_bundle_on_stratum(M.theta, hntype, M.denom; chi=chi)
 end
 
 """
@@ -151,11 +152,11 @@ function all_weights_universal_bundle(
   d::AbstractVector{Int},
   theta::AbstractVector{Int},
   denom::Function=sum;
-  chi::AbstractVector{Int},
+  chi::AbstractVector{Int}=extended_gcd(d)[2],
 )
   HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
   return Dict(
-    [hntype, weights_universal_bundle_onstratum(theta, hntype, denom; chi=chi)] for
+    [hntype, weights_universal_bundle_on_stratum(theta, hntype, denom; chi=chi)] for
     hntype in HN
   )
 end
