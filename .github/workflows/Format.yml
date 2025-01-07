@@ -5,6 +5,7 @@ on:
       - 'src/**'
       - 'test/**'
       - '.github/workflows/Format.yml'
+  workflow_dispatch:
 jobs:
   code-style:
     runs-on: ubuntu-latest
