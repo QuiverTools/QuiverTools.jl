@@ -253,6 +253,15 @@ function all_weights_irreducible_component_canonical(
   )
 end
 
+"""
+    all_weights_irreducible_component_canonical(M::QuiverModuli)
+
+Computes the Teleman weights of the irreducible component of ``\\omega_R|_Z``
+on all the non-dense Harder-Narasimhan strata.
+More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullback of
+``\\mathcal{O}(H)`` on each stratum.
+
+"""
 function all_weights_irreducible_component_canonical(M::QuiverModuli)
   return all_weights_irreducible_component_canonical(M.Q, M.d, M.theta, M.denom)
 end
