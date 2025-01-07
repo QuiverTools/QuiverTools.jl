@@ -20,15 +20,15 @@ end
 @info "Setting up functions and data for benchmarks..."
 
 batch_0_data = [
-  [mKronecker_quiver(5)]
-  # [subspace_quiver(20)],
-  # [three_vertex_quiver(1, 6, 7)]
+[mKronecker_quiver(5)]
+# [subspace_quiver(20)],
+# [three_vertex_quiver(1, 6, 7)]
 ];
 
 quiver_data_light = [
-  (mKronecker_quiver(5), [2, 3], [3, -2])
-  # (subspace_quiver(5), [[1 for i in 1:5]..., 5], [[-1 for i in 1:5]..., 1]),
-  # (three_vertex_quiver(1, 2, 1), [2, 1, 3], [1, 1, -1]),
+(mKronecker_quiver(5), [2, 3], [3, -2])
+# (subspace_quiver(5), [[1 for i in 1:5]..., 5], [[-1 for i in 1:5]..., 1]),
+# (three_vertex_quiver(1, 2, 1), [2, 1, 3], [1, 1, -1]),
 ];
 
 # quiver_data_heavy = [
@@ -38,7 +38,7 @@ quiver_data_light = [
 # ];
 
 quiver_data_heavy = [
-  (mKronecker_quiver(3), [2, 3], [3, -2])
+(mKronecker_quiver(3), [2, 3], [3, -2])
 ];
 
 functions_batch_0 = [
