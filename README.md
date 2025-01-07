@@ -2,6 +2,7 @@
 
 [![tests](https://github.com/QuiverTools/QuiverTools.jl/actions/workflows/Runtests.yml/badge.svg)](https://github.com/QuiverTools/QuiverTools.jl/actions/workflows/Runtests.yml)
 [![docs](https://github.com/QuiverTools/QuiverTools.jl/actions/workflows/Documenter.yml/badge.svg)](https://github.com/QuiverTools/QuiverTools.jl/actions/workflows/Documenter.yml)
+[![style](https://github.com/QuiverTools/QuiverTools.jl/actions/workflows/Format.yml/badge.svg)](https://github.com/QuiverTools/QuiverTools.jl/actions/workflows/Format.yml)
 
 QuiverTools is an open source Julia package for working
 with moduli spaces of quiver representations.
