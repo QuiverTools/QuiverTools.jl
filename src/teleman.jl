@@ -1,4 +1,3 @@
-
 ######################################################################
 # Weights of various standard vector bundles for the HN stratification
 ######################################################################
@@ -74,6 +73,7 @@ function all_Teleman_bounds(
   HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
   return Dict([hntype, Teleman_bound_on_stratum(Q, hntype, theta, denom)] for hntype in HN)
 end
+
 """
 	all_Teleman_bounds(M::QuiverModuli)
 
