@@ -201,10 +201,25 @@ struct QuiverModuliStack <: QuiverModuli
   end
 end
 
-function show(io::IO, M::QuiverModuli)
+function show(io::IO, M::QuiverModuliSpace)
   print(
     io,
-    "Moduli space of $(M.condition) representations of $(M.Q)
-  with dimension vector $(M.d) and stability parameter $(M.theta)",
+    "Quiver moduli space defined as follows:
+ - quiver: $(M.Q),
+ - dimension vector: $(M.d),
+ - stability parameter $(M.theta),
+ - condition: $(M.condition).
+    ",
+  )
+end
+function show(io::IO, M::QuiverModuliStack)
+  print(
+    io,
+    "Quiver moduli stack defined as follows:
+ - quiver: $(M.Q),
+ - dimension vector: $(M.d),
+ - stability parameter $(M.theta),
+ - condition: $(M.condition).
+    ",
   )
 end
