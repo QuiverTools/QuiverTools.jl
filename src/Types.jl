@@ -3,18 +3,23 @@
 ########################################################################################
 
 """
+# Summary
+
+`struct Quiver`
+
 A quiver is represented by its adjacency
-``n \\times n`` matrix ``adjacency = (a_{ij})``,
+``n \\times n`` matrix ``adjacency = (a_{ij})``,\\
 where ``n`` is the number of vertices
 and ``a_{ij}`` is the number of arrows ``i \\to j``.
 
-Attributes:
+# Fields
 
-- `adjacency` is the adjacency matrix of the quiver
-- `name` is the name of the quiver, defaults to `""`.
+`adjacency :: AbstractMatrix{Int}`\\
+`name      :: String`
+
 """
 struct Quiver
-  adjacency::Any
+  adjacency::AbstractMatrix{Int}
   name::String
 
   """
@@ -83,12 +88,46 @@ function show(io::IO, Q::Quiver)
   print(io, Q.adjacency)
 end
 
-# TODO add docstrings to types
+"""
+# Summary
+
+`abstract type QuiverModuli`
+
+Abstract type for a moduli space or stack of quiver representations.
+
+# Supertype Hierarchy
+
+`QuiverModuliSpace <: QuiverModuli <: Any`\\
+`QuiverModuliStack <: QuiverModuli <: Any`
+
+"""
 abstract type QuiverModuli end
 
 # TODO consider this:
 # https://stackoverflow.com/questions/71738970/in-julia-declare-abstractvectorabstractvector
 # this is also necessary to be able to type function outputs correctly.
+"""
+# Summary
+
+`struct QuiverModuliSpace`
+
+The moduli space of representations of a quiver `Q` of dimension vector `d`
+depends on a choice of stability parameter `theta` and on whether we consider
+stable or semistable representations.
+
+# Fields
+
+`Q         :: Quiver`\\
+`d         :: AbstractVector{Int64}`\\
+`theta     :: AbstractVector{Int64}`\\
+`condition :: String`\\
+`denom     :: Function`
+
+# Supertype Hierarchy
+
+`QuiverModuliSpace <: QuiverModuli <: Any`
+
+"""
 struct QuiverModuliSpace <: QuiverModuli
   Q::Quiver
   d::AbstractVector{Int}
@@ -114,6 +153,29 @@ struct QuiverModuliSpace <: QuiverModuli
   end
 end
 
+"""
+# Summary
+
+`struct QuiverModuliStack`
+
+The moduli stack of representations of a quiver `Q` of dimension vector `d`
+depends on a choice of stability parameter `theta` and on whether we consider
+stable or semistable representations.
+
+
+# Fields
+
+`Q         :: Quiver`\\
+`d         :: AbstractVector{Int64}`\\
+`theta     :: AbstractVector{Int64}`\\
+`condition :: String`\\
+`denom     :: Function`
+
+# Supertype Hierarchy
+
+`QuiverModuliStack <: QuiverModuli <: Any`
+
+"""
 struct QuiverModuliStack <: QuiverModuli
   Q::Quiver
   d::AbstractVector{Int}
