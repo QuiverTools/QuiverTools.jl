@@ -2,8 +2,8 @@
 # Weights of various standard vector bundles for the HN stratification
 ######################################################################
 
-export Teleman_bound_on_stratum,
-  all_Teleman_bounds,
+export teleman_bound_on_stratum,
+  all_teleman_bounds,
   weights_universal_bundle_on_stratum,
   all_weights_universal_bundle,
   weight_irreducible_component_canonical_on_stratum,
@@ -13,13 +13,20 @@ export Teleman_bound_on_stratum,
   does_rigidity_inequality_hold
 
 """
-    Teleman_bound_on_stratum(Q::Quiver, hntype, theta, denom=sum)
+    teleman_bound_on_stratum(Q::Quiver, hntype, theta, denom=sum)
 
 Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS ``\\lambda``
 corresponding to the given HN type.
 
+# Input
+
+- `Q`: a quiver
+- `hntype`: a Harder-Narasimhan type
+- `theta`: a stability parameter.
+- `denom`: a denominator for the slope function. Defaults to `sum`.
+
 """
-function Teleman_bound_on_stratum(
+function teleman_bound_on_stratum(
   Q::Quiver,
   hntype::Vector{<:AbstractVector{Int}},
   theta::AbstractVector{Int},
@@ -31,17 +38,17 @@ function Teleman_bound_on_stratum(
   slopes = map(h -> slope(h, theta, denom), hntype)
   slopes = lcm(denominator.(slopes)) .* slopes
   return sum(
-    (slopes[t] - slopes[s]) * Euler_form(Q, hntype[s], hntype[t]) for
+    (slopes[t] - slopes[s]) * euler_form(Q, hntype[s], hntype[t]) for
     s in 1:(length(hntype) - 1) for t in (s + 1):length(hntype)
   )
 end
 
-function Teleman_bound_on_stratum(M::QuiverModuli, hntype::Vector{<:AbstractVector{Int}})
-  return Teleman_bound_on_stratum(M.Q, hntype, M.theta, M.denom)
+function teleman_bound_on_stratum(M::QuiverModuli, hntype::Vector{<:AbstractVector{Int}})
+  return teleman_bound_on_stratum(M.Q, hntype, M.theta, M.denom)
 end
 
 """
-    all_Teleman_bounds(Q::Quiver, d, theta, denom=sum)
+    all_teleman_bounds(Q::Quiver, d, theta, denom=sum)
 
 Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
 HN type for the given ``Q``, ``d``, ``\\theta`` and `denom``.
@@ -50,9 +57,9 @@ HN type for the given ``Q``, ``d``, ``\\theta`` and `denom``.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
-julia> all_Teleman_bounds(Q, [2, 3], [3, -2])
+julia> all_teleman_bounds(Q, [2, 3], [3, -2])
 Dict{Vector{StaticArraysCore.SVector{2, Int64}}, Int64} with 7 entries:
   [[2, 1], [0, 2]]         => 100
   [[2, 2], [0, 1]]         => 20
@@ -63,7 +70,7 @@ Dict{Vector{StaticArraysCore.SVector{2, Int64}}, Int64} with 7 entries:
   [[2, 0], [0, 3]]         => 90
 ```
 """
-function all_Teleman_bounds(
+function all_teleman_bounds(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int},
@@ -71,12 +78,12 @@ function all_Teleman_bounds(
 )
 
   #This is only relevant on the unstable locus
-  HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
-  return Dict([hntype, Teleman_bound_on_stratum(Q, hntype, theta, denom)] for hntype in HN)
+  HN = filter(hntype -> hntype != [d], all_hn_types(Q, d, theta, denom))
+  return Dict([hntype, teleman_bound_on_stratum(Q, hntype, theta, denom)] for hntype in HN)
 end
 
 """
-	all_Teleman_bounds(M::QuiverModuli)
+	all_teleman_bounds(M::QuiverModuli)
 
 # Examples
 
@@ -85,7 +92,7 @@ julia> Q = three_vertex_quiver(1, 2, 3); d = [3, 1, 2]; theta = [5, 3, -9];
 
 julia> M = QuiverModuliSpace(Q, d, theta);
 
-julia> all_Teleman_bounds(M)
+julia> all_teleman_bounds(M)
 Dict{Vector{StaticArraysCore.SVector{3, Int64}}, Int64} with 24 entries:
   [[2, 1, 1], [1, 0, 1]]                       => 12
   [[1, 0, 0], [0, 1, 0], [2, 0, 1], [0, 0, 1]] => 306
@@ -109,8 +116,8 @@ Dict{Vector{StaticArraysCore.SVector{3, Int64}}, Int64} with 24 entries:
   ⋮                                            => ⋮
 ```
 """
-function all_Teleman_bounds(M::QuiverModuli)
-  return all_Teleman_bounds(M.Q, M.d, M.theta, M.denom)
+function all_teleman_bounds(M::QuiverModuli)
+  return all_teleman_bounds(M.Q, M.d, M.theta, M.denom)
 end
 
 """
@@ -156,7 +163,7 @@ function all_weights_universal_bundle(
   denom::Function=sum;
   chi::AbstractVector{Int}=extended_gcd(d)[2],
 )
-  HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
+  HN = filter(hntype -> hntype != [d], all_hn_types(Q, d, theta, denom))
   return Dict(
     [hntype, weights_universal_bundle_on_stratum(theta, hntype, denom; chi=chi)] for
     hntype in HN
@@ -246,7 +253,7 @@ function all_weights_irreducible_component_canonical(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta))
+  HN = filter(hntype -> hntype != [d], all_hn_types(Q, d, theta))
   return Dict(
     [
       hntype,
@@ -316,7 +323,7 @@ function all_weights_endomorphisms_universal_bundle(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
+  HN = filter(hntype -> hntype != [d], all_hn_types(Q, d, theta, denom))
   return Dict(
     [hntype, weights_endomorphism_universal_bundle_on_stratum(hntype, theta, denom)] for
     hntype in HN
@@ -347,7 +354,7 @@ rigid.
 
 Our favourite 6-fold is rigid:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> does_rigidity_inequality_hold(M)
 true
@@ -366,7 +373,7 @@ false
 ```
 """
 function does_rigidity_inequality_hold(M::QuiverModuli)
-  bounds = all_Teleman_bounds(M.Q, M.d, M.theta)
+  bounds = all_teleman_bounds(M.Q, M.d, M.theta)
   weights = all_weights_endomorphisms_universal_bundle(M.Q, M.d, M.theta)
   return all(maximum(weights[hn]) < bounds[hn] for hn in collect(keys(bounds)))
 end

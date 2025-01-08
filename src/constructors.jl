@@ -2,7 +2,7 @@
 # Constructors
 #################
 
-export mKronecker_quiver,
+export kronecker_quiver,
   loop_quiver,
   subspace_quiver,
   three_vertex_quiver,
@@ -10,10 +10,10 @@ export mKronecker_quiver,
   bipartite_quiver,
   opposite_quiver,
   double_quiver,
-  Dynkin_quiver
+  dynkin_quiver
 
 """
-    mKronecker_quiver(m::Int)
+    kronecker_quiver(m::Int)
 
 Constructs a Kronecker quiver with `m` vertices.
 
@@ -28,11 +28,11 @@ A Kronecker quiver with `m` vertices.
 # Examples
 
 ```jldoctest
-julia> mKronecker_quiver(3)
+julia> kronecker_quiver(3)
 3-Kronecker quiver, with adjacency matrix [0 3; 0 0]
 ```
 """
-function mKronecker_quiver(m::Int=2)
+function kronecker_quiver(m::Int=2)
   return Quiver([0 m; 0 0], string(m) * "-Kronecker quiver")
 end
 
@@ -115,26 +115,26 @@ function subspace_quiver(m::Int)
   return Quiver(A, string(m) * "-subspace quiver")
 end
 
-function Dynkin_quiver(Tn::String)
+function dynkin_quiver(Tn::String)
   #parse the string Tn
   T = Tn[1:(end - 1)]
   n = parse(Int, Tn[end])
-  return Dynkin_quiver(T, n)
+  return dynkin_quiver(T, n)
 end
 
 """
-    Dynkin_quiver(T, n)
+    dynkin_quiver(T, n)
 
 Constructs the Dynkin quiver, with arbitrary orientation of the arrows.
 
 # Examples
 
 ```jldoctest
-julia> Dynkin_quiver("D4")
+julia> dynkin_quiver("D4")
 Dynkin quiver of type D4, with adjacency matrix [0 1 0 0; 0 0 1 1; 0 0 0 0; 0 0 0 0]
 ```
 """
-function Dynkin_quiver(T::String, n::Int)
+function dynkin_quiver(T::String, n::Int)
   if T == "A"
     if !(n >= 1)
       throw(ArgumentError("$n is out of bounds"))
@@ -280,7 +280,7 @@ A quiver with the same vertices and reversed arrows.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver()
+julia> Q = kronecker_quiver()
 2-Kronecker quiver, with adjacency matrix [0 2; 0 0]
 
 julia> opposite_quiver(Q)
@@ -298,7 +298,7 @@ the adjacency matrix of the original quiver and its transpose.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver();
+julia> Q = kronecker_quiver();
 
 julia> double_quiver(Q)
 double of 2-Kronecker quiver, with adjacency matrix [0 2; 2 0]

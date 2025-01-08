@@ -25,7 +25,7 @@ My personal quiver, with adjacency matrix [0 3; 0 0]
 QuiverTools has several constructors in place for many common examples:
 
 ```julia-repl
-julia> mKronecker_quiver(4)
+julia> kronecker_quiver(4)
 4-Kronecker quiver, with adjacency matrix [0 4; 0 0]
 
 julia> loop_quiver(5)
@@ -49,7 +49,7 @@ Dimension vectors and stability parameters are represented by `AbstractVector{In
 objects, while under the hood these are encoded using the StaticArrays package.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); d = [2,3];
+julia> Q = kronecker_quiver(3); d = [2,3];
 
 julia> θ = canonical_stability(Q, d)
 2-element Vector{Int64}:
@@ -67,12 +67,12 @@ The bilinear Euler form relative to a quiver Q of any two vectors
 in ``\mathbb{Z}^{Q_0}`` can be computed:
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); d = [2,2]; e = [3,4];
+julia> Q = kronecker_quiver(3); d = [2,2]; e = [3,4];
 
-julia> Euler_form(Q, d, e)
+julia> euler_form(Q, d, e)
 -10
 
-julia> Euler_form(Q, e, d)
+julia> euler_form(Q, e, d)
 -4
 ```
 
@@ -104,7 +104,7 @@ One can check if semistable, respectively stable representations
 exist for a given dimension vector and stability parameter:
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); d = [2,3]; θ = [3,-2];
+julia> Q = kronecker_quiver(3); d = [2,3]; θ = [3,-2];
 
 julia> has_semistables(Q, d, θ)
 true
@@ -112,7 +112,7 @@ true
 julia> has_stables(Q, d, θ)
 true
 
-julia> K2 = mKronecker_quiver(2);
+julia> K2 = kronecker_quiver(2);
 
 julia> has_stables(K2, [2,2], [1,-1])
 false
@@ -125,14 +125,14 @@ One can also determine whether stable representations exist at all
 for a given dimension vector by checking if it is a Schur root:
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); d = [2, 2];
+julia> Q = kronecker_quiver(3); d = [2, 2];
 
-julia> QuiverTools.is_Schur_root(Q, d)
+julia> QuiverTools.is_schur_root(Q, d)
 true
 
-julia> K2 = mKronecker_quiver(2);
+julia> K2 = kronecker_quiver(2);
 
-julia> QuiverTools.is_Schur_root(K2, d)
+julia> QuiverTools.is_schur_root(K2, d)
 false
 ```
 
@@ -142,7 +142,7 @@ QuiverTools implements the abstract `QuiverModuli` type and the two concrete typ
 `QuiverModuliSpace` and `QuiverModuliStack`.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3])
 Moduli space of semistable representations of 3-Kronecker quiver, with adjacency matrix [0 3; 0 0]
@@ -160,7 +160,7 @@ the Harder-Narasimhan stratification of the parameter space
 ``\mathrm{R}(Q,\mathbf{d})``.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
 
 julia> allHNtypes(M)
 8-element Vector{Vector{Vector{Int64}}}:
@@ -182,18 +182,18 @@ the codimension of the θ-semistable locus,
 ``\mathrm{R}^{\theta-sst}(Q,\mathbf{d})\subset\mathrm{R}(Q,\mathbf{d})``,
 is at least 2.
 
-The method `all_HN_types()` provides a list of
+The method `all_hn_types()` provides a list of
 all the Harder-Narasimhan types that appear in the problem.
 
-The method `all_Teleman_bounds()` computes the bounds
+The method `all_teleman_bounds()` computes the bounds
 to apply Teleman quantization on the non-dense strata.
 The output is a dictionary whose keys are the HN types
 and whose values are the weights themselves.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
 
-julia> all_Teleman_bounds(M)
+julia> all_teleman_bounds(M)
 Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
   [[2, 2], [0, 1]]         => 20
   [[2, 1], [0, 2]]         => 100
@@ -211,9 +211,9 @@ we compute the weight of ``\mathcal{U}_i^\vee \otimes \mathcal{U}_j`` relative t
 1-PS corresponding to the HN stratum. These are then compared to the Teleman bounds.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
 
-julia> hn = all_Teleman_bounds(M)
+julia> hn = all_teleman_bounds(M)
 Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
   [[2, 2], [0, 1]]         => 20
   [[2, 1], [0, 2]]         => 100
@@ -236,7 +236,7 @@ Dict{Vector{Vector{Int64}}, Vector{Int64}} with 7 entries:
 julia> all(maximum(endom[key]) < hn[key] for key in keys(hn))
 true
 
-julia> does_Teleman_inequality_hold(M)
+julia> does_teleman_inequality_hold(M)
 true
 ```
 
@@ -354,7 +354,7 @@ QuiverTools features an implementation of the Hodge polynomial of quiver moduli,
 if the base field is ``\mathbb{C}`` and the dimension vector is a coprime Schurian root.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> Hodge_polynomial(M)
 x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
@@ -388,9 +388,9 @@ the point class, the Todd class and the Euler characteristic of a vector bundle,
 its Chern character.
 
 ```julia-repl
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> L = Chern_character_line_bundle(M, [3, -2]);
+julia> L = chern_character_line_bundle(M, [3, -2]);
 
 julia> [integral(M, L^i) for i in 0:5]
 6-element Vector{Int64}:

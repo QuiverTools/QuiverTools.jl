@@ -33,11 +33,11 @@ import Combinatorics: with_replacement_combinations, partitions
 export Quiver
 export nvertices,
   narrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
-export Euler_form, canonical_stability, is_coprime, slope
-export is_Schur_root,
+export euler_form, canonical_stability, is_coprime, slope
+export is_schur_root,
   generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
-export all_HN_types,
-  is_HN_type, has_semistables, has_stables, codimension_HN_stratum, is_amply_stable
+export all_hn_types,
+  is_hn_type, has_semistables, has_stables, codimension_hn_stratum, is_amply_stable
 
 # TODO add missing doctests across codebase.
 # TODO keyword arguments across codebase
@@ -96,7 +96,7 @@ Returns the (necessarily symmetric) adjacency matrix
 of the underlying graph of the quiver.
 
 ```jldoctest
-julia> Q = mKronecker_quiver(4);
+julia> Q = kronecker_quiver(4);
 
 julia> QuiverTools.underlying_graph(Q) == [0 4; 4 0]
 true
@@ -111,7 +111,7 @@ end
 
 Returns the number of vertices of the quiver.
 ```jldoctest
-julia> Q = mKronecker_quiver(4);
+julia> Q = kronecker_quiver(4);
 
 julia> nvertices(Q) == 2
 true
@@ -124,7 +124,7 @@ nvertices(Q::Quiver) = size(Q.adjacency)[1]
 
 Returns the number of arrows of the quiver.
 ```jldoctest
-julia> Q = mKronecker_quiver(4);
+julia> Q = kronecker_quiver(4);
 
 julia> narrows(Q) == 4
 true
@@ -137,7 +137,7 @@ narrows(Q::Quiver) = sum(Q.adjacency)
 
 Checks wether the quiver is acyclic, i.e. has no oriented cycles.
 ```jldoctest
-julia> Q = mKronecker_quiver(4);
+julia> Q = kronecker_quiver(4);
 
 julia> is_acyclic(Q)
 true
@@ -165,7 +165,7 @@ false
 
 julia> # The 4-Kronecker quiver:
 
-julia> Q = mKronecker_quiver(4);
+julia> Q = kronecker_quiver(4);
 
 julia> is_connected(Q)
 true
@@ -206,7 +206,7 @@ Returns the number of incoming arrows to the vertex `j`.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(4);
+julia> Q = kronecker_quiver(4);
 
 julia> indegree(Q, 1)
 0
@@ -225,7 +225,7 @@ Returns the number of outgoing arrows from the vertex `i`.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(4);
+julia> Q = kronecker_quiver(4);
 
 julia> outdegree(Q, 1)
 4
@@ -244,7 +244,7 @@ Checks if the vertex `i` is a source, i.e., a vertex with no incoming arrows.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(4);
+julia> Q = kronecker_quiver(4);
 
 julia> is_source(Q, 1)
 true
@@ -263,7 +263,7 @@ Checks if the vertex `j` is a sink, i.e., a vertex with no outgoing arrows.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(4);
+julia> Q = kronecker_quiver(4);
 
 julia> is_sink(Q, 1)
 false
@@ -290,7 +290,7 @@ Returns a list of all arrows of the quiver `Q`.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> arrows(Q)
 3-element Vector{Vector{Int64}}:
@@ -340,7 +340,7 @@ function diagonal(v::AbstractVector)
 end
 
 """
-    Euler_matrix(Q::Quiver)
+    euler_matrix(Q::Quiver)
 
 Returns the Euler matrix of the quiver.
 
@@ -353,16 +353,16 @@ is the identity matrix of the same size as ``A``.
 
 EXAMPLE:
 ```jldoctest
-julia> Q = mKronecker_quiver(4);
+julia> Q = kronecker_quiver(4);
 
-julia> QuiverTools.Euler_matrix(Q) == [1 -4; 0 1]
+julia> QuiverTools.euler_matrix(Q) == [1 -4; 0 1]
 true
 ```
 """
-@memoize Dict Euler_matrix(Q::Quiver) = identity_matrix(nvertices(Q)) - Q.adjacency
+@memoize Dict euler_matrix(Q::Quiver) = identity_matrix(nvertices(Q)) - Q.adjacency
 
 """
-    Euler_form(Q::Quiver, x, y)
+    euler_form(Q::Quiver, x, y)
 
 Computes the Euler form of the quiver for vectors `x` and `y`.
 
@@ -374,14 +374,14 @@ where ``E`` is the Euler matrix of the quiver.
 
 EXAMPLE:
 ```jldoctest
-julia> Q = mKronecker_quiver(4);
+julia> Q = kronecker_quiver(4);
 
-julia> Euler_form(Q, [1, 1], [1, 1]) == -2
+julia> euler_form(Q, [1, 1], [1, 1]) == -2
 true
 ```
 """
-Euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
-  x' * Euler_matrix(Q) * y
+euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
+  x' * euler_matrix(Q) * y
 
 """
     canonical_stability(Q::Quiver, d)
@@ -400,14 +400,14 @@ The canonical stability parameter for the couple ``(Q, d)`` is given by ``<d,-> 
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); d = [2,3];
+julia> Q = kronecker_quiver(3); d = [2,3];
 
 julia> canonical_stability(Q, d) == [9, -6]
 true
 ```
 """
 function canonical_stability(Q::Quiver, d::AbstractVector{Int})
-  return -(-transpose(Euler_matrix(Q)) + Euler_matrix(Q)) * d
+  return -(-transpose(euler_matrix(Q)) + euler_matrix(Q)) * d
 end
 
 """
@@ -484,7 +484,7 @@ Checks if there is a ``\\theta``-semistable representation of dimension vector `
 # Examples
 
 ```jldoctest
-julia> A2 = mKronecker_quiver(1); theta = [1,-1];
+julia> A2 = kronecker_quiver(1); theta = [1,-1];
 
 julia> has_semistables(A2, [1,1], theta)
 true
@@ -501,7 +501,7 @@ true
 The 3-Kronecker quiver:
 
 ```jldoctest
-julia> K3 = mKronecker_quiver(3); theta = [3,-2];
+julia> K3 = kronecker_quiver(3); theta = [3,-2];
 
 julia> has_semistables(K3, [2,3], theta)
 true
@@ -539,12 +539,12 @@ Checks if Q has a ``theta``-stable representation of dimension vector ``d``.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); d = [2, 3]; theta = [3, -2];
+julia> Q = kronecker_quiver(3); d = [2, 3]; theta = [3, -2];
 
 julia> has_stables(Q, d, theta)
 true
 
-julia> Q = mKronecker_quiver(2); d = [2,2]; theta = [1,-1];
+julia> Q = kronecker_quiver(2); d = [2,2]; theta = [1,-1];
 
 julia> has_stables(Q, d, theta)
 false
@@ -555,7 +555,7 @@ true
 
 The zero dimension vector has no stables:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); d = [0,0];
+julia> Q = kronecker_quiver(3); d = [0,0];
 
 julia> has_stables(Q, d)
 false
@@ -586,7 +586,7 @@ false
 end
 
 """
-    is_Schur_root(Q::Quiver, d)
+    is_schur_root(Q::Quiver, d)
 
 Checks if ``d`` is a Schur root for ``Q``.
 
@@ -597,13 +597,13 @@ for the canonical stability parameter.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); d = [2,3];
+julia> Q = kronecker_quiver(3); d = [2,3];
 
-julia> is_Schur_root(Q, d)
+julia> is_schur_root(Q, d)
 true
 ```
 """
-is_Schur_root(Q::Quiver, d::AbstractVector{Int}) =
+is_schur_root(Q::Quiver, d::AbstractVector{Int}) =
   has_stables(Q, d, canonical_stability(Q, d))
 
 """
@@ -612,7 +612,7 @@ is_Schur_root(Q::Quiver, d::AbstractVector{Int}) =
 Checks whether `d` is a real root, i.e., if ``<d, d> = 1``.
 """
 function is_real_root(Q, d)
-  return Euler_form(Q, d, d) == 1
+  return euler_form(Q, d, d) == 1
 end
 
 """
@@ -621,7 +621,7 @@ end
 Checks whether `d` is an imaginary root, i.e., if ``<d, d> \\geq 0``.
 """
 function is_imaginary_root(Q, d)
-  return Euler_form(Q, d, d) <= 0
+  return euler_form(Q, d, d) <= 0
 end
 
 """
@@ -630,7 +630,7 @@ end
 Checks whether `d` is an isotropic root, i.e., if ``<d, d> = 0``.
 """
 function is_isotropic_root(Q, d)
-  return Euler_form(Q, d, d) == 0
+  return euler_form(Q, d, d) == 0
 end
 
 """
@@ -658,9 +658,9 @@ for all generic subdimension vectors ``e'`` of ``e``.
     return true
   end
   # # considering subdimension vectors that violate the numerical condition
-  Euler_matrix_temp = Euler_matrix(Q) * (d - e) #to speed up computation of <eprime,d-e>
+  euler_matrix_temp = euler_matrix(Q) * (d - e) #to speed up computation of <eprime,d-e>
   subdimensions = filter(
-    eprime -> eprime' * Euler_matrix_temp < 0, all_subdimension_vectors(e)
+    eprime -> eprime' * euler_matrix_temp < 0, all_subdimension_vectors(e)
   )
   # none of the subdimension vectors violating the condition should be generic
   return all(eprime -> !is_generic_subdimension_vector(Q, eprime, e), subdimensions)
@@ -675,7 +675,7 @@ Returns the list of all generic subdimension vectors of ``d``.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> QuiverTools.all_generic_subdimension_vectors(Q, [2, 3])
 7-element Vector{StaticArraysCore.SVector{2, Int64}}:
@@ -700,7 +700,7 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
 end
 
 """
-    all_HN_types(Q::Quiver, d, theta, denom=sum; ordered::Bool=false)
+    all_hn_types(Q::Quiver, d, theta, denom=sum; ordered::Bool=false)
 
 Returns a list of all the Harder Narasimhan types of representations of ``Q``
 with dimension vector ``d``, with respect to the slope function theta/denom.
@@ -708,9 +708,9 @@ with dimension vector ``d``, with respect to the slope function theta/denom.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
+julia> Q = kronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
-julia> all_HN_types(Q, d, theta; ordered=true)
+julia> all_hn_types(Q, d, theta; ordered=true)
 8-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
  [[2, 3]]
  [[1, 1], [1, 2]]
@@ -721,14 +721,14 @@ julia> all_HN_types(Q, d, theta; ordered=true)
  [[1, 0], [1, 1], [0, 2]]
  [[2, 0], [0, 3]]
 
-julia> all_HN_types(Q, [3,0], [0,0]) == [[[3, 0]]]
+julia> all_hn_types(Q, [3,0], [0,0]) == [[[3, 0]]]
 true
 
 julia> Q = three_vertex_quiver(1, 4, 1); d = [4, 1, 4];
 
 julia> theta = canonical_stability(Q, d);
 
-julia> all_HN_types(Q, d, theta; ordered=true)
+julia> all_hn_types(Q, d, theta; ordered=true)
 106-element Vector{Vector{StaticArraysCore.SVector{3, Int64}}}:
  [[4, 1, 4]]
  [[4, 1, 3], [0, 0, 1]]
@@ -752,7 +752,7 @@ julia> all_HN_types(Q, d, theta; ordered=true)
  [[4, 0, 0], [0, 1, 0], [0, 0, 4]]
 ```
 """
-@memoize Dict function all_HN_types(
+@memoize Dict function all_hn_types(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int},
@@ -786,7 +786,7 @@ julia> all_HN_types(Q, d, theta; ordered=true)
 
     for e in subdimensions for efstar in filter(
       fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
-      all_HN_types(Q, d - e, theta, denom; ordered=ordered),
+      all_hn_types(Q, d - e, theta, denom; ordered=ordered),
     )
   ]
 
@@ -808,15 +808,15 @@ for the datum ``(Q, d)`` and the slope stability given by ``(theta, denom)``.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> d = [2, 3]; dstar = [d];
 
-julia> is_HN_type(Q, d, dstar)
+julia> is_hn_type(Q, d, dstar)
 true
 ```
 """
-function is_HN_type(
+function is_hn_type(
   Q::Quiver,
   d::AbstractVector{Int},
   dstar::Vector{<:AbstractVector{Int}},
@@ -841,18 +841,18 @@ function is_HN_type(
 end
 
 """
-    codimension_HN_stratum(Q::Quiver, stratum)
+    codimension_hn_stratum(Q::Quiver, stratum)
 
 Returns the codimension of the given HN stratum.
 
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
+julia> Q = kronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
-julia> HN = all_HN_types(Q, d, theta; ordered=true);
+julia> HN = all_hn_types(Q, d, theta; ordered=true);
 
-julia> [codimension_HN_stratum(Q, stratum) for stratum in HN]
+julia> [codimension_hn_stratum(Q, stratum) for stratum in HN]
 8-element Vector{Int64}:
   0
   3
@@ -864,12 +864,12 @@ julia> [codimension_HN_stratum(Q, stratum) for stratum in HN]
  18
 ```
 """
-function codimension_HN_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}})
+function codimension_hn_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}})
   if length(stratum) == 1
     return 0
   else
     return -sum(
-      Euler_form(Q, stratum[i], stratum[j]) for i in 1:(length(stratum) - 1) for
+      euler_form(Q, stratum[i], stratum[j]) for i in 1:(length(stratum) - 1) for
       j in (i + 1):length(stratum)
     )
   end
@@ -887,7 +887,7 @@ in the parameter space is at least ``2``.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); d = [2, 3];
+julia> Q = kronecker_quiver(3); d = [2, 3];
 
 julia> is_amply_stable(Q, d, [3, -2])
 true
@@ -905,8 +905,8 @@ function is_amply_stable(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  HN = filter(hntype -> hntype != [d], all_HN_types(Q, d, theta, denom))
-  return all(stratum -> codimension_HN_stratum(Q, stratum) >= 2, HN)
+  HN = filter(hntype -> hntype != [d], all_hn_types(Q, d, theta, denom))
+  return all(stratum -> codimension_hn_stratum(Q, stratum) >= 2, HN)
 end
 
 ########################################################################################
@@ -930,7 +930,7 @@ ext(a,b)=max\\{-\\langle c,b\\rangle~~|~~c~\\text{is a generic subdimension vect
 # Examples
 
 ```jldoctest
-julia> Q1 = mKronecker_quiver(3);
+julia> Q1 = kronecker_quiver(3);
 
 julia> generic_ext(Q1, [2, 3], [6, 7])
 9
@@ -945,7 +945,7 @@ julia> generic_ext(Q2, [5, 6, 7], [6, 7, 8])
 ```
 """
 function generic_ext(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
-  return maximum(-Euler_form(Q, c, b) for c in all_generic_subdimension_vectors(Q, a))
+  return maximum(-euler_form(Q, c, b) for c in all_generic_subdimension_vectors(Q, a))
 end
 
 """
@@ -957,7 +957,7 @@ of dimension vectors ``a`` and ``b``.
 # Examples
 
 ```jldoctest
-julia> Q1 = mKronecker_quiver(3);
+julia> Q1 = kronecker_quiver(3);
 
 julia> generic_hom(Q1, [2, 3], [6, 7])
 0
@@ -972,7 +972,7 @@ julia> generic_hom(Q2, [5, 6, 7], [6, 7, 8])
 ```
 """
 function generic_hom(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
-  return Euler_form(Q, a, b) + generic_ext(Q, a, b)
+  return euler_form(Q, a, b) + generic_ext(Q, a, b)
 end
 
 """
@@ -997,7 +997,7 @@ Such a decomposition is called the canonical decomposition.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> canonical_decomposition(Q, [6, 7]) == [[6, 7]]
 true
@@ -1008,16 +1008,13 @@ true
 julia> canonical_decomposition(Q, [6, 2]) == [[3, 1], [3, 1]]
 true
 
-julia> Q = mKronecker_quiver(2);
+julia> Q = kronecker_quiver(2);
 
 julia> canonical_decomposition(Q, [8, 8]) == [[1, 1] for i in 1:8]
 true
 ```
 """
 function canonical_decomposition(Q::Quiver, d::AbstractVector{Int})
-  # if is_Schur_root(Q, d)
-  #     return [d]
-  # end
   generic_subdimensions = filter(e -> e != d, all_generic_subdimension_vectors(Q, d))
   for e in generic_subdimensions
     if d - e in generic_subdimensions &&
@@ -1048,7 +1045,7 @@ set to ``1``.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> in_fundamental_domain(Q, [2, 3])
 true
@@ -1071,11 +1068,11 @@ function in_fundamental_domain(Q::Quiver, d::AbstractVector{Int}; interior::Bool
   simples = [unit_vector(nvertices(Q), i) for i in 1:nvertices(Q)]
   if interior
     return all(
-      simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) < 0,
+      simple -> euler_form(Q, d, simple) + euler_form(Q, simple, d) < 0,
       simples,
     )
   end
-  return all(simple -> Euler_form(Q, d, simple) + Euler_form(Q, simple, d) <= 0, simples)
+  return all(simple -> euler_form(Q, d, simple) + euler_form(Q, simple, d) <= 0, simples)
 end
 
 ########################################################################################
@@ -1148,7 +1145,7 @@ EXAMPLE:
 
 There is not much to it:
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> QuiverTools.thin_dimension_vector(Q) == [1, 1]
 true
@@ -1307,7 +1304,7 @@ Return a dimension vector for the quiver `Q` with a `1` at index `i` and `0` els
 
 # Examples
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> QuiverTools.unit_vector(Q, 2) == [0, 1]
 true

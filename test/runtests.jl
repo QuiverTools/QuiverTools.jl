@@ -7,13 +7,13 @@ doctest(QuiverTools; manual=false, testset="Doctests")
 
 @testset "strict sst" begin
   # proper-semistability
-  Q = mKronecker_quiver(2)
+  Q = kronecker_quiver(2)
   d = [2, 2]
   theta = [1, -1]
 
   @test has_semistables(Q, d, theta) == true
   @test has_stables(Q, d, theta) == false
-  Q = mKronecker_quiver(3)
+  Q = kronecker_quiver(3)
   @test has_stables(Q, [1, 0], [0, -1]) == true
   @test has_stables(Q, [0, 1], [1, 0]) == true
   @test has_stables(Q, [3, 0], [0, -1]) == false
@@ -35,7 +35,7 @@ end;
     expected = readline(file)
   end
 
-  @test string(all_HN_types(Q, d, theta; ordered=true)) == expected
+  @test string(all_hn_types(Q, d, theta; ordered=true)) == expected
 end;
 
 # @testset "Testing weight handling" begin

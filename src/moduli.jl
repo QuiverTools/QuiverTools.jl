@@ -2,7 +2,7 @@ export QuiverModuli, QuiverModuliSpace, QuiverModuliStack
 
 export Hodge_diamond, Hodge_polynomial, Picard_rank
 
-export Chow_ring,
+export chow_ring,
   motive,
   index,
   Betti_numbers,
@@ -11,15 +11,15 @@ export Chow_ring,
   is_projective,
   semisimple_moduli_space,
   point_class,
-  Todd_class,
-  Chern_class_line_bundle,
-  Chern_character_line_bundle,
-  total_Chern_class_universal,
-  Chern_character_universal_bundle,
+  todd_class,
+  chern_class_line_bundle,
+  chern_character_line_bundle,
+  total_chern_class_universal,
+  chern_character_universal_bundle,
   integral,
-  dual_Chern_character
+  dual_chern_character
 
-export all_Luna_types, is_Luna_type, dimension_of_Luna_stratum
+export all_luna_types, is_luna_type, dimension_of_luna_stratum
 
 export is_nonempty,
   dimension, is_smooth, semistable_equals_stable, codimension_unstable_locus
@@ -40,7 +40,7 @@ Checks if the quiver moduli is nonempty.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
@@ -78,7 +78,7 @@ i.e., if for all subdimension vectors ``e`` of ``d``, ``\\theta\\cdot e \\neq 0`
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
@@ -91,7 +91,7 @@ function is_coprime(M::QuiverModuli)
 end
 
 """
-	all_HN_types(M::QuiverModuli; unstable::Bool=false, ordered::Bool=true)
+	all_hn_types(M::QuiverModuli; unstable::Bool=false, ordered::Bool=true)
 
 Returns all Harder-Narasimhan types of the moduli space.
 
@@ -111,9 +111,9 @@ the order introduced by [MR1974891](https://doi.org/10.1007/s00222-002-0273-4).
 
 The HN types for a 3-Kronecker quiver with dimension vector `[2, 3]`:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> all_HN_types(M)
+julia> all_hn_types(M)
 8-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
  [[2, 3]]
  [[1, 1], [1, 2]]
@@ -124,7 +124,7 @@ julia> all_HN_types(M)
  [[1, 0], [1, 1], [0, 2]]
  [[2, 0], [0, 3]]
 
-julia> all_HN_types(M; unstable = true)
+julia> all_hn_types(M; unstable = true)
 7-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
  [[1, 1], [1, 2]]
  [[2, 2], [0, 1]]
@@ -135,8 +135,8 @@ julia> all_HN_types(M; unstable = true)
  [[2, 0], [0, 3]]
 ```
 """
-function all_HN_types(M::QuiverModuli; unstable::Bool=false, ordered::Bool=true)
-  HN = all_HN_types(M.Q, M.d, M.theta, M.denom; ordered)
+function all_hn_types(M::QuiverModuli; unstable::Bool=false, ordered::Bool=true)
+  HN = all_hn_types(M.Q, M.d, M.theta, M.denom; ordered)
   if unstable
     return filter(hn_type -> hn_type != [M.d], HN)
   end
@@ -144,7 +144,7 @@ function all_HN_types(M::QuiverModuli; unstable::Bool=false, ordered::Bool=true)
 end
 
 """
-	is_HN_type(M::QuiverModuli, hn_type::AbstractVector{<:AbstractVector{Int}})
+	is_hn_type(M::QuiverModuli, hn_type::AbstractVector{<:AbstractVector{Int}})
 
 Checks if the given sequence of dimension vectors is a valid HN type for
 the moduli space.
@@ -162,24 +162,24 @@ the moduli space.
 
 Some HN types for the 3-Kronecker quiver with dimension vector `[2, 3]`:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> is_HN_type(M, [[2, 3]])
+julia> is_hn_type(M, [[2, 3]])
 true
 
-julia> is_HN_type(M, [[1, 1], [1, 2]])
+julia> is_hn_type(M, [[1, 1], [1, 2]])
 true
 
-julia> is_HN_type(M, [[1, 2], [1, 1]])
+julia> is_hn_type(M, [[1, 2], [1, 1]])
 false
 ```
 """
-function is_HN_type(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}})::Bool
-  return is_HN_type(M.Q, M.d, hn_type, M.theta, M.denom)
+function is_hn_type(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}})::Bool
+  return is_hn_type(M.Q, M.d, hn_type, M.theta, M.denom)
 end
 
 """
-	codimension_HN_stratum(M::QuiverModuli, hn_type::Vector{<AbstractVector{Int}})
+	codimension_hn_stratum(M::QuiverModuli, hn_type::Vector{<AbstractVector{Int}})
 
 Computes the codimension of the Harder-Narasimhan stratum
 corresponding to the given HN type.
@@ -197,17 +197,17 @@ corresponding to the given HN type.
 
 Codimensions for the 3-Kronecker quiver with dimension vector `[2, 3]`:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> codimension_HN_stratum(M, [[2, 3]])
+julia> codimension_hn_stratum(M, [[2, 3]])
 0
 
-julia> codimension_HN_stratum(M, [[1, 1], [1, 2]])
+julia> codimension_hn_stratum(M, [[1, 1], [1, 2]])
 3
 ```
 """
-function codimension_HN_stratum(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}})
-  return codimension_HN_stratum(M.Q, hn_type)
+function codimension_hn_stratum(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}})
+  return codimension_hn_stratum(M.Q, hn_type)
 end
 
 """
@@ -227,19 +227,19 @@ Computes the codimension of the unstable locus in the parameter space.
 
 Codimensions for the 3-Kronecker quiver with dimension vector `[2, 3]`:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> codimension_unstable_locus(M)
 3
 ```
 """
 function codimension_unstable_locus(M::QuiverModuli)
-  HN = all_HN_types(M; unstable=true)
-  return minimum(codimension_HN_stratum(M, hn_type) for hn_type in HN)
+  HN = all_hn_types(M; unstable=true)
+  return minimum(codimension_hn_stratum(M, hn_type) for hn_type in HN)
 end
 
 """
-	all_Luna_types(M::QuiverModuli; exclude_stable::Bool = false)
+	all_luna_types(M::QuiverModuli; exclude_stable::Bool = false)
 
 Returns all Luna types of the moduli space.
 
@@ -256,9 +256,9 @@ Returns all Luna types of the moduli space.
 
 Luna types for a 3-Kronecker quiver:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
 
-julia> all_Luna_types(M)
+julia> all_luna_types(M)
 5-element Vector{Dict{AbstractVector, Vector{Int64}}}:
  Dict([3, 3] => [1])
  Dict([1, 1] => [1], [2, 2] => [1])
@@ -267,12 +267,12 @@ julia> all_Luna_types(M)
  Dict([1, 1] => [1, 1, 1])
 ```
 """
-function all_Luna_types(M::QuiverModuli; exclude_stable::Bool=false)
-  return all_Luna_types(M.Q, M.d, M.theta, M.denom, exclude_stable)
+function all_luna_types(M::QuiverModuli; exclude_stable::Bool=false)
+  return all_luna_types(M.Q, M.d, M.theta, M.denom, exclude_stable)
 end
 
 """
-    all_Luna_types(Q::Quiver, d, theta, denom, exclude_stable)
+    all_luna_types(Q::Quiver, d, theta, denom, exclude_stable)
 
 Computes all the possible Luna types for the given data.
 
@@ -292,9 +292,9 @@ A list of Luna types.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
 
-julia> all_Luna_types(M)
+julia> all_luna_types(M)
 5-element Vector{Dict{AbstractVector, Vector{Int64}}}:
  Dict([3, 3] => [1])
  Dict([1, 1] => [1], [2, 2] => [1])
@@ -304,12 +304,12 @@ julia> all_Luna_types(M)
 
 julia> X = QuiverModuliSpace(Q, [2, 3]);
 
-julia> all_Luna_types(X)
+julia> all_luna_types(X)
 1-element Vector{Dict{AbstractVector, Vector{Int64}}}:
  Dict([2, 3] => [1])
 ```
 """
-function all_Luna_types(
+function all_luna_types(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
@@ -334,7 +334,7 @@ function all_Luna_types(
 
   # TODO if same_slope is empty this crashes
 
-  Luna_types = []
+  luna_types = []
 
   # the highest possible amount of repetitions for a given stable dimension vector
   bound = sum(d) ÷ minimum(sum(e) for e in same_slope)
@@ -355,21 +355,21 @@ function all_Luna_types(
         end
 
         for p in Iterators.product(values(partial)...)
-          new_Luna_type = Dict(zip(collect(keys(partial)), p))
-          push!(Luna_types, new_Luna_type)
+          new_luna_type = Dict(zip(collect(keys(partial)), p))
+          push!(luna_types, new_luna_type)
         end
       end
     end
   end
 
   if exclude_stable
-    return filter(luna -> luna != Dict(d => [1]), Luna_types)
+    return filter(luna -> luna != Dict(d => [1]), luna_types)
   end
-  return Luna_types
+  return luna_types
 end
 
 """
-	is_Luna_type(M::QuiverModuli, tau)
+	is_luna_type(M::QuiverModuli, tau)
 
 Checks if the given tau is a valid Luna type for `M`.
 
@@ -386,23 +386,23 @@ Checks if the given tau is a valid Luna type for `M`.
 
 Nontrivial Luna types for the 3-Kronecker quiver:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
 
 julia> l = Dict([1, 1] => [1], [2, 2] => [1]);
 
-julia> is_Luna_type(M, l)
+julia> is_luna_type(M, l)
 true
 ```
 
 The zero dimensional case:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); X = QuiverModuliSpace(Q, [0, 0]);
+julia> Q = kronecker_quiver(3); X = QuiverModuliSpace(Q, [0, 0]);
 
-julia> is_Luna_type(X, Dict([0, 0] => [1]))
+julia> is_luna_type(X, Dict([0, 0] => [1]))
 true
 ```
 """
-function is_Luna_type(M::QuiverModuli, tau)
+function is_luna_type(M::QuiverModuli, tau)
   if sum(M.d) == 0
     return tau == Dict(M.d => [1])
   end
@@ -423,7 +423,7 @@ end
 
 # TODO this should return 0 for the type Dict([0, 0] => [1])??
 """
-	dimension_of_Luna_stratum(M::QuiverModuli, tau)
+	dimension_of_luna_stratum(M::QuiverModuli, tau)
 
 Computes the dimension of the Luna stratum corresponding to the given Luna type in the
 moduli space.
@@ -440,21 +440,21 @@ moduli space.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [2, 2], [1, -1]);
+julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [2, 2], [1, -1]);
 
-julia> luna = all_Luna_types(M)
+julia> luna = all_luna_types(M)
 2-element Vector{Dict{AbstractVector, Vector{Int64}}}:
  Dict([1, 1] => [2])
  Dict([1, 1] => [1, 1])
 
-julia> [dimension_of_Luna_stratum(M, tau) for tau in luna]
+julia> [dimension_of_luna_stratum(M, tau) for tau in luna]
 2-element Vector{Int64}:
  1
  2
 ```
 """
-function dimension_of_Luna_stratum(M::QuiverModuli, tau)
-  return sum(length(tau[e]) * (1 - Euler_form(M.Q, e, e)) for e in collect(keys(tau)))
+function dimension_of_luna_stratum(M::QuiverModuli, tau)
+  return sum(length(tau[e]) * (1 - euler_form(M.Q, e, e)) for e in collect(keys(tau)))
 end
 
 """
@@ -472,7 +472,7 @@ Returns the local quiver and dimension vector for the given Luna type.
 - a dictionary with the local quiver `Q` and dimension vector `d` for the given Luna type.
 """
 function local_quiver_setting(M::QuiverModuli, tau)
-  if !is_Luna_type(M, tau)
+  if !is_luna_type(M, tau)
     throw(DomainError("Not a Luna type"))
   end
 
@@ -508,7 +508,7 @@ space.
 If the dimension vector is coprime with the stability parameter, then semistability
 and stability are equivalent:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> semistable_equals_stable(M)
 true
@@ -516,7 +516,7 @@ true
 
 However, this is not necessarily the case:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
 
 julia> semistable_equals_stable(M)
 false
@@ -526,7 +526,7 @@ function semistable_equals_stable(M::QuiverModuli)
   if is_coprime(M.d, M.theta) || !has_semistables(M.Q, M.d, M.theta, M.denom)
     return true
   end
-  return length(all_Luna_types(M; exclude_stable=true)) == 0
+  return length(all_luna_types(M; exclude_stable=true)) == 0
 end
 
 # TODO what if dim R = 1? or 0?
@@ -550,7 +550,7 @@ in the parameter space is at least ``2``.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> is_amply_stable(M)
 true
@@ -647,7 +647,7 @@ function TransferMatrixEntry(Q, e, f, q)
   fe = f - e
 
   if all(fei >= 0 for fei in fe)
-    return q^Euler_form(Q, -fe, e) * CardinalRd(Q, fe, q) / CardinalGd(fe, q)
+    return q^euler_form(Q, -fe, e) * CardinalRd(Q, fe, q) / CardinalGd(fe, q)
   else
     return 0
   end
@@ -699,7 +699,7 @@ and the current implementation is translated from the [Hodge diamond cutter]
 
 The Hodge polynomial of our favourite 6-fold:
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> d = [2, 3];
 
@@ -759,7 +759,7 @@ Returns the Hodge polynomial of the moduli space `M`.
 
 The Hodge polynomial of our favourite 6-fold:
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
@@ -791,7 +791,7 @@ Returns the Hodge diamond of the moduli space of
 
 The Hodge diamond of our favourite 6-fold:
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> Hodge_diamond(Q, [2, 3])
 7×7 Matrix{Int64}:
@@ -806,7 +806,7 @@ julia> Hodge_diamond(Q, [2, 3])
 
 This method correctly handles the moduli spaces being empty or 0-dimensional:
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> Hodge_diamond(Q, [2, 3], [-3, 2])
 0×0 Matrix{Int64}
@@ -840,7 +840,7 @@ Returns the Hodge diamond of the moduli space `M`.
 
 The Hodge diamond of our favourite 6-fold:
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
@@ -876,7 +876,7 @@ Returns the Picard rank of the moduli space `M`.
 
 Kronecker quiver with dimension vector `[2, 3]`:
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
@@ -913,7 +913,7 @@ This implementation currently only works for the canonical stability.
 
 The 3-Kronecker quiver has index 3:
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
@@ -955,7 +955,7 @@ Returns the Betti numbers of the moduli space `M`.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(2);
+julia> Q = kronecker_quiver(2);
 
 julia> M = QuiverModuliSpace(Q, [1, 1]);
 
@@ -968,7 +968,7 @@ julia> Betti_numbers(M)
 
 Our favourite 6-fold:
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
@@ -1025,7 +1025,7 @@ Returns the Poincaré polynomial of the moduli space `M`.
 
 A Kronecker quiver setup where `M` is the projective line:
 ```jldoctest
-julia> Q = mKronecker_quiver(2);
+julia> Q = kronecker_quiver(2);
 
 julia> M = QuiverModuliSpace(Q, [1, 1]);
 
@@ -1035,7 +1035,7 @@ L + 1
 
 The Poincaré polynomial of our favourite 6-fold:
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
@@ -1093,7 +1093,7 @@ Returns the motive of the moduli stack of ``\\theta``-semistable representations
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> motive(Q, [2, 3])
 (-L^6 - L^5 - 3*L^4 - 3*L^3 - 3*L^2 - L - 1)//(L - 1)
@@ -1109,7 +1109,7 @@ function motive(
   L = L[1]
 
   if all(ti == 0 for ti in theta)
-    out = power(L, -Euler_form(Q, d, d))
+    out = power(L, -euler_form(Q, d, d))
     den = 1
     for i in 1:nvertices(Q)
       if d[i] > 0
@@ -1129,7 +1129,7 @@ function motive(
   for (i, j) in Iterators.product(1:length(ds), 1:length(ds))
     if is_subdimension_vector(ds[i], ds[j])
       T[i, j] =
-        power(L, Euler_form(Q, ds[i] - ds[j], ds[i])) *
+        power(L, euler_form(Q, ds[i] - ds[j], ds[i])) *
         motive(Q, ds[j] - ds[i], zero_vector(nvertices(Q)))
     else
       T[i, j] = 0
@@ -1192,12 +1192,12 @@ function symmetric_polynomial(vars, degree::Int)
 end
 
 """
-    Chow_ring(Q::Quiver, d, theta; chi=extended_gcd(M.d)[2])
+    chow_ring(Q::Quiver, d, theta; chi=extended_gcd(M.d)[2])
 
 Computes the Chow ring of the moduli space of ``\\theta``-semistable representations of
 ``Q`` with dimension vector ``d``, for a choice of linearization ``a``.
 
-This method of the function Chow_ring also returns the ambient ring ``R``
+This method of the function `chow_ring` also returns the ambient ring ``R``
 and the inclusion morphism.
 
 # Input
@@ -1218,9 +1218,9 @@ A tuple containing:
 
 The Chow ring for the projective line has two generators:
 ```jldoctest
-julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
+julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
-julia> CH = Chow_ring(M)[1];
+julia> CH = chow_ring(M)[1];
 
 julia> QuiverTools.gens(QuiverTools.quotient_ideal(CH))
 2-element Vector{Singular.spoly{Singular.n_Q}}:
@@ -1230,15 +1230,15 @@ julia> QuiverTools.gens(QuiverTools.quotient_ideal(CH))
 
 The Chow ring for our favourite 6-fold has, in this implementation, 16 generators:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> CH = Chow_ring(M)[1]; I = QuiverTools.quotient_ideal(CH);
+julia> CH = chow_ring(M)[1]; I = QuiverTools.quotient_ideal(CH);
 
 julia> length(QuiverTools.gens(I))
 16
 ```
 """
-@memoize Dict function Chow_ring(
+@memoize Dict function chow_ring(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d);
@@ -1339,7 +1339,7 @@ julia> length(QuiverTools.gens(I))
 end
 
 """
-    Chow_ring(M::QuiverModuliSpace; chi)
+    chow_ring(M::QuiverModuliSpace; chi)
 
 Computes the Chow ring of the moduli space `M` for the given linearization `chi`.
 
@@ -1354,8 +1354,8 @@ Computes the Chow ring of the moduli space `M` for the given linearization `chi`
 
 - the Chow ring of the moduli space.
 """
-function Chow_ring(M::QuiverModuliSpace; chi::AbstractVector{Int}=extended_gcd(M.d)[2])
-  return Chow_ring(M.Q, M.d, M.theta; chi=chi)[1]
+function chow_ring(M::QuiverModuliSpace; chi::AbstractVector{Int}=extended_gcd(M.d)[2])
+  return chow_ring(M.Q, M.d, M.theta; chi=chi)[1]
 end
 
 # this should be in a misc.jl file or something
@@ -1407,7 +1407,7 @@ function extended_gcd(x)
 end
 
 """
-    Chern_class_line_bundle(M::QuiverModuliSpace, eta; chi=extended_gcd(M.d)[2])
+    chern_class_line_bundle(M::QuiverModuliSpace, eta; chi=extended_gcd(M.d)[2])
 
 Returns the first Chern class of the line bundle L(eta).
 
@@ -1426,37 +1426,37 @@ This is given by ``L(eta) = \\bigoplus_{i \\in Q_0} \\det(U_i)^{-eta_i}``.
 
 The line bundles ``\\mathcal{O}(i)`` on the projective line:
 ```jldoctest
-julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
+julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
-julia> l = Chern_class_line_bundle(M, [1, -1])
+julia> l = chern_class_line_bundle(M, [1, -1])
 -x11
 ```
 
 The line bundle corresponding to the canonical stability condition on our favourite
 6-fold:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> Chern_class_line_bundle(M, [9, -6])
+julia> chern_class_line_bundle(M, [9, -6])
 -3*x21
 ```
 """
-function Chern_class_line_bundle(
+function chern_class_line_bundle(
   M::QuiverModuliSpace,
   eta::AbstractVector{Int};
   chi::AbstractVector{Int}=extended_gcd(M.d)[2],
 )
-  A, vars = Chow_ring(M; chi=chi)
+  A, vars = chow_ring(M; chi=chi)
   I = quotient_ideal(A)
   Rvars = gens(base_ring(I))
 
-  Chern_class = -sum(eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])] for i in 1:nvertices(M.Q))
+  chern_class = -sum(eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])] for i in 1:nvertices(M.Q))
 
-  return coerce_to_quotient(A, Chern_class)
+  return coerce_to_quotient(A, chern_class)
 end
 
 """
-    Chern_character_line_bundle(M::QuiverModuliSpace, eta; chi=extended_gcd(M.d)[2])
+    chern_character_line_bundle(M::QuiverModuliSpace, eta; chi=extended_gcd(M.d)[2])
 
 Returns the Chern character of the line bundle L(eta).
 
@@ -1473,33 +1473,33 @@ Returns the Chern character of the line bundle L(eta).
 
 Some line bundles on the projective line:
 ```jldoctest
-julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
+julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
-julia> Chern_character_line_bundle(M, [1, -1])
+julia> chern_character_line_bundle(M, [1, -1])
 -x11 + 1
 ```
 
 Some Chern characters for our favourite 6-fold:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> Chern_character_line_bundle(M, [3, -2])
+julia> chern_character_line_bundle(M, [3, -2])
 1//720*x21^6 - 1//120*x21^5 + 1//24*x21^4 - 1//6*x21^3 + 1//2*x21^2 - x21 + 1
 ```
 """
-function Chern_character_line_bundle(
+function chern_character_line_bundle(
   M::QuiverModuliSpace,
   eta::AbstractVector{Int};
   chi::AbstractVector{Int}=extended_gcd(M.d)[2],
 )
-  x = Chern_class_line_bundle(M, eta; chi=chi)
-  Chern_character = sum(x^i / factorial(i) for i in 0:dimension(M))
+  x = chern_class_line_bundle(M, eta; chi=chi)
+  chern_character = sum(x^i / factorial(i) for i in 0:dimension(M))
 
-  return Chern_character
+  return chern_character
 end
 
 """
-    total_Chern_class_universal(M::QuiverModuliSpace, i; chi=extended_gcd(M.d)[2])
+    total_chern_class_universal(M::QuiverModuliSpace, i; chi=extended_gcd(M.d)[2])
 
 Returns the total Chern class of the universal bundle ``U_i(\\chi)``.
 
@@ -1517,27 +1517,27 @@ Returns the total Chern class of the universal bundle ``U_i(\\chi)``.
 
 The universal Chern classes on both vertices of our favourite 3-Kronecker quiver:
 ```jldoctest
-julia> Q  = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q  = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> total_Chern_class_universal(M, 1)
+julia> total_chern_class_universal(M, 1)
 x11 + x12 + 1
 
-julia> total_Chern_class_universal(M, 2)
+julia> total_chern_class_universal(M, 2)
 x21 + x22 + x23 + 1
 ```
 """
-function total_Chern_class_universal(
+function total_chern_class_universal(
   M::QuiverModuliSpace,
   i::Int;
   chi::AbstractVector{Int}=extended_gcd(M.d)[2],
 )
-  CH, CHvars = Chow_ring(M; chi=chi)
+  CH, CHvars = chow_ring(M; chi=chi)
   cUi = sum(CHvars[sum(M.d[1:(i - 1)]) + r] for r in 1:M.d[i]; init=CH(0)) + CH(1)
   return cUi
 end
 
 """
-    Chern_character_from_classes(M::QuiverModuliSpace, classes; chi=extended_gcd(M.d)[2])
+    chern_character_from_classes(M::QuiverModuliSpace, classes; chi=extended_gcd(M.d)[2])
 
 Returns the Chern character of a vector bundle
 with the given Chern classes.
@@ -1554,23 +1554,23 @@ with the given Chern classes.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> CH, CHvars = Chow_ring(M);
+julia> CH, CHvars = chow_ring(M);
 
-julia> u1 = QuiverTools.Chern_character_from_classes(M, CHvars[1:2])
+julia> u1 = QuiverTools.chern_character_from_classes(M, CHvars[1:2])
 1//720*x11^6 + 1//120*x11^5 - 1//120*x11^4*x12 + 1//24*x11^4 - 1//24*x11^3*x12 + 1//80*x11^2*x12^2 + 1//6*x11^3 - 1//6*x11^2*x12 + 1//24*x11*x12^2 - 1//360*x12^3 + 1//2*x11^2 - 1//2*x11*x12 + 1//12*x12^2 + x11 - x12 + 2
 
-julia> u2 = QuiverTools.Chern_character_from_classes(M, CHvars[3:5])
+julia> u2 = QuiverTools.chern_character_from_classes(M, CHvars[3:5])
 1//720*x21^6 + 1//120*x21^5 - 1//120*x21^4*x22 + 1//24*x21^4 - 1//24*x21^3*x22 + 1//80*x21^2*x22^2 + 1//120*x21^3*x23 + 1//6*x21^3 - 1//6*x21^2*x22 + 1//24*x21*x22^2 - 1//360*x22^3 + 1//24*x21^2*x23 - 1//60*x21*x22*x23 + 1//2*x21^2 - 1//2*x21*x22 + 1//12*x22^2 + 1//6*x21*x23 - 1//24*x22*x23 + 1//240*x23^2 + x21 - x22 + 1//2*x23 + 3
 ```
 """
-function Chern_character_from_classes(
+function chern_character_from_classes(
   M::QuiverModuliSpace,
   classes;
   chi::AbstractVector{Int}=extended_gcd(M.d)[2],
 )
-  CH, CHvars = Chow_ring(M; chi=chi)
+  CH, CHvars = chow_ring(M; chi=chi)
   n = length(classes)
   d = dimension(M)
   if n < d
@@ -1581,23 +1581,23 @@ end
 
 # TODO add tests
 """
-    Chern_character_universal_bundle(M::QuiverModuliSpace, i; chi=extended_gcd(M.d)[2])
+    chern_character_universal_bundle(M::QuiverModuliSpace, i; chi=extended_gcd(M.d)[2])
 
 Returns the Chern character of the universal bundle ``\\mathcal{U}_i``
 on the given moduli space `M`.
 """
-function Chern_character_universal_bundle(
+function chern_character_universal_bundle(
   M::QuiverModuliSpace,
   i::Int;
   chi::AbstractVector{Int}=extended_gcd(M.d)[2],
 )
-  CH, CHvars = Chow_ring(M; chi=chi)
+  CH, CHvars = chow_ring(M; chi=chi)
   Ui_classes = CHvars[(sum(M.d[1:(i - 1)]) + 1):sum(M.d[1:i])]
-  return Chern_character_from_classes(M, Ui_classes; chi=chi)
+  return chern_character_from_classes(M, Ui_classes; chi=chi)
 end
 
 """
-    dual_Chern_character(M::QuiverModuliSpace, p; chi=extended_gcd(M.d)[2])
+    dual_chern_character(M::QuiverModuliSpace, p; chi=extended_gcd(M.d)[2])
 
 Returns the dual Chern character of a polynomial `p` on the quiver moduli `M`.
 This is the original character with the signs of monomials of odd degree reversed.
@@ -1614,37 +1614,37 @@ This is the original character with the signs of monomials of odd degree reverse
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> CH, CHvars = Chow_ring(M);
+julia> CH, CHvars = chow_ring(M);
 
 julia> p = sum(CHvars)
 x11 + x12 + x21 + x22 + x23
 
-julia> QuiverTools.dual_Chern_character(M, p)
+julia> QuiverTools.dual_chern_character(M, p)
 -x11 + x12 - x21 + x22 - x23
 ```
 
 This function coerces `p` in the Chow ring of `M` as provided.
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> CH, CHvars = Chow_ring(M);
+julia> CH, CHvars = chow_ring(M);
 
 julia> p = 2;
 
-julia> QuiverTools.dual_Chern_character(M, p)
+julia> QuiverTools.dual_chern_character(M, p)
 2
 ```
 """
-function dual_Chern_character(
+function dual_chern_character(
   M::QuiverModuliSpace,
   p;
   chi::AbstractVector{Int}=extended_gcd(M.d)[2],
 )
-  CH, CHvars = Chow_ring(M; chi=chi)
-  return sum(m * (-1)^__Chow_ring_monomial_grading(M, m) for m in Singular.terms(CH(p)))
+  CH, CHvars = chow_ring(M; chi=chi)
+  return sum(m * (-1)^__chow_ring_monomial_grading(M, m) for m in Singular.terms(CH(p)))
 end
 
 """
@@ -1665,7 +1665,7 @@ Returns the point class of the moduli space `M`.
 
 A projective 7-fold:
 ```jldoctest
-julia> Q = mKronecker_quiver(8);
+julia> Q = kronecker_quiver(8);
 
 julia> M = QuiverModuliSpace(Q, [1, 1]);
 
@@ -1675,7 +1675,7 @@ x21^7
 
 Our favourite 6-fold:
 ```jldoctest
-julia> Q = mKronecker_quiver(3);
+julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
@@ -1690,23 +1690,23 @@ x23^2
   num = 1
   den = 1
   N = dimension(M)
-  CH, CHvars = Chow_ring(M; chi=chi)
+  CH, CHvars = chow_ring(M; chi=chi)
 
   for i in 1:nvertices(M.Q)
-    c = total_Chern_class_universal(M, i; chi=chi)
+    c = total_chern_class_universal(M, i; chi=chi)
     num *= c^(M.d' * M.Q.adjacency[:, i])
     den *= c^M.d[i]
   end
 
   quot = div(num, den)
   return sum(
-    term for term in Singular.terms(quot) if __Chow_ring_monomial_grading(M, term) == N;
+    term for term in Singular.terms(quot) if __chow_ring_monomial_grading(M, term) == N;
     init=CH(0),
   )
 end
 
 """
-    Todd_class(M::QuiverModuliSpace; chi==extended_gcd(M.d)[2])
+    todd_class(M::QuiverModuliSpace; chi==extended_gcd(M.d)[2])
 
 Returns the Todd class of the moduli space `M`.
 
@@ -1723,13 +1723,13 @@ Returns the Todd class of the moduli space `M`.
 
 The Todd class of our favourite 3-Kronecker quiver moduli:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> Todd_class(M)
+julia> todd_class(M)
 -17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
 ```
 """
-@memoize Dict function Todd_class(
+@memoize Dict function todd_class(
   M::QuiverModuliSpace;
   chi::AbstractVector{Int}=extended_gcd(M.d)[2],
 )
@@ -1753,7 +1753,7 @@ julia> Todd_class(M)
 
   N = dimension(M)
 
-  A, R, inclusion = Chow_ring(M.Q, M.d, M.theta; chi=chi)
+  A, R, inclusion = chow_ring(M.Q, M.d, M.theta; chi=chi)
   Rvars = gens(R)
 
   function xi(i, p)
@@ -1822,9 +1822,9 @@ the integral of `f`.
 The integral of ``\\mathcal{O}(i)`` on the projective line for some `i`s.
 
 ```jldoctest
-julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
+julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
-julia> L = Chern_character_line_bundle(M, [1, -1]);
+julia> L = chern_character_line_bundle(M, [1, -1]);
 
 julia> [integral(M, L^i) for i in 0:5]
 6-element Vector{Int64}:
@@ -1839,9 +1839,9 @@ julia> [integral(M, L^i) for i in 0:5]
 Hilbert series for the 3-Kronecker quiver as in our favourite 6-fold:
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> L = Chern_character_line_bundle(M, [3, -2]);
+julia> L = chern_character_line_bundle(M, [3, -2]);
 
 julia> [integral(M, L^i) for i in 0:5]
 6-element Vector{Int64}:
@@ -1854,12 +1854,12 @@ julia> [integral(M, L^i) for i in 0:5]
 ```
 """
 function integral(M::QuiverModuliSpace, f; chi::AbstractVector{Int}=extended_gcd(M.d)[2])
-  CH, CHvars = Chow_ring(M; chi=chi)
+  CH, CHvars = chow_ring(M; chi=chi)
 
   N = dimension(M)
   integrand = sum(
-    t for t in collect(Singular.terms(f * Todd_class(M; chi=chi))) if
-    __Chow_ring_monomial_grading(M, t) == N;
+    t for t in collect(Singular.terms(f * todd_class(M; chi=chi))) if
+    __chow_ring_monomial_grading(M, t) == N;
     init=CH(0),
   )
 
@@ -1896,7 +1896,7 @@ function pullback_from_quotient(R, f)
 end
 
 """
-    __Chow_ring__monomial_grading(M::QuiverModuliSpace, f)
+    __chow_ring__monomial_grading(M::QuiverModuliSpace, f)
 
 Returns the "pseudodegree" of the monomial `f` in the Chow ring of the moduli
 space `M` passed.
@@ -1905,18 +1905,18 @@ This method is unsafe, as it does not consider the actual degree of the MPolyRin
 objects passed. Instead, it assumes that the Chow ring passed has variables
 ``x_{i, j}`` as in the Chow ring paper.
 """
-function __Chow_ring_monomial_grading(M::QuiverModuliSpace, f)
-  return __Chow_degrees(M.d)' * collect(Singular.exponent_vectors(f))[1]
+function __chow_ring_monomial_grading(M::QuiverModuliSpace, f)
+  return __chow_degrees(M.d)' * collect(Singular.exponent_vectors(f))[1]
 end
 
 """
-    __Chow_degrees(d)
+    __chow_degrees(d)
 
 Returns the vector of degrees for the variables of a Chow ring.
 
 For internal use only.
 """
-@memoize Dict function __Chow_degrees(d::AbstractVector{Int})
+@memoize Dict function __chow_degrees(d::AbstractVector{Int})
   return vcat([collect(1:di) for di in d if di > 0]...)
 end
 
@@ -1940,7 +1940,7 @@ the stabilizer `` \\mathbb{G}``.
 The dimension of the moduli stack of the 3-Kronecker quiver
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
 
 julia> dimension(M)
 5
@@ -1948,7 +1948,7 @@ julia> dimension(M)
 """
 function dimension(M::QuiverModuliStack)
   if is_nonempty(M)
-    return -Euler_form(M.Q, M.d, M.d)
+    return -euler_form(M.Q, M.d, M.d)
   end
   return "-∞"
 end
@@ -1970,7 +1970,7 @@ Returns the dimension of the moduli space.
 
 The dimension of the moduli space of the 3-Kronecker quiver:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> dimension(M)
 6
@@ -1988,7 +1988,7 @@ function dimension(M::QuiverModuliSpace)
 
   # if the stable locus is nonempty then the dimension is 1 - <d, d>
   if has_stables(M.Q, M.d, M.theta, M.denom)
-    return 1 - Euler_form(M.Q, M.d, M.d)
+    return 1 - euler_form(M.Q, M.d, M.d)
   end
 
   # if the stable locus is empty, the dimension is the maximum of the dimensions
@@ -1998,8 +1998,8 @@ function dimension(M::QuiverModuliSpace)
   elseif M.condition == "semistable"
     if has_semistables(M.Q, M.d, M.theta)
       return maximum(
-        dimension_of_Luna_stratum(M, tau) for
-        tau in all_Luna_types(M.Q, M.d, M.theta)
+        dimension_of_luna_stratum(M, tau) for
+        tau in all_luna_types(M.Q, M.d, M.theta)
       )
     end
   end
@@ -2024,7 +2024,7 @@ Checks if the moduli space is smooth.
 
 Setups with `d` `theta`-coprime are smooth:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> is_smooth(M)
 true
@@ -2060,7 +2060,7 @@ This is always trus, as the quotient stack of a smooth variety is smooth.
 # Examples
 
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
 
 julia> is_smooth(M)
 true
@@ -2087,7 +2087,7 @@ Checks if the moduli space is projective.
 
 The moduli space of the 3-Kronecker quiver is projective:
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> is_projective(M)
 true
@@ -2128,7 +2128,7 @@ this is the affine base.
 
 # Examples
 ```jldoctest
-julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> dimension(semisimple_moduli_space(M))
 0
