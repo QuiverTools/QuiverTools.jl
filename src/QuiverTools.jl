@@ -89,6 +89,8 @@ function deglex_key(Q::Quiver, e::AbstractVector{Int})::Int
 end
 
 """
+    underlying_graph(Q::Quiver)
+
 Returns the (necessarily symmetric) adjacency matrix
 of the underlying graph of the quiver.
 
@@ -104,6 +106,8 @@ function underlying_graph(Q::Quiver)
 end
 
 """
+    nvertices(Q::Quiver)
+
 Returns the number of vertices of the quiver.
 ```jldoctest
 julia> Q = mKronecker_quiver(4);
@@ -115,6 +119,8 @@ true
 nvertices(Q::Quiver) = size(Q.adjacency)[1]
 
 """
+    narrows(Q::Quiver)
+
 Returns the number of arrows of the quiver.
 ```jldoctest
 julia> Q = mKronecker_quiver(4);
@@ -126,6 +132,8 @@ true
 narrows(Q::Quiver) = sum(Q.adjacency)
 
 """
+    is_acyclic(Q::Quiver)
+
 Checks wether the quiver is acyclic, i.e. has no oriented cycles.
 ```jldoctest
 julia> Q = mKronecker_quiver(4);
@@ -137,6 +145,8 @@ true
 is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^nvertices(Q))
 
 """
+    is_connected(Q::Quiver)
+
 Checks wether the underlying graph of the quiver is connected.
 
 EXAMPLES:
@@ -187,7 +197,9 @@ function is_connected(Q::Quiver)
 end
 
 """
-Returns the number of incoming arrows to the vertex ``j``.
+    indegree(Q::Quiver, j::Int)
+
+Returns the number of incoming arrows to the vertex `j`.
 
 EXAMPLES:
 ```jldoctest
@@ -203,7 +215,9 @@ julia> indegree(Q, 2)
 indegree(Q::Quiver, j::Int) = sum(Q.adjacency[:, j])
 
 """
-Returns the number of outgoing arrows from the vertex ``i``.
+    outdegree(Q::Quiver, i::Int)
+
+Returns the number of outgoing arrows from the vertex `i`.
 
 EXAMPLES:
 ```jldoctest
@@ -219,7 +233,9 @@ julia> outdegree(Q, 2)
 outdegree(Q::Quiver, i::Int) = sum(Q.adjacency[i, :])
 
 """
-Checks if the vertex ``i`` is a source, i.e., a vertex with no incoming arrows.
+    is_source(Q::Quiver, i::Int)
+
+Checks if the vertex `i` is a source, i.e., a vertex with no incoming arrows.
 
 EXAMPLES:
 ```jldoctest
@@ -235,7 +251,9 @@ false
 is_source(Q::Quiver, i::Int) = indegree(Q, i) == 0
 
 """
-Checks if the vertex ``j`` is a sink, i.e., a vertex with no outgoing arrows.
+    is_sink(Q::Quiver, j::Int)
+
+Checks if the vertex `j` is a sink, i.e., a vertex with no outgoing arrows.
 
 EXAMPLES:
 ```jldoctest
@@ -253,13 +271,13 @@ is_sink(Q::Quiver, j::Int) = outdegree(Q, j) == 0
 """
     arrows(Q::Quiver)
 
-Returns a list of all arrows of the quiver ``Q``.
+Returns a list of all arrows of the quiver `Q`.
 
 INPUT:
 - `Q`: a quiver
 
 OUTPUT:
-- a list of all arrows of the quiver ``Q``.
+- a list of all arrows of the quiver `Q`.
 
 EXAMPLES:
 ```jldoctest
@@ -284,20 +302,37 @@ end
 # this is the wheel reinvention department.
 # I don't want to load the whole LinearAlgebra package just for this.
 """
-Returns the identity matrix of size ``n``.
+    identity_matrix(n::Int)
+
+Returns the identity matrix of size `n`.
 """
 @memoize Dict identity_matrix(n::Int) =
   map(ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n))
 
+"""
+    diagonal(m::AbstractMatrix{Int})
+
+Returns a copy of the input matrix `m` with the diagonal untouched,
+and all other entries set to zero.
+"""
 function diagonal(m::AbstractMatrix{Int})
   n = size(m)[1]
   return map(ind -> ind[1] == ind[2] ? m[ind...] : 0, Iterators.product(1:n, 1:n))
 end
+
+"""
+    diagonal(v::AbstractVector)
+
+Returns a square matrix with diagonal `v`.
+"""
 function diagonal(v::AbstractVector)
   n = length(v)
   return map(ind -> ind[1] == ind[2] ? v[ind[1]] : 0, Iterators.product(1:n, 1:n))
 end
+
 """
+    Euler_matrix(Q::Quiver)
+
 Returns the Euler matrix of the quiver.
 
 The Euler matrix of a quiver ``Q`` is defined as
@@ -318,7 +353,9 @@ true
 @memoize Dict Euler_matrix(Q::Quiver) = identity_matrix(nvertices(Q)) - Q.adjacency
 
 """
-Computes the Euler form of the quiver for vectors ``x`` and ``y``.
+    Euler_form(Q::Quiver, x, y)
+
+Computes the Euler form of the quiver for vectors `x` and `y`.
 
 The Euler form is defined as the bilinear form
 ```math
@@ -338,6 +375,8 @@ Euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
   x' * Euler_matrix(Q) * y
 
 """
+    canonical_stability(Q::Quiver, d)
+
 The canonical stability parameter for the couple ``(Q, d)`` is given by ``<d,-> - <-,d>``
 
 INPUT:
@@ -360,6 +399,8 @@ function canonical_stability(Q::Quiver, d::AbstractVector{Int})
 end
 
 """
+    is_coprime(d, theta)
+
 Checks wether the given dimension vector ``d`` is ``\\theta``-coprime for
 the stability parameter ``\\theta``.
 
@@ -379,6 +420,8 @@ function is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
 end
 
 """
+    is_coprime(d)
+
 Checks if the gcd of all the entries of d is ``1``.
 """
 function is_coprime(d::AbstractVector{Int})
@@ -386,6 +429,8 @@ function is_coprime(d::AbstractVector{Int})
 end
 
 """
+    slope(d, theta, denom=sum)
+
 Returns the slope of the dimension vector ``d``
 with respect to the stability parameter ``\\theta``
 and a choice of a denominator function.
@@ -401,6 +446,8 @@ function slope(d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Functi
 end
 
 """
+    all_destabilizing_subdimension_vectors(d, theta, denom=sum)
+
 Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d``.
 """
 @memoize Dict function all_destabilizing_subdimension_vectors(
@@ -416,71 +463,10 @@ Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d`
   )
 end
 
-# """
-# Returns the list of all sequences ``(d^1,...,d^l)`` which sum to ``d``
-# such that ``\\mu(d^1) > ... > \\mu(d^l).``
+"""
+    has_semistables(Q::Quiver, d, theta=canonical_stability(Q, d), denom=sum)
 
-# EXAMPLES:
-# ```jldoctest
-# julia> d = [2,3]; theta = [3,-2];
-
-# julia> QuiverTools.all_slope_decreasing_sequences(d, theta)
-# 8-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
-#  [[2, 3]]
-#  [[1, 1], [1, 2]]
-#  [[2, 2], [0, 1]]
-#  [[2, 1], [0, 2]]
-#  [[1, 0], [1, 3]]
-#  [[1, 0], [1, 2], [0, 1]]
-#  [[1, 0], [1, 1], [0, 2]]
-#  [[2, 0], [0, 3]]
-# ```
-# """
-# function all_slope_decreasing_sequences( # TODO remove useless method
-#     d::AbstractVector{Int},
-#     theta::AbstractVector{Int};
-# #     denom::Function = sum,
-# #     ordered::Bool = true,
-# # )
-
-# #     d = coerce_vector(d)
-# #     theta = coerce_vector(theta)
-# #     # List all subdimension vectors e of bigger slope than d.
-# #     subdimensions = filter(
-# #         e -> slope(e, theta, denom) > slope(d, theta, denom),
-# #         all_subdimension_vectors(d; nonzero=true)
-# #     )
-# #     @info "1"
-# #     # We sort the subdimension vectors by slope because that will return the list of
-# #     # all HN types in ascending order with respect to the partial order from
-# #     # Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
-# #     if ordered
-# #         subdimensions = sort(subdimensions, by = e -> slope(e, theta, denom))
-# #     end
-# #     @info "2"
-# #     # The slope decreasing sequences which are not of the form (d)
-# #     # are given by (e,f^1,...,f^s) where e is a proper subdimension vector
-# #     # such that mu_theta(e) > mu_theta(d) and (f^1,...,f^s) is a slope decreasing
-# #     # sequence for d-e.
-
-# #     allSlopeDecreasing = [
-# #         pushfirst!(fstar, e)
-# #         # this is only ok because all_slope_decreasing_sequences() is not cached,
-# #         # because pushfirst! would modify the cached outputs otherwise.
-
-# #         for e in subdimensions
-# #         for fstar in all_slope_decreasing_sequences(d - e, theta; denom=denom, ordered=ordered)
-# #         if slope(e, theta, denom) > slope(fstar[1], theta, denom)
-# #         ]
-
-# #     @info "3"
-# #     # Add d again, at the beginning, because it is smallest
-# #     # with respect to the partial order from Def. 3.6
-# #     return pushfirst!(allSlopeDecreasing, [d])
-
-# # end
-
-"""Checks if there is a ``\\theta``-semistable representation of dimension vector ``d``.
+Checks if there is a ``\\theta``-semistable representation of dimension vector ``d``.
 
 EXAMPLES:
 ```jldoctest
@@ -531,7 +517,10 @@ false
   end
 end
 
-"""Checks if Q has a ``theta``-stable representation of dimension vector ``d``.
+"""
+    has_stables(Q::Quiver, d, theta=canonical_stability(Q, d), denom=sum)
+
+Checks if Q has a ``theta``-stable representation of dimension vector ``d``.
 
 EXAMPLES:
 ```jldoctest
@@ -582,6 +571,8 @@ false
 end
 
 """
+    is_Schur_root(Q::Quiver, d)
+
 Checks if ``d`` is a Schur root for ``Q``.
 
 By [Lemma 4.2, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147),
@@ -599,20 +590,35 @@ true
 is_Schur_root(Q::Quiver, d::AbstractVector{Int}) =
   has_stables(Q, d, canonical_stability(Q, d))
 
+"""
+    is_real_root(Q::Quiver, d)
+
+Checks whether `d` is a real root, i.e., if ``<d, d> = 1``.
+"""
 function is_real_root(Q, d)
   return Euler_form(Q, d, d) == 1
 end
 
+"""
+    is_imaginary_root(Q::Quiver, d)
+
+Checks whether `d` is an imaginary root, i.e., if ``<d, d> \\geq 0``.
+"""
 function is_imaginary_root(Q, d)
   return Euler_form(Q, d, d) <= 0
 end
 
+"""
+    is_isotropic_root(Q::Quiver, d)
+
+Checks whether `d` is an isotropic root, i.e., if ``<d, d> = 0``.
+"""
 function is_isotropic_root(Q, d)
   return Euler_form(Q, d, d) == 0
 end
 
 """
-    is_generic_subdimension_vector(Q, e, d)
+    is_generic_subdimension_vector(Q::Quiver, e, d)
 
 Checks if ``e`` is a generic subdimension vector of ``d``.
 
@@ -646,7 +652,7 @@ for all generic subdimension vectors ``e'`` of ``e``.
 end
 
 """
-    all_generic_subdimension_vectors(Q, d)
+    all_generic_subdimension_vectors(Q::Quiver, d)
 
 Returns the list of all generic subdimension vectors of ``d``.
 
@@ -677,7 +683,7 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
 end
 
 """
-    all_HN_types(Q, d, theta, denom; ordered=true)
+    all_HN_types(Q::Quiver, d, theta, denom=sum; ordered=true)
 
 Returns a list of all the Harder Narasimhan types of representations of ``Q``
 with dimension vector ``d``, with respect to the slope function theta/denom.
@@ -775,7 +781,7 @@ julia> all_HN_types(Q, d, theta; ordered=true)
 end
 
 """
-	is_hn_type(Q, d, dstar, theta, denom)
+	is_hn_type(Q::Quiver, d, dstar, theta, denom=sum)
 
 Checks if the given ordered list of subdimension vectors ``dstar`` is an HN type
 for the datum ``(Q, d)`` and the slope stability given by ``(theta, denom)``.
@@ -816,6 +822,8 @@ function is_HN_type(
 end
 
 """
+    codimension_HN_stratum(Q::Quiver, stratum)
+
 Returns the codimension of the given HN stratum.
 
 EXAMPLES:
@@ -848,6 +856,8 @@ function codimension_HN_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}
 end
 
 """
+    is_amply_stable(Q::Quiver, d, theta, denom=sum)
+
 Checks wether the dimension vector ``d`` is amply stable
 with respect to the slope function `theta`/`denominator`.
 
@@ -883,6 +893,8 @@ end
 ########################################################################################
 
 """
+    generic_ext(Q::Quiver, a, b)
+
 Computes the dimension of the ``\\mathrm{Ext}^1`` group between generic representations
 of dimension vectors ``a`` and ``b``.
 
@@ -915,6 +927,8 @@ function generic_ext(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
 end
 
 """
+    generic_hom(Q::Quiver, a, b)
+
 Computes the dimension of the ``\\mathrm{Hom}`` group between generic representations
 of dimension vectors ``a`` and ``b``.
 
@@ -939,6 +953,8 @@ function generic_hom(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
 end
 
 """
+    canonical_decomposition(Q::Quiver, d)
+
 Computes the canonical decomposition of the dimension vector ``d``
 for the given quiver ``Q``.
 
@@ -990,6 +1006,8 @@ function canonical_decomposition(Q::Quiver, d::AbstractVector{Int})
 end
 
 """
+    in_fundamental_domain(Q::Quiver, d; interior=false)
+
 Checks if the dimension vector ``d`` is in the fundamental domain of the quiver ``Q``.
 
 The fundamental domain is the cone of dimension vectors in ``\\mathbb{Z}^{Q_0}``
