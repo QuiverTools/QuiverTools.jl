@@ -17,13 +17,16 @@ export mKronecker_quiver,
 
 Constructs a Kronecker quiver with `m` vertices.
 
-INPUT:
+# Input
+
 - `m`: (Default = 2) The number of arrows in the Kronecker quiver.
 
-OUTPUT:
+# Output
+
 A Kronecker quiver with `m` vertices.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> mKronecker_quiver(3)
 3-Kronecker quiver, with adjacency matrix [0 3; 0 0]
@@ -38,15 +41,18 @@ end
 
 Constructs a three-vertex quiver with the given edge weights.
 
-INPUT:
+# Input
+
 - `m12`: The number of arrows from vertex 1 to vertex 2.
 - `m13`: The number of arrows from vertex 1 to vertex 3.
 - `m23`: The number of arrows from vertex 2 to vertex 3.
 
-OUTPUT:
+# Output
+
 A three-vertex quiver with the specified arrows.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> three_vertex_quiver(1, 2, 3)
 Acyclic 3-vertex quiver, with adjacency matrix [0 1 2; 0 0 3; 0 0 0]
@@ -61,13 +67,16 @@ end
 
 Constructs a loop quiver with `m` vertices.
 
-INPUT:
+# Input
+
 - `m`: The number of vertices in the loop quiver.
 
-OUTPUT:
+# Output
+
 A loop quiver with `m` vertices.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> loop_quiver(4)
 4-loop quiver, with adjacency matrix [4;;]
@@ -82,14 +91,17 @@ end
 
 Constructs a subspace quiver with `m` vertices.
 
-INPUT:
+# Input
+
 - `m`: The number of subspace-vertices.
 
-OUTPUT:
+# Output
+
 A subspace quiver with `m` subspaces.
 
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> subspace_quiver(3)
 3-subspace quiver, with adjacency matrix [0 0 0 1; 0 0 0 1; 0 0 0 1; 0 0 0 0]
@@ -115,7 +127,8 @@ end
 
 Constructs the Dynkin quiver, with arbitrary orientation of the arrows.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Dynkin_quiver("D4")
 Dynkin quiver of type D4, with adjacency matrix [0 1 0 0; 0 0 1 1; 0 0 0 0; 0 0 0 0]
@@ -203,7 +216,8 @@ end
 
 Returns a cyclic quiver on n vertices.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> cyclic_quiver(4)
 cyclic quiver on 4 vertices, with adjacency matrix [0 1 0 0; 0 0 1 0; 0 0 0 1; 1 0 0 0]
@@ -226,7 +240,8 @@ end
 
 Constructs the bipartite quiver on `m` and `n` vertices.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> bipartite_quiver(2, 3).adjacency
 5×5 StaticArraysCore.SMatrix{5, 5, Int64, 25} with indices SOneTo(5)×SOneTo(5):
@@ -254,13 +269,16 @@ end
 Returns a Quiver with the same vertices and an arrow
 ``j \\to i`` for every arrow  ``i \\to j`` in the original quiver.
 
-INPUT:
+# Input
+
 - `Q::Quiver`: The quiver to be reversed.
 
-OUTPUT:
+# Output
+
 A quiver with the same vertices and reversed arrows.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver()
 2-Kronecker quiver, with adjacency matrix [0 2; 0 0]
@@ -277,7 +295,8 @@ The adjacency matrix of the double of a quiver is the sum of
 the adjacency matrix of the original quiver and its transpose.
 
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver();
 

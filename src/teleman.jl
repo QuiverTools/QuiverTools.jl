@@ -47,7 +47,8 @@ Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
 HN type for the given ``Q``, ``d``, ``\\theta`` and `denom``.
 
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
@@ -77,7 +78,8 @@ end
 """
 	all_Teleman_bounds(M::QuiverModuli)
 
-EXAMPLE:
+# Examples
+
 ```jldoctest
 julia> Q = three_vertex_quiver(1, 2, 3); d = [3, 1, 2]; theta = [5, 3, -9];
 
@@ -341,7 +343,7 @@ Checks if the Teleman quantization criterion of
 In case the quiver is acyclic, this ensures that the moduli space is infinitesimally
 rigid.
 
-EXAMPLES:
+# Examples
 
 Our favourite 6-fold is rigid:
 ```jldoctest

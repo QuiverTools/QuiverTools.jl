@@ -42,9 +42,7 @@ export all_HN_types,
 # TODO add missing doctests across codebase.
 # TODO keyword arguments across codebase
 # TODO add safety checks everywhere in the codebase
-# TODO CamelCase files
 # TODO not capitalize names in functions
-# TODO use markdown for docstrings
 
 include("Types.jl")
 
@@ -152,7 +150,8 @@ is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^nvertices(Q))
 
 Checks wether the underlying graph of the quiver is connected.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = Quiver([0 1 0; 0 0 1; 1 0 0]);
 
@@ -204,7 +203,8 @@ end
 
 Returns the number of incoming arrows to the vertex `j`.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(4);
 
@@ -222,7 +222,8 @@ indegree(Q::Quiver, j::Int) = sum(Q.adjacency[:, j])
 
 Returns the number of outgoing arrows from the vertex `i`.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(4);
 
@@ -240,7 +241,8 @@ outdegree(Q::Quiver, i::Int) = sum(Q.adjacency[i, :])
 
 Checks if the vertex `i` is a source, i.e., a vertex with no incoming arrows.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(4);
 
@@ -258,7 +260,8 @@ is_source(Q::Quiver, i::Int) = indegree(Q, i) == 0
 
 Checks if the vertex `j` is a sink, i.e., a vertex with no outgoing arrows.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(4);
 
@@ -276,13 +279,16 @@ is_sink(Q::Quiver, j::Int) = outdegree(Q, j) == 0
 
 Returns a list of all arrows of the quiver `Q`.
 
-INPUT:
+# Input
+
 - `Q`: a quiver
 
-OUTPUT:
+# Output
+
 - a list of all arrows of the quiver `Q`.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
@@ -382,14 +388,17 @@ Euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
 
 The canonical stability parameter for the couple ``(Q, d)`` is given by ``<d,-> - <-,d>``
 
-INPUT:
+# Input
+
 - `Q`: a quiver
 - `d`: a dimension vector
 
-OUTPUT:
+# Output
+
 - the canonical stability parameter for the couple ``(Q, d)``
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3];
 
@@ -407,7 +416,8 @@ end
 Checks wether the given dimension vector ``d`` is ``\\theta``-coprime for
 the stability parameter ``\\theta``.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> d = [2, 3]; theta = [3, -2];
 
@@ -471,7 +481,8 @@ end
 
 Checks if there is a ``\\theta``-semistable representation of dimension vector ``d``.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> A2 = mKronecker_quiver(1); theta = [1,-1];
 
@@ -525,7 +536,8 @@ end
 
 Checks if Q has a ``theta``-stable representation of dimension vector ``d``.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2, 3]; theta = [3, -2];
 
@@ -582,7 +594,8 @@ By [Lemma 4.2, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147),
 this is equivalent to the existence of a stable representation of dimension vector ``d``
 for the canonical stability parameter.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3];
 
@@ -659,7 +672,8 @@ end
 
 Returns the list of all generic subdimension vectors of ``d``.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
@@ -691,7 +705,8 @@ end
 Returns a list of all the Harder Narasimhan types of representations of ``Q``
 with dimension vector ``d``, with respect to the slope function theta/denom.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
@@ -790,7 +805,8 @@ Checks if the given ordered list of subdimension vectors ``dstar`` is an HN type
 for the datum ``(Q, d)`` and the slope stability given by ``(theta, denom)``.
 
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
@@ -829,7 +845,8 @@ end
 
 Returns the codimension of the given HN stratum.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
@@ -867,7 +884,8 @@ with respect to the slope function `theta`/`denominator`.
 This means that the codimension of the unstable locus
 in the parameter space is at least ``2``.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3); d = [2, 3];
 
@@ -909,7 +927,8 @@ we have
 ext(a,b)=max\\{-\\langle c,b\\rangle~~|~~c~\\text{is a generic subdimension vector of }a\\}.
 ```
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q1 = mKronecker_quiver(3);
 
@@ -935,7 +954,8 @@ end
 Computes the dimension of the ``\\mathrm{Hom}`` group between generic representations
 of dimension vectors ``a`` and ``b``.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q1 = mKronecker_quiver(3);
 
@@ -974,7 +994,8 @@ of dimension vectors ``\\beta_i``.
 
 Such a decomposition is called the canonical decomposition.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
@@ -1024,7 +1045,8 @@ for all vertices i,
 where ``s_i`` is the dimension vector with all entries set to ``0`` and the i-th
 set to ``1``.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
@@ -1089,10 +1111,12 @@ end
 
 Create a zero vector of length `n`.
 
-INPUT:
+# Input
+
 - `n::Int`: The length of the zero vector.
 
-OUTPUT:
+# Output
+
 - A zero vector of length `n`.
 
 EXAMPLE:
@@ -1112,10 +1136,12 @@ end
 
 Compute the thin dimension vector for a given quiver `Q`.
 
-INPUT:
+# Input
+
 - `Q::Quiver`: The input quiver.
 
-OUTPUT:
+# Output
+
 - A vector of ones of length `n`.
 
 EXAMPLE:
@@ -1137,15 +1163,18 @@ end
 
 Compute all subdimension vectors of a given dimension vector `d`.
 
-INPUT:
+# Input
+
 - `d::AbstractVector{Int}`: The input dimension vector.
 - `nonzero::Bool=false`: wether to exclude the zero vector.
 - `strict::Bool=false`: wether to exclude the input vector `d`.
 
-OUTPUT:
+# Output
+
 - An array of all subdimension vectors of `d`, with or without the zero vector and `d`.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> QuiverTools.all_subdimension_vectors([2, 3])
 12-element Vector{StaticArraysCore.SVector{2, Int64}}:
@@ -1210,11 +1239,13 @@ end
 
 Check if vector `e` is a subdimension of vector `d`.
 
-INPUT:
+# Input
+
 - `e`: An abstract vector of integers.
 - `d`: An abstract vector of integers.
 
-OUTPUT:
+# Output
+
 whether `e` is a subdimension of `d`.
 
 EXAMPLE:
@@ -1238,14 +1269,17 @@ end
 
 Return a vector of length `n` with a `1` at index `i` and `0` elsewhere.
 
-INPUT:
+# Input
+
 - `n::Int`: The length of the unit vector.
 - `i::Int`: The index at which to place the `1` in the unit vector.
 
-OUTPUT:
+# Output
+
 A unit vector of length `n` with a `1` at index `i` and `0` elsewhere.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> QuiverTools.unit_vector(3, 2) == [0, 1, 0]
 true
@@ -1262,14 +1296,16 @@ end
 
 Return a dimension vector for the quiver `Q` with a `1` at index `i` and `0` elsewhere.
 
-INPUT:
+# Input
+
 - `Q::Quiver`: The input quiver.
 - `i::Int`: The index at which to place the `1` in the unit vector.
 
-OUTPUT:
+# Output
+
 - A dimension vector for the quiver `Q` with a `1` at index `i` and `0` elsewhere.
 
-EXAMPLES:
+# Examples
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 

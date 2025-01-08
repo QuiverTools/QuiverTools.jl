@@ -27,7 +27,8 @@ struct Quiver
 
   Constructs a quiver starting from its adjacency matrix, and an optional name.
 
-  EXAMPLES:
+  # Examples
+
   ```jldoctest
   julia> m = [0 1; 2 0];
 
@@ -56,7 +57,8 @@ struct Quiver
   where `i`, `j` and all the vertices are positive integers.
   The amount of characters between `i` and  `j` is then the number of arrows i -> j.
 
-  EXAMPLE:
+  # Examples
+
   ```jldoctest
   julia> Q = Quiver("1--2,1---3,2----3")
   Quiver with adjacency matrix [0 2 3; 0 0 4; 0 0 0]

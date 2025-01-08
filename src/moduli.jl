@@ -29,13 +29,16 @@ export is_nonempty,
 
 Checks if the quiver moduli is nonempty.
 
-INPUT:
+# Input
+
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - whether the moduli space is nonempty.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
 
@@ -64,13 +67,15 @@ end
 Checks if the stability parameter is coprime with the dimension vector,
 i.e., if for all subdimension vectors ``e`` of ``d``, ``\\theta\\cdot e \\neq 0``.
 
-INPUT:
+# Input
+
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - whether the dimension vector `M.d` is theta-coprime for `M.theta`.
 
-EXAMPLES:
+# Examples
 
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
@@ -90,17 +95,19 @@ end
 
 Returns all Harder-Narasimhan types of the moduli space.
 
-INPUT:
+# Input
+
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 - `unstable::Bool = false`: if `true`, returns only Harder-Narasimhan types
 corresponding to unstable representations.
 - `ordered::Bool = true`: if `true`, returns the Harder-Narasimhan types in
 the order introduced by [MR1974891](https://doi.org/10.1007/s00222-002-0273-4).
 
-OUTPUT:
+# Output
+
 - a list of Harder-Narasimhan types for the dimension vector and slope of `M`.
 
-EXAMPLES:
+# Examples
 
 The HN types for a 3-Kronecker quiver with dimension vector `[2, 3]`:
 ```jldoctest
@@ -142,14 +149,16 @@ end
 Checks if the given sequence of dimension vectors is a valid HN type for
 the moduli space.
 
-INPUT:
+# Input
+
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 - `hn_type::AbstractVector{<:AbstractVector{Int}}`: a sequence of dimension vectors.
 
-OUTPUT:
+# Output
+
 - whether the given sequence is a valid Harder-Narasimhan type for `M`.
 
-EXAMPLES:
+# Examples
 
 Some HN types for the 3-Kronecker quiver with dimension vector `[2, 3]`:
 ```jldoctest
@@ -175,14 +184,16 @@ end
 Computes the codimension of the Harder-Narasimhan stratum
 corresponding to the given HN type.
 
-INPUT:
+# Input
+
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 - `hn_type::Vector{<:AbstractVector{Int}}`: a HN type for `M`.
 
-OUTPUT:
+# Output
+
 - the codimension of the Harder-Narasimhan stratum corresponding to the given HN type.
 
-EXAMPLES:
+# Examples
 
 Codimensions for the 3-Kronecker quiver with dimension vector `[2, 3]`:
 ```jldoctest
@@ -204,13 +215,15 @@ end
 
 Computes the codimension of the unstable locus in the parameter space.
 
-INPUT:
+# Input
+
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - the codimension of the unstable locus in the parameter space.
 
-EXAMPLES:
+# Examples
 
 Codimensions for the 3-Kronecker quiver with dimension vector `[2, 3]`:
 ```jldoctest
@@ -230,14 +243,16 @@ end
 
 Returns all Luna types of the moduli space.
 
-INPUT:
+# Input
+
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 - `exclude_stable::Bool = false`: if `true`, excludes the stable Luna type.
 
-OUTPUT:
+# Output
+
 - a list of Luna types for the dimension vector and slope of `M`.
 
-EXAMPLES:
+# Examples
 
 Luna types for a 3-Kronecker quiver:
 ```jldoctest
@@ -261,18 +276,20 @@ end
 
 Computes all the possible Luna types for the given data.
 
-INPUT:
+# Input
+
 - `Q`: a quiver.
 - `d`: a dimension vector.
 - `theta`: a stability parameter. Defaults to the canonical stability.
 - `denom`: a function defining the denominator of the slope. Defaults to sum.
 - `exclude_stable`: whether to exclude the Luna type of stable representations.
 
-OUTPUT:
+# Output
+
 A list of Luna types.
 
 
-EXAMPLES:
+# Examples
 
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
@@ -356,14 +373,16 @@ end
 
 Checks if the given tau is a valid Luna type for `M`.
 
-INPUT:
+# Input
+
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 - `tau::Dict{AbstractVector{Int}, Vector{Int}}`: a Luna type for `M`.
 
-OUTPUT:
+# Output
+
 - whether the given tau is a valid Luna type for `M`.
 
-EXAMPLES:
+# Examples
 
 Nontrivial Luna types for the 3-Kronecker quiver:
 ```jldoctest
@@ -409,14 +428,17 @@ end
 Computes the dimension of the Luna stratum corresponding to the given Luna type in the
 moduli space.
 
-INPUT:
+# Input
+
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 - `tau::Dict{AbstractVector{Int}, Vector{Int}}`: a Luna type for `M`.
 
-OUTPUT:
+# Output
+
 - the dimension of the Luna stratum corresponding to the given Luna type.
 
-EXAMPLES:
+# Examples
+
 ```jldoctest
 julia> Q = mKronecker_quiver(2); M = QuiverModuliSpace(Q, [2, 2], [1, -1]);
 
@@ -440,11 +462,13 @@ end
 
 Returns the local quiver and dimension vector for the given Luna type.
 
-INPUT:
+# Input
+
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 - `tau::Dict{AbstractVector{Int}, Vector{Int}}`: a Luna type for `M`.
 
-OUTPUT:
+# Output
+
 - a dictionary with the local quiver `Q` and dimension vector `d` for the given Luna type.
 """
 function local_quiver_setting(M::QuiverModuli, tau)
@@ -471,13 +495,15 @@ Checks if stability and semistability are equivalent on the given moduli space.
 In other words, checks if there are no properly semistable points in the representation
 space.
 
-INPUT:
+# Input
+
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - whether every semistable representation is stable.
 
-EXAMPLES:
+# Examples
 
 If the dimension vector is coprime with the stability parameter, then semistability
 and stability are equivalent:
@@ -513,13 +539,15 @@ with respect to the slope function `theta`/`denominator`.
 This means that the codimension of the unstable locus
 in the parameter space is at least ``2``.
 
-INPUT:
+# Input
+
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - whether the codimension of the unstable locus is at least `2`.
 
-EXAMPLES:
+# Examples
 
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
@@ -551,14 +579,16 @@ This is an internal method only used in the implementation of the Hodge polynomi
 and to compute motives.
 
 
-INPUT:
+# Input
+
 - `A::AbstractMatrix`: an upper triangular matrix.
 - `b::AbstractVector`: a vector.
 
-OUTPUT:
+# Output
+
 - the solution `x` to the equation.
 
-EXAMPLES:
+# Examples
 
 ```jldoctest
 julia> A = [1 2 3; 0 4 5; 0 0 6];
@@ -655,15 +685,17 @@ The algorithm is based on [MR1974891](https://doi.org/10.1007/s00222-002-0273-4)
 and the current implementation is translated from the [Hodge diamond cutter]
 (https://zenodo.org/doi/10.5281/zenodo.3893509).
 
-INPUT:
+# Input
+
 - ``Q``: a quiver.
 - ``d``: a dimension vector.
 - ``theta``: a stability parameter. Default is the canonical stability.
 
-OUTPUT:
+# Output
+
 - the Hodge polynomial of the moduli space.
 
-EXAMPLES:
+# Examples
 
 The Hodge polynomial of our favourite 6-fold:
 ```jldoctest
@@ -715,13 +747,15 @@ end
 
 Returns the Hodge polynomial of the moduli space ``M``.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - the Hodge polynomial of the moduli space.
 
-EXAMPLES:
+# Examples
 
 The Hodge polynomial of our favourite 6-fold:
 ```jldoctest
@@ -743,15 +777,17 @@ end
 Returns the Hodge diamond of the moduli space of
 ``\\theta``-semistable representations of ``Q`` with dimension vector ``d``.
 
-INPUT:
+# Input
+
 - ``Q``: a quiver.
 - ``d``: a dimension vector.
 - ``theta``: a stability parameter. Default is the canonical stability.
 
-OUTPUT:
+# Output
+
 - the Hodge diamond of the moduli space.
 
-EXAMPLES:
+# Examples
 
 The Hodge diamond of our favourite 6-fold:
 ```jldoctest
@@ -792,13 +828,15 @@ end
 
 Returns the Hodge diamond of the moduli space ``M``.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - the Hodge diamond of the moduli space.
 
-EXAMPLES:
+# Examples
 
 The Hodge diamond of our favourite 6-fold:
 ```jldoctest
@@ -826,13 +864,15 @@ end
 
 Returns the Picard rank of the moduli space ``M``.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - the Picard rank of the moduli space.
 
-EXAMPLES:
+# Examples
 
 Kronecker quiver with dimension vector `[2, 3]`:
 ```jldoctest
@@ -861,13 +901,15 @@ the canonical divisor ``K_X`` in ``Pic(X)``.
 
 This implementation currently only works for the canonical stability.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - the index of the moduli space.
 
-EXAMPLES:
+# Examples
 
 The 3-Kronecker quiver has index 3:
 ```jldoctest
@@ -902,13 +944,15 @@ end
 
 Returns the Betti numbers of the moduli space `M`.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - a list of Betti numbers of the moduli space.
 
-EXAMPLES:
+# Examples
 
 ```jldoctest
 julia> Q = mKronecker_quiver(2);
@@ -969,13 +1013,15 @@ end
 
 Returns the Poincaré polynomial of the moduli space ``M``.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - the Poincaré polynomial of the moduli space.
 
-EXAMPLES:
+# Examples
 
 A Kronecker quiver setup where ``M`` is the projective line:
 ```jldoctest
@@ -1033,16 +1079,18 @@ end
 
 Returns the motive of the moduli stack of ``\\theta``-semistable representations.
 
-INPUT:
+# Input
+
 - ``Q``: a quiver.
 - ``d``: a dimension vector.
 - ``theta``: a stability parameter. Default is the canonical stability.
 - ``denom``: a function. Default is the sum.
 
-OUTPUT:
+# Output
+
 - The motive as an element in the function field \\mathbb{Q}(L).
 
-EXAMPLES:
+# Examples
 
 ```jldoctest
 julia> Q = mKronecker_quiver(3);
@@ -1119,14 +1167,16 @@ end
 
 Returns the symmetric polynomial of degree ``degree`` in the variables ``vars``.
 
-INPUT:
+# Input
+
 - ``vars``: a list of variables.
 - ``degree``: the degree of the wanted symmetric polynomial.
 
-OUTPUT:
+# Output
+
 - The symmetric polynomial of degree ``degree`` in the variables ``vars``.
 
-EXAMPLES:
+# Examples
 
 ```julia-repl
 julia> using Singular;
@@ -1150,19 +1200,21 @@ Computes the Chow ring of the moduli space of ``\\theta``-semistable representat
 This method of the function Chow_ring also returns the ambient ring ``R``
 and the inclusion morphism.
 
-INPUT:
+# Input
+
 - ``Q``: a quiver.
 - ``d``: a dimension vector.
 - ``theta``: a stability parameter. Default is the canonical stability.
 - ``a``: a linearization. Default is the extended gcd of ``d``.
 
-OUTPUT:
+# Output
+
 A tuple containing:
 - the Chow ring of the moduli space,
 - the polynomial ring above it,
 - the inclusion map ``\\iota : A \\to R``.
 
-EXAMPLES:
+# Examples
 
 The Chow ring for the projective line has two generators:
 ```jldoctest
@@ -1291,13 +1343,15 @@ end
 
 Computes the Chow ring of the moduli space ``M``.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 - ``chi``: a choice of linearization for the trivial line bundle.
     It picks one by default if not provided.
 
 
-OUTPUT:
+# Output
+
 - the Chow ring of the moduli space.
 """
 function Chow_ring(M::QuiverModuliSpace; chi::AbstractVector{Int}=extended_gcd(M.d)[2])
@@ -1312,15 +1366,17 @@ end
 
 Computes the gcd and the Bezout coefficients of a list of integers.
 
-INPUT:
+# Input
+
 - ``x``: a list of integers.
 
-OUTPUT:
+# Output
+
 A tuple containing:
 - the gcd of the integers,
 - a choice of Bezout coefficients.
 
-EXAMPLES:
+# Examples
 
 ```jldoctest
 julia> QuiverTools.extended_gcd([2, 3, 4])
@@ -1357,14 +1413,16 @@ Returns the first Chern class of the line bundle L(eta).
 
 This is given by ``L(eta) = \\bigoplus_{i \\in Q_0} \\det(U_i)^{-eta_i}``.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 - ``eta``: a choice of linearization for the trivial line bundle.
 
-OUTPUT:
+# Output
+
 - the first Chern class of the line bundle L(eta) as a polynomial.
 
-EXAMPLES:
+# Examples
 
 The line bundles ``\\mathcal{O}(i)`` on the projective line:
 ```jldoctest
@@ -1402,14 +1460,16 @@ end
 
 Returns the Chern character of the line bundle L(eta).
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 - ``eta``: a choice of linearization for the trivial line bundle.
 
-OUTPUT:
+# Output
+
 - the Chern character of the line bundle L(eta).
 
-EXAMPLES:
+# Examples
 
 Some line bundles on the projective line:
 ```jldoctest
@@ -1443,15 +1503,17 @@ end
 
 Returns the total Chern class of the universal bundle ``U_i(\\chi)``.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 - ``i``: the universal bundle we want the Chern class of.
 - ``chi``: a choice of linearization to construct ``U_i(\\chi)``.
 
-OUTPUT:
+# Output
+
 - the total Chern class of the universal bundle ``U_i(\\chi)``.
 
-EXAMPLES:
+# Examples
 
 The universal Chern classes on both vertices of our favourite 3-Kronecker quiver:
 ```jldoctest
@@ -1480,14 +1542,16 @@ end
 Returns the Chern character of a vector bundle
 with the given Chern classes.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 - ``classes``: a list of polynomials in the Chow ring of ``M``, ``[c_1, ..., c_n]``.
 
-OUTPUT:
+# Output
+
 - An element in the Chow ring of ``M``.
 
-EXAMPLES:
+# Examples
 
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
@@ -1538,14 +1602,16 @@ end
 Returns the dual Chern character of a polynomial ``p`` on the quiver moduli ``M``.
 This is the original character with the signs of monomials of odd degree reversed.
 
-INPUT:
+# Input
+
 - ``M``: a quiver moduli space;
 - ``p``: a Chern character.
 
-OUTPUT:
+# Output
+
 - the dual Chern character of ``p``.
 
-EXAMPLES:
+# Examples
 
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
@@ -1586,14 +1652,16 @@ end
 
 Returns the point class of the moduli space ``M``.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 - ``chi``: a choice of linearization to construct the universal bundles.
 
-OUTPUT:
+# Output
+
 - the point class of the moduli space, as a polynomial in its Chow ring.
 
-EXAMPLES:
+# Examples
 
 A projective 7-fold:
 ```jldoctest
@@ -1642,14 +1710,17 @@ end
 
 Returns the Todd class of the moduli space ``M``.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 - ``chi``: a choice of linearization to construct the universal bundles.
 
-OUTPUT:
+# Output
+
 - the Todd class of the moduli space, as a polynomial in its Chow ring.
 
-EXAMPLES:
+# Examples
+
 The Todd class of our favourite 3-Kronecker quiver moduli:
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
@@ -1736,15 +1807,17 @@ Computes the integral of `f` according to the Hirzebruch-Riemann-Roch theorem.
 In other words, it computes the Euler characteristic of the vector bundle
 whose Chern character is `f`.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 - `f`: the Chern character in CH(M) to integrate.
 - ``chi``: a choice of linearization to construct the universal bundles.
 
-OUTPUT:
+# Output
+
 the integral of `f`.
 
-EXAMPLES:
+# Examples
 
 The integral of ``\\mathcal{O}(i)`` on the projective line for some `i`s.
 
@@ -1854,13 +1927,15 @@ Returns the dimension of the moduli stack.
 This differs from the dimension of the moduli space by 1, as we do not quotient out
 the stabilizer `` \\mathbb{G}``.
 
-INPUT:
+# Input
+
 - ``M``: a moduli stack of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - the dimension of the moduli stack.
 
-EXAMPLES:
+# Examples
 
 The dimension of the moduli stack of the 3-Kronecker quiver
 
@@ -1883,13 +1958,15 @@ end
 
 Returns the dimension of the moduli space.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - the dimension of the moduli space.
 
-EXAMPLES:
+# Examples
 
 The dimension of the moduli space of the 3-Kronecker quiver:
 ```jldoctest
@@ -1935,13 +2012,15 @@ end
 
 Checks if the moduli space is smooth.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - whether the moduli space is smooth.
 
-EXAMPLES:
+# Examples
 
 Setups with `d` `theta`-coprime are smooth:
 ```jldoctest
@@ -1970,13 +2049,15 @@ Checks if the moduli stack is smooth.
 
 This is always trus, as the quotient stack of a smooth variety is smooth.
 
-INPUT:
+# Input
+
 - ``M``: a moduli stack of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - true
 
-EXAMPLES:
+# Examples
 
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
@@ -1994,14 +2075,15 @@ end
 
 Checks if the moduli space is projective.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 
-OUTPUT:
+# Output
 
 - whether the moduli space is projective.
 
-EXAMPLES:
+# Examples
 
 The moduli space of the 3-Kronecker quiver is projective:
 ```jldoctest
@@ -2036,13 +2118,15 @@ Returns the moduli space with the zero stability parameter.
 Any quiver moduli space is (quasi)projective-over-affine;
 this is the affine base.
 
-INPUT:
+# Input
+
 - ``M``: a moduli space of representations of a quiver.
 
-OUTPUT:
+# Output
+
 - the moduli space with the zero stability parameter.
 
-EXAMPLES:
+# Examples
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
