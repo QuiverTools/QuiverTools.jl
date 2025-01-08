@@ -1,16 +1,5 @@
 # Tutorial
 
-## Installation
-
-At the moment the package is not registered,
-so you can install it by running the following command in the Julia REPL:
-
-```julia-repl
-julia> using Pkg
-
-julia> Pkg.add(url="https://github.com/QuiverTools/QuiverTools.jl.git")
-```
-
 ## Basic functionalities
 
 To start using QuiverTools in the REPL, one first must import it.
