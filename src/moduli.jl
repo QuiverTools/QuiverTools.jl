@@ -745,11 +745,11 @@ end
 """
     Hodge_polynomial(M::QuiverModuliSpace)
 
-Returns the Hodge polynomial of the moduli space ``M``.
+Returns the Hodge polynomial of the moduli space `M`.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
+- `M`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -826,11 +826,11 @@ end
 """
     Hodge_diamond(M::QuiverModuliSpace)
 
-Returns the Hodge diamond of the moduli space ``M``.
+Returns the Hodge diamond of the moduli space `M`.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
+- `M`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -862,11 +862,11 @@ end
 """
     Picard_rank(M::QuiverModuliSpace)
 
-Returns the Picard rank of the moduli space ``M``.
+Returns the Picard rank of the moduli space `M`.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
+- `M`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -894,7 +894,7 @@ end
 """
     index(M::QuiverModuliSpace)
 
-Returns the index of the moduli space ``M``.
+Returns the index of the moduli space `M`.
 
 The index of a variety ``X`` is the largest which divides
 the canonical divisor ``K_X`` in ``Pic(X)``.
@@ -903,7 +903,7 @@ This implementation currently only works for the canonical stability.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
+- `M`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -946,7 +946,7 @@ Returns the Betti numbers of the moduli space `M`.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
+- `M`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -1011,11 +1011,11 @@ end
 """
     Poincare_polynomial(M::QuiverModuliSpace)
 
-Returns the Poincaré polynomial of the moduli space ``M``.
+Returns the Poincaré polynomial of the moduli space `M`.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
+- `M`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -1023,7 +1023,7 @@ Returns the Poincaré polynomial of the moduli space ``M``.
 
 # Examples
 
-A Kronecker quiver setup where ``M`` is the projective line:
+A Kronecker quiver setup where `M` is the projective line:
 ```jldoctest
 julia> Q = mKronecker_quiver(2);
 
@@ -1341,12 +1341,12 @@ end
 """
     Chow_ring(M::QuiverModuliSpace; chi)
 
-Computes the Chow ring of the moduli space ``M``.
+Computes the Chow ring of the moduli space `M` for the given linearization `chi`.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
-- ``chi``: a choice of linearization for the trivial line bundle.
+- `M`: a moduli space of representations of a quiver.
+- `chi`: a choice of linearization for the trivial line bundle.
     It picks one by default if not provided.
 
 
@@ -1415,8 +1415,8 @@ This is given by ``L(eta) = \\bigoplus_{i \\in Q_0} \\det(U_i)^{-eta_i}``.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
-- ``eta``: a choice of linearization for the trivial line bundle.
+- `M`: a moduli space of representations of a quiver.
+- `eta`: a choice of linearization for the trivial line bundle.
 
 # Output
 
@@ -1462,8 +1462,8 @@ Returns the Chern character of the line bundle L(eta).
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
-- ``eta``: a choice of linearization for the trivial line bundle.
+- `M`: a moduli space of representations of a quiver.
+- `eta`: a choice of linearization for the trivial line bundle.
 
 # Output
 
@@ -1505,9 +1505,9 @@ Returns the total Chern class of the universal bundle ``U_i(\\chi)``.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
-- ``i``: the universal bundle we want the Chern class of.
-- ``chi``: a choice of linearization to construct ``U_i(\\chi)``.
+- `M`: a moduli space of representations of a quiver.
+- `i`: the universal bundle we want the Chern class of.
+- `chi`: a choice of linearization to construct ``U_i(\\chi)``.
 
 # Output
 
@@ -1544,12 +1544,12 @@ with the given Chern classes.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
-- ``classes``: a list of polynomials in the Chow ring of ``M``, ``[c_1, ..., c_n]``.
+- `M`: a moduli space of representations of a quiver.
+- `classes`: a list of polynomials in the Chow ring of `M`, ``[c_1, ..., c_n]``.
 
 # Output
 
-- An element in the Chow ring of ``M``.
+- An element in the Chow ring of `M`.
 
 # Examples
 
@@ -1584,7 +1584,7 @@ end
     Chern_character_universal_bundle(M::QuiverModuliSpace, i; chi=extended_gcd(M.d)[2])
 
 Returns the Chern character of the universal bundle ``\\mathcal{U}_i``
-on the given moduli space ``M``.
+on the given moduli space `M`.
 """
 function Chern_character_universal_bundle(
   M::QuiverModuliSpace,
@@ -1599,17 +1599,17 @@ end
 """
     dual_Chern_character(M::QuiverModuliSpace, p; chi=extended_gcd(M.d)[2])
 
-Returns the dual Chern character of a polynomial ``p`` on the quiver moduli ``M``.
+Returns the dual Chern character of a polynomial `p` on the quiver moduli `M`.
 This is the original character with the signs of monomials of odd degree reversed.
 
 # Input
 
-- ``M``: a quiver moduli space;
-- ``p``: a Chern character.
+- `M`: a quiver moduli space;
+- `p`: a Chern character.
 
 # Output
 
-- the dual Chern character of ``p``.
+- the dual Chern character of `p`.
 
 # Examples
 
@@ -1625,7 +1625,7 @@ julia> QuiverTools.dual_Chern_character(M, p)
 -x11 + x12 - x21 + x22 - x23
 ```
 
-This function coerces ``p`` in the Chow ring of ``M`` as provided.
+This function coerces `p` in the Chow ring of `M` as provided.
 
 ```jldoctest
 julia> Q = mKronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
@@ -1650,12 +1650,12 @@ end
 """
     point_class(M::QuiverModuliSpace; chi=extended_gcd(M.d)[2])
 
-Returns the point class of the moduli space ``M``.
+Returns the point class of the moduli space `M`.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
-- ``chi``: a choice of linearization to construct the universal bundles.
+- `M`: a moduli space of representations of a quiver.
+- `chi`: a choice of linearization to construct the universal bundles.
 
 # Output
 
@@ -1708,12 +1708,12 @@ end
 """
     Todd_class(M::QuiverModuliSpace; chi==extended_gcd(M.d)[2])
 
-Returns the Todd class of the moduli space ``M``.
+Returns the Todd class of the moduli space `M`.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
-- ``chi``: a choice of linearization to construct the universal bundles.
+- `M`: a moduli space of representations of a quiver.
+- `chi`: a choice of linearization to construct the universal bundles.
 
 # Output
 
@@ -1809,9 +1809,9 @@ whose Chern character is `f`.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
+- `M`: a moduli space of representations of a quiver.
 - `f`: the Chern character in CH(M) to integrate.
-- ``chi``: a choice of linearization to construct the universal bundles.
+- `chi`: a choice of linearization to construct the universal bundles.
 
 # Output
 
@@ -1929,7 +1929,7 @@ the stabilizer `` \\mathbb{G}``.
 
 # Input
 
-- ``M``: a moduli stack of representations of a quiver.
+- `M`: a moduli stack of representations of a quiver.
 
 # Output
 
@@ -1960,7 +1960,7 @@ Returns the dimension of the moduli space.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
+- `M`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -2014,7 +2014,7 @@ Checks if the moduli space is smooth.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
+- `M`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -2051,7 +2051,7 @@ This is always trus, as the quotient stack of a smooth variety is smooth.
 
 # Input
 
-- ``M``: a moduli stack of representations of a quiver.
+- `M`: a moduli stack of representations of a quiver.
 
 # Output
 
@@ -2077,7 +2077,7 @@ Checks if the moduli space is projective.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
+- `M`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -2120,7 +2120,7 @@ this is the affine base.
 
 # Input
 
-- ``M``: a moduli space of representations of a quiver.
+- `M`: a moduli space of representations of a quiver.
 
 # Output
 
