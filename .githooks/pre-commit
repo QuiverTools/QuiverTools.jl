@@ -1,0 +1,10 @@
+#!/bin/bash
+
+julia .JuliaFormatter.jl
+
+if [ $? -eq 0 ]; then
+    echo >&2 "Formatted successfully."
+else
+    echo >&2 "Error formatting."
+    exit 1
+fi
