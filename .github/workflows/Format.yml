@@ -4,6 +4,8 @@ on:
     paths:
       - 'src/**'
       - 'test/**'
+      - 'docs/make.jl'
+      - '.JuliaFormatter.jl'
       - '.github/workflows/Format.yml'
   workflow_dispatch:
 jobs:
