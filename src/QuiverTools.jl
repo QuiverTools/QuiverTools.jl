@@ -683,7 +683,7 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
 end
 
 """
-    all_HN_types(Q::Quiver, d, theta, denom=sum; ordered=true)
+    all_HN_types(Q::Quiver, d, theta, denom=sum; ordered::Bool=false)
 
 Returns a list of all the Harder Narasimhan types of representations of ``Q``
 with dimension vector ``d``, with respect to the slope function theta/denom.
@@ -1006,7 +1006,7 @@ function canonical_decomposition(Q::Quiver, d::AbstractVector{Int})
 end
 
 """
-    in_fundamental_domain(Q::Quiver, d; interior=false)
+    in_fundamental_domain(Q::Quiver, d; interior::Bool=false)
 
 Checks if the dimension vector ``d`` is in the fundamental domain of the quiver ``Q``.
 
@@ -1130,7 +1130,7 @@ function thin_dimension_vector(Q::Quiver)
 end
 
 """
-	all_subdimension_vectors(d::AbstractVector{Int})
+	all_subdimension_vectors(d::AbstractVector{Int}; nonzero::Bool=false, strict::Bool=false)
 
 Compute all subdimension vectors of a given dimension vector `d`.
 
