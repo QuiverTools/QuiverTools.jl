@@ -15,9 +15,11 @@ makedocs(;
   doctest=false,
   modules=[QuiverTools],
   format=Documenter.HTML(),
-  # builds pdf, does not like the github Documenter action for now.
-  # Use only in local build.
-  # format = Documenter.LaTeX(),
+
+  # Use the following two parameters for local pdf build.
+  # format=Documenter.LaTeX(),
+  # remotes=nothing,
+
   pages=["QuiverTools" => "index.md",
     "Tutorial" => "tutorial.md",
     "All methods" => "methods.md",
