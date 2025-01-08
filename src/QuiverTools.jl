@@ -42,8 +42,11 @@ export all_HN_types,
 # TODO add missing doctests across codebase.
 # TODO keyword arguments across codebase
 # TODO add safety checks everywhere in the codebase
+# TODO CamelCase files
+# TODO not capitalize names in functions
+# TODO use markdown for docstrings
 
-include("QuiverTools-types.jl")
+include("Types.jl")
 
 import Pkg
 
@@ -1294,9 +1297,9 @@ coerce_matrix(m::SMatrix) = m
 # Include all the submodules
 #######################################################
 
-include("constructors.jl")
-include("moduli.jl")
-include("teleman.jl")
+include("Constructors.jl")
+include("Moduli.jl")
+include("Teleman.jl")
 
 ######################
 # end of QuiverTools

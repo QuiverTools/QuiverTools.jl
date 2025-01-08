@@ -2,10 +2,10 @@ using JuliaFormatter
 
 files = [
   "src/QuiverTools.jl",
-  "src/QuiverTools-types.jl",
-  "src/teleman.jl",
-  "src/moduli.jl",
-  "src/constructors.jl",
+  "src/Types.jl",
+  "src/Teleman.jl",
+  "src/Moduli.jl",
+  "src/Constructors.jl",
   "docs/make.jl",
   "benchmark/benchmarks.jl",
   "test/runtests.jl",

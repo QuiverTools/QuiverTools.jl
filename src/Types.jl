@@ -83,6 +83,7 @@ function show(io::IO, Q::Quiver)
   print(io, Q.adjacency)
 end
 
+# TODO add docstrings to types
 abstract type QuiverModuli end
 
 # TODO consider this:
