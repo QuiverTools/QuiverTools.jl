@@ -86,7 +86,7 @@ function is_coprime(M::QuiverModuli)
 end
 
 """
-	all_HN_types(M::QuiverModuli; unstable::Bool = false, ordered::Bool = true)
+	all_HN_types(M::QuiverModuli; unstable::Bool=false, ordered::Bool=true)
 
 Returns all Harder-Narasimhan types of the moduli space.
 
@@ -257,7 +257,7 @@ function all_Luna_types(M::QuiverModuli; exclude_stable::Bool=false)
 end
 
 """
-    all_Luna_types(Q, d, theta, denom, exclude_stable)
+    all_Luna_types(Q::Quiver, d, theta, denom, exclude_stable)
 
 Computes all the possible Luna types for the given data.
 
@@ -646,7 +646,7 @@ end
 ###################################################
 
 """
-    Hodge_polynomial(Q, d, theta)
+    Hodge_polynomial(Q::Quiver, d, theta)
 
 Returns the Hodge polynomial of the moduli space of ``\\theta``-semistable
 representations of ``Q`` with dimension vector ``d``.
@@ -738,7 +738,7 @@ function Hodge_polynomial(M::QuiverModuliSpace)
 end
 
 """
-    Hodge_diamond(Q, d, theta)
+    Hodge_diamond(Q::Quiver, d, theta)
 
 Returns the Hodge diamond of the moduli space of
 ``\\theta``-semistable representations of ``Q`` with dimension vector ``d``.
@@ -900,7 +900,7 @@ end
 """
     Betti_numbers(M::QuiverModuliSpace)
 
-Returns the Betti numbers of the moduli space ``M``.
+Returns the Betti numbers of the moduli space `M`.
 
 INPUT:
 - ``M``: a moduli space of representations of a quiver.
@@ -1029,7 +1029,7 @@ function motive(M::QuiverModuliStack)
 end
 
 """
-    motive(Q, d, theta, denom)
+    motive(Q::Quiver, d, theta, denom=sum)
 
 Returns the motive of the moduli stack of ``\\theta``-semistable representations.
 
@@ -1142,7 +1142,7 @@ function symmetric_polynomial(vars, degree::Int)
 end
 
 """
-    Chow_ring(Q, d, theta; chi)
+    Chow_ring(Q::Quiver, d, theta; chi=extended_gcd(M.d)[2])
 
 Computes the Chow ring of the moduli space of ``\\theta``-semistable representations of
 ``Q`` with dimension vector ``d``, for a choice of linearization ``a``.
@@ -1351,7 +1351,7 @@ function extended_gcd(x)
 end
 
 """
-    Chern_class_line_bundle(M::QuiverModuliSpace, eta; chi)
+    Chern_class_line_bundle(M::QuiverModuliSpace, eta; chi=extended_gcd(M.d)[2])
 
 Returns the first Chern class of the line bundle L(eta).
 
@@ -1398,7 +1398,7 @@ function Chern_class_line_bundle(
 end
 
 """
-    Chern_character_line_bundle(M::QuiverModuliSpace, eta; chi)
+    Chern_character_line_bundle(M::QuiverModuliSpace, eta; chi=extended_gcd(M.d)[2])
 
 Returns the Chern character of the line bundle L(eta).
 
@@ -1439,7 +1439,7 @@ function Chern_character_line_bundle(
 end
 
 """
-    total_Chern_class_universal(M::QuiverModuliSpace, i; chi)
+    total_Chern_class_universal(M::QuiverModuliSpace, i; chi=extended_gcd(M.d)[2])
 
 Returns the total Chern class of the universal bundle ``U_i(\\chi)``.
 
@@ -1475,7 +1475,7 @@ function total_Chern_class_universal(
 end
 
 """
-    Chern_character_from_classes(M, classes; chi)
+    Chern_character_from_classes(M::QuiverModuliSpace, classes; chi=extended_gcd(M.d)[2])
 
 Returns the Chern character of a vector bundle
 with the given Chern classes.
@@ -1517,7 +1517,7 @@ end
 
 # TODO add tests
 """
-    Chern_character_universal_bundle(M, i; chi)
+    Chern_character_universal_bundle(M::QuiverModuliSpace, i; chi=extended_gcd(M.d)[2])
 
 Returns the Chern character of the universal bundle ``\\mathcal{U}_i``
 on the given moduli space ``M``.
@@ -1533,7 +1533,7 @@ function Chern_character_universal_bundle(
 end
 
 """
-    dual_Chern_character(M, p; chi)
+    dual_Chern_character(M::QuiverModuliSpace, p; chi=extended_gcd(M.d)[2])
 
 Returns the dual Chern character of a polynomial ``p`` on the quiver moduli ``M``.
 This is the original character with the signs of monomials of odd degree reversed.
@@ -1582,7 +1582,7 @@ function dual_Chern_character(
 end
 
 """
-    point_class(M::QuiverModuliSpace; chi)
+    point_class(M::QuiverModuliSpace; chi=extended_gcd(M.d)[2])
 
 Returns the point class of the moduli space ``M``.
 
@@ -1638,7 +1638,7 @@ x23^2
 end
 
 """
-    Todd_class(M::QuiverModuliSpace; chi)
+    Todd_class(M::QuiverModuliSpace; chi==extended_gcd(M.d)[2])
 
 Returns the Todd class of the moduli space ``M``.
 
@@ -1729,7 +1729,7 @@ julia> Todd_class(M)
 end
 
 """
-    integral(M, f; chi)
+    integral(M::QuiverModuliSpace, f; chi=extended_gcd(M.d)[2])
 
 Computes the integral of `f` according to the Hirzebruch-Riemann-Roch theorem.
 
@@ -1823,7 +1823,7 @@ function pullback_from_quotient(R, f)
 end
 
 """
-    __Chow_ring__monomial_grading(M, f)
+    __Chow_ring__monomial_grading(M::QuiverModuliSpace, f)
 
 Returns the "pseudodegree" of the monomial `f` in the Chow ring of the moduli
 space `M` passed.
