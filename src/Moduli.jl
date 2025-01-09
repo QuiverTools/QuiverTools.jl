@@ -5,8 +5,8 @@ export Hodge_diamond, Hodge_polynomial, Picard_rank
 export chow_ring,
   motive,
   index,
-  Betti_numbers,
-  Poincare_polynomial,
+  betti_numbers,
+  poincare_polynomial,
   is_smooth,
   is_projective,
   semisimple_moduli_space,
@@ -888,7 +888,7 @@ function Picard_rank(M::QuiverModuliSpace)
   if !(is_smooth(M) && is_projective(M))
     throw(ArgumentError("Moduli space is not smooth and projective"))
   end
-  return Betti_numbers(M)[3]
+  return betti_numbers(M)[3]
 end
 
 """
@@ -940,7 +940,7 @@ function index(M::QuiverModuliSpace)
 end
 
 """
-    Betti_numbers(M::QuiverModuliSpace)
+    betti_numbers(M::QuiverModuliSpace)
 
 Returns the Betti numbers of the moduli space `M`.
 
@@ -959,7 +959,7 @@ julia> Q = kronecker_quiver(2);
 
 julia> M = QuiverModuliSpace(Q, [1, 1]);
 
-julia> Betti_numbers(M)
+julia> betti_numbers(M)
 3-element Vector{Int64}:
  1
  0
@@ -972,7 +972,7 @@ julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> Betti_numbers(M)
+julia> betti_numbers(M)
 13-element Vector{Int64}:
  1
  0
@@ -989,13 +989,13 @@ julia> Betti_numbers(M)
  1
 ```
 """
-function Betti_numbers(M::QuiverModuliSpace)
+function betti_numbers(M::QuiverModuliSpace)
   if !is_coprime(M.d, M.theta)
     throw(ArgumentError("d and theta are not coprime"))
   end
 
   N = dimension(M)
-  P = Poincare_polynomial(M)
+  P = poincare_polynomial(M)
   coeff = Int.(numerator.(Singular.coefficients(P)))
   betti = reduce(vcat, [c, 0] for c in coeff[1:(end - 1)])
   push!(betti, coeff[end])
@@ -1009,7 +1009,7 @@ function Betti_numbers(M::QuiverModuliSpace)
 end
 
 """
-    Poincare_polynomial(M::QuiverModuliSpace)
+    poincare_polynomial(M::QuiverModuliSpace)
 
 Returns the Poincaré polynomial of the moduli space `M`.
 
@@ -1029,7 +1029,7 @@ julia> Q = kronecker_quiver(2);
 
 julia> M = QuiverModuliSpace(Q, [1, 1]);
 
-julia> Poincare_polynomial(M)
+julia> poincare_polynomial(M)
 L + 1
 ```
 
@@ -1039,11 +1039,11 @@ julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> Poincare_polynomial(M)
+julia> poincare_polynomial(M)
 L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1
 ```
 """
-function Poincare_polynomial(M::QuiverModuliSpace)
+function poincare_polynomial(M::QuiverModuliSpace)
   if !is_coprime(M.d, M.theta)
     throw(ArgumentError("d and theta are not coprime"))
   end
