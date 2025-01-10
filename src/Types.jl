@@ -91,6 +91,7 @@ function show(io::IO, Q::Quiver)
 end
 
 mutable struct ChowRing
+  parent::Any
   ring::Singular.PolyRing{Singular.n_Q}
   chi::AbstractVector{Int}
   point::Union{Singular.spoly{Singular.n_Q},UndefInitializer}
@@ -99,14 +100,21 @@ mutable struct ChowRing
   _inclusion::Singular.SAlgHom{Singular.Rationals}
   ChowRing() = new()
 end
+
 function show(io::IO, chow::ChowRing)
+  rng = isdefined(chow, :ring) ? chow.ring : UndefInitializer()
+  ch = isdefined(chow, :chi) ? chow.chi : UndefInitializer()
   pt = isdefined(chow, :point) ? chow.point : UndefInitializer()
   td = isdefined(chow, :todd) ? chow.todd : UndefInitializer()
-  msg = print(
+  print(
     io,
-    "Intersection theory data:
- - Chow ring: $(chow.ring),
- - Linearization: $(chow.chi),
+    "Chow ring on
+  $(chow.parent)
+
+  Intersection theory data:
+
+ - Chow ring: $(rng),
+ - Linearization: $(ch),
  - Point class: $(pt),
  - Todd class: $(td).
     ",
@@ -160,23 +168,24 @@ struct QuiverModuliSpace <: QuiverModuli
   condition::String
   denom::Function
   chow::ChowRing
-
-  function QuiverModuliSpace(
-    Q::Quiver,
-    d::AbstractVector{Int},
-    theta::AbstractVector{Int}=canonical_stability(Q, d),
-    condition::String="semistable",
-    denom::Function=sum,
-  )
-    if condition in ["stable", "semistable"] &&
-      length(d) == nvertices(Q) &&
-      length(theta) == nvertices(Q)
-      d = coerce_vector(d)
-      theta = coerce_vector(theta)
-      return new(Q, d, theta, condition, denom, ChowRing())
-    end
-    throw(DomainError("Invalid input"))
+end
+function QuiverModuliSpace(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector{Int}=canonical_stability(Q, d),
+  condition::String="semistable",
+  denom::Function=sum,
+)
+  if condition in ["stable", "semistable"] &&
+    length(d) == nvertices(Q) &&
+    length(theta) == nvertices(Q)
+    d = coerce_vector(d)
+    theta = coerce_vector(theta)
+    M = QuiverModuliSpace(Q, d, theta, condition, denom, ChowRing())
+    setfield!(M.chow, :parent, M)
+    return M
   end
+  throw(DomainError("Invalid input"))
 end
 
 """
