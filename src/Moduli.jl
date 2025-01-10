@@ -1339,7 +1339,7 @@ function chow_ring(
 end
 
 """
-    chow_ring(M::QuiverModuliSpace; chi)
+    chow_ring(M::QuiverModuliSpace; chi=undef)
 
 Computes the Chow ring of the moduli space `M` for the given linearization `chi`.
 
@@ -1437,7 +1437,7 @@ function extended_gcd(x)
 end
 
 """
-    chern_class_line_bundle(M::QuiverModuliSpace, eta; chi=extended_gcd(M.d)[2])
+    chern_class_line_bundle(M::QuiverModuliSpace, eta)
 
 Returns the first Chern class of the line bundle L(eta).
 
@@ -1485,7 +1485,7 @@ function chern_class_line_bundle(
 end
 
 """
-    chern_character_line_bundle(M::QuiverModuliSpace, eta; chi=extended_gcd(M.d)[2])
+    chern_character_line_bundle(M::QuiverModuliSpace, eta)
 
 Returns the Chern character of the line bundle L(eta).
 
@@ -1527,7 +1527,7 @@ function chern_character_line_bundle(
 end
 
 """
-    total_chern_class_universal(M::QuiverModuliSpace, i; chi=extended_gcd(M.d)[2])
+    total_chern_class_universal(M::QuiverModuliSpace, i)
 
 Returns the total Chern class of the universal bundle ``U_i(\\chi)``.
 
@@ -1565,7 +1565,7 @@ function total_chern_class_universal(
 end
 
 """
-    chern_character_from_classes(M::QuiverModuliSpace, classes; chi=extended_gcd(M.d)[2])
+    chern_character_from_classes(M::QuiverModuliSpace, classes)
 
 Returns the Chern character of a vector bundle
 with the given Chern classes.
@@ -1607,7 +1607,7 @@ end
 
 # TODO add tests
 """
-    chern_character_universal_bundle(M::QuiverModuliSpace, i; chi=extended_gcd(M.d)[2])
+    chern_character_universal_bundle(M::QuiverModuliSpace, i)
 
 Returns the Chern character of the universal bundle ``\\mathcal{U}_i``
 on the given moduli space `M`.
@@ -1622,7 +1622,7 @@ function chern_character_universal_bundle(
 end
 
 """
-    dual_chern_character(M::QuiverModuliSpace, p; chi=extended_gcd(M.d)[2])
+    dual_chern_character(M::QuiverModuliSpace, p)
 
 Returns the dual Chern character of a polynomial `p` on the quiver moduli `M`.
 This is the original character with the signs of monomials of odd degree reversed.
@@ -1672,7 +1672,7 @@ function dual_chern_character(
 end
 
 """
-    point_class(M::QuiverModuliSpace; chi=extended_gcd(M.d)[2])
+    point_class(M::QuiverModuliSpace)
 
 Returns the point class of the moduli space `M`.
 
@@ -1734,7 +1734,7 @@ function point_class(
 end
 
 """
-    todd_class(M::QuiverModuliSpace; chi==extended_gcd(M.d)[2])
+    todd_class(M::QuiverModuliSpace)
 
 Returns the Todd class of the moduli space `M`.
 
@@ -1833,7 +1833,7 @@ function todd_class(
 end
 
 """
-    integral(M::QuiverModuliSpace, f; chi=extended_gcd(M.d)[2])
+    integral(M::QuiverModuliSpace, f)
 
 Computes the integral of `f` according to the Hirzebruch-Riemann-Roch theorem.
 
@@ -1897,7 +1897,6 @@ function integral(M::QuiverModuliSpace, f)
   )
 
   integ = div(integrand, point_class(M))
-  # coercion to Int
   return Singular.constant_coefficient(integ)
 end
 
