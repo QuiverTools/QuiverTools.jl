@@ -42,7 +42,7 @@ export all_hn_types,
 # TODO add missing doctests across codebase.
 # TODO keyword arguments across codebase
 # TODO add safety checks everywhere in the codebase
-# TODO not capitalize names in functions
+# TODO test nested functions
 
 include("Types.jl")
 
@@ -71,7 +71,7 @@ function _print_banner()
   printstyled(raw"""        | |/ _ \/ _ \ (_-<"""; color=:yellow)
   println("   |  Version $(VERSION_NUMBER)")
   printstyled(raw"""        |_|\___/\___/_/__/"""; color=:yellow)
-  println("   |")
+  return println("   |")
 end
 
 function __init__()
@@ -79,7 +79,7 @@ function __init__()
     _print_banner()
   end
 
-  nothing
+  return nothing
 end
 
 function deglex_key(Q::Quiver, e::AbstractVector{Int})::Int
