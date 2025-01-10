@@ -90,6 +90,29 @@ function show(io::IO, Q::Quiver)
   print(io, Q.adjacency)
 end
 
+mutable struct ChowRing
+  ring::Singular.PolyRing{Singular.n_Q}
+  chi::AbstractVector{Int}
+  point::Union{Singular.spoly{Singular.n_Q},UndefInitializer}
+  todd::Union{Singular.spoly{Singular.n_Q},UndefInitializer}
+  _R::Singular.PolyRing{Singular.n_Q}
+  _inclusion::Singular.SAlgHom{Singular.Rationals}
+  ChowRing() = new()
+end
+function show(io::IO, chow::ChowRing)
+  pt = isdefined(chow, :point) ? chow.point : UndefInitializer()
+  td = isdefined(chow, :todd) ? chow.todd : UndefInitializer()
+  msg = print(
+    io,
+    "Intersection theory data:
+ - Chow ring: $(chow.ring),
+ - Linearization: $(chow.chi),
+ - Point class: $(pt),
+ - Todd class: $(td).
+    ",
+  )
+end
+
 """
 # Summary
 
@@ -136,6 +159,7 @@ struct QuiverModuliSpace <: QuiverModuli
   theta::AbstractVector{Int}
   condition::String
   denom::Function
+  chow::ChowRing
 
   function QuiverModuliSpace(
     Q::Quiver,
@@ -149,7 +173,7 @@ struct QuiverModuliSpace <: QuiverModuli
       length(theta) == nvertices(Q)
       d = coerce_vector(d)
       theta = coerce_vector(theta)
-      return new(Q, d, theta, condition, denom)
+      return new(Q, d, theta, condition, denom, ChowRing())
     end
     throw(DomainError("Invalid input"))
   end
