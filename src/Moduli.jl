@@ -1714,6 +1714,7 @@ function point_class(
     return M.chow.point
   end
 
+  CH = chow_ring(M)
   num = 1
   den = 1
   N = dimension(M)
@@ -1727,10 +1728,30 @@ function point_class(
   quot = div(num, den)
   pt = sum(
     term for term in Singular.terms(quot) if __chow_ring_monomial_grading(M, term) == N;
-    init=0,
+    init=CH(0),
   )
   setfield!(M.chow, :point, pt)
   return M.chow.point
+end
+
+
+"""
+We call the series ``Q(t) = t/(1-e^{-t})`` the Todd generating series.
+The function computes the terms of this series up to degree n.
+We use this instead of the more conventional notation `Q` to avoid a
+clash with the notation for the quiver.
+"""
+function todd_Q(t, n)
+  return sum((-1)^i * (Nemo.bernoulli(i) * t^i) / factorial(i) for i in 0:n)
+end
+
+# TODO rewrite this with in-place operations.
+"""
+Takes an element in a graded ring and discards all homogeneous components
+of degree > n
+"""
+function truncate(f, n)
+  return sum(term for term in Singular.terms(f) if Singular.total_degree(term) <= n)
 end
 
 """
@@ -1764,26 +1785,8 @@ function todd_class(
     return M.chow.todd
   end
 
-  """
-  We call the series ``Q(t) = t/(1-e^{-t})`` the Todd generating series.
-  The function computes the terms of this series up to degree n.
-  We use this instead of the more conventional notation `Q` to avoid a
-  clash with the notation for the quiver.
-  """
-  function todd_Q(t, n)
-    return sum((-1)^i * (Nemo.bernoulli(i) * t^i) / factorial(i) for i in 0:n)
-  end
-
-  """
-  Takes an element in a graded ring and discards all homogeneous components
-  of degree > n
-  """
-  function truncate(f, n)
-    return sum(term for term in Singular.terms(f) if Singular.total_degree(term) <= n)
-  end
-
   N = dimension(M)
-  # TODO rewrite this with in-place operations
+  # consider these constructors: https://nemocas.github.io/AbstractAlgebra.jl/latest/mpolynomial/#Polynomial-functions
   A = chow_ring(M)
   R, inclusion = M.chow._R, M.chow._inclusion
   Rvars = gens(R)
@@ -1799,7 +1802,7 @@ function todd_class(
     i, j = a
     for p in 1:M.d[i]
       for q in 1:M.d[j]
-        num *= todd_Q(xi(j, q) - xi(i, p), N)
+        num *= todd_Q(xi(j, q) - xi(i, p), N) # test mul!
         num = truncate(num, N)
       end
     end
