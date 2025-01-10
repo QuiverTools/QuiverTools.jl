@@ -1220,7 +1220,7 @@ The Chow ring for the projective line has two generators:
 ```jldoctest
 julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
-julia> CH = chow_ring(M)[1];
+julia> CH = chow_ring(M);
 
 julia> QuiverTools.gens(QuiverTools.quotient_ideal(CH))
 2-element Vector{Singular.spoly{Singular.n_Q}}:
@@ -1232,7 +1232,7 @@ The Chow ring for our favourite 6-fold has, in this implementation, 16 generator
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> CH = chow_ring(M)[1]; I = QuiverTools.quotient_ideal(CH);
+julia> CH = chow_ring(M); I = QuiverTools.quotient_ideal(CH);
 
 julia> length(QuiverTools.gens(I))
 16
@@ -1584,7 +1584,7 @@ with the given Chern classes.
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> CH, CHvars = chow_ring(M);
+julia> CH = chow_ring(M); CHvars = QuiverTools.gens(CH);
 
 julia> u1 = QuiverTools.chern_character_from_classes(M, CHvars[1:2])
 1//720*x11^6 + 1//120*x11^5 - 1//120*x11^4*x12 + 1//24*x11^4 - 1//24*x11^3*x12 + 1//80*x11^2*x12^2 + 1//6*x11^3 - 1//6*x11^2*x12 + 1//24*x11*x12^2 - 1//360*x12^3 + 1//2*x11^2 - 1//2*x11*x12 + 1//12*x12^2 + x11 - x12 + 2
@@ -1641,7 +1641,7 @@ This is the original character with the signs of monomials of odd degree reverse
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> CH, CHvars = chow_ring(M);
+julia> CH = chow_ring(M); CHvars = QuiverTools.gens(CH);
 
 julia> p = sum(CHvars)
 x11 + x12 + x21 + x22 + x23
@@ -1655,7 +1655,7 @@ This function coerces `p` in the Chow ring of `M` as provided.
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> CH, CHvars = chow_ring(M);
+julia> CH = chow_ring(M); CHvars = QuiverTools.gens(CH);
 
 julia> p = 2;
 
@@ -1693,7 +1693,7 @@ julia> Q = kronecker_quiver(8);
 
 julia> M = QuiverModuliSpace(Q, [1, 1]);
 
-julia> point_class(M; chi=[1, 0])
+julia> chow_ring(M; chi=[1, 0]); point_class(M)
 x21^7
 ```
 
@@ -1860,7 +1860,7 @@ julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 julia> L = chern_character_line_bundle(M, [1, -1]);
 
 julia> [integral(M, L^i) for i in 0:5]
-6-element Vector{Int64}:
+6-element Vector{Singular.n_Q}:
  1
  2
  3
@@ -1877,11 +1877,11 @@ julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 julia> L = chern_character_line_bundle(M, [3, -2]);
 
 julia> [integral(M, L^i) for i in 0:5]
-6-element Vector{Int64}:
-    1
-   20
-  148
-  664
+6-element Vector{Singular.n_Q}:
+ 1
+ 20
+ 148
+ 664
  2206
  5999
 ```
