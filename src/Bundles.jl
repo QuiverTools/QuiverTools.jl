@@ -55,6 +55,39 @@ variety(F::Bundle) = F.parent.parent
 
 Return the dual bundle of `F`.
 
+# Example
+
+On the projective line:
+
+```jldoctest
+julia> Q = kronecker_quiver(2); d = [1, 1]; a = [1, 0];
+
+julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=a);
+
+julia> td = Bundle(M, todd_class(M))
+Bundle of rank 1, with Chern character
+x21 + 1
+
+julia> dual(td)
+Bundle of rank 1, with Chern character
+-x21 + 1
+```
+
+On our favourite 6-fold:
+
+```jldoctest
+julia> Q, d = kronecker_quiver(3), [2, 3];
+
+julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=[-1, 1]);
+
+julia> td = Bundle(M, todd_class(M))
+Bundle of rank 1, with Chern character
+-17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
+
+
+julia> dual(td)
+Bundle of rank 1, with Chern character
+17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 + 77//60*x22*x23 + x23^2 + 5//12*x12 + 3//2*x21 - 9//8*x23 + 1
 ```
 """
 function dual(F::Bundle)
@@ -89,6 +122,37 @@ end
     exterior_power(F::Bundle, k::Int)
 
 Return the `k`-th exterior power of `F`.
+
+# Example
+
+On the projective line:
+
+```jldoctest
+julia> Q = kronecker_quiver(2); d = [1, 1]; a = [1, 0];
+
+julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=a);
+
+julia> td = Bundle(M, todd_class(M))
+Bundle of rank 1, with Chern character
+x21 + 1
+
+julia> F = 3*td
+Bundle of rank 3, with Chern character
+3*x21 + 3
+
+julia> map(i -> exterior_power(F, i), 0:4)
+5-element Vector{Bundle}:
+ Bundle of rank 1, with Chern character
+1
+ Bundle of rank 3, with Chern character
+3*x21 + 3
+ Bundle of rank 3, with Chern character
+6*x21 + 3
+ Bundle of rank 1, with Chern character
+3*x21 + 1
+ Bundle of rank 0, with Chern character
+0
+```
 """
 function exterior_power(F::Bundle, k::Int)
   return Bundle(F.parent, _chern_characters_wedge(F, k)[end])
@@ -99,6 +163,33 @@ det(F::Bundle) = exterior_power(F, F.rank)
     symmetric_power(F::Bundle, k::Int)
 
 Return the `k`-th symmetric power of `F`.
+
+# Example
+
+On the projective line:
+
+```jldoctest
+julia> Q = kronecker_quiver(2); d = [1, 1]; a = [1, 0];
+
+julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=a);
+
+julia> td = Bundle(M, todd_class(M)); F = 3*td
+Bundle of rank 3, with Chern character
+3*x21 + 3
+
+julia> map(i -> symmetric_power(F, i), 0:4)
+5-element Vector{Bundle}:
+ Bundle of rank 1, with Chern character
+1
+ Bundle of rank 3, with Chern character
+3*x21 + 3
+ Bundle of rank 6, with Chern character
+12*x21 + 6
+ Bundle of rank 10, with Chern character
+30*x21 + 10
+ Bundle of rank 15, with Chern character
+60*x21 + 15
+```
 """
 function symmetric_power(F::Bundle, k::Int)
   return Bundle(F.parent, _chern_characters_symmetric(F, k)[end])
