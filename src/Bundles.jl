@@ -58,7 +58,7 @@ Return the dual bundle of `F`.
 ```
 """
 function dual(F::Bundle)
-  return Bundle(F.parent, adams(chern_character(F), -1))
+  return Bundle(F.parent, adams(F, -1))
 end
 
 *(n::Int, F::Bundle) = Bundle(F.parent, n * chern_character(F))
