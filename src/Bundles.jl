@@ -171,7 +171,7 @@ function _chern_characters_symmetric(F::Bundle, k)
   for j in 2:k
     syms[j + 1] = truncate(M,
       sum(
-        (-CH(1))^(i + 1) * wedges[i + 1] * syms[j - i + 1] for i in 1:minimum(j, r);
+        (-CH(1))^(i + 1) * wedges[i + 1] * syms[j - i + 1] for i in 1:min(j, r);
         init=CH(0),
       ),
       n)
