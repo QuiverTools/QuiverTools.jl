@@ -1333,6 +1333,7 @@ coerce_matrix(m::SMatrix) = m
 include("Constructors.jl")
 include("Moduli.jl")
 include("Teleman.jl")
+include("Bundles.jl")
 
 ######################
 # end of QuiverTools

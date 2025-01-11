@@ -1734,7 +1734,6 @@ function point_class(
   return M.chow.point
 end
 
-
 """
 We call the series ``Q(t) = t/(1-e^{-t})`` the Todd generating series.
 The function computes the terms of this series up to degree n.
