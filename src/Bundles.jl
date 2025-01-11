@@ -139,7 +139,7 @@ function _chern_characters_wedge(F::Bundle, k)
 
   for j in 2:k
     wedges[j + 1] =
-      1//j * truncate(M,
+      CH(1//j) * truncate(M,
         sum(
           (-CH(1))^(j - i + 1) * wedges[i + 1] * adams(F, j - i) for i in 0:(j - 1);
           init=CH(0),
