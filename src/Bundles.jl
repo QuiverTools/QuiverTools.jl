@@ -45,6 +45,7 @@ Bundle(M::QuiverModuliSpace, chern) = Bundle(M.chow, chern)
 chern_character(F::Bundle) = F.chern
 chow_ring(F::Bundle) = F.parent.ring
 variety(F::Bundle) = F.parent.parent
+structure_sheaf(M::QuiverModuliSpace) = Bundle(M, 1)
 
 ##############################
 # Operations on Bundle objects
