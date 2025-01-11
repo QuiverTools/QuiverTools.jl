@@ -1802,7 +1802,7 @@ function todd_class(
     i, j = a
     for p in 1:M.d[i]
       for q in 1:M.d[j]
-        num *= todd_Q(xi(j, q) - xi(i, p), N) # test mul!
+        num *= todd_Q(xi(j, q) - xi(i, p), N)
         num = truncate(num, N)
       end
     end
