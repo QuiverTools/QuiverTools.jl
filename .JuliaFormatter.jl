@@ -6,6 +6,7 @@ files = [
   "src/Teleman.jl",
   "src/Moduli.jl",
   "src/Constructors.jl",
+  "src/Bundles.jl",
   "docs/make.jl",
   "benchmark/benchmarks.jl",
   "test/runtests.jl",
