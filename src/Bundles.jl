@@ -5,7 +5,8 @@
 import Base: *, +, -, ^
 
 export Bundle,
-  chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power, det
+  chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power, det,
+  canonical_bundle, degree
 
 """
 # Summary
@@ -113,7 +114,7 @@ end
 function show(io::IO, F::Bundle)
   print(
     io,
-    "Bundle of rank $(rank(F)).",
+    "Bundle of rank $(rank(F))",
   )
 end
 
@@ -296,7 +297,11 @@ end
 
 function homogeneous_components(M::QuiverModuliSpace, x)
   n = dimension(M)
+  CH = chow_ring(M)
   return [
+    sum(
+      t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) == i; init=CH(0)
+    )
     for
     i in 0:n
   ]
@@ -417,4 +422,67 @@ simplify(f::Singular.spoly{Singular.n_Q}) = div(f, f.parent(1))
 function simplify!(f::Singular.spoly{Singular.n_Q})
   f = div(f, f.parent(1))
   return f
+end
+
+"""
+    canonical_bundle(M::QuiverModuliSpace)
+
+Return the canonical bundle on the quiver moduli space `M`.
+
+If ``d`` is ``theta``-coprime and amply stable, the canonical bundle
+is described in [Proposition 4.2, MR4352662](https://mathscinet.ams.org/mathscinet-getitem?mr=4352662).
+
+# Example
+
+On the projective line:
+
+```jldoctest
+julia> Q = kronecker_quiver(2); d = [1, 1];
+
+julia> M = QuiverModuliSpace(Q, d); chow_ring(M);
+
+julia> F = canonical_bundle(M)
+Bundle of rank 1
+
+julia> chern_class(F)
+-2*x21
+
+julia> degree(F)
+-2
+```
+"""
+function canonical_bundle(M::QuiverModuliSpace)
+  !(is_coprime(M) && is_amply_stable(M)) && throw(DomainError(""))
+  cl_omega = chern_class_line_bundle(M, -canonical_stability(M.Q, M.d))
+  return Bundle(M, 1, cl_omega)
+end
+
+"""
+    degree(F::Bundle)
+
+Return the degree of the bundle `F`.
+If `rank(F)` is larger than ``1``, returns the degree of the determinant of `F`.
+
+# Example
+
+An example from [arXiv:2411.15125](https://arxiv.org/abs/2411.15125):
+
+```jldoctest
+julia> Q = Quiver("1-2,1-3,2---3"); d = [1, 1, 1]; a = [1, 1, -1];
+
+julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=a);
+
+julia> F = dual(canonical_bundle(M))
+Bundle of rank 1.
+
+julia> chern_class(F)
+2*x31 + 1
+
+julia> degree(F)
+56
+"""
+function degree(F::Bundle)
+  M = variety(F)
+  n = dimension(M)
+  return div(homogeneous_components(M, chern_class(det(F))^n)[n + 1], point_class(M))
 end
