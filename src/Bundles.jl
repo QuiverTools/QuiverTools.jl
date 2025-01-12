@@ -23,26 +23,42 @@ its Chern character.
 struct Bundle
   parent::ChowRing
   rank::Int
-  chern::Singular.spoly{Singular.n_Q}
+  chern_character::Singular.spoly{Singular.n_Q}
+  chern_class::Singular.spoly{Singular.n_Q}
   # teleman_weights::Dict{Vector{Any}, Union{Int, Vector{Int}}} # TODO implement
 end
 
 function show(io::IO, F::Bundle)
   print(
     io,
-    "Bundle of rank $(F.rank), with Chern character
-$(F.chern)",
+    "Bundle of rank $(rank(F)), with Chern character
+$(F.chern_character)",
   )
 end
 
-function Bundle(parent::ChowRing, chern::Singular.spoly{Singular.n_Q})
-  r = Int(numerator(QuiverTools.constant_coefficient(chern)))
-  return Bundle(parent, r, chern)
+function Bundle(parent::ChowRing, chern_character::Singular.spoly{Singular.n_Q})
+  r = Int(numerator(QuiverTools.constant_coefficient(chern_character)))
+  return Bundle(parent, r, chern_character)
 end
-Bundle(parent::ChowRing, chern::Int) = Bundle(parent, chern, parent.ring(chern))
-Bundle(M::QuiverModuliSpace, chern) = Bundle(M.chow, chern)
+Bundle(parent::ChowRing, char::Int) = Bundle(parent, char, parent.ring(char))
+Bundle(M::QuiverModuliSpace, char) = Bundle(M.chow, char)
 
-chern_character(F::Bundle) = F.chern
+rank(F::Bundle) = F.rank
+chern_character(F::Bundle) = F.chern_character
+
+function chern_classes(F::Bundle)
+  !isdefined(F, :chern_class) && setfield!(F, :chern_class, _chern_classes_from_character(F))
+  return F.chern_class
+end
+function chern_class(F::Bundle)
+  !isdefined(F, :chern_class) && setfield!(F, :chern_class, _chern_classes_from_character(F))
+  return sum(chern_classes(F))
+end
+
+function chern_class(F::Bundle, k)
+  !isdefined(F, :chern_class) && setfield!(F, :chern_class, _chern_classes_from_character(F))
+  return chern_classes(F)[k+1]
+end
 chow_ring(F::Bundle) = F.parent.ring
 variety(F::Bundle) = F.parent.parent
 structure_sheaf(M::QuiverModuliSpace) = Bundle(M, 1)
@@ -158,7 +174,7 @@ julia> map(i -> exterior_power(F, i), 0:4)
 function exterior_power(F::Bundle, k::Int)
   return Bundle(F.parent, _chern_characters_wedge(F, k)[end])
 end
-det(F::Bundle) = exterior_power(F, F.rank)
+det(F::Bundle) = exterior_power(F, rank(F))
 
 """
     symmetric_power(F::Bundle, k::Int)
@@ -253,7 +269,7 @@ function _chern_characters_symmetric(F::Bundle, k)
   M = variety(F)
   n = dimension(M)
   CH = chow_ring(F)
-  r = F.rank
+  r = rank(F)
 
   wedges = _chern_characters_wedge(F, r)
   # init as CH(0) for type stability
@@ -283,4 +299,20 @@ function adams(F::Bundle, k)
   x = chern_character(F)
 
   return [k^i for i in 0:n]' * homogeneous_components(M, x)
+end
+
+
+function _chern_classes_from_character(F::Bundle)
+  CH = chow_ring(F)
+  M = variety(F)
+  n = dimension(M)
+  comps = homogeneous_components(M, chern_character(F))
+  p = [(CH(-1))^i * factorial(CH(i)) * comps[i+1] for i in 0:n]
+  e = [CH(0) for _ in n+1]
+  e[1] = CH(1)
+  for i in 1:n
+    e[i+1] = CH(-1//i) * sum(p[j+1] * e[i-j+1] for j in 1:i)
+    # e[i+1] = div(e[i+1], CH(1)) # simplify
+  end
+  return e
 end
