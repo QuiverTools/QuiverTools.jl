@@ -4,12 +4,13 @@
 
 import Base: *, +, -, ^
 
-export Bundle, chern_character, dual, exterior_power, symmetric_power, det
+export Bundle,
+  chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power, det
 
 """
 # Summary
 
-`struct Bundle`
+`mutable struct Bundle`
 
 An abstract bundle on a quiver moduli. It is represented in practice by
 its Chern character.
@@ -19,45 +20,128 @@ its Chern character.
 `parent :: ChowRing`\\
 `rank   :: Int`\\
 `chern  :: Singular.spoly{Singular.n_Q}`
+
+
 """
-struct Bundle
+mutable struct Bundle
   parent::ChowRing
   rank::Int
-  chern_character::Singular.spoly{Singular.n_Q}
-  chern_class::Singular.spoly{Singular.n_Q}
+  chern_character::Union{Singular.spoly{Singular.n_Q},UndefInitializer}
+  chern_class::Union{Dict{Int,Singular.spoly{Singular.n_Q}},UndefInitializer}
   # teleman_weights::Dict{Vector{Any}, Union{Int, Vector{Int}}} # TODO implement
+  Bundle() = new()
+end
+function Bundle(
+  parent::ChowRing, rank::Int, chern_classes::Vector{Singular.spoly{Singular.n_Q}}
+)
+  n = dimension(parent.parent)
+  newbundle = Bundle()
+  setfield!(newbundle, :parent, parent)
+  setfield!(newbundle, :rank, rank)
+  cl = Dict{Int, Singular.spoly{Singular.n_Q}}(i => chern_classes[i + 1] for i in 0:n)
+  setfield!(newbundle, :chern_class, cl)
+  return newbundle
+end
+
+function Bundle(parent::ChowRing, rank::Int, chern_class::Singular.spoly{Singular.n_Q})
+  n = dimension(parent.parent)
+  newbundle = Bundle()
+  setfield!(newbundle, :parent, parent)
+  setfield!(newbundle, :rank, rank)
+  hom = homogeneous_components(parent.parent, chern_class)
+  cl = Dict{Int, Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:n)
+  setfield!(newbundle, :chern_class, cl)
+  return newbundle
+end
+
+function Bundle(parent::ChowRing, chern_character::Singular.spoly{Singular.n_Q})
+  r = constant_coefficient(chern_character)
+  denominator(r) != 1 && throw(DomainError("Incorrect Chern character."))
+  newbundle = Bundle()
+  setfield!(newbundle, :parent, parent)
+  setfield!(newbundle, :rank, Int(Singular.numerator(r)))
+  setfield!(newbundle, :chern_character, chern_character)
+  return newbundle
+end
+function Bundle(parent::ChowRing, char::Int)
+  CH = parent.ring
+  newbundle = Bundle()
+  setfield!(newbundle, :parent, parent)
+  setfield!(newbundle, :rank, char)
+  setfield!(newbundle, :chern_character, CH(char))
+  return newbundle
+end
+
+
+
+function Bundle(M::QuiverModuliSpace, char::Singular.spoly{Singular.n_Q})
+  newbundle = Bundle()
+  setfield!(newbundle, :parent, M.chow)
+  r = constant_coefficient(char)
+  denominator(r) != 1 && throw(DomainError("Incorrect Chern character."));
+  setfield!(newbundle, :rank, Int(Singular.numerator(r)))
+  setfield!(newbundle, :chern_character, char)
+  return newbundle
+end
+
+function Bundle(M::QuiverModuliSpace, rank::Int, x::Singular.spoly{Singular.n_Q})
+  newbundle = Bundle()
+  setfield!(newbundle, :parent, M.chow)
+  setfield!(newbundle, :rank, rank)
+  hom = homogeneous_components(M, x)
+  cl = Dict{Int, Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
+  setfield!(newbundle, :chern_class, cl)
+  return newbundle
+end
+
+function Bundle(M::QuiverModuliSpace, rank::Int, x::Dict{Int, Singular.spoly{Singular.n_Q}})
+  newbundle = Bundle()
+  setfield!(newbundle, :parent, M.chow)
+  setfield!(newbundle, :rank, rank)
+  setfield!(newbundle, :chern_class, x)
+  return newbundle
+end
+
+function Bundle(M::QuiverModuliSpace, rank::Int, x::Vector{Singular.spoly{Singular.n_Q}})
+  newbundle = Bundle()
+  setfield!(newbundle, :parent, M.chow)
+  setfield!(newbundle, :rank, rank)
+  hom = homogeneous_components(M, sum(x))
+  cl = Dict{Int, Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
+  setfield!(newbundle, :chern_class, x)
+  return newbundle
 end
 
 function show(io::IO, F::Bundle)
   print(
     io,
-    "Bundle of rank $(rank(F)), with Chern character
-$(F.chern_character)",
+    "Bundle of rank $(rank(F)).",
   )
 end
 
-function Bundle(parent::ChowRing, chern_character::Singular.spoly{Singular.n_Q})
-  r = Int(numerator(QuiverTools.constant_coefficient(chern_character)))
-  return Bundle(parent, r, chern_character)
-end
-Bundle(parent::ChowRing, char::Int) = Bundle(parent, char, parent.ring(char))
-Bundle(M::QuiverModuliSpace, char) = Bundle(M.chow, char)
-
 rank(F::Bundle) = F.rank
-chern_character(F::Bundle) = F.chern_character
+
+function chern_character(F::Bundle)
+  !isdefined(F, :chern_character) &&
+    setfield!(F, :chern_character, _chern_character_from_classes(F))
+  return F.chern_character
+end
 
 function chern_classes(F::Bundle)
-  !isdefined(F, :chern_class) && setfield!(F, :chern_class, _chern_classes_from_character(F))
+  !isdefined(F, :chern_class) &&
+    setfield!(F, :chern_class, _chern_classes_from_character(F))
   return F.chern_class
 end
 function chern_class(F::Bundle)
-  !isdefined(F, :chern_class) && setfield!(F, :chern_class, _chern_classes_from_character(F))
-  return sum(chern_classes(F))
+  !isdefined(F, :chern_class) &&
+    setfield!(F, :chern_class, _chern_classes_from_character(F))
+  return sum(values(chern_classes(F)))
 end
 
 function chern_class(F::Bundle, k)
-  !isdefined(F, :chern_class) && setfield!(F, :chern_class, _chern_classes_from_character(F))
-  return chern_classes(F)[k+1]
+  !isdefined(F, :chern_class) &&
+    setfield!(F, :chern_class, _chern_classes_from_character(F))
+  return chern_classes(F)[k]
 end
 chow_ring(F::Bundle) = F.parent.ring
 variety(F::Bundle) = F.parent.parent
@@ -253,6 +337,7 @@ function _chern_characters_wedge(F::Bundle, k)
           init=CH(0),
         ),
         n)
+    simplify!(wedges[j + 1])
   end
   return wedges
 end
@@ -283,6 +368,7 @@ function _chern_characters_symmetric(F::Bundle, k)
         init=CH(0),
       ),
       n)
+    simplify!(syms[j + 1])
   end
   return syms
 end
@@ -301,18 +387,37 @@ function adams(F::Bundle, k)
   return [k^i for i in 0:n]' * homogeneous_components(M, x)
 end
 
-
 function _chern_classes_from_character(F::Bundle)
   CH = chow_ring(F)
   M = variety(F)
   n = dimension(M)
   comps = homogeneous_components(M, chern_character(F))
-  p = [(CH(-1))^i * factorial(CH(i)) * comps[i+1] for i in 0:n]
-  e = [CH(0) for _ in n+1]
+  p = [(CH(-1))^i * CH(factorial(i)) * comps[i + 1] for i in 0:n]
+  e = [CH(0) for _ in 1:(n + 1)]
   e[1] = CH(1)
   for i in 1:n
-    e[i+1] = CH(-1//i) * sum(p[j+1] * e[i-j+1] for j in 1:i)
-    # e[i+1] = div(e[i+1], CH(1)) # simplify
+    e[i + 1] = CH(-1//i) * sum(p[j + 1] * e[i - j + 1] for j in 1:i)
+    simplify!(e[i + 1])
   end
-  return e
+  return Dict(i => e[i + 1] for i in 0:n)
+end
+
+function _chern_character_from_classes(F::Bundle)
+  CH = F.parent.ring
+  M = variety(F)
+  n = dimension(M)
+  n == 0 && return CH(0)
+  e = chern_classes(F)
+  p = vcat([-e[1]],[CH(0) for _ in 1:(n - 1)])
+  for i in 1:(n - 1)
+    p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i)
+  end
+  return simplify(sum(CH((-1)^i//factorial(i)) * p[i] for i in 1:n) + rank(F))
+end
+
+simplify(f::Singular.spoly{Singular.n_Q}) = div(f, f.parent(1))
+
+function simplify!(f::Singular.spoly{Singular.n_Q})
+  f = div(f, f.parent(1))
+  return f
 end
