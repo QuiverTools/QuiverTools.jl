@@ -6,7 +6,7 @@ import Base: *, +, -, ^
 
 export Bundle,
   chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power, det,
-  canonical_bundle, degree
+  canonical_bundle, degree, rank
 
 """
 # Summary
@@ -165,11 +165,9 @@ julia> Q = kronecker_quiver(2); d = [1, 1]; a = [1, 0];
 julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=a);
 
 julia> td = Bundle(M, todd_class(M))
-Bundle of rank 1, with Chern character
-x21 + 1
+Bundle of rank 1
 
-julia> dual(td)
-Bundle of rank 1, with Chern character
+julia> chern_character(dual(td))
 -x21 + 1
 ```
 
@@ -180,13 +178,16 @@ julia> Q, d = kronecker_quiver(3), [2, 3];
 
 julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=[-1, 1]);
 
-julia> td = Bundle(M, todd_class(M))
-Bundle of rank 1, with Chern character
+julia> td = Bundle(M, todd_class(M));
+
+julia> chern_character(td)
 -17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
 
 
-julia> dual(td)
-Bundle of rank 1, with Chern character
+julia> tdd = dual(td)
+Bundle of rank 1
+
+julia> chern_character(tdd)
 17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 + 77//60*x22*x23 + x23^2 + 5//12*x12 + 3//2*x21 - 9//8*x23 + 1
 ```
 """
@@ -233,25 +234,23 @@ julia> Q = kronecker_quiver(2); d = [1, 1]; a = [1, 0];
 julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=a);
 
 julia> td = Bundle(M, todd_class(M))
-Bundle of rank 1, with Chern character
-x21 + 1
+Bundle of rank 1
 
 julia> F = 3*td
-Bundle of rank 3, with Chern character
+Bundle of rank 3
+
+julia> chern_character(F)
 3*x21 + 3
 
-julia> map(i -> exterior_power(F, i), 0:4)
-5-element Vector{Bundle}:
- Bundle of rank 1, with Chern character
-1
- Bundle of rank 3, with Chern character
-3*x21 + 3
- Bundle of rank 3, with Chern character
-6*x21 + 3
- Bundle of rank 1, with Chern character
-3*x21 + 1
- Bundle of rank 0, with Chern character
-0
+julia> W = map(i -> exterior_power(F, i), 0:4);
+
+julia> map(w -> (rank(w), chern_character(w)), W)
+5-element Vector{Tuple{Int64, Singular.spoly{Singular.n_Q}}}:
+ (1, 1)
+ (3, 3*x21 + 3)
+ (3, 6*x21 + 3)
+ (1, 3*x21 + 1)
+ (0, 0)
 ```
 """
 function exterior_power(F::Bundle, k::Int)
@@ -273,22 +272,23 @@ julia> Q = kronecker_quiver(2); d = [1, 1]; a = [1, 0];
 
 julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=a);
 
-julia> td = Bundle(M, todd_class(M)); F = 3*td
-Bundle of rank 3, with Chern character
+julia> td = Bundle(M, todd_class(M));
+
+julia> F = 3*td
+Bundle of rank 3
+
+julia> chern_character(F)
 3*x21 + 3
 
-julia> map(i -> symmetric_power(F, i), 0:4)
-5-element Vector{Bundle}:
- Bundle of rank 1, with Chern character
-1
- Bundle of rank 3, with Chern character
-3*x21 + 3
- Bundle of rank 6, with Chern character
-12*x21 + 6
- Bundle of rank 10, with Chern character
-30*x21 + 10
- Bundle of rank 15, with Chern character
-60*x21 + 15
+julia> W = map(i -> symmetric_power(F, i), 0:4);
+
+julia> map(w -> (rank(w), chern_character(w)), W)
+5-element Vector{Tuple{Int64, Singular.spoly{Singular.n_Q}}}:
+ (1, 1)
+ (3, 3*x21 + 3)
+ (6, 12*x21 + 6)
+ (10, 30*x21 + 10)
+ (15, 60*x21 + 15)
 ```
 """
 function symmetric_power(F::Bundle, k::Int)
@@ -445,7 +445,7 @@ julia> F = canonical_bundle(M)
 Bundle of rank 1
 
 julia> chern_class(F)
--2*x21
+2*x21
 
 julia> degree(F)
 -2
