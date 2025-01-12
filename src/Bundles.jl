@@ -38,7 +38,7 @@ function Bundle(
   newbundle = Bundle()
   setfield!(newbundle, :parent, parent)
   setfield!(newbundle, :rank, rank)
-  cl = Dict{Int, Singular.spoly{Singular.n_Q}}(i => chern_classes[i + 1] for i in 0:n)
+  cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => chern_classes[i + 1] for i in 0:n)
   setfield!(newbundle, :chern_class, cl)
   return newbundle
 end
@@ -49,7 +49,7 @@ function Bundle(parent::ChowRing, rank::Int, chern_class::Singular.spoly{Singula
   setfield!(newbundle, :parent, parent)
   setfield!(newbundle, :rank, rank)
   hom = homogeneous_components(parent.parent, chern_class)
-  cl = Dict{Int, Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:n)
+  cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:n)
   setfield!(newbundle, :chern_class, cl)
   return newbundle
 end
@@ -72,13 +72,11 @@ function Bundle(parent::ChowRing, char::Int)
   return newbundle
 end
 
-
-
 function Bundle(M::QuiverModuliSpace, char::Singular.spoly{Singular.n_Q})
   newbundle = Bundle()
   setfield!(newbundle, :parent, M.chow)
   r = constant_coefficient(char)
-  denominator(r) != 1 && throw(DomainError("Incorrect Chern character."));
+  denominator(r) != 1 && throw(DomainError("Incorrect Chern character."))
   setfield!(newbundle, :rank, Int(Singular.numerator(r)))
   setfield!(newbundle, :chern_character, char)
   return newbundle
@@ -89,12 +87,12 @@ function Bundle(M::QuiverModuliSpace, rank::Int, x::Singular.spoly{Singular.n_Q}
   setfield!(newbundle, :parent, M.chow)
   setfield!(newbundle, :rank, rank)
   hom = homogeneous_components(M, x)
-  cl = Dict{Int, Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
+  cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
   setfield!(newbundle, :chern_class, cl)
   return newbundle
 end
 
-function Bundle(M::QuiverModuliSpace, rank::Int, x::Dict{Int, Singular.spoly{Singular.n_Q}})
+function Bundle(M::QuiverModuliSpace, rank::Int, x::Dict{Int,Singular.spoly{Singular.n_Q}})
   newbundle = Bundle()
   setfield!(newbundle, :parent, M.chow)
   setfield!(newbundle, :rank, rank)
@@ -107,7 +105,7 @@ function Bundle(M::QuiverModuliSpace, rank::Int, x::Vector{Singular.spoly{Singul
   setfield!(newbundle, :parent, M.chow)
   setfield!(newbundle, :rank, rank)
   hom = homogeneous_components(M, sum(x))
-  cl = Dict{Int, Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
+  cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
   setfield!(newbundle, :chern_class, x)
   return newbundle
 end
@@ -408,7 +406,7 @@ function _chern_character_from_classes(F::Bundle)
   n = dimension(M)
   n == 0 && return CH(0)
   e = chern_classes(F)
-  p = vcat([-e[1]],[CH(0) for _ in 1:(n - 1)])
+  p = vcat([-e[1]], [CH(0) for _ in 1:(n - 1)])
   for i in 1:(n - 1)
     p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i)
   end
