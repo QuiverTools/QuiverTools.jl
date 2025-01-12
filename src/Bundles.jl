@@ -445,7 +445,7 @@ julia> F = canonical_bundle(M)
 Bundle of rank 1
 
 julia> chern_class(F)
-2*x21
+2*x11
 
 julia> degree(F)
 -2
