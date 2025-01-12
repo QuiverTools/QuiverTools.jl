@@ -297,7 +297,6 @@ end
 function homogeneous_components(M::QuiverModuliSpace, x)
   n = dimension(M)
   return [
-    sum(t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) == i; init=0)
     for
     i in 0:n
   ]
