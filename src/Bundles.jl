@@ -6,7 +6,7 @@ import Base: *, +, -, ^
 
 export Bundle,
   chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power, det,
-  canonical_bundle, degree, rank
+  canonical_bundle, universal_bundle, degree, rank
 
 """
 # Summary
@@ -454,6 +454,33 @@ function canonical_bundle(M::QuiverModuliSpace)
   !(is_coprime(M) && is_amply_stable(M)) && throw(DomainError(""))
   cl_omega = chern_class_line_bundle(M, -canonical_stability(M.Q, M.d))
   return Bundle(M, 1, cl_omega)
+end
+
+"""
+    universal_bundle(M:::QuiverModuliSpace, i::Int)
+
+Returns the `i`-th universal bundle of `M`.
+
+# Example
+
+On the projective line:
+
+```jldoctest
+julia> Q = kronecker_quiver(2); d = [1, 1];
+
+julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=[1, 0]);
+
+julia> u1, u2 = universal_bundle(M, 1), universal_bundle(M, 2);
+
+julia> map(chern_class, [u1, u2])
+2-element Vector{Singular.spoly{Singular.n_Q}}:
+ x11 + 1
+ x21 + 1
+```
+"""
+function universal_bundle(M::QuiverModuliSpace, i::Int)
+  cl = total_chern_class_universal(M, i)
+  return Bundle(M, M.d[i], cl)
 end
 
 """
