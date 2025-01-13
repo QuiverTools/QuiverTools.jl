@@ -441,7 +441,7 @@ julia> d = [1, 1]; Pn = map(i -> QuiverModuliSpace(kronecker_quiver(i + 1), d), 
 
 julia> omega = map(canonical_bundle, Pn);
 
-julia> map(chern_class, ω_n)
+julia> map(chern_class, omega)
 5-element Vector{Singular.spoly{Singular.n_Q}}:
  2*x11
  3*x11
