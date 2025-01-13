@@ -30,7 +30,6 @@ import Singular:
   base_ring
 import Combinatorics: with_replacement_combinations, partitions
 
-export Quiver
 export nvertices,
   narrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
 export euler_form, canonical_stability, is_coprime, slope

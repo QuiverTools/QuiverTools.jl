@@ -1,5 +1,3 @@
-export QuiverModuli, QuiverModuliSpace, QuiverModuliStack
-
 export Hodge_diamond, Hodge_polynomial, Picard_rank
 
 export chow_ring,
@@ -15,9 +13,7 @@ export chow_ring,
   chern_class_line_bundle,
   chern_character_line_bundle,
   total_chern_class_universal,
-  chern_character_universal_bundle,
-  integral,
-  dual_chern_character
+  integral
 
 export all_luna_types, is_luna_type, dimension_of_luna_stratum
 
@@ -1565,113 +1561,6 @@ function total_chern_class_universal(
 end
 
 """
-    chern_character_from_classes(M::QuiverModuliSpace, classes)
-
-Returns the Chern character of a vector bundle
-with the given Chern classes.
-
-# Input
-
-- `M`: a moduli space of representations of a quiver.
-- `classes`: a list of polynomials in the Chow ring of `M`, ``[c_1, ..., c_n]``.
-
-# Output
-
-- An element in the Chow ring of `M`.
-
-# Examples
-
-```jldoctest
-julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> CH = chow_ring(M); CHvars = QuiverTools.gens(CH);
-
-julia> u1 = QuiverTools.chern_character_from_classes(M, CHvars[1:2])
-1//720*x11^6 + 1//120*x11^5 - 1//120*x11^4*x12 + 1//24*x11^4 - 1//24*x11^3*x12 + 1//80*x11^2*x12^2 + 1//6*x11^3 - 1//6*x11^2*x12 + 1//24*x11*x12^2 - 1//360*x12^3 + 1//2*x11^2 - 1//2*x11*x12 + 1//12*x12^2 + x11 - x12 + 2
-
-julia> u2 = QuiverTools.chern_character_from_classes(M, CHvars[3:5])
-1//720*x21^6 + 1//120*x21^5 - 1//120*x21^4*x22 + 1//24*x21^4 - 1//24*x21^3*x22 + 1//80*x21^2*x22^2 + 1//120*x21^3*x23 + 1//6*x21^3 - 1//6*x21^2*x22 + 1//24*x21*x22^2 - 1//360*x22^3 + 1//24*x21^2*x23 - 1//60*x21*x22*x23 + 1//2*x21^2 - 1//2*x21*x22 + 1//12*x22^2 + 1//6*x21*x23 - 1//24*x22*x23 + 1//240*x23^2 + x21 - x22 + 1//2*x23 + 3
-```
-"""
-function chern_character_from_classes(
-  M::QuiverModuliSpace,
-  classes,
-)
-  n = length(classes)
-  d = dimension(M)
-  if n < d
-    classes = vcat(classes, [0 for i in n:d])
-  end
-  return n + sum(Newton_polynomial(i)(classes) / factorial(i) for i in 1:d)
-end
-
-# TODO add tests
-"""
-    chern_character_universal_bundle(M::QuiverModuliSpace, i)
-
-Returns the Chern character of the universal bundle ``\\mathcal{U}_i``
-on the given moduli space `M`.
-"""
-function chern_character_universal_bundle(
-  M::QuiverModuliSpace,
-  i::Int,
-)
-  CHvars = gens(chow_ring(M))
-  Ui_classes = CHvars[(sum(M.d[1:(i - 1)]) + 1):sum(M.d[1:i])]
-  return chern_character_from_classes(M, Ui_classes)
-end
-
-"""
-    dual_chern_character(M::QuiverModuliSpace, p)
-
-Returns the dual Chern character of a polynomial `p` on the quiver moduli `M`.
-This is the original character with the signs of monomials of odd degree reversed.
-
-# Input
-
-- `M`: a quiver moduli space;
-- `p`: a Chern character.
-
-# Output
-
-- the dual Chern character of `p`.
-
-# Examples
-
-```jldoctest
-julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> CH = chow_ring(M); CHvars = QuiverTools.gens(CH);
-
-julia> p = sum(CHvars)
-x11 + x12 + x21 + x22 + x23
-
-julia> QuiverTools.dual_chern_character(M, p)
--x11 + x12 - x21 + x22 - x23
-```
-
-This function coerces `p` in the Chow ring of `M` as provided.
-
-```jldoctest
-julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> CH = chow_ring(M); CHvars = QuiverTools.gens(CH);
-
-julia> p = 2;
-
-julia> QuiverTools.dual_chern_character(M, p)
-2
-```
-"""
-function dual_chern_character(
-  M::QuiverModuliSpace,
-  p,
-)
-  CH = chow_ring(M)
-  return sum(m * (-1)^__chow_ring_monomial_grading(M, m) for m in Singular.terms(CH(p)))
-end
-
-"""
     point_class(M::QuiverModuliSpace)
 
 Returns the point class of the moduli space `M`.
@@ -1889,19 +1778,12 @@ julia> [integral(M, L^i) for i in 0:5]
 ```
 """
 function integral(M::QuiverModuliSpace, f)
-  CH = chow_ring(M)
-
-  N = dimension(M)
-  integrand = sum(
-    t for t in collect(Singular.terms(f * todd_class(M))) if
-    __chow_ring_monomial_grading(M, t) == N;
-    init=CH(0),
-  )
-
-  integ = div(integrand, point_class(M))
+  n = dimension(M)
+  integ = div(homogeneous_components(M, f * todd_class(M))[n + 1], point_class(M))
   return Singular.constant_coefficient(integ)
 end
-
+integral(F::Bundle) = integral(variety(F), chern_character(F))
+chi(F::Bundle) = integral(F::Bundle)
 """
 Takes a quotient ring R/I and a polynomial f in R and returns the image of f in R/I.
 """
