@@ -5,9 +5,7 @@
 import Base: *, +, -, ^
 
 export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
-  canonical_bundle, universal_bundle, degree, rank
-
-rank(F::Bundle) = F.rank
+  det, canonical_bundle, universal_bundle, degree, rank
 
 function chern_character(F::Bundle)
   !isdefined(F, :chern_character) &&
@@ -31,6 +29,8 @@ function chern_class(F::Bundle, k)
     setfield!(F, :chern_class, _chern_classes_from_character(F))
   return chern_classes(F)[k]
 end
+
+rank(F::Bundle) = F.rank
 chow_ring(F::Bundle) = F.parent.ring
 variety(F::Bundle) = F.parent.parent
 structure_sheaf(M::QuiverModuliSpace) = Bundle(M, 1)
