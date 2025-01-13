@@ -434,21 +434,20 @@ is described in [Proposition 4.2, MR4352662](https://mathscinet.ams.org/mathscin
 
 # Example
 
-On the projective line:
+On various projective spaces:
 
 ```jldoctest
-julia> Q = kronecker_quiver(2); d = [1, 1];
+julia> d = [1, 1]; Pn = map(i -> QuiverModuliSpace(kronecker_quiver(i + 1), d), 1:5);
 
-julia> M = QuiverModuliSpace(Q, d); chow_ring(M);
+julia> omega = map(canonical_bundle, Pn);
 
-julia> F = canonical_bundle(M)
-Bundle of rank 1
-
-julia> chern_class(F)
-2*x11
-
-julia> degree(F)
--2
+julia> map(chern_class, ω_n)
+5-element Vector{Singular.spoly{Singular.n_Q}}:
+ 2*x11
+ 3*x11
+ 4*x11
+ 5*x11
+ 6*x11
 ```
 """
 function canonical_bundle(M::QuiverModuliSpace)
@@ -464,6 +463,24 @@ Return the degree of the bundle `F`.
 If `rank(F)` is larger than ``1``, returns the degree of the determinant of `F`.
 
 # Example
+
+The degrees of canonical bundles on the first projective spaces:
+
+```jldoctest
+julia> d = [1, 1]; Pn = map(i -> QuiverModuliSpace(kronecker_quiver(i + 1), d), 1:5);
+
+julia> omega = map(canonical_bundle, Pn);
+
+julia> omega = map(dual, omega);
+
+julia> map(degree, omega)
+5-element Vector{Singular.spoly{Singular.n_Q}}:
+ 2
+ 9
+ 64
+ 625
+ 7776
+```
 
 An example from [arXiv:2411.15125](https://arxiv.org/abs/2411.15125):
 
