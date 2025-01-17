@@ -12,6 +12,7 @@ export teleman_bound_on_stratum,
   all_weights_endomorphisms_universal_bundle,
   does_rigidity_inequality_hold
 
+# TODO is there a reasoning behind hntype vs all_hn_types? why not hn_type?
 """
     teleman_bound_on_stratum(Q::Quiver, hntype, theta, denom=sum)
 
@@ -33,7 +34,7 @@ function teleman_bound_on_stratum(
   denom::Function=sum,
 )::Int
   if length(hntype) == 1
-    throw(ArgumentError("Weight not defined for HN type of length 1."))
+    throw(ArgumentError("Weight not defined on the dense stratum"))
   end
   slopes = map(h -> slope(h, theta, denom), hntype)
   slopes = lcm(denominator.(slopes)) .* slopes
@@ -52,7 +53,6 @@ end
 
 Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
 HN type for the given ``Q``, ``d``, ``\\theta`` and `denom``.
-
 
 # Examples
 
@@ -76,7 +76,6 @@ function all_teleman_bounds(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-
   #This is only relevant on the unstable locus
   HN = filter(hntype -> hntype != [d], all_hn_types(Q, d, theta, denom))
   return Dict([hntype, teleman_bound_on_stratum(Q, hntype, theta, denom)] for hntype in HN)
