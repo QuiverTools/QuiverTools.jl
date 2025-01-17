@@ -1326,20 +1326,13 @@ julia> QuiverTools.unit_vector(Q, 2) == [0, 1]
 true
 ```
 """
-function unit_vector(Q::Quiver, i::Int)
-  return unit_vector(nvertices(Q), i)
-end
+unit_vector(Q::Quiver, i::Int) = unit_vector(nvertices(Q), i)
 
-function coerce_vector(v::AbstractVector)
-  return SVector{length(v)}(v)
-end
-function coerce_vector(v::Tuple)
-  return SVector{length(v)}(v)
-end
+coerce_vector(v::AbstractVector) = SVector{length(v)}(v)
+coerce_vector(v::Tuple) = SVector{length(v)}(v)
 coerce_vector(v::SVector) = v
-function coerce_matrix(m::AbstractMatrix)
-  return SMatrix{size(m)...}(m)
-end
+
+coerce_matrix(m::AbstractMatrix) = SMatrix{size(m)...}(m)
 coerce_matrix(m::SMatrix) = m
 
 #######################################################
