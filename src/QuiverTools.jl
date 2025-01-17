@@ -1131,6 +1131,20 @@ true
 end
 
 """
+  zero_vector(Q::Quiver)
+
+Create the zero dimension vector for the quiver `Q`.
+
+# Examples
+
+```jldoctest
+julia> QuiverTools.zero_vector(kronecker_quiver(3)) == [0, 0]
+true
+```
+"""
+zero_vector(Q::Quiver) = zero_vector(nvertices(Q))
+
+"""
 	thin_dimension_vector(Q::Quiver)
 
 Compute the thin dimension vector for a given quiver `Q`.
