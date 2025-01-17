@@ -438,9 +438,7 @@ end
 
 Checks if the gcd of all the entries of d is ``1``.
 """
-function is_coprime(d::AbstractVector{Int})
-  return gcd(d) == 1
-end
+is_coprime(d::AbstractVector{Int}) = gcd(d) == 1
 
 """
     slope(d, theta, denom=sum)
@@ -612,27 +610,21 @@ is_schur_root(Q::Quiver, d::AbstractVector{Int}) =
 
 Checks whether `d` is a real root, i.e., if ``<d, d> = 1``.
 """
-function is_real_root(Q, d)
-  return euler_form(Q, d, d) == 1
-end
+is_real_root(Q, d) = euler_form(Q, d, d) == 1
 
 """
     is_imaginary_root(Q::Quiver, d)
 
 Checks whether `d` is an imaginary root, i.e., if ``<d, d> \\geq 0``.
 """
-function is_imaginary_root(Q, d)
-  return euler_form(Q, d, d) <= 0
-end
+is_imaginary_root(Q, d) = euler_form(Q, d, d) <= 0
 
 """
     is_isotropic_root(Q::Quiver, d)
 
 Checks whether `d` is an isotropic root, i.e., if ``<d, d> = 0``.
 """
-function is_isotropic_root(Q, d)
-  return euler_form(Q, d, d) == 0
-end
+is_isotropic_root(Q, d) = euler_form(Q, d, d) == 0
 
 """
     is_generic_subdimension_vector(Q::Quiver, e, d)
