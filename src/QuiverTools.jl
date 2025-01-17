@@ -33,6 +33,7 @@ import Combinatorics: with_replacement_combinations, partitions
 export nvertices,
   narrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
 export euler_form, canonical_stability, is_coprime, slope
+export underlying_graph, euler_matrix
 export is_schur_root,
   generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
 export all_hn_types,
@@ -99,7 +100,7 @@ of the underlying graph of the quiver.
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
-julia> QuiverTools.underlying_graph(Q) == [0 4; 4 0]
+julia> underlying_graph(Q) == [0 4; 4 0]
 true
 ```
 """
@@ -356,7 +357,7 @@ EXAMPLE:
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
-julia> QuiverTools.euler_matrix(Q) == [1 -4; 0 1]
+julia> euler_matrix(Q) == [1 -4; 0 1]
 true
 ```
 """
