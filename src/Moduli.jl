@@ -1384,9 +1384,6 @@ function chow_ring(
   return M.chow.ring
 end
 
-# this should be in a misc.jl file or something
-# this should be in Base really...
-
 """
     extended_gcd(x)
 
@@ -1517,6 +1514,7 @@ function chern_character_line_bundle(
   eta::AbstractVector{Int},
 )
   x = chern_class_line_bundle(M, eta)
+  # TODO why assign this and then return it?
   chern_character = sum(x^i / factorial(i) for i in 0:dimension(M))
 
   return chern_character
@@ -1556,6 +1554,7 @@ function total_chern_class_universal(
 )
   CH = chow_ring(M)
   CHvars = gens(CH)
+  # TODO why assign it and then return it?
   cUi = sum(CHvars[sum(M.d[1:(i - 1)]) + r] for r in 1:M.d[i]; init=CH(0)) + CH(1)
   return cUi
 end
@@ -1866,6 +1865,7 @@ function dimension(M::QuiverModuliStack)
   if is_nonempty(M)
     return -euler_form(M.Q, M.d, M.d)
   end
+  # TODO why return a string, instead of -Inf?
   return "-∞"
 end
 

@@ -81,6 +81,8 @@ function __init__()
   return nothing
 end
 
+# TODO move all quiver things to Quiver.jl, so that QuiverTools.jl is only meta things
+
 function deglex_key(Q::Quiver, e::AbstractVector{Int})::Int
   b = maximum(e) + 1
   n = nvertices(Q)
@@ -1088,6 +1090,7 @@ Denoting the symmetric polynomial base by ``e_i``,
 the power sum base by ``p_i`` and the base change function by ``\\nu_n``
 such that ``p_n = \\nu_n(e_1,...,e_n)``, this function returns ``\\nu_n``.
 """
+# TODO why is this function here (it is never called?), and why is it not newton_polynomial?
 @memoize Dict function Newton_polynomial(n)
   if n == 0
     throw(ArgumentError("Newtonpolynomial(0) is not defined"))
