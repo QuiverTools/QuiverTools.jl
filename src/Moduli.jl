@@ -228,8 +228,8 @@ julia> codimension_unstable_locus(M)
 ```
 """
 function codimension_unstable_locus(M::QuiverModuli)
-  HN = all_hn_types(M; unstable=true)
-  return minimum(codimension_hn_stratum(M, hn_type) for hn_type in HN)
+  hn = all_hn_types(M; unstable=true)
+  return minimum(codimension_hn_stratum(M, hn_type) for hn_type in hn)
 end
 
 """
@@ -527,7 +527,7 @@ end
 """
 	is_amply_stable(M::QuiverModuli)
 
-Checks wether the dimension vector ``d`` is amply stable
+Checks whether the dimension vector ``d`` is amply stable
 with respect to the slope function `theta`/`denominator`.
 
 This means that the codimension of the unstable locus

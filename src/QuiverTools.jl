@@ -137,7 +137,7 @@ narrows(Q::Quiver) = sum(Q.adjacency)
 """
     is_acyclic(Q::Quiver)
 
-Checks wether the quiver is acyclic, i.e. has no oriented cycles.
+Checks whether the quiver is acyclic, i.e. has no oriented cycles.
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
@@ -150,7 +150,7 @@ is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^nvertices(Q))
 """
     is_connected(Q::Quiver)
 
-Checks wether the underlying graph of the quiver is connected.
+Checks whether the underlying graph of the quiver is connected.
 
 # Examples
 
@@ -415,7 +415,7 @@ end
 """
     is_coprime(d, theta)
 
-Checks wether the given dimension vector ``d`` is ``\\theta``-coprime for
+Checks whether the given dimension vector ``d`` is ``\\theta``-coprime for
 the stability parameter ``\\theta``.
 
 # Examples
@@ -879,7 +879,7 @@ codimension_hn_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}}) =
 """
     is_amply_stable(Q::Quiver, d, theta, denom=sum)
 
-Checks wether the dimension vector ``d`` is amply stable
+Checks whether the dimension vector ``d`` is amply stable
 with respect to the slope function `theta`/`denominator`.
 
 This means that the codimension of the unstable locus
@@ -1154,8 +1154,8 @@ Compute all subdimension vectors of a given dimension vector `d`.
 # Input
 
 - `d::AbstractVector{Int}`: The input dimension vector.
-- `nonzero::Bool=false`: wether to exclude the zero vector.
-- `strict::Bool=false`: wether to exclude the input vector `d`.
+- `nonzero::Bool=false`: whether to exclude the zero vector.
+- `strict::Bool=false`: whether to exclude the input vector `d`.
 
 # Output
 

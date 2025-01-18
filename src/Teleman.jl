@@ -75,9 +75,9 @@ function all_teleman_bounds(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  HN = all_hn_types(Q, d, theta, denom; unstable=true)
+  hn = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
-    hn_type => teleman_bound_on_stratum(Q, hn_type, theta, denom) for hn_type in HN
+    hn_type => teleman_bound_on_stratum(Q, hn_type, theta, denom) for hn_type in hn
   )
 end
 
@@ -120,24 +120,30 @@ function all_teleman_bounds(M::QuiverModuli)
 end
 
 """
-    weights_universal_bundle_on_stratum(theta, hn_type, denom=sum; chi)
+    weights_universal_bundle_on_stratum(hn_type, i, theta, denom=sum; chi)
 
 Returns the weights of a universal bundle ``U_i(a)`` for the linearization ``a``
 for the 1-PS corresponding to the given HN type.
 
 """
 function weights_universal_bundle_on_stratum(
+  hn_type::HNType,
+  i::Int,
   theta::AbstractVector{Int},
-  hn_type,
   denom::Function=sum;
   chi::AbstractVector{Int},
 )
+  den = lcm(map(denominator, filter(ds -> ds[i] != 0, hn_type)))
+
   slopes = map(h -> slope(h, theta, denom), hn_type)
-  slopes *= lcm(denominator.(slopes))
+  # slopes *= lcm(denominator.(slopes))
 
-  constant_term = sum(slopes[i] * (chi' * hn_type[i]) for i in eachindex(hn_type))
+  constant_term = sum(slopes[s] * (chi' * hn_type[s]) for s in eachindex(hn_type))
+  slopes_mult = reduce(
+    vcat, [[slopes[s] for _ in 1:hn_type[s]] for s in eachindex(hn_type)]
+  )
 
-  return -constant_term .+ slopes
+  return den .* (-constant_term .+ slopes_mult)
 end
 
 """
@@ -157,10 +163,10 @@ function all_weights_universal_bundle(
   !is_coprime(d, theta) &&
     throw(ArgumentError("$(d) is not $(theta)-coprime, universal bundles do not exist."))
 
-  HN = all_hn_types(Q, d, theta, denom; unstable=true)
+  hn = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
-    hn_type => weights_universal_bundle_on_stratum(theta, hn_type, denom; chi=chi) for
-    hn_type in HN
+    hn_type => weights_universal_bundle_on_stratum(theta, hn_type, denom; chi=chi) for # TODO
+    hn_type in hn
   )
 end
 
@@ -254,11 +260,11 @@ function all_weights_irreducible_component_canonical(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  HN = all_hn_types(Q, d, theta, denom; unstable=true)
+  hn = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type =>
       weight_irreducible_component_canonical_on_stratum(Q, d, hn_type, theta, denom)
-    for hn_type in HN
+    for hn_type in hn
   )
 end
 
@@ -323,10 +329,10 @@ function all_weights_endomorphisms_universal_bundle(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  HN = all_hn_types(Q, d, theta, denom; unstable=true)
+  hn = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type => weights_endomorphism_universal_bundle_on_stratum(hn_type, theta, denom) for
-    hn_type in HN
+    hn_type in hn
   )
 end
 
