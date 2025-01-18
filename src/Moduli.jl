@@ -527,7 +527,7 @@ end
 """
 	is_amply_stable(M::QuiverModuli)
 
-Checks wether the dimension vector ``d`` is amply stable
+Checks whether the dimension vector ``d`` is amply stable
 with respect to the slope function `theta`/`denominator`.
 
 This means that the codimension of the unstable locus
