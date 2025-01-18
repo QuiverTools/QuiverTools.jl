@@ -131,21 +131,13 @@ function weights_universal_bundle_on_stratum(
   hn_type,
   denom::Function=sum;
   chi::AbstractVector{Int},
-)::AbstractVector{Int}
+)
   slopes = map(h -> slope(h, theta, denom), hn_type)
   slopes *= lcm(denominator.(slopes))
 
   constant_term = sum(slopes[i] * (chi' * hn_type[i]) for i in eachindex(hn_type))
 
   return -constant_term .+ slopes
-end
-
-function weights_universal_bundle_on_stratum(
-  M::QuiverModuli,
-  hn_type::HNType;
-  chi::AbstractVector{Int}=extended_gcd(M.d)[2],
-)
-  return weights_universal_bundle_on_stratum(M.theta, hn_type, M.denom; chi=chi)
 end
 
 """
@@ -160,8 +152,11 @@ function all_weights_universal_bundle(
   d::AbstractVector{Int},
   theta::AbstractVector{Int},
   denom::Function=sum;
-  chi::AbstractVector{Int}=extended_gcd(d)[2],
+  chi::AbstractVector{Int},
 )
+  !is_coprime(d, theta) &&
+    throw(ArgumentError("$(d) is not $(theta)-coprime, universal bundles do not exist."))
+
   HN = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type => weights_universal_bundle_on_stratum(theta, hn_type, denom; chi=chi) for
@@ -178,8 +173,15 @@ for the linearization ``chi`` on all the non-dense Harder-Narasimhan strata.
 """
 function all_weights_universal_bundle(
   M::QuiverModuli;
-  chi::AbstractVector{Int}=extended_gcd(M.d)[2],
+  chi::Union{AbstractVector{Int},UndefInitializer}=undef,
 )
+  # If chi is provided, we use it but DO NOT change the one in the Chow ring.
+  # If chi is not provided, we use the linearization from the Chow ring if present,
+  # and a default one if not.
+  !(chi isa UndefInitializer) &&
+    return all_weights_universal_bundle(M.Q, M.d, M.theta, M.denom; chi=chi)
+
+  chi = isdefined(M.chow, :chi) ? linearization(M) : extended_gcd(M.d)[2]
   return all_weights_universal_bundle(M.Q, M.d, M.theta, M.denom; chi=chi)
 end
 
@@ -284,7 +286,7 @@ function weights_endomorphism_universal_bundle_on_stratum(
   hn_type::HNType,
   theta::AbstractVector{Int},
   denom::Function=sum,
-)::AbstractVector{Int}
+)
 
   # the maximum weight of the tensors of the universal bundles U_i^\vee \otimes U_j is
   # slope of first term in the HN type - slope of the last term in the HN type
