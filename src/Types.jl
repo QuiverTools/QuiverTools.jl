@@ -1,7 +1,7 @@
 ########################################################################################
 # Definitions of types and primitive constructors for quivers and moduli spaces
 ########################################################################################
-import Base.getindex, Base.length, Base.iterate
+import Base.getindex, Base.length, Base.iterate, Base.hash, Base.==, Base.show
 export Quiver, HNType, QuiverModuli, QuiverModuliSpace, QuiverModuliStack, Bundle
 
 """
@@ -193,7 +193,7 @@ function QuiverModuliSpace(
 end
 
 function set_linearization!(M::QuiverModuliSpace, chi::AbstractVector{Int})
-  chi' * M.d != 0 && throw(DomainError("Invalid linearization"))
+  chi' * M.d != 1 && throw(DomainError("Invalid linearization"))
   setfield!(M.chow, :chi, chi)
   return nothing
 end
@@ -303,6 +303,7 @@ length(H::HNType) = length(H.hn)
 Base.getindex(H::HNType, i) = getindex(H.hn, i)
 Base.iterate(H::HNType) = iterate(H.hn)
 Base.iterate(H::HNType, i) = iterate(H.hn, i)
+Base.getindex(H::HNType, i::Int) = getindex(H.hn, i)
 
 """
 # Summary
