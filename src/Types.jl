@@ -123,6 +123,8 @@ function show(io::IO, chow::ChowRing)
   )
 end
 
+linearization(CH::ChowRing) = CH.chi
+
 """
 # Summary
 
@@ -189,6 +191,14 @@ function QuiverModuliSpace(
   end
   throw(DomainError("Invalid input"))
 end
+
+function set_linearization!(M::QuiverModuliSpace, chi::AbstractVector{Int})
+  chi' * M.d != 0 && throw(DomainError("Invalid linearization"))
+  setfield!(M.chow, :chi) = chi
+  return nothing
+end
+
+linearization(M::QuiverModuliSpace) = linearization(M.chow)
 
 """
 # Summary
