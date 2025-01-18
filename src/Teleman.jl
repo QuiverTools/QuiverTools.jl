@@ -28,16 +28,19 @@ function teleman_bound_on_stratum(
   hn_type::HNType,
   theta::AbstractVector{Int},
   denom::Function=sum,
-)::Int
-  length(hn_type) == 1 &&
+)
+  ell = length(hn_type)
+  ell == 1 &&
     throw(ArgumentError("Weight not defined on the dense stratum"))
 
   slopes = map(h -> slope(h, theta, denom), hn_type)
   slopes = lcm(denominator.(slopes)) .* slopes
-  return sum(
-    (slopes[t] - slopes[s]) * euler_form(Q, hn_type[s], hn_type[t]) for
-    s in 1:(length(hn_type) - 1) for t in (s + 1):length(hn_type)
-  )
+  return [
+    sum(
+      (slopes[t] - slopes[s]) * euler_form(Q, hn_type[s], hn_type[t])
+      for s in 1:(ell - 1) for t in (s + 1):ell
+    ),
+  ]
 end
 
 function teleman_bound_on_stratum(M::QuiverModuli, hn_type::HNType)
@@ -48,7 +51,7 @@ end
     all_teleman_bounds(Q::Quiver, d, theta, denom=sum)
 
 Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
-HN type for the given ``Q``, ``d``, ``\\theta`` and `denom``.
+HN type for the given `Q`, `d`, `\\theta` and `denom`.
 
 # Examples
 
@@ -137,7 +140,6 @@ function weights_universal_bundle_on_stratum(
 
   constant_term = sum(slopes[s] * (chi' * hn_type[s]) for s in eachindex(hn_type))
   slopes_mult = reduce(
-    vcat, [[slopes[s] for _ in 1:hn_type[s]] for s in eachindex(hn_type)]
   )
 
   return den .* (-constant_term .+ slopes_mult)
@@ -178,11 +180,10 @@ function all_weights_universal_bundle(
   M::QuiverModuli;
   chi::Union{AbstractVector{Int},UndefInitializer}=undef,
 )
-  # If chi is provided, we use it but DO NOT change the one in the Chow ring.
-  # If chi is not provided, we use the linearization from the Chow ring if present,
-  # and a default one if not.
-  !(chi isa UndefInitializer) &&
-    return all_weights_universal_bundle(M.Q, M.d, M.theta, M.denom; chi=chi)
+  # chi is provided => use it but DO NOT change the one in M.chow.
+  # chi is not provided => use M.chow.chi if defined, and a default one if not.
+  chi != undef &&
+    return all_weights_universal_bundle(M.Q, M.d, i, M.theta, M.denom; chi=chi)
 
   chi = isdefined(M.chow, :chi) ? linearization(M) : extended_gcd(M.d)[2]
   return all_weights_universal_bundle(M.Q, M.d, M.theta, M.denom; chi=chi)
@@ -326,6 +327,8 @@ function all_weights_endomorphisms_universal_bundle(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
+  !is_coprime(d, theta) &&
+    throw(ArgumentError("$(d) is not $(theta)-coprime, universal bundles do not exist."))
   hn = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type => weights_endomorphism_universal_bundle_on_stratum(hn_type, theta, denom) for
