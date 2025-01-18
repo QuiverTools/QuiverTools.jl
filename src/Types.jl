@@ -194,7 +194,7 @@ end
 
 function set_linearization!(M::QuiverModuliSpace, chi::AbstractVector{Int})
   chi' * M.d != 0 && throw(DomainError("Invalid linearization"))
-  setfield!(M.chow, :chi) = chi
+  setfield!(M.chow, :chi, chi)
   return nothing
 end
 
