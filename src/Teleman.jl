@@ -12,7 +12,6 @@ export teleman_bound_on_stratum,
   all_weights_endomorphisms_universal_bundle,
   does_rigidity_inequality_hold
 
-# TODO is there a reasoning behind hntype vs all_hn_types? why not hn_type?
 """
     teleman_bound_on_stratum(Q::Quiver, hn_type, theta, denom=sum)
 
@@ -76,8 +75,7 @@ function all_teleman_bounds(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  #This is only relevant on the unstable locus
-  HN = filter(hn_type -> hn_type != [d], all_hn_types(Q, d, theta, denom))
+  HN = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type => teleman_bound_on_stratum(Q, hn_type, theta, denom) for hn_type in HN
   )
@@ -164,7 +162,7 @@ function all_weights_universal_bundle(
   denom::Function=sum;
   chi::AbstractVector{Int}=extended_gcd(d)[2],
 )
-  HN = filter(hn_type -> hn_type[1] != d, all_hn_types(Q, d, theta, denom))
+  HN = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type => weights_universal_bundle_on_stratum(theta, hn_type, denom; chi=chi) for
     hn_type in HN
@@ -254,7 +252,7 @@ function all_weights_irreducible_component_canonical(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  HN = filter(hn_type -> hn_type != [d], all_hn_types(Q, d, theta))
+  HN = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type =>
       weight_irreducible_component_canonical_on_stratum(Q, d, hn_type, theta, denom)
@@ -323,9 +321,9 @@ function all_weights_endomorphisms_universal_bundle(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  HN = filter(hn_type -> hn_type != [d], all_hn_types(Q, d, theta, denom))
+  HN = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
-    [hn_type, weights_endomorphism_universal_bundle_on_stratum(hn_type, theta, denom)] for
+    hn_type => weights_endomorphism_universal_bundle_on_stratum(hn_type, theta, denom) for
     hn_type in HN
   )
 end

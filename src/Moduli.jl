@@ -132,11 +132,7 @@ julia> all_hn_types(M; unstable = true)
 ```
 """
 function all_hn_types(M::QuiverModuli; unstable::Bool=false, ordered::Bool=true)
-  HN = all_hn_types(M.Q, M.d, M.theta, M.denom; ordered=ordered)
-  if unstable
-    return filter(hn_type -> hn_type[1] != M.d, HN)
-  end
-  return HN
+  return all_hn_types(M.Q, M.d, M.theta, M.denom; unstable=unstable, ordered=ordered)
 end
 
 """

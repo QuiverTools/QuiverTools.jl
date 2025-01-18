@@ -694,7 +694,7 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
 end
 
 """
-    all_hn_types(Q::Quiver, d, theta, denom=sum; ordered::Bool=false)
+    all_hn_types(Q::Quiver, d, theta, denom=sum; unstable::Bool=false, ordered::Bool=false)
 
 Returns a list of all the Harder Narasimhan types of representations of ``Q``
 with dimension vector ``d``, with respect to the slope function theta/denom.
@@ -751,7 +751,7 @@ julia> all_hn_types(Q, d, theta; ordered=true)
   d::AbstractVector{Int},
   theta::AbstractVector{Int},
   denom::Function=sum;
-  # unstable::Bool=false,
+  unstable::Bool=false,
   ordered::Bool=true,
 )
   if all(di == 0 for di in d)
@@ -787,8 +787,7 @@ julia> all_hn_types(Q, d, theta; ordered=true)
 
   # Possibly add d again, at the beginning, because it is smallest
   # with respect to the partial order from Def. 3.6
-  if has_semistables(Q, d, theta, denom)
-    # if !unstable && has_semistables(Q, d, theta, denom)
+  if !unstable && has_semistables(Q, d, theta, denom)
     pushfirst!(alltypes, HNType([d]))
   end
   return alltypes
@@ -907,8 +906,7 @@ function is_amply_stable(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  # TODO should there be a version of all_hn_types that excludes the dense stratum? # ok
-  hn_types = filter(hn_type -> hn_type[1] != d, all_hn_types(Q, d, theta, denom))
+  hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
   return all(stratum -> codimension_hn_stratum(Q, stratum) >= 2, hn_types)
 end
 
