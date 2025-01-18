@@ -59,14 +59,14 @@ HN type for the given `Q`, `d`, `\\theta` and `denom`.
 julia> Q = kronecker_quiver(3);
 
 julia> all_teleman_bounds(Q, [2, 3], [3, -2])
-Dict{HNType{2}, Int64} with 7 entries:
-  [[2, 2], [0, 1]]         => 20
-  [[2, 1], [0, 2]]         => 100
-  [[1, 0], [1, 2], [0, 1]] => 100
-  [[1, 0], [1, 3]]         => 120
-  [[1, 0], [1, 1], [0, 2]] => 90
-  [[1, 1], [1, 2]]         => 15
-  [[2, 0], [0, 3]]         => 90
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [20]
+  [[2, 1], [0, 2]]         => [100]
+  [[1, 0], [1, 2], [0, 1]] => [100]
+  [[1, 0], [1, 3]]         => [120]
+  [[1, 0], [1, 1], [0, 2]] => [90]
+  [[1, 1], [1, 2]]         => [15]
+  [[2, 0], [0, 3]]         => [90]
 ```
 """
 function all_teleman_bounds(
@@ -92,26 +92,26 @@ julia> Q = three_vertex_quiver(1, 2, 3); d = [3, 1, 2]; theta = [5, 3, -9];
 julia> M = QuiverModuliSpace(Q, d, theta);
 
 julia> all_teleman_bounds(M)
-Dict{HNType{3}, Int64} with 24 entries:
-  [[2, 1, 1], [1, 0, 1]]                       => 12
-  [[1, 0, 0], [0, 1, 0], [2, 0, 1], [0, 0, 1]] => 306
-  [[1, 0, 0], [1, 1, 0], [1, 0, 1], [0, 0, 1]] => 131
-  [[2, 0, 0], [1, 0, 1], [0, 1, 1]]            => 64
-  [[3, 0, 0], [0, 1, 2]]                       => 150
-  [[1, 1, 0], [2, 0, 1], [0, 0, 1]]            => 312
-  [[2, 0, 0], [1, 1, 1], [0, 0, 1]]            => 336
-  [[2, 0, 0], [1, 1, 0], [0, 0, 2]]            => 242
-  [[3, 0, 0], [0, 1, 1], [0, 0, 1]]            => 168
-  [[3, 1, 1], [0, 0, 1]]                       => 432
-  [[3, 0, 0], [0, 1, 0], [0, 0, 2]]            => 246
-  [[0, 1, 0], [3, 0, 2]]                       => 108
-  [[0, 1, 0], [2, 0, 1], [1, 0, 1]]            => 76
-  [[1, 0, 0], [2, 0, 1], [0, 1, 1]]            => 122
-  [[1, 0, 0], [2, 1, 1], [0, 0, 1]]            => 92
-  [[2, 0, 0], [0, 1, 0], [1, 0, 2]]            => 312
-  [[1, 0, 0], [2, 1, 2]]                       => 18
-  [[2, 0, 0], [0, 1, 0], [1, 0, 1], [0, 0, 1]] => 132
-  [[1, 0, 0], [1, 1, 1], [1, 0, 1]]            => 68
+Dict{HNType{3}, Vector{Int64}} with 24 entries:
+  [[2, 1, 1], [1, 0, 1]]                       => [12]
+  [[1, 0, 0], [0, 1, 0], [2, 0, 1], [0, 0, 1]] => [306]
+  [[1, 0, 0], [1, 1, 0], [1, 0, 1], [0, 0, 1]] => [131]
+  [[2, 0, 0], [1, 0, 1], [0, 1, 1]]            => [64]
+  [[3, 0, 0], [0, 1, 2]]                       => [150]
+  [[1, 1, 0], [2, 0, 1], [0, 0, 1]]            => [312]
+  [[2, 0, 0], [1, 1, 1], [0, 0, 1]]            => [336]
+  [[2, 0, 0], [1, 1, 0], [0, 0, 2]]            => [242]
+  [[3, 0, 0], [0, 1, 1], [0, 0, 1]]            => [168]
+  [[3, 1, 1], [0, 0, 1]]                       => [432]
+  [[3, 0, 0], [0, 1, 0], [0, 0, 2]]            => [246]
+  [[0, 1, 0], [3, 0, 2]]                       => [108]
+  [[0, 1, 0], [2, 0, 1], [1, 0, 1]]            => [76]
+  [[1, 0, 0], [2, 0, 1], [0, 1, 1]]            => [122]
+  [[1, 0, 0], [2, 1, 1], [0, 0, 1]]            => [92]
+  [[2, 0, 0], [0, 1, 0], [1, 0, 2]]            => [312]
+  [[1, 0, 0], [2, 1, 2]]                       => [18]
+  [[2, 0, 0], [0, 1, 0], [1, 0, 1], [0, 0, 1]] => [132]
+  [[1, 0, 0], [1, 1, 1], [1, 0, 1]]            => [68]
   ⋮                                            => ⋮
 ```
 """
@@ -132,21 +132,20 @@ function weights_universal_bundle_on_stratum(
   theta::AbstractVector{Int},
   denom::Function=sum;
   chi::AbstractVector{Int},
-)
-  den = lcm(map(denominator, filter(ds -> ds[i] != 0, hn_type)))
-
+)::Vector{Int}
+  ell = length(hn_type)
   slopes = map(h -> slope(h, theta, denom), hn_type)
-  # slopes *= lcm(denominator.(slopes))
+  constant_term = sum(slopes[s] * (chi' * hn_type[s]) for s in 1:ell)
+  den = lcm(denominator.([slopes[s] for s in 1:ell if hn_type[s][i] > 0]))
 
-  constant_term = sum(slopes[s] * (chi' * hn_type[s]) for s in eachindex(hn_type))
   slopes_mult = reduce(
+    vcat, [[slopes[s] for _ in 1:ell] for s in 1:ell]
   )
-
   return den .* (-constant_term .+ slopes_mult)
 end
 
 """
-    all_weights_universal_bundle(Q::Quiver, d, theta, denom=sum; chi)
+    all_weights_universal_bundle(Q::Quiver, d, theta, i, denom=sum; chi)
 
 Computes the Teleman weights of the universal bundle ``U_i(chi)``
 for the linearization ``chi`` on all the non-dense Harder-Narasimhan strata.
@@ -155,6 +154,7 @@ for the linearization ``chi`` on all the non-dense Harder-Narasimhan strata.
 function all_weights_universal_bundle(
   Q::Quiver,
   d::AbstractVector{Int},
+  i::Int,
   theta::AbstractVector{Int},
   denom::Function=sum;
   chi::AbstractVector{Int},
@@ -164,8 +164,8 @@ function all_weights_universal_bundle(
 
   hn = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
-    hn_type => weights_universal_bundle_on_stratum(theta, hn_type, denom; chi=chi) for # TODO
-    hn_type in hn
+    hn_type => weights_universal_bundle_on_stratum(hn_type, i, theta, denom; chi=chi)
+    for hn_type in hn
   )
 end
 
@@ -173,11 +173,60 @@ end
     all_weights_universal_bundle(M::QuiverModuli; chi)
 
 Computes the Teleman weights of the universal bundle ``U_i(chi)``
-for the linearization ``chi`` on all the non-dense Harder-Narasimhan strata.
+for the linearization `chi` on all the non-dense Harder-Narasimhan strata.
 
+# Example
+
+The weights of the universal bundles on our favourite 6-fold:
+
+```jldoctest
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> all_weights_universal_bundle(M, 1; chi=[2, -1])
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [-15, -15, -30, -30]
+  [[2, 1], [0, 2]]         => [-20, -20, -30, -30]
+  [[1, 0], [1, 2], [0, 1]] => [-15, -15, -25, -25, -30, -30]
+  [[1, 0], [1, 3]]         => [-45, -45, -90, -90]
+  [[1, 0], [1, 1], [0, 2]] => [-45, -45, -60, -60, -75, -75]
+  [[1, 1], [1, 2]]         => [0, 0, -5, -5]
+  [[2, 0], [0, 3]]         => [-45, -45, -60, -60]
+```
+
+If not specified, the linearization is taken from the moduli space, and
+defaults to `extended_gcd(M.d)[2]` if not defined.
+
+```jldoctest
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> QuiverTools.set_linearization!(M, 1);
+
+julia> all_weights_universal_bundle(M, 1)
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [15, 15, 0, 0]
+  [[2, 1], [0, 2]]         => [20, 20, 10, 10]
+  [[1, 0], [1, 2], [0, 1]] => [25, 25, 15, 15, 10, 10]
+  [[1, 0], [1, 3]]         => [90, 90, 45, 45]
+  [[1, 0], [1, 1], [0, 2]] => [60, 60, 45, 45, 30, 30]
+  [[1, 1], [1, 2]]         => [5, 5, 0, 0]
+  [[2, 0], [0, 3]]         => [45, 45, 30, 30]
+
+julia> QuiverTools.set_linearization!(M, [-4, 3]);
+
+julia> all_weights_universal_bundle(M, 1)
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [45, 45, 30, 30]
+  [[2, 1], [0, 2]]         => [60, 60, 50, 50]
+  [[1, 0], [1, 2], [0, 1]] => [65, 65, 55, 55, 50, 50]
+  [[1, 0], [1, 3]]         => [225, 225, 180, 180]
+  [[1, 0], [1, 1], [0, 2]] => [165, 165, 150, 150, 135, 135]
+  [[1, 1], [1, 2]]         => [10, 10, 5, 5]
+  [[2, 0], [0, 3]]         => [135, 135, 120, 120]
+```
 """
 function all_weights_universal_bundle(
-  M::QuiverModuli;
+  M::QuiverModuli,
+  i::Int;
   chi::Union{AbstractVector{Int},UndefInitializer}=undef,
 )
   # chi is provided => use it but DO NOT change the one in M.chow.
@@ -186,10 +235,8 @@ function all_weights_universal_bundle(
     return all_weights_universal_bundle(M.Q, M.d, i, M.theta, M.denom; chi=chi)
 
   chi = isdefined(M.chow, :chi) ? linearization(M) : extended_gcd(M.d)[2]
-  return all_weights_universal_bundle(M.Q, M.d, M.theta, M.denom; chi=chi)
+  return all_weights_universal_bundle(M.Q, M.d, i, M.theta, M.denom; chi=chi)
 end
-
-# TODO test and add safety checks.
 
 """
     weight_irreducible_component_canonical_on_stratum(Q::Quiver, d, hn_type, theta, denom=sum)
@@ -206,20 +253,15 @@ function weight_irreducible_component_canonical_on_stratum(
   hn_type::HNType,
   theta::AbstractVector{Int},
   denom::Function=sum,
-)::Int
+)::Vector{Int}
   kweights = map(di -> slope(di, theta, denom), hn_type)
   kweights = kweights * lcm(denominator.(kweights))
 
   dd = sum(kweights[m] .* hn_type[m] for m in 1:length(hn_type))
-  # The Fano paper shows that under appropriate conditions,
-  # the canonical bundle is given by linearizing with minus
-  # the canonical stability parameter.
   can = canonical_stability(Q, d)
   can /= gcd(can)
-  return can' * dd
+  return [can' * dd]
 end
-
-# TODO test and add safety checks.
 
 """
     weight_irreducible_component_canonical_on_stratum(M::QuiverModuli, hn_type)
@@ -258,6 +300,8 @@ function all_weights_irreducible_component_canonical(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
+  !(is_coprime(d, theta) && is_amply_stable(Q, d, theta)) &&
+    throw(ArgumentError("$(d) is not $(theta)-coprime and amply stable."))
   hn = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type =>
@@ -274,6 +318,22 @@ on all the non-dense Harder-Narasimhan strata.
 More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullback of
 ``\\mathcal{O}(H)`` on each stratum.
 
+# Example
+
+The irreducible component of the canonical bundle of our favourite 6-fold:
+```jldoctest
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> all_weights_irreducible_component_canonical(M)
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [30]
+  [[2, 1], [0, 2]]         => [40]
+  [[1, 0], [1, 2], [0, 1]] => [40]
+  [[1, 0], [1, 3]]         => [135]
+  [[1, 0], [1, 1], [0, 2]] => [105]
+  [[1, 1], [1, 2]]         => [5]
+  [[2, 0], [0, 3]]         => [90]
+```
 """
 function all_weights_irreducible_component_canonical(M::QuiverModuli)
   return all_weights_irreducible_component_canonical(M.Q, M.d, M.theta, M.denom)
@@ -290,13 +350,9 @@ function weights_endomorphism_universal_bundle_on_stratum(
   hn_type::HNType,
   theta::AbstractVector{Int},
   denom::Function=sum,
-)
-
-  # the maximum weight of the tensors of the universal bundles U_i^\vee \otimes U_j is
-  # slope of first term in the HN type - slope of the last term in the HN type
+)::Vector{Int}
   kweights = map(di -> slope(di, theta, denom), hn_type)
   kweights = kweights * lcm(denominator.(kweights))
-  # return kweights[1] - kweights[end] # this is the largest one
   return [kweights[i] - kweights[j] for i in 1:length(hn_type) for j in 1:length(hn_type)]
 end
 
@@ -342,6 +398,22 @@ end
 Computes the weights of the endomorphisms of the universal bundles ``U_i \\otimes U_j``
 on all the non-dense Harder-Narasimhan strata for each 1-PS relative to the HN type.
 
+# Example
+
+The weights of the endomorphisms of the universal bundles on our favourite 6-fold:
+```jldoctest
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> all_weights_endomorphisms_universal_bundle(M)
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [0, 15, -15, 0]
+  [[2, 1], [0, 2]]         => [0, 10, -10, 0]
+  [[1, 0], [1, 2], [0, 1]] => [0, 10, 15, -10, 0, 5, -15, -5, 0]
+  [[1, 0], [1, 3]]         => [0, 45, -45, 0]
+  [[1, 0], [1, 1], [0, 2]] => [0, 15, 30, -15, 0, 15, -30, -15, 0]
+  [[1, 1], [1, 2]]         => [0, 5, -5, 0]
+  [[2, 0], [0, 3]]         => [0, 15, -15, 0]
+```
 """
 function all_weights_endomorphisms_universal_bundle(M::QuiverModuli)
   return all_weights_endomorphisms_universal_bundle(M.Q, M.d, M.theta, M.denom)
