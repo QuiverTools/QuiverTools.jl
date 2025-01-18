@@ -655,7 +655,7 @@ function Td(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, q)
     e -> slope(e, theta) > slope(d, theta),
     all_subdimension_vectors(d; nonzero=true, strict=true),
   )
-  I = vcat([zero_vector(nvertices(Q))], I, [d])
+  I = vcat([zero_vector(Q)], I, [d])
 
   l = length(I)
   T = Matrix{Any}(zeros(l, l))
@@ -1118,7 +1118,7 @@ function motive(
   ds = all_subdimension_vectors(d; nonzero=true, strict=true)
   ds = filter(e -> slope(e, theta, denom) > slope(d, theta, denom), ds)
 
-  push!(ds, zero_vector(nvertices(Q)), d)
+  push!(ds, zero_vector(Q), d)
   sort!(ds; by=e -> deglex_key(Q, e)) #hopefully
 
   T = Matrix{Any}(undef, length(ds), length(ds))
@@ -1126,7 +1126,7 @@ function motive(
     if is_subdimension_vector(ds[i], ds[j])
       T[i, j] =
         power(L, euler_form(Q, ds[i] - ds[j], ds[i])) *
-        motive(Q, ds[j] - ds[i], zero_vector(nvertices(Q)))
+        motive(Q, ds[j] - ds[i], zero_vector(Q))
     else
       T[i, j] = 0
     end
@@ -1384,9 +1384,6 @@ function chow_ring(
   return M.chow.ring
 end
 
-# this should be in a misc.jl file or something
-# this should be in Base really...
-
 """
     extended_gcd(x)
 
@@ -1517,6 +1514,7 @@ function chern_character_line_bundle(
   eta::AbstractVector{Int},
 )
   x = chern_class_line_bundle(M, eta)
+  # TODO why assign this and then return it?
   chern_character = sum(x^i / factorial(i) for i in 0:dimension(M))
 
   return chern_character
@@ -1556,6 +1554,7 @@ function total_chern_class_universal(
 )
   CH = chow_ring(M)
   CHvars = gens(CH)
+  # TODO why assign it and then return it?
   cUi = sum(CHvars[sum(M.d[1:(i - 1)]) + r] for r in 1:M.d[i]; init=CH(0)) + CH(1)
   return cUi
 end
@@ -1866,6 +1865,7 @@ function dimension(M::QuiverModuliStack)
   if is_nonempty(M)
     return -euler_form(M.Q, M.d, M.d)
   end
+  # TODO why return a string, instead of -Inf?
   return "-∞"
 end
 
@@ -2051,5 +2051,5 @@ julia> dimension(semisimple_moduli_space(M))
 ```
 """
 function semisimple_moduli_space(M::QuiverModuliSpace)
-  return QuiverModuliSpace(M.Q, M.d, zero_vector(nvertices(M.Q)))
+  return QuiverModuliSpace(M.Q, M.d, zero_vector(M.Q))
 end

@@ -33,6 +33,7 @@ import Combinatorics: with_replacement_combinations, partitions
 export nvertices,
   narrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
 export euler_form, canonical_stability, is_coprime, slope
+export underlying_graph, euler_matrix
 export is_schur_root,
   generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
 export all_hn_types,
@@ -81,6 +82,8 @@ function __init__()
   return nothing
 end
 
+# TODO move all quiver things to Quiver.jl, so that QuiverTools.jl is only meta things
+
 function deglex_key(Q::Quiver, e::AbstractVector{Int})::Int
   b = maximum(e) + 1
   n = nvertices(Q)
@@ -97,7 +100,7 @@ of the underlying graph of the quiver.
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
-julia> QuiverTools.underlying_graph(Q) == [0 4; 4 0]
+julia> underlying_graph(Q) == [0 4; 4 0]
 true
 ```
 """
@@ -354,7 +357,7 @@ EXAMPLE:
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
-julia> QuiverTools.euler_matrix(Q) == [1 -4; 0 1]
+julia> euler_matrix(Q) == [1 -4; 0 1]
 true
 ```
 """
@@ -436,9 +439,7 @@ end
 
 Checks if the gcd of all the entries of d is ``1``.
 """
-function is_coprime(d::AbstractVector{Int})
-  return gcd(d) == 1
-end
+is_coprime(d::AbstractVector{Int}) = gcd(d) == 1
 
 """
     slope(d, theta, denom=sum)
@@ -610,27 +611,21 @@ is_schur_root(Q::Quiver, d::AbstractVector{Int}) =
 
 Checks whether `d` is a real root, i.e., if ``<d, d> = 1``.
 """
-function is_real_root(Q, d)
-  return euler_form(Q, d, d) == 1
-end
+is_real_root(Q, d) = euler_form(Q, d, d) == 1
 
 """
     is_imaginary_root(Q::Quiver, d)
 
 Checks whether `d` is an imaginary root, i.e., if ``<d, d> \\geq 0``.
 """
-function is_imaginary_root(Q, d)
-  return euler_form(Q, d, d) <= 0
-end
+is_imaginary_root(Q, d) = euler_form(Q, d, d) <= 0
 
 """
     is_isotropic_root(Q::Quiver, d)
 
 Checks whether `d` is an isotropic root, i.e., if ``<d, d> = 0``.
 """
-function is_isotropic_root(Q, d)
-  return euler_form(Q, d, d) == 0
-end
+is_isotropic_root(Q, d) = euler_form(Q, d, d) == 0
 
 """
     is_generic_subdimension_vector(Q::Quiver, e, d)
@@ -904,8 +899,9 @@ function is_amply_stable(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  HN = filter(hntype -> hntype != [d], all_hn_types(Q, d, theta, denom))
-  return all(stratum -> codimension_hn_stratum(Q, stratum) >= 2, HN)
+  # TODO should there be a version of all_hn_types that excludes the dense stratum?
+  hn_types = filter(hntype -> hntype != [d], all_hn_types(Q, d, theta, denom))
+  return all(stratum -> codimension_hn_stratum(Q, stratum) >= 2, hn_types)
 end
 
 ########################################################################################
@@ -1079,6 +1075,31 @@ end
 ########################################################################################
 
 """
+    Newton_polynomial(n::Int)
+
+Returns the "base change" function from the symmetric base
+to the power sum base for the ring of symmetric polynomials.
+
+Denoting the symmetric polynomial base by ``e_i``,
+the power sum base by ``p_i`` and the base change function by ``\\nu_n``
+such that ``p_n = \\nu_n(e_1,...,e_n)``, this function returns ``\\nu_n``.
+"""
+# TODO why is this function here (it is never called?), and why is it not newton_polynomial?
+@memoize Dict function Newton_polynomial(n)
+  if n == 0
+    throw(ArgumentError("Newtonpolynomial(0) is not defined"))
+  elseif n == 1
+    return x -> x[1]
+  else
+    function newPoly(x)
+      return ((-1)^(n - 1) * n * x[n]) +
+             sum((-1)^(i + n + 1) * x[n - i] * Newton_polynomial(i)(x) for i in 1:(n - 1))
+    end
+  end
+  return newPoly
+end
+
+"""
 	zero_vector(n::Int)
 
 Create a zero vector of length `n`.
@@ -1102,6 +1123,20 @@ true
 @memoize Dict function zero_vector(n::Int)
   return coerce_vector(zeros(Int, n))
 end
+
+"""
+  zero_vector(Q::Quiver)
+
+Create the zero dimension vector for the quiver `Q`.
+
+# Examples
+
+```jldoctest
+julia> QuiverTools.zero_vector(kronecker_quiver(3)) == [0, 0]
+true
+```
+"""
+zero_vector(Q::Quiver) = zero_vector(nvertices(Q))
 
 """
 	thin_dimension_vector(Q::Quiver)
@@ -1285,20 +1320,13 @@ julia> QuiverTools.unit_vector(Q, 2) == [0, 1]
 true
 ```
 """
-function unit_vector(Q::Quiver, i::Int)
-  return unit_vector(nvertices(Q), i)
-end
+unit_vector(Q::Quiver, i::Int) = unit_vector(nvertices(Q), i)
 
-function coerce_vector(v::AbstractVector)
-  return SVector{length(v)}(v)
-end
-function coerce_vector(v::Tuple)
-  return SVector{length(v)}(v)
-end
+coerce_vector(v::AbstractVector) = SVector{length(v)}(v)
+coerce_vector(v::Tuple) = SVector{length(v)}(v)
 coerce_vector(v::SVector) = v
-function coerce_matrix(m::AbstractMatrix)
-  return SMatrix{size(m)...}(m)
-end
+
+coerce_matrix(m::AbstractMatrix) = SMatrix{size(m)...}(m)
 coerce_matrix(m::SMatrix) = m
 
 #######################################################
