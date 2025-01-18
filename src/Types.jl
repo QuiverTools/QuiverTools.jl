@@ -1,8 +1,8 @@
 ########################################################################################
 # Definitions of types and primitive constructors for quivers and moduli spaces
 ########################################################################################
-
-export Quiver, QuiverModuli, QuiverModuliSpace, QuiverModuliStack, Bundle
+import Base.getindex, Base.length, Base.iterate
+export Quiver, HNType, QuiverModuli, QuiverModuliSpace, QuiverModuliStack, Bundle
 
 """
 # Summary
@@ -260,6 +260,39 @@ function show(io::IO, M::QuiverModuliStack)
     ",
   )
 end
+
+"""
+# Summary
+
+`struct HNType`
+
+A struct for a Harder-Narasimhan type.
+
+# Fields
+
+ `hn :: Vector{SVector{T,Int}}`\\
+
+"""
+struct HNType{T}
+  hn::Vector{SVector{T,Int}}
+  # should this contain Q, d and slope?
+  function HNType(dstar::Vector{<:AbstractVector{Int}})
+    T = length(dstar[1])
+    return new{T}(coerce_vector.(dstar))
+  end
+end
+
+function show(io::IO, H::HNType)
+  print(io, "$(Vector.(H.hn))") # coercion back to vector is slow, but it's just for printing
+end
+
+==(H1::HNType, H2::HNType) = H1.hn == H2.hn
+==(H::HNType, x::Vector{<:AbstractVector{Int}}) = H.hn == x
+hash(H::HNType) = hash(H.hn)
+length(H::HNType) = length(H.hn)
+Base.getindex(H::HNType, i) = getindex(H.hn, i)
+Base.iterate(H::HNType) = iterate(H.hn)
+Base.iterate(H::HNType, i) = iterate(H.hn, i)
 
 """
 # Summary

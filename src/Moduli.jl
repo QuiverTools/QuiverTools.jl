@@ -110,7 +110,7 @@ The HN types for a 3-Kronecker quiver with dimension vector `[2, 3]`:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> all_hn_types(M)
-8-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
+8-element Vector{HNType}:
  [[2, 3]]
  [[1, 1], [1, 2]]
  [[2, 2], [0, 1]]
@@ -121,7 +121,7 @@ julia> all_hn_types(M)
  [[2, 0], [0, 3]]
 
 julia> all_hn_types(M; unstable = true)
-7-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
+7-element Vector{HNType}:
  [[1, 1], [1, 2]]
  [[2, 2], [0, 1]]
  [[2, 1], [0, 2]]
@@ -132,15 +132,15 @@ julia> all_hn_types(M; unstable = true)
 ```
 """
 function all_hn_types(M::QuiverModuli; unstable::Bool=false, ordered::Bool=true)
-  HN = all_hn_types(M.Q, M.d, M.theta, M.denom; ordered)
+  HN = all_hn_types(M.Q, M.d, M.theta, M.denom; ordered=ordered)
   if unstable
-    return filter(hn_type -> hn_type != [M.d], HN)
+    return filter(hn_type -> hn_type[1] != M.d, HN)
   end
   return HN
 end
 
 """
-	is_hn_type(M::QuiverModuli, hn_type::AbstractVector{<:AbstractVector{Int}})
+	is_hn_type(M::QuiverModuli, hn_type::HNType)
 
 Checks if the given sequence of dimension vectors is a valid HN type for
 the moduli space.
@@ -148,7 +148,7 @@ the moduli space.
 # Input
 
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
-- `hn_type::AbstractVector{<:AbstractVector{Int}}`: a sequence of dimension vectors.
+- `hn_type::HNType`: a sequence of dimension vectors.
 
 # Output
 
@@ -170,12 +170,13 @@ julia> is_hn_type(M, [[1, 2], [1, 1]])
 false
 ```
 """
-function is_hn_type(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}})::Bool
-  return is_hn_type(M.Q, M.d, hn_type, M.theta, M.denom)
-end
+is_hn_type(M::QuiverModuli, hn_type::HNType)::Bool =
+  is_hn_type(M.Q, M.d, hn_type, M.theta, M.denom)
+is_hn_type(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}})::Bool =
+  is_hn_type(M, HNType(hn_type))
 
 """
-	codimension_hn_stratum(M::QuiverModuli, hn_type::Vector{<AbstractVector{Int}})
+	codimension_hn_stratum(M::QuiverModuli, hn_type::HNType)
 
 Computes the codimension of the Harder-Narasimhan stratum
 corresponding to the given HN type.
@@ -183,7 +184,7 @@ corresponding to the given HN type.
 # Input
 
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
-- `hn_type::Vector{<:AbstractVector{Int}}`: a HN type for `M`.
+- `hn_type::HNType`: a HN type for `M`.
 
 # Output
 
@@ -202,9 +203,10 @@ julia> codimension_hn_stratum(M, [[1, 1], [1, 2]])
 3
 ```
 """
-function codimension_hn_stratum(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}})
-  return codimension_hn_stratum(M.Q, hn_type)
-end
+codimension_hn_stratum(M::QuiverModuli, hn_type::HNType) =
+  codimension_hn_stratum(M.Q, hn_type)
+codimension_hn_stratum(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}}) =
+  codimension_hn_stratum(M, HNType(hn_type))
 
 """
 	codimension_unstable_locus(M::QuiverModuli)

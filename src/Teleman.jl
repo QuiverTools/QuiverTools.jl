@@ -29,13 +29,13 @@ corresponding to the given HN type.
 """
 function teleman_bound_on_stratum(
   Q::Quiver,
-  hn_type::Vector{<:AbstractVector{Int}},
+  hn_type::HNType,
   theta::AbstractVector{Int},
   denom::Function=sum,
 )::Int
-  if length(hn_type) == 1
+  length(hn_type) == 1 &&
     throw(ArgumentError("Weight not defined on the dense stratum"))
-  end
+
   slopes = map(h -> slope(h, theta, denom), hn_type)
   slopes = lcm(denominator.(slopes)) .* slopes
   return sum(
@@ -44,7 +44,7 @@ function teleman_bound_on_stratum(
   )
 end
 
-function teleman_bound_on_stratum(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}})
+function teleman_bound_on_stratum(M::QuiverModuli, hn_type::HNType)
   return teleman_bound_on_stratum(M.Q, hn_type, M.theta, M.denom)
 end
 
@@ -60,12 +60,12 @@ HN type for the given ``Q``, ``d``, ``\\theta`` and `denom``.
 julia> Q = kronecker_quiver(3);
 
 julia> all_teleman_bounds(Q, [2, 3], [3, -2])
-Dict{Vector{StaticArraysCore.SVector{2, Int64}}, Int64} with 7 entries:
-  [[2, 1], [0, 2]]         => 100
+Dict{HNType{2}, Int64} with 7 entries:
   [[2, 2], [0, 1]]         => 20
-  [[1, 0], [1, 1], [0, 2]] => 90
-  [[1, 0], [1, 3]]         => 120
+  [[2, 1], [0, 2]]         => 100
   [[1, 0], [1, 2], [0, 1]] => 100
+  [[1, 0], [1, 3]]         => 120
+  [[1, 0], [1, 1], [0, 2]] => 90
   [[1, 1], [1, 2]]         => 15
   [[2, 0], [0, 3]]         => 90
 ```
@@ -79,7 +79,7 @@ function all_teleman_bounds(
   #This is only relevant on the unstable locus
   HN = filter(hn_type -> hn_type != [d], all_hn_types(Q, d, theta, denom))
   return Dict(
-    [hn_type, teleman_bound_on_stratum(Q, hn_type, theta, denom)] for hn_type in HN
+    hn_type => teleman_bound_on_stratum(Q, hn_type, theta, denom) for hn_type in HN
   )
 end
 
@@ -94,26 +94,26 @@ julia> Q = three_vertex_quiver(1, 2, 3); d = [3, 1, 2]; theta = [5, 3, -9];
 julia> M = QuiverModuliSpace(Q, d, theta);
 
 julia> all_teleman_bounds(M)
-Dict{Vector{StaticArraysCore.SVector{3, Int64}}, Int64} with 24 entries:
+Dict{HNType{3}, Int64} with 24 entries:
   [[2, 1, 1], [1, 0, 1]]                       => 12
   [[1, 0, 0], [0, 1, 0], [2, 0, 1], [0, 0, 1]] => 306
   [[1, 0, 0], [1, 1, 0], [1, 0, 1], [0, 0, 1]] => 131
   [[2, 0, 0], [1, 0, 1], [0, 1, 1]]            => 64
   [[3, 0, 0], [0, 1, 2]]                       => 150
-  [[2, 0, 0], [1, 1, 0], [0, 0, 2]]            => 242
-  [[2, 0, 0], [1, 1, 1], [0, 0, 1]]            => 336
   [[1, 1, 0], [2, 0, 1], [0, 0, 1]]            => 312
-  [[3, 0, 0], [0, 1, 0], [0, 0, 2]]            => 246
+  [[2, 0, 0], [1, 1, 1], [0, 0, 1]]            => 336
+  [[2, 0, 0], [1, 1, 0], [0, 0, 2]]            => 242
   [[3, 0, 0], [0, 1, 1], [0, 0, 1]]            => 168
   [[3, 1, 1], [0, 0, 1]]                       => 432
+  [[3, 0, 0], [0, 1, 0], [0, 0, 2]]            => 246
   [[0, 1, 0], [3, 0, 2]]                       => 108
-  [[1, 0, 0], [2, 0, 1], [0, 1, 1]]            => 122
   [[0, 1, 0], [2, 0, 1], [1, 0, 1]]            => 76
+  [[1, 0, 0], [2, 0, 1], [0, 1, 1]]            => 122
   [[1, 0, 0], [2, 1, 1], [0, 0, 1]]            => 92
   [[2, 0, 0], [0, 1, 0], [1, 0, 2]]            => 312
   [[1, 0, 0], [2, 1, 2]]                       => 18
   [[2, 0, 0], [0, 1, 0], [1, 0, 1], [0, 0, 1]] => 132
-  [[1, 0, 0], [0, 1, 0], [2, 0, 2]]            => 46
+  [[1, 0, 0], [1, 1, 1], [1, 0, 1]]            => 68
   ⋮                                            => ⋮
 ```
 """
@@ -144,7 +144,7 @@ end
 
 function weights_universal_bundle_on_stratum(
   M::QuiverModuli,
-  hn_type::Vector{<:AbstractVector{Int}};
+  hn_type::HNType;
   chi::AbstractVector{Int}=extended_gcd(M.d)[2],
 )
   return weights_universal_bundle_on_stratum(M.theta, hn_type, M.denom; chi=chi)
@@ -164,9 +164,9 @@ function all_weights_universal_bundle(
   denom::Function=sum;
   chi::AbstractVector{Int}=extended_gcd(d)[2],
 )
-  HN = filter(hn_type -> hn_type != [d], all_hn_types(Q, d, theta, denom))
+  HN = filter(hn_type -> hn_type[1] != d, all_hn_types(Q, d, theta, denom))
   return Dict(
-    [hn_type, weights_universal_bundle_on_stratum(theta, hn_type, denom; chi=chi)] for
+    hn_type => weights_universal_bundle_on_stratum(theta, hn_type, denom; chi=chi) for
     hn_type in HN
   )
 end
@@ -199,7 +199,7 @@ the pullback of O(H) on the given stratum.
 function weight_irreducible_component_canonical_on_stratum(
   Q::Quiver,
   d::AbstractVector{Int},
-  hn_type::Vector{<:AbstractVector{Int}},
+  hn_type::HNType,
   theta::AbstractVector{Int},
   denom::Function=sum,
 )::Int
@@ -228,7 +228,7 @@ the pullback of O(H) on the given stratum.
 """
 function weight_irreducible_component_canonical_on_stratum(
   M::QuiverModuli,
-  hn_type::Vector{<:AbstractVector{Int}},
+  hn_type::HNType,
 )
   return weight_irreducible_component_canonical_on_stratum(
     M.Q,
@@ -256,10 +256,9 @@ function all_weights_irreducible_component_canonical(
 )
   HN = filter(hn_type -> hn_type != [d], all_hn_types(Q, d, theta))
   return Dict(
-    [
-      hn_type,
-      weight_irreducible_component_canonical_on_stratum(Q, d, hn_type, theta, denom),
-    ] for hn_type in HN
+    hn_type =>
+      weight_irreducible_component_canonical_on_stratum(Q, d, hn_type, theta, denom)
+    for hn_type in HN
   )
 end
 
@@ -284,7 +283,7 @@ on the given Harder-Narasimhan stratum for the 1-PS relative to the HN type.
 
 """
 function weights_endomorphism_universal_bundle_on_stratum(
-  hn_type::AbstractVector{<:AbstractVector{Int}},
+  hn_type::HNType,
   theta::AbstractVector{Int},
   denom::Function=sum,
 )::AbstractVector{Int}
@@ -306,7 +305,7 @@ on the given Harder-Narasimhan stratum for the 1-PS relative to the HN type.
 """
 function weights_endomorphism_universal_bundle_on_stratum(
   M::QuiverModuli,
-  hn_type::Vector{<:AbstractVector{Int}},
+  hn_type::HNType,
 )
   return weights_endomorphism_universal_bundle_on_stratum(hn_type, M.theta, M.denom)
 end

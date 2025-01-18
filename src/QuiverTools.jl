@@ -705,7 +705,7 @@ with dimension vector ``d``, with respect to the slope function theta/denom.
 julia> Q = kronecker_quiver(3); d = [2,3]; theta = [3,-2];
 
 julia> all_hn_types(Q, d, theta; ordered=true)
-8-element Vector{Vector{StaticArraysCore.SVector{2, Int64}}}:
+8-element Vector{HNType}:
  [[2, 3]]
  [[1, 1], [1, 2]]
  [[2, 2], [0, 1]]
@@ -723,7 +723,7 @@ julia> Q = three_vertex_quiver(1, 4, 1); d = [4, 1, 4];
 julia> theta = canonical_stability(Q, d);
 
 julia> all_hn_types(Q, d, theta; ordered=true)
-106-element Vector{Vector{StaticArraysCore.SVector{3, Int64}}}:
+106-element Vector{HNType}:
  [[4, 1, 4]]
  [[4, 1, 3], [0, 0, 1]]
  [[4, 0, 3], [0, 1, 1]]
@@ -751,10 +751,11 @@ julia> all_hn_types(Q, d, theta; ordered=true)
   d::AbstractVector{Int},
   theta::AbstractVector{Int},
   denom::Function=sum;
-  ordered::Bool=false,
+  # unstable::Bool=false,
+  ordered::Bool=true,
 )
   if all(di == 0 for di in d)
-    return [[coerce_vector(d)]]
+    return [HNType([zero_vector(Q)])] # uses cached zero_vector
   end
   # We consider just proper subdimension vectors which admit a semistable
   # representation and for which μ(e) > μ(d)
@@ -775,8 +776,8 @@ julia> all_hn_types(Q, d, theta; ordered=true)
   # proper semistable subdimension vector with μ(e) > μ(d), (f^1,...,f^s) is a HN
   # type of f = d-e and μ(e) > μ(f^1) holds.
 
-  alltypes = [
-    vcat([e], efstar)
+  alltypes = HNType[
+    HNType(vcat([e], efstar.hn))
 
     for e in subdimensions for efstar in filter(
       fstar -> slope(e, theta, denom) > slope(fstar[1], theta, denom),
@@ -787,7 +788,8 @@ julia> all_hn_types(Q, d, theta; ordered=true)
   # Possibly add d again, at the beginning, because it is smallest
   # with respect to the partial order from Def. 3.6
   if has_semistables(Q, d, theta, denom)
-    pushfirst!(alltypes, [d])
+    # if !unstable && has_semistables(Q, d, theta, denom)
+    pushfirst!(alltypes, HNType([d]))
   end
   return alltypes
 end
@@ -813,13 +815,11 @@ true
 function is_hn_type(
   Q::Quiver,
   d::AbstractVector{Int},
-  dstar::Vector{<:AbstractVector{Int}},
+  dstar::HNType,
   theta::AbstractVector{Int}=canonical_stability(Q, d),
   denom::Function=sum,
 )::Bool
-  if sum(dstar) != d
-    return false
-  end
+  sum(dstar) != d && throw(ArgumentError("$(dstar) does not sum to $(d)."))
 
   if !all(
     slope(dstar[i], theta, denom) > slope(dstar[i + 1], theta, denom) for
@@ -833,6 +833,13 @@ function is_hn_type(
   end
   return true
 end
+is_hn_type(Q::Quiver,
+  d::AbstractVector{Int},
+  dstar::Vector{<:AbstractVector{Int}};
+  theta::AbstractVector{Int}=canonical_stability(Q, d),
+  denom::Function=sum,
+)::Bool =
+  is_hn_type(Q, d, HNType(dstar), theta, denom)
 
 """
     codimension_hn_stratum(Q::Quiver, stratum)
@@ -858,16 +865,17 @@ julia> [codimension_hn_stratum(Q, stratum) for stratum in HN]
  18
 ```
 """
-function codimension_hn_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}})
-  if length(stratum) == 1
-    return 0
-  else
-    return -sum(
-      euler_form(Q, stratum[i], stratum[j]) for i in 1:(length(stratum) - 1) for
-      j in (i + 1):length(stratum)
-    )
-  end
+function codimension_hn_stratum(Q::Quiver, stratum::HNType)
+  length(stratum) == 1 && return 0
+
+  return -sum(
+    euler_form(Q, stratum[i], stratum[j])
+    for i in 1:(length(stratum) - 1)
+    for j in (i + 1):length(stratum)
+  )
 end
+codimension_hn_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}}) =
+  codimension_hn_stratum(Q, HNType(stratum))
 
 """
     is_amply_stable(Q::Quiver, d, theta, denom=sum)
@@ -899,8 +907,8 @@ function is_amply_stable(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  # TODO should there be a version of all_hn_types that excludes the dense stratum?
-  hn_types = filter(hn_type -> hn_type != [d], all_hn_types(Q, d, theta, denom))
+  # TODO should there be a version of all_hn_types that excludes the dense stratum? # ok
+  hn_types = filter(hn_type -> hn_type[1] != d, all_hn_types(Q, d, theta, denom))
   return all(stratum -> codimension_hn_stratum(Q, stratum) >= 2, hn_types)
 end
 
