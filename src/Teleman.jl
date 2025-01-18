@@ -2,13 +2,10 @@
 # Weights of various standard vector bundles for the HN stratification
 ######################################################################
 
-export teleman_bound_on_stratum,
+export
   all_teleman_bounds,
-  weights_universal_bundle_on_stratum,
   all_weights_universal_bundle,
-  weight_irreducible_component_canonical_on_stratum,
   all_weights_irreducible_component_canonical,
-  weights_endomorphism_universal_bundle_on_stratum,
   all_weights_endomorphisms_universal_bundle,
   does_rigidity_inequality_hold
 
