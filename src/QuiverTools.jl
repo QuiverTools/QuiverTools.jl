@@ -900,7 +900,7 @@ function is_amply_stable(
   denom::Function=sum,
 )
   # TODO should there be a version of all_hn_types that excludes the dense stratum?
-  hn_types = filter(hntype -> hntype != [d], all_hn_types(Q, d, theta, denom))
+  hn_types = filter(hn_type -> hn_type != [d], all_hn_types(Q, d, theta, denom))
   return all(stratum -> codimension_hn_stratum(Q, stratum) >= 2, hn_types)
 end
 
