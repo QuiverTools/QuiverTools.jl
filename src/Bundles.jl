@@ -341,7 +341,7 @@ julia> map(chern_class, omega)
 """
 function canonical_bundle(M::QuiverModuliSpace)
   !(is_coprime(M) && is_amply_stable(M)) &&
-    throw(DomainError("not coprime and amply stable, cannot compute the canonical bundle."))
+    throw(
   cl_omega = chern_class_line_bundle(M, -canonical_stability(M.Q, M.d))
   return Bundle(M, 1, cl_omega)
 end

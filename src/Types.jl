@@ -317,16 +317,16 @@ its Chern character.
 
 `parent :: ChowRing`\\
 `rank   :: Int`\\
-`chern  :: Singular.spoly{Singular.n_Q}`
-
-
+`chern_character  :: Singular.spoly{Singular.n_Q}`\\
+`chern_class :: Dict{Int,Singular.spoly{Singular.n_Q}}`\\
+`teleman_weights :: Dict{HNTypes, Vector{Int}}`
 """
 mutable struct Bundle
   parent::ChowRing
   rank::Int
-  chern_character::Union{Singular.spoly{Singular.n_Q},UndefInitializer}
-  chern_class::Union{Dict{Int,Singular.spoly{Singular.n_Q}},UndefInitializer}
   # teleman_weights::Dict{Vector{Any}, Union{Int, Vector{Int}}} # TODO implement
+  chern_character::Singular.spoly{Singular.n_Q}
+  chern_class::Dict{Int,Singular.spoly{Singular.n_Q}}
   Bundle() = new()
 end
 
