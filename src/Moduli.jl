@@ -228,8 +228,8 @@ julia> codimension_unstable_locus(M)
 ```
 """
 function codimension_unstable_locus(M::QuiverModuli)
-  hn = all_hn_types(M; unstable=true)
-  return minimum(codimension_hn_stratum(M, hn_type) for hn_type in hn)
+  hn_types = all_hn_types(M; unstable=true)
+  return minimum(codimension_hn_stratum(M, hn_type) for hn_type in hn_types)
 end
 
 """

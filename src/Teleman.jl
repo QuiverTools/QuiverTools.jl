@@ -73,9 +73,9 @@ function all_teleman_bounds(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  hn = all_hn_types(Q, d, theta, denom; unstable=true)
+  hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
-    hn_type => teleman_bound_on_stratum(Q, hn_type, theta, denom) for hn_type in hn
+    hn_type => teleman_bound_on_stratum(Q, hn_type, theta, denom) for hn_type in hn_types
   )
 end
 
@@ -160,10 +160,10 @@ function all_weights_universal_bundle(
   !is_coprime(d, theta) &&
     throw(ArgumentError("$(d) is not $(theta)-coprime, universal bundles do not exist."))
 
-  hn = all_hn_types(Q, d, theta, denom; unstable=true)
+  hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type => weights_universal_bundle_on_stratum(hn_type, i, theta, denom; chi=chi)
-    for hn_type in hn
+    for hn_type in hn_types
   )
 end
 
@@ -298,11 +298,11 @@ function all_weights_irreducible_component_canonical(
 )
   !(is_coprime(d, theta) && is_amply_stable(Q, d, theta)) &&
     throw(ArgumentError("$(d) is not $(theta)-coprime and amply stable."))
-  hn = all_hn_types(Q, d, theta, denom; unstable=true)
+  hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type =>
       weight_irreducible_component_canonical_on_stratum(Q, d, hn_type, theta, denom)
-    for hn_type in hn
+    for hn_type in hn_types
   )
 end
 
@@ -381,10 +381,10 @@ function all_weights_endomorphisms_universal_bundle(
 )
   !is_coprime(d, theta) &&
     throw(ArgumentError("$(d) is not $(theta)-coprime, universal bundles do not exist."))
-  hn = all_hn_types(Q, d, theta, denom; unstable=true)
+  hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type => weights_endomorphism_universal_bundle_on_stratum(hn_type, theta, denom) for
-    hn_type in hn
+    hn_type in hn_types
   )
 end
 
