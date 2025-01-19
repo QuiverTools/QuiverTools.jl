@@ -343,7 +343,14 @@ function canonical_bundle(M::QuiverModuliSpace)
   !(is_coprime(M) && is_amply_stable(M)) &&
     throw(
   cl_omega = chern_class_line_bundle(M, -canonical_stability(M.Q, M.d))
-  return Bundle(M, 1, cl_omega)
+  new = Bundle(M, 1, cl_omega)
+
+  r = index(M)
+  weights = all_weights_irreducible_component_canonical(M)
+  for hn in keys(weights)
+    weights[hn] *= r
+  end
+  return set_bundle_weights!(new, weights)
 end
 
 """
@@ -370,7 +377,10 @@ julia> map(chern_class, [u1, u2])
 """
 function universal_bundle(M::QuiverModuliSpace, i::Int)
   cl = total_chern_class_universal(M, i)
-  return Bundle(M, M.d[i], cl)
+  new = Bundle(M, M.d[i], cl)
+
+  weights = all_weights_universal_bundle(M, i)
+  return set_bundle_weights!(new, weights)
 end
 
 """

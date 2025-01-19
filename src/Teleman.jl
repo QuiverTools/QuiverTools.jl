@@ -451,3 +451,12 @@ function does_rigidity_inequality_hold(M::QuiverModuli)
   weights = all_weights_endomorphisms_universal_bundle(M.Q, M.d, M.theta)
   return all(maximum(weights[hn]) < bounds[hn] for hn in collect(keys(bounds)))
 end
+
+#####################################################################################
+# Below are methods to work with Bundle objects that pertain to Teleman quantization
+#####################################################################################
+
+function set_bundle_weights!(F::Bundle, weights::Dict{HNType,Vector{Int}})
+  setfield!(F, :teleman_weights, weights)
+  return F
+end

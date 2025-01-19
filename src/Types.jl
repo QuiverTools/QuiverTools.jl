@@ -324,9 +324,9 @@ its Chern character.
 mutable struct Bundle
   parent::ChowRing
   rank::Int
-  # teleman_weights::Dict{Vector{Any}, Union{Int, Vector{Int}}} # TODO implement
   chern_character::Singular.spoly{Singular.n_Q}
   chern_class::Dict{Int,Singular.spoly{Singular.n_Q}}
+  teleman_weights::Dict{HNTypes,Vector{Int}} # TODO implement
   Bundle() = new()
 end
 
