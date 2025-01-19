@@ -457,6 +457,10 @@ end
 #####################################################################################
 
 function set_bundle_weights!(F::Bundle, weights::Dict{HNType,Vector{Int}})
+  r = isdefined(F, :rank) ? F.rank : length(first(values(weights)))
+  !all(length(v) == r for v in values(weights)) &&
+    throw(ArgumentError("Weights are not consistent with rank."))
+  !isdefined(F, :rank) && setfield!(F, :rank, r)
   setfield!(F, :teleman_weights, weights)
   return F
 end
