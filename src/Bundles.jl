@@ -550,6 +550,48 @@ julia> map(chern_class, [u1, u2])
 2-element Vector{Singular.spoly{Singular.n_Q}}:
  x11 + 1
  x21 + 1
+
+julia> map(teleman_weights, [u1, u2])
+2-element Vector{Dict{HNType{2}, Vector{Int64}}}:
+ Dict([[1, 0], [0, 1]] => [0])
+ Dict([[1, 0], [0, 1]] => [-4])
+```
+
+On our favourite 6-fold:
+
+```jldoctest
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> chow_ring(M; chi=[-1, 1]);
+
+julia> u1, u2 = universal_bundle(M, 1), universal_bundle(M, 2);
+
+julia> map(chern_character, [u1, u2])
+2-element Vector{Singular.spoly{Singular.n_Q}}:
+ 1//6*x12*x21 + 1//2*x21^2 + 1//12*x12*x22 - 1//36*x22^2 - 7//72*x21*x23 - 1//120*x22*x23 - 1//720*x23^2 - x12 + x21 - 1//2*x23 + 2
+ 2//3*x12*x21 + 1//2*x21^2 - 1//6*x12*x22 - 1//2*x21*x22 + 1//12*x22^2 + 1//24*x21*x23 + 1//180*x22*x23 + x21 - x22 + 3
+
+julia> w = map(teleman_weights, [u1, u2]);
+
+julia> w[1]
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [15, 15]
+  [[2, 1], [0, 2]]         => [20, 20]
+  [[1, 0], [1, 2], [0, 1]] => [25, 15]
+  [[1, 0], [1, 3]]         => [90, 45]
+  [[1, 0], [1, 1], [0, 2]] => [60, 45]
+  [[1, 1], [1, 2]]         => [5, 0]
+  [[2, 0], [0, 3]]         => [45, 45]
+
+julia> w[2]
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [15, 15, 0]
+  [[2, 1], [0, 2]]         => [20, 10, 10]
+  [[1, 0], [1, 2], [0, 1]] => [15, 15, 10]
+  [[1, 0], [1, 3]]         => [45, 45, 45]
+  [[1, 0], [1, 1], [0, 2]] => [45, 30, 30]
+  [[1, 1], [1, 2]]         => [5, 0, 0]
+  [[2, 0], [0, 3]]         => [30, 30, 30]
 ```
 """
 function universal_bundle(M::QuiverModuliSpace, i::Int)
