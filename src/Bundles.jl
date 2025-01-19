@@ -342,6 +342,10 @@ julia> map(chern_class, omega)
 function canonical_bundle(M::QuiverModuliSpace)
   !(is_coprime(M) && is_amply_stable(M)) &&
     throw(
+      NotImplementedError(
+        "not coprime and amply stable, cannot compute the canonical bundle."
+      ),
+    )
   cl_omega = chern_class_line_bundle(M, -canonical_stability(M.Q, M.d))
   new = Bundle(M, 1, cl_omega)
 
@@ -376,6 +380,10 @@ julia> map(chern_class, [u1, u2])
 ```
 """
 function universal_bundle(M::QuiverModuliSpace, i::Int)
+  !is_coprime(M) &&
+    throw(
+      ArgumentError("$(M.d) is not $(M.theta)-coprime, universal bundles do not exist.")
+    )
   cl = total_chern_class_universal(M, i)
   new = Bundle(M, M.d[i], cl)
 
