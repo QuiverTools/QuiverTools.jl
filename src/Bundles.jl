@@ -113,32 +113,101 @@ julia> chern_character(tdd)
 ```
 """
 function dual(F::Bundle)
-  return Bundle(F.parent, adams(F, -1))
+  # TODO Implement Teleman weight manipulation
+  if has_chern_data(F)
+    new = Bundle(F.parent, adams(F, -1))
+  else
+    new = Bundle()
+    setfield!(new, :parent, F.parent)
+    setfield!(new, :rank, F.rank)
+  end
+  if isdefined(F, :teleman_weights)
+    weights_dual = Dict(
+      hn_type => -teleman_weights(F)[hn_type] for hn_type in keys(teleman_weights(F))
+    )
+    set_bundle_weights!(new, weights_dual)
+  end
+  return new
 end
 
-*(n::Int, F::Bundle) = Bundle(F.parent, n * chern_character(F))
+function *(n::Int, F::Bundle)
+  new = Bundle()
+  setfield!(new, :parent, F.parent)
+  setfield!(new, :rank, F.rank * n)
+  _has_chern_data(F) && setfield!(new, :chern_character, n * chern_character(F))
+  if isdefined(F, :teleman_weights)
+    n_weights = Dict(
+      hn_type => reduce(vcat, teleman_weights(F)[hn_type] for _ in 1:n)
+      for hn_type in keys(teleman_weights(F))
+    )
+    set_bundle_weights!(new, n_weights)
+  end
+  return new
+end
+
 *(F::Bundle, n::Int) = n * F
-^(F::Bundle, n::Int) = Bundle(F.parent, chern_character(F)^n)
+
+function ^(F::Bundle, n::Int)
+  new = Bundle()
+  setfield!(new, :parent, F.parent)
+  setfield!(new, :rank, F.rank * n)
+  _has_chern_data(F) && setfield!(new, :chern_character, chern_character(F)^n)
+  if isdefined(F, :teleman_weights)
+    pow_weights = Dict(
+      hn_type => [sum(c) for c in combinations(teleman_weights(F), n)]
+      for hn_type in keys(teleman_weights(F))
+    )
+    set_bundle_weights!(new, pow_weights)
+  end
+  return new
+end
 
 # direct sum, quotient and tensor product
-+(F::Bundle, G::Bundle) =
-  if F.parent == G.parent
-    Bundle(F.parent, chern_character(F) + chern_character(G))
-  else
-    throw(DomainError("Different Chow rings."))
+function +(F::Bundle, G::Bundle)
+  F.parent != G.parent && throw(DomainError("Different Chow rings."))
+  homog_chow = _has_chern_data(F) == _has_chern_data(G)
+  !homog_chow && throw(ArgumentError("Dishomogeneous Chern data."))
+  homog_weights = isdefined(F, :teleman_weights) == isdefined(G, :teleman_weights)
+  !homog_weights && throw(ArgumentError("Dishomogeneous Teleman weights."))
+
+  new = Bundle()
+  setfield!(new, :parent, F.parent)
+  setfield!(new, :rank, F.rank + G.rank)
+
+  _has_chern_data(F) &&
+    setfield!(new, :chern_character, chern_character(F) + chern_character(G))
+  if isdefined(F, :teleman_weights)
+    new_weights = Dict(
+      hn_type => vcat(teleman_weights(F)[hn_type], teleman_weights(G)[hn_type])
+      for hn_type in keys(teleman_weights(F))
+    )
+    set_bundle_weights!(new, new_weights)
   end
--(F::Bundle, G::Bundle) =
-  if F.parent == G.parent
-    Bundle(F.parent, chern_character(F) - chern_character(G))
-  else
-    throw(DomainError("Different Chow rings."))
+  return new
+end
+function *(F::Bundle, G::Bundle)
+  F.parent != G.parent && throw(DomainError("Different Chow rings."))
+  homog_chow = _has_chern_data(F) == _has_chern_data(G)
+  !homog_chow && throw(ArgumentError("Dishomogeneous Chern data."))
+  homog_weights = isdefined(F, :teleman_weights) == isdefined(G, :teleman_weights)
+  !homog_weights && throw(ArgumentError("Dishomogeneous Teleman weights."))
+
+  new = Bundle()
+  setfield!(new, :parent, F.parent)
+  setfield!(new, :rank, F.rank + G.rank)
+
+  _has_chern_data(F) &&
+    setfield!(new, :chern_character, chern_character(F) * chern_character(G))
+  if isdefined(F, :teleman_weights)
+    new_weights = Dict(
+      hn_type =>
+        [x + y for x in teleman_weights(F)[hn_type] for y in teleman_weights(G)[hn_type]]
+      for hn_type in keys(teleman_weights(F))
+    )
+    set_bundle_weights!(new, new_weights)
   end
-*(F::Bundle, G::Bundle) =
-  if F.parent == G.parent
-    Bundle(F.parent, chern_character(F) * chern_character(G))
-  else
-    throw(DomainError("Different Chow rings."))
-  end
+  return new
+end
 
 """
     exterior_power(F::Bundle, k::Int)
