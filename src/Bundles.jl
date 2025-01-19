@@ -58,8 +58,8 @@ function chern_class(F::Bundle, k)
 end
 
 function teleman_weights(F::Bundle)
-  !isdefined(F, :weights) && throw(ArgumentError("Bundle has no weights."))
-  return F.weights
+  !isdefined(F, :teleman_weights) && throw(ArgumentError("Bundle has no weights."))
+  return F.teleman_weights
 end
 
 rank(F::Bundle) = F.rank

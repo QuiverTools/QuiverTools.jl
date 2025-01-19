@@ -326,7 +326,7 @@ mutable struct Bundle
   rank::Int
   chern_character::Singular.spoly{Singular.n_Q}
   chern_class::Dict{Int,Singular.spoly{Singular.n_Q}}
-  teleman_weights::Dict{HNTypes,Vector{Int}} # TODO implement
+  teleman_weights::Dict{HNType,Vector{Int}} # TODO implement
   Bundle() = new()
 end
 
