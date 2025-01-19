@@ -415,3 +415,14 @@ function Bundle(M::QuiverModuliSpace, rank::Int, x::Vector{Singular.spoly{Singul
   setfield!(newbundle, :chern_class, x)
   return newbundle
 end
+
+function Bundle(M::QuiverModuliSpace, weights::Dict{HNType,Vector{Int}})
+  r = length(first(values(weights)))
+  !all(length(v) == r for v in values(weights)) &&
+    throw(ArgumentError("Incorrect weights."))
+  newbundle = Bundle()
+  setfield!(newbundle, :parent, M.chow)
+  setfield!(newbundle, :rank, r)
+  setfield!(newbundle, :teleman_weights, weights)
+  return newbundle
+end
