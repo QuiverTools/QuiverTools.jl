@@ -185,6 +185,15 @@ function +(F::Bundle, G::Bundle)
   end
   return new
 end
+
+function -(F::Bundle, G::Bundle)
+  F.parent != G.parent && throw(DomainError("Different Chow rings."))
+  (isdefined(F, :teleman_weights) || isdefined(G, :teleman_weights)) && throw(
+    ArgumentError("Cannot subtract bundles with weights.")
+  )
+  Bundle(F.parent, chern_character(F) - chern_character(G))
+end
+
 function *(F::Bundle, G::Bundle)
   F.parent != G.parent && throw(DomainError("Different Chow rings."))
   homog_chow = _has_chern_data(F) == _has_chern_data(G)
