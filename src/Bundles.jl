@@ -461,6 +461,9 @@ Return the canonical bundle on the quiver moduli space `M`.
 If ``d`` is ``theta``-coprime and amply stable, the canonical bundle
 is described in [Proposition 4.2, MR4352662](https://mathscinet.ams.org/mathscinet-getitem?mr=4352662).
 
+This function computes both the Chern character and the Teleman weights
+of the canonical bundle.
+
 # Example
 
 On various projective spaces:
@@ -477,6 +480,35 @@ julia> map(chern_class, omega)
  4*x11
  5*x11
  6*x11
+
+julia> map(teleman_weights, omega)
+5-element Vector{Dict{HNType{2}, Vector{Int64}}}:
+ Dict([[1, 0], [0, 1]] => [8])
+ Dict([[1, 0], [0, 1]] => [18])
+ Dict([[1, 0], [0, 1]] => [32])
+ Dict([[1, 0], [0, 1]] => [50])
+ Dict([[1, 0], [0, 1]] => [72])
+```
+
+On our favourite 6-fold:
+
+```jldoctest
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> omega = canonical_bundle(M);
+
+julia> chern_class(omega)
+3*x21
+
+julia> QuiverTools.teleman_weights(omega)
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [90]
+  [[2, 1], [0, 2]]         => [120]
+  [[1, 0], [1, 2], [0, 1]] => [120]
+  [[1, 0], [1, 3]]         => [405]
+  [[1, 0], [1, 1], [0, 2]] => [315]
+  [[1, 1], [1, 2]]         => [15]
+  [[2, 0], [0, 3]]         => [270]
 ```
 """
 function canonical_bundle(M::QuiverModuliSpace)
