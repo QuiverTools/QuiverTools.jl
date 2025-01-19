@@ -7,27 +7,59 @@ import Base: *, +, -, ^
 export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
   det, canonical_bundle, universal_bundle, degree, rank
 
+_has_chern_data(F::Bundle) = isdefined(F, :chern_character) || isdefined(F, :chern_class)
+
 function chern_character(F::Bundle)
+  !_has_chern_data(F) &&
+    throw(
+      ArgumentError(
+        "Bundle has no Chow ring data."
+      ),
+    )
   !isdefined(F, :chern_character) &&
     setfield!(F, :chern_character, _chern_character_from_classes(F))
   return F.chern_character
 end
 
 function chern_classes(F::Bundle)
+  !_has_chern_data(F) &&
+    throw(
+      ArgumentError(
+        "Bundle has no Chow ring data."
+      ),
+    )
   !isdefined(F, :chern_class) &&
     setfield!(F, :chern_class, _chern_classes_from_character(F))
   return F.chern_class
 end
+
 function chern_class(F::Bundle)
+  !_has_chern_data(F) &&
+    throw(
+      ArgumentError(
+        "Bundle has no Chow ring data."
+      ),
+    )
   !isdefined(F, :chern_class) &&
     setfield!(F, :chern_class, _chern_classes_from_character(F))
   return sum(values(chern_classes(F)))
 end
 
 function chern_class(F::Bundle, k)
+  !_has_chern_data(F) &&
+    throw(
+      ArgumentError(
+        "Bundle has no Chow ring data."
+      ),
+    )
   !isdefined(F, :chern_class) &&
     setfield!(F, :chern_class, _chern_classes_from_character(F))
   return chern_classes(F)[k]
+end
+
+function teleman_weights(F::Bundle)
+  !isdefined(F, :weights) && throw(ArgumentError("Bundle has no weights."))
+  return F.weights
 end
 
 rank(F::Bundle) = F.rank
