@@ -28,7 +28,7 @@ import Singular:
   std,
   gens,
   base_ring
-import Combinatorics: with_replacement_combinations, partitions
+import Combinatorics: combinations, with_replacement_combinations, partitions
 
 export nvertices,
   narrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source

@@ -5,7 +5,7 @@
 import Base: *, +, -, ^
 
 export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
-  det, canonical_bundle, universal_bundle, degree, rank
+  det, canonical_bundle, universal_bundle, degree, rank, teleman_weights
 
 _has_chern_data(F::Bundle) = isdefined(F, :chern_character) || isdefined(F, :chern_class)
 
@@ -253,7 +253,22 @@ julia> map(w -> (rank(w), chern_character(w)), W)
 ```
 """
 function exterior_power(F::Bundle, k::Int)
-  return Bundle(F.parent, _chern_characters_wedge(F, k)[end])
+  new = Bundle()
+  setfield!(new, :parent, F.parent)
+  setfield!(new, :rank, binomial(rank(F), k))
+  CH = chow_ring(F)
+
+  _has_chern_data(F) &&
+    setfield!(new, :chern_character, CH(_chern_characters_wedge(F, k)[end]))
+  if isdefined(F, :teleman_weights)
+    new_weights = Dict(
+      hn_type =>
+        [sum(c) for c in combinations(teleman_weights(F)[hn_type], k)]
+      for hn_type in keys(teleman_weights(F))
+    )
+    setfield!(new, :teleman_weights, new_weights)
+  end
+  return new
 end
 det(F::Bundle) = exterior_power(F, rank(F))
 
@@ -291,7 +306,22 @@ julia> map(w -> (rank(w), chern_character(w)), W)
 ```
 """
 function symmetric_power(F::Bundle, k::Int)
-  return Bundle(F.parent, _chern_characters_symmetric(F, k)[end])
+  new = Bundle()
+  setfield!(new, :parent, F.parent)
+  setfield!(new, :rank, binomial(rank(F) + k - 1, rank(F) - 1))
+  CH = chow_ring(F)
+
+  _has_chern_data(F) &&
+    setfield!(new, :chern_character, CH(_chern_characters_symmetric(F, k)[end]))
+  if isdefined(F, :teleman_weights)
+    new_weights = Dict(
+      hn_type =>
+        [sum(c) for c in with_replacement_combinations(teleman_weights(F)[hn_type], k)]
+      for hn_type in keys(teleman_weights(F))
+    )
+    setfield!(new, :teleman_weights, new_weights)
+  end
+  return new
 end
 
 function homogeneous_components(M::QuiverModuliSpace, x)
