@@ -35,12 +35,10 @@ function teleman_bound_on_stratum(
 
   slopes = map(h -> slope(h, theta, denom), hn_type)
   slopes = lcm(denominator.(slopes)) .* slopes
-  return [
-    sum(
-      (slopes[t] - slopes[s]) * euler_form(Q, hn_type[s], hn_type[t])
-      for s in 1:(ell - 1) for t in (s + 1):ell
-    ),
-  ]
+  return sum(
+    (slopes[t] - slopes[s]) * euler_form(Q, hn_type[s], hn_type[t])
+    for s in 1:(ell - 1) for t in (s + 1):ell
+  )
 end
 
 function teleman_bound_on_stratum(M::QuiverModuli, hn_type::HNType)
@@ -139,7 +137,7 @@ function weights_universal_bundle_on_stratum(
   den = lcm(denominator.([slopes[s] for s in 1:ell if hn_type[s][i] > 0]))
 
   slopes_mult = reduce(
-    vcat, [[slopes[s] for _ in 1:ell] for s in 1:ell]
+    vcat, [slopes[s] for _ in 1:hn_type[s][i]] for s in 1:ell
   )
   return den .* (-constant_term .+ slopes_mult)
 end
@@ -198,8 +196,6 @@ defaults to `extended_gcd(M.d)[2]` if not defined.
 
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> QuiverTools.set_linearization!(M, 1);
 
 julia> all_weights_universal_bundle(M, 1)
 Dict{HNType{2}, Vector{Int64}} with 7 entries:
