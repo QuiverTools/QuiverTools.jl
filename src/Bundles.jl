@@ -114,7 +114,7 @@ julia> chern_character(tdd)
 """
 function dual(F::Bundle)
   # TODO Implement Teleman weight manipulation
-  if has_chern_data(F)
+  if _has_chern_data(F)
     new = Bundle(F.parent, adams(F, -1))
   else
     new = Bundle()
@@ -125,7 +125,7 @@ function dual(F::Bundle)
     weights_dual = Dict(
       hn_type => -teleman_weights(F)[hn_type] for hn_type in keys(teleman_weights(F))
     )
-    set_bundle_weights!(new, weights_dual)
+    setfield!(new, :teleman_weights, weights_dual)
   end
   return new
 end
@@ -140,7 +140,7 @@ function *(n::Int, F::Bundle)
       hn_type => reduce(vcat, teleman_weights(F)[hn_type] for _ in 1:n)
       for hn_type in keys(teleman_weights(F))
     )
-    set_bundle_weights!(new, n_weights)
+    setfield!(new, :teleman_weights, n_weights)
   end
   return new
 end
@@ -157,7 +157,7 @@ function ^(F::Bundle, n::Int)
       hn_type => [sum(c) for c in combinations(teleman_weights(F), n)]
       for hn_type in keys(teleman_weights(F))
     )
-    set_bundle_weights!(new, pow_weights)
+    setfield!(new, :teleman_weights, pow_weights)
   end
   return new
 end
@@ -181,7 +181,7 @@ function +(F::Bundle, G::Bundle)
       hn_type => vcat(teleman_weights(F)[hn_type], teleman_weights(G)[hn_type])
       for hn_type in keys(teleman_weights(F))
     )
-    set_bundle_weights!(new, new_weights)
+    setfield!(new, :teleman_weights, new_weights)
   end
   return new
 end
@@ -213,7 +213,7 @@ function *(F::Bundle, G::Bundle)
         [x + y for x in teleman_weights(F)[hn_type] for y in teleman_weights(G)[hn_type]]
       for hn_type in keys(teleman_weights(F))
     )
-    set_bundle_weights!(new, new_weights)
+    setfield!(new, :teleman_weights, new_weights)
   end
   return new
 end
@@ -464,7 +464,8 @@ function canonical_bundle(M::QuiverModuliSpace)
   for hn in keys(weights)
     weights[hn] *= r
   end
-  return set_bundle_weights!(new, weights)
+  setfield!(new, :teleman_weights, weights)
+  return new
 end
 
 """
@@ -498,7 +499,8 @@ function universal_bundle(M::QuiverModuliSpace, i::Int)
   new = Bundle(M, M.d[i], cl)
 
   weights = all_weights_universal_bundle(M, i)
-  return set_bundle_weights!(new, weights)
+  setfield!(new, :teleman_weights, weights)
+  return new
 end
 
 """
