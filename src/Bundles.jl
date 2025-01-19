@@ -113,7 +113,6 @@ julia> chern_character(tdd)
 ```
 """
 function dual(F::Bundle)
-  # TODO Implement Teleman weight manipulation
   if _has_chern_data(F)
     new = Bundle(F.parent, adams(F, -1))
   else

@@ -1512,10 +1512,7 @@ function chern_character_line_bundle(
   eta::AbstractVector{Int},
 )
   x = chern_class_line_bundle(M, eta)
-  # TODO why assign this and then return it?
-  chern_character = sum(x^i / factorial(i) for i in 0:dimension(M))
-
-  return chern_character
+  return sum(x^i / factorial(i) for i in 0:dimension(M))
 end
 
 """
@@ -1552,9 +1549,7 @@ function total_chern_class_universal(
 )
   CH = chow_ring(M)
   CHvars = gens(CH)
-  # TODO why assign it and then return it?
-  cUi = sum(CHvars[sum(M.d[1:(i - 1)]) + r] for r in 1:M.d[i]; init=CH(0)) + CH(1)
-  return cUi
+  return sum(CHvars[sum(M.d[1:(i - 1)]) + r] for r in 1:M.d[i]; init=CH(0)) + CH(1)
 end
 
 """
@@ -1863,8 +1858,7 @@ function dimension(M::QuiverModuliStack)
   if is_nonempty(M)
     return -euler_form(M.Q, M.d, M.d)
   end
-  # TODO why return a string, instead of -Inf?
-  return "-∞"
+  return -Inf
 end
 
 """
@@ -1896,7 +1890,7 @@ function dimension(M::QuiverModuliSpace)
     if M.condition == "semistable"
       return 0
     else
-      return "-∞"
+      return -Inf
     end
   end
 
@@ -1908,7 +1902,7 @@ function dimension(M::QuiverModuliSpace)
   # if the stable locus is empty, the dimension is the maximum of the dimensions
   # of the Luna strata
   if M.condition == "stable"
-    return "-∞"
+    return -Inf
   elseif M.condition == "semistable"
     if has_semistables(M.Q, M.d, M.theta)
       return maximum(
@@ -1918,7 +1912,7 @@ function dimension(M::QuiverModuliSpace)
     end
   end
   # the semistable locus is also empty
-  return "-∞"
+  return -Inf
 end
 
 """
@@ -2018,9 +2012,9 @@ function is_projective(M::QuiverModuli)
 
   SSP = semisimple_moduli_space(M)
   if M.condition == "semistable"
-    return dimension(SSP) in [0, "-∞"]
+    return dimension(SSP) in [0, -Inf]
   elseif M.condition == "stable"
-    return dimension(SSP) in [1, "-∞"] && semistable_equals_stable(M)
+    return dimension(SSP) in [1, -Inf] && semistable_equals_stable(M)
   end
 end
 
