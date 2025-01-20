@@ -7,7 +7,8 @@ export
   all_weights_universal_bundle,
   all_weights_irreducible_component_canonical,
   all_weights_endomorphisms_universal_bundle,
-  does_rigidity_inequality_hold
+  does_rigidity_inequality_hold,
+  set_teleman_weights!
 
 """
     teleman_bound_on_stratum(Q::Quiver, hn_type, theta, denom=sum)
