@@ -456,7 +456,7 @@ end
 # Below are methods to work with Bundle objects that pertain to Teleman quantization
 #####################################################################################
 
-function set_bundle_weights!(F::Bundle, weights::Dict{HNType,Vector{Int}})
+function set_teleman_weights!(F::Bundle, weights::Dict{<:HNType,Vector{Int}})
   r = isdefined(F, :rank) ? F.rank : length(first(values(weights)))
   !all(length(v) == r for v in values(weights)) &&
     throw(ArgumentError("Weights are not consistent with rank."))

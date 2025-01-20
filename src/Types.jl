@@ -319,7 +319,7 @@ its Chern character.
 `rank   :: Int`\\
 `chern_character  :: Singular.spoly{Singular.n_Q}`\\
 `chern_class :: Dict{Int,Singular.spoly{Singular.n_Q}}`\\
-`teleman_weights :: Dict{HNTypes, Vector{Int}}`
+`teleman_weights :: Dict{<:HNTypes,Vector{Int}}`
 """
 mutable struct Bundle
   parent::ChowRing

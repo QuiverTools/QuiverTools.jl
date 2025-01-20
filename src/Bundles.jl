@@ -124,7 +124,7 @@ function dual(F::Bundle)
     weights_dual = Dict(
       hn_type => -teleman_weights(F)[hn_type] for hn_type in keys(teleman_weights(F))
     )
-    setfield!(new, :teleman_weights, weights_dual)
+    set_teleman_weights!(new, weights_dual)
   end
   return new
 end
@@ -139,7 +139,7 @@ function *(n::Int, F::Bundle)
       hn_type => reduce(vcat, teleman_weights(F)[hn_type] for _ in 1:n)
       for hn_type in keys(teleman_weights(F))
     )
-    setfield!(new, :teleman_weights, n_weights)
+    set_teleman_weights!(new, n_weights)
   end
   return new
 end
@@ -156,7 +156,7 @@ function ^(F::Bundle, n::Int)
       hn_type => [sum(c) for c in combinations(teleman_weights(F), n)]
       for hn_type in keys(teleman_weights(F))
     )
-    setfield!(new, :teleman_weights, pow_weights)
+    set_teleman_weights!(new, pow_weights)
   end
   return new
 end
@@ -180,7 +180,7 @@ function +(F::Bundle, G::Bundle)
       hn_type => vcat(teleman_weights(F)[hn_type], teleman_weights(G)[hn_type])
       for hn_type in keys(teleman_weights(F))
     )
-    setfield!(new, :teleman_weights, new_weights)
+    set_teleman_weights!(new, new_weights)
   end
   return new
 end
@@ -212,7 +212,7 @@ function *(F::Bundle, G::Bundle)
         [x + y for x in teleman_weights(F)[hn_type] for y in teleman_weights(G)[hn_type]]
       for hn_type in keys(teleman_weights(F))
     )
-    setfield!(new, :teleman_weights, new_weights)
+    set_teleman_weights!(new, new_weights)
   end
   return new
 end
@@ -265,7 +265,7 @@ function exterior_power(F::Bundle, k::Int)
         [sum(c) for c in combinations(teleman_weights(F)[hn_type], k)]
       for hn_type in keys(teleman_weights(F))
     )
-    setfield!(new, :teleman_weights, new_weights)
+    set_teleman_weights!(new, new_weights)
   end
   return new
 end
@@ -318,7 +318,7 @@ function symmetric_power(F::Bundle, k::Int)
         [sum(c) for c in with_replacement_combinations(teleman_weights(F)[hn_type], k)]
       for hn_type in keys(teleman_weights(F))
     )
-    setfield!(new, :teleman_weights, new_weights)
+    set_teleman_weights!(new, new_weights)
   end
   return new
 end
@@ -525,8 +525,7 @@ function canonical_bundle(M::QuiverModuliSpace)
   for hn in keys(weights)
     weights[hn] *= r
   end
-  setfield!(new, :teleman_weights, weights)
-  return new
+  return set_teleman_weights!(new, weights)
 end
 
 """
@@ -602,8 +601,7 @@ function universal_bundle(M::QuiverModuliSpace, i::Int)
   new = Bundle(M, M.d[i], cl)
 
   weights = all_weights_universal_bundle(M, i)
-  setfield!(new, :teleman_weights, weights)
-  return new
+  return set_teleman_weights!(new, weights)
 end
 
 """
