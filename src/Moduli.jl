@@ -504,7 +504,6 @@ function semistable_equals_stable(M::QuiverModuli)
   return length(all_luna_types(M; stable=false)) == 0
 end
 
-# TODO what if dim R = 1? or 0?
 """
 	is_amply_stable(M::QuiverModuli)
 
