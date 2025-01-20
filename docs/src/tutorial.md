@@ -52,7 +52,7 @@ objects, while under the hood these are encoded using the StaticArrays package.
 julia> Q = kronecker_quiver(3); d = [2,3];
 
 julia> θ = canonical_stability(Q, d)
-2-element Vector{Int64}:
+2-element StaticArraysCore.SVector{2, Int64} with indices SOneTo(2):
   9
  -6
 
@@ -91,10 +91,10 @@ where ``s_i`` is the dimension vector with all entries set to ``0`` and the i-th
 set to ``1``.
 
 ```julia-repl
-julia> QuiverTools.in_fundamental_domain(Q, d)
+julia> in_fundamental_domain(Q, d)
 true
 
-julia> QuiverTools.in_fundamental_domain(Q, [1,3])
+julia> in_fundamental_domain(Q, [1,3])
 false
 ```
 
@@ -127,12 +127,12 @@ for a given dimension vector by checking if it is a Schur root:
 ```julia-repl
 julia> Q = kronecker_quiver(3); d = [2, 2];
 
-julia> QuiverTools.is_schur_root(Q, d)
+julia> is_schur_root(Q, d)
 true
 
 julia> K2 = kronecker_quiver(2);
 
-julia> QuiverTools.is_schur_root(K2, d)
+julia> is_schur_root(K2, d)
 false
 ```
 
@@ -145,8 +145,11 @@ QuiverTools implements the abstract `QuiverModuli` type and the two concrete typ
 julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3])
-Moduli space of semistable representations of 3-Kronecker quiver, with adjacency matrix [0 3; 0 0]
-      with dimension vector [2, 3] and stability parameter [9, -6]
+Quiver moduli space defined as follows:
+ - quiver: 3-Kronecker quiver, with adjacency matrix [0 3; 0 0],
+ - dimension vector: [2, 3],
+ - stability parameter [9, -6],
+ - condition: semistable.
 ```
 
 All the functionalities of QuiverTools are accessible either directly, by passing a quiver,
@@ -162,8 +165,8 @@ the Harder-Narasimhan stratification of the parameter space
 ```julia-repl
 julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
 
-julia> allHNtypes(M)
-8-element Vector{Vector{Vector{Int64}}}:
+julia> all_hn_types(M)
+8-element Vector{HNType}:
  [[2, 3]]
  [[1, 1], [1, 2]]
  [[2, 2], [0, 1]]
@@ -194,7 +197,7 @@ and whose values are the weights themselves.
 julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
 
 julia> all_teleman_bounds(M)
-Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
+Dict{HNType{2}, Int64} with 7 entries:
   [[2, 2], [0, 1]]         => 20
   [[2, 1], [0, 2]]         => 100
   [[1, 0], [1, 2], [0, 1]] => 100
@@ -214,14 +217,14 @@ we compute the weight of ``\mathcal{U}_i^\vee \otimes \mathcal{U}_j`` relative t
 julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
 
 julia> hn = all_teleman_bounds(M)
-Dict{Vector{Vector{Int64}}, Int64} with 7 entries:
-  [[2, 2], [0, 1]]         => 20
+Dict{HNType{2}, Int64} with 7 entries:
+  [[2, 2], [0, 1]]         => 60
   [[2, 1], [0, 2]]         => 100
   [[1, 0], [1, 2], [0, 1]] => 100
-  [[1, 0], [1, 3]]         => 120
-  [[1, 0], [1, 1], [0, 2]] => 90
+  [[1, 0], [1, 3]]         => 360
+  [[1, 0], [1, 1], [0, 2]] => 270
   [[1, 1], [1, 2]]         => 15
-  [[2, 0], [0, 3]]         => 90
+  [[2, 0], [0, 3]]         => 270
 
 julia> endom = all_weights_endomorphisms_universal_bundle(M)
 Dict{Vector{Vector{Int64}}, Vector{Int64}} with 7 entries:
@@ -261,7 +264,9 @@ then the general representation of dimension vector ``d`` is
 a direct sum of indecomposable representations of dimension vector ``\beta_i``.
 
 ```julia-repl
-julia> canonical_decomposition(Q, d)
+julia> Q = kronecker_quiver(3);
+
+julia> canonical_decomposition(Q, [2, 3])
 1-element Vector{Vector{Int64}}:
  [2, 3]
 
@@ -313,18 +318,18 @@ julia> ds = QuiverTools.all_subdimension_vectors([5, 5])
  [4, 0]  [4, 1]  [4, 2]  [4, 3]  [4, 4]  [4, 5]
  [5, 0]  [5, 1]  [5, 2]  [5, 3]  [5, 4]  [5, 5]
 
-julia> filter(d -> QuiverTools.is_real_root(Q, d), ds)
+julia> filter(d -> is_real_root(Q, d), ds)
 4-element Vector{Vector{Int64}}:
  [1, 0]
  [0, 1]
  [3, 1]
  [1, 3]
 
-julia> filter(d -> QuiverTools.is_isotropic_root(Q, d), ds)
+julia> filter(d -> is_isotropic_root(Q, d), ds)
 1-element Vector{Vector{Int64}}:
  [0, 0]
 
-julia> filter(d -> QuiverTools.is_imaginary_root(Q, d), ds)
+julia> filter(d -> is_imaginary_root(Q, d), ds)
 20-element Vector{Vector{Int64}}:
  [0, 0]
  [1, 1]
@@ -385,19 +390,171 @@ julia> Picard_rank(M)
 
 QuiverTools allows to compute the Chow ring for a given quiver moduli space, as well as
 the point class, the Todd class and the Euler characteristic of a vector bundle, given
-its Chern character.
+its Chern character or its Chern class.
 
 ```julia-repl
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> L = chern_character_line_bundle(M, [3, -2]);
+julia> CH = chow_ring(M; chi=[2, -1])
+Singular polynomial quotient ring (QQ),(x11,x12,x21,x22,x23),(dp(5),C)
 
-julia> [integral(M, L^i) for i in 0:5]
-6-element Vector{Int64}:
-    1
-   20
-  148
-  664
+julia> QuiverTools.quotient_ideal(CH)
+Singular ideal over Singular polynomial ring (QQ),(x11,x12,x21,x22,x23),(dp(5),C) with generators (2*x11 - x21, 33*x12*x23 - 7*x22*x23, 3*x12*x22 - x22^2 + x21*x23, x23^3, x22*x23^2, x21*x23^2, 9082*x22^2*x23 - 26539*x21*x23^2, 3*x21*x22*x23 - 22*x23^2, 3*x21^2*x23 - 8*x22*x23, 110*x22^3 - 153*x21*x22*x23 - 1188*x23^2, 5*x21*x22^2 - 5*x21^2*x23 - 144*x12*x23 + 6*x22*x23, x21^2*x22 - 48*x12^2 + 80*x12*x22 - 24*x22^2 + 18*x21*x23, x21^3 + 8*x12*x21 - 6*x21*x22 + 12*x23, x12*x21^2 - 12*x12^2 + 12*x12*x22 - 4*x22^2 + 4*x21*x23, 6*x12^2*x21 - 4*x12*x21*x22 + x21*x22^2 - x21^2*x23 - 12*x12*x23 + 2*x22*x23, 4*x12^3 - 4*x12*x21*x23 + x21*x22*x23 - 2*x23^2)
+
+julia> u1, u2 = universal_bundle(M, 1), universal_bundle(M, 2)
+(Bundle of rank 2, Bundle of rank 3)
+
+julia> endom = dual(u1) * u2
+Bundle of rank 6
+
+julia> chern_class(u1)
+x11 + x12 + 1
+
+julia> chern_class(u2)
+x21 + x22 + x23 + 1
+
+julia> degree(u1)
+57
+
+julia> degree(u2)
+3648
+
+julia> ω = canonical_bundle(M)
+Bundle of rank 1
+
+julia> chern_class(ω)
+-3//2*x21
+
+julia> degree(ω)
+41553
+
+julia> integral(ω)
+1
+
+julia> OO = QuiverTools.structure_sheaf(M)
+Bundle of rank 1
+
+julia> integral(OO)
+1
+```
+
+As seen in `dual(u1) * u2` in the example above,
+tensor calculus is implemented to some extent:
+
+```julia-repl
+julia> Λ = map(n -> exterior_power(u2, n), 0:5)
+6-element Vector{Bundle}:
+ Bundle of rank 1
+ Bundle of rank 3
+ Bundle of rank 3
+ Bundle of rank 1
+ Bundle of rank 0
+ Bundle of rank 0
+
+julia> map(chern_character, Λ)
+6-element Vector{Singular.spoly{Singular.n_Q}}:
+ 1
+ -4//3*x12*x21 + 1//2*x21^2 + 1//2*x21*x22 - 5//36*x22^2 + 7//18*x21*x23 - 1//360*x22*x23 - 1//2160*x23^2 + x21 - x22 - 3//2*x23 + 3
+ 8*x12^2 - 8//3*x12*x21 + x21^2 + 3//2*x21*x22 - 29//36*x22^2 + 14//9*x21*x23 + 383//3960*x22*x23 + 23//432*x23^2 + 2*x21 - x22 - 9//2*x23 + 3
+ 8*x12^2 - 4//3*x12*x21 + 1//2*x21^2 + x21*x22 - 2//3*x22^2 + 5//3*x21*x23 + 76//165*x22*x23 + 76//135*x23^2 + x21 - 2*x23 + 1
+ 0
+ 0
+
+julia> ⨂ = map(n -> symmetric_power(u2, n), 0:5)
+6-element Vector{Bundle}:
+ Bundle of rank 1
+ Bundle of rank 3
+ Bundle of rank 6
+ Bundle of rank 10
+ Bundle of rank 15
+ Bundle of rank 21
+
+julia> map(chern_character, ⨂)
+6-element Vector{Singular.spoly{Singular.n_Q}}:
+ 1
+ -4//3*x12*x21 + 1//2*x21^2 + 1//2*x21*x22 - 5//36*x22^2 + 7//18*x21*x23 - 1//360*x22*x23 - 1//2160*x23^2 + x21 - x22 - 3//2*x23 + 3
+ 8*x12^2 - 40//3*x12*x21 + 3*x21^2 + 11//2*x21*x22 - 109//36*x22^2 + 70//9*x21*x23 + 31//3960*x22*x23 + 17//720*x23^2 + 4*x21 - 5*x22 - 33//2*x23 + 6
+ 88*x12^2 - 184//3*x12*x21 + 10*x21^2 + 53//2*x21*x22 - 269//12*x22^2 + 331//6*x21*x23 + 217//264*x22*x23 + 337//432*x23^2 + 10*x21 - 15*x22 - 157//2*x23 + 10
+ 456*x12^2 - 584//3*x12*x21 + 25*x21^2 + 173//2*x21*x22 - 3559//36*x22^2 + 2143//9*x21*x23 + 6001//792*x22*x23 + 3725//432*x23^2 + 20*x21 - 35*x22 - 507//2*x23 + 15
+ 1624*x12^2 - 1484//3*x12*x21 + 105//2*x21^2 + 224*x21*x22 - 5803//18*x22^2 + 6902//9*x21*x23 + 1393//36*x22*x23 + 3899//72*x23^2 + 35*x21 - 70*x22 - 651*x23 + 21
+```
+
+In fact, `Bundle` objects can also store the Teleman weights.
+These are implemented for known bundles, behave well with respect to all
+tensor calculus operations, and streamline the application of the Teleman quantization
+theorem.
+
+```julia-repl
+julia> teleman_weights(u1)
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [-15, -15]
+  [[2, 1], [0, 2]]         => [-20, -20]
+  [[1, 0], [1, 2], [0, 1]] => [-15, -25]
+  [[1, 0], [1, 3]]         => [-45, -90]
+  [[1, 0], [1, 1], [0, 2]] => [-45, -60]
+  [[1, 1], [1, 2]]         => [0, -5]
+  [[2, 0], [0, 3]]         => [-45, -45]
+
+julia> teleman_weights(u2)
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [-15, -15, -30]
+  [[2, 1], [0, 2]]         => [-20, -30, -30]
+  [[1, 0], [1, 2], [0, 1]] => [-25, -25, -30]
+  [[1, 0], [1, 3]]         => [-90, -90, -90]
+  [[1, 0], [1, 1], [0, 2]] => [-60, -75, -75]
+  [[1, 1], [1, 2]]         => [0, -5, -5]
+  [[2, 0], [0, 3]]         => [-60, -60, -60]
+
+julia> teleman_weights(ω)
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [90]
+  [[2, 1], [0, 2]]         => [120]
+  [[1, 0], [1, 2], [0, 1]] => [120]
+  [[1, 0], [1, 3]]         => [405]
+  [[1, 0], [1, 1], [0, 2]] => [315]
+  [[1, 1], [1, 2]]         => [15]
+  [[2, 0], [0, 3]]         => [270]
+
+julia> teleman_weights(endom)
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [0, 0, -15, 0, 0, -15]
+  [[2, 1], [0, 2]]         => [0, -10, -10, 0, -10, -10]
+  [[1, 0], [1, 2], [0, 1]] => [-10, -10, -15, 0, 0, -5]
+  [[1, 0], [1, 3]]         => [-45, -45, -45, 0, 0, 0]
+  [[1, 0], [1, 1], [0, 2]] => [-15, -30, -30, 0, -15, -15]
+  [[1, 1], [1, 2]]         => [0, -5, -5, 5, 0, 0]
+  [[2, 0], [0, 3]]         => [-15, -15, -15, -15, -15, -15]
+
+julia> map(teleman_weights, ⨂)
+6-element Vector{Dict{HNType{2}, Vector{Int64}}}:
+ Dict([[2, 2], [0, 1]] => [0], [[2, 1], [0, 2]] => [0], [[1, 0], [1, 2], [0, 1]] => [0], [[1, 0], [1, 3]] => [0], [[1, 0], [1, 1], [0, 2]] => [0], [[1, 1], [1, 2]] => [0], [[2, 0], [0, 3]] => [0])
+ Dict([[2, 2], [0, 1]] => [-15, -15, -30], [[2, 1], [0, 2]] => [-20, -30, -30], [[1, 0], [1, 2], [0, 1]] => [-25, -25, -30], [[1, 0], [1, 3]] => [-90, -90, -90], [[1, 0], [1, 1], [0, 2]] => [-60, -75, -75], [[1, 1], [1, 2]] => [0, -5, -5], [[2, 0], [0, 3]] => [-60, -60, -60])
+ Dict([[2, 2], [0, 1]] => [-30, -30, -45, -30, -45, -60], [[2, 1], [0, 2]] => [-40, -50, -50, -60, -60, -60], [[1, 0], [1, 2], [0, 1]] => [-50, -50, -55, -50, -55, -60], [[1, 0], [1, 3]] => [-180, -180, -180, -180, -180, -180], [[1, 0], [1, 1], [0, 2]] => [-120, -135, -135, -150, -150, -150], [[1, 1], [1, 2]] => [0, -5, -5, -10, -10, -10], [[2, 0], [0, 3]] => [-120, -120, -120, -120, -120, -120])
+ Dict([[2, 2], [0, 1]] => [-45, -45, -60, -45, -60, -75, -45, -60, -75, -90], [[2, 1], [0, 2]] => [-60, -70, -70, -80, -80, -80, -90, -90, -90, -90], [[1, 0], [1, 2], [0, 1]] => [-75, -75, -80, -75, -80, -85, -75, -80, -85, -90], [[1, 0], [1, 3]] => [-270, -270, -270, -270, -270, -270, -270, -270, -270, -270], [[1, 0], [1, 1], [0, 2]] => [-180, -195, -195, -210, -210, -210, -225, -225, -225, -225], [[1, 1], [1, 2]] => [0, -5, -5, -10, -10, -10, -15, -15, -15, -15], [[2, 0], [0, 3]] => [-180, -180, -180, -180, -180, -180, -180, -180, -180, -180])
+ Dict([[2, 2], [0, 1]] => [-60, -60, -75, -60, -75, -90, -60, -75, -90, -105, -60, -75, -90, -105, -120], [[2, 1], [0, 2]] => [-80, -90, -90, -100, -100, -100, -110, -110, -110, -110, -120, -120, -120, -120, -120], [[1, 0], [1, 2], [0, 1]] => [-100, -100, -105, -100, -105, -110, -100, -105, -110, -115, -100, -105, -110, -115, -120], [[1, 0], [1, 3]] => [-360, -360, -360, -360, -360, -360, -360, -360, -360, -360, -360, -360, -360, -360, -360], [[1, 0], [1, 1], [0, 2]] => [-240, -255, -255, -270, -270, -270, -285, -285, -285, -285, -300, -300, -300, -300, -300], [[1, 1], [1, 2]] => [0, -5, -5, -10, -10, -10, -15, -15, -15, -15, -20, -20, -20, -20, -20], [[2, 0], [0, 3]] => [-240, -240, -240, -240, -240, -240, -240, -240, -240, -240, -240, -240, -240, -240, -240])
+ Dict([[2, 2], [0, 1]] => [-75, -75, -90, -75, -90, -105, -75, -90, -105, -120  …  -90, -105, -120, -135, -75, -90, -105, -120, -135, -150], [[2, 1], [0, 2]] => [-100, -110, -110, -120, -120, -120, -130, -130, -130, -130  …  -140, -140, -140, -140, -150, -150, -150, -150, -150, -150], [[1, 0], [1, 2], [0, 1]] => [-125, -125, -130, -125, -130, -135, -125, -130, -135, -140  …  -130, -135, -140, -145, -125, -130, -135, -140, -145, -150], [[1, 0], [1, 3]] => [-450, -450, -450, -450, -450, -450, -450, -450, -450, -450  …  -450, -450, -450, -450, -450, -450, -450, -450, -450, -450], [[1, 0], [1, 1], [0, 2]] => [-300, -315, -315, -330, -330, -330, -345, -345, -345, -345  …  -360, -360, -360, -360, -375, -375, -375, -375, -375, -375], [[1, 1], [1, 2]] => [0, -5, -5, -10, -10, -10, -15, -15, -15, -15  …  -20, -20, -20, -20, -25, -25, -25, -25, -25, -25], [[2, 0], [0, 3]] => [-300, -300, -300, -300, -300, -300, -300, -300, -300, -300  …  -300, -300, -300, -300, -300, -300, -300, -300, -300, -300])
+
+julia> map(teleman_weights, Λ)
+6-element Vector{Dict{HNType{2}, Vector{Int64}}}:
+ Dict([[2, 2], [0, 1]] => [0], [[2, 1], [0, 2]] => [0], [[1, 0], [1, 2], [0, 1]] => [0], [[1, 0], [1, 3]] => [0], [[1, 0], [1, 1], [0, 2]] => [0], [[1, 1], [1, 2]] => [0], [[2, 0], [0, 3]] => [0])
+ Dict([[2, 2], [0, 1]] => [-15, -15, -30], [[2, 1], [0, 2]] => [-20, -30, -30], [[1, 0], [1, 2], [0, 1]] => [-25, -25, -30], [[1, 0], [1, 3]] => [-90, -90, -90], [[1, 0], [1, 1], [0, 2]] => [-60, -75, -75], [[1, 1], [1, 2]] => [0, -5, -5], [[2, 0], [0, 3]] => [-60, -60, -60])
+ Dict([[2, 2], [0, 1]] => [-30, -45, -45], [[2, 1], [0, 2]] => [-50, -50, -60], [[1, 0], [1, 2], [0, 1]] => [-50, -55, -55], [[1, 0], [1, 3]] => [-180, -180, -180], [[1, 0], [1, 1], [0, 2]] => [-135, -135, -150], [[1, 1], [1, 2]] => [-5, -5, -10], [[2, 0], [0, 3]] => [-120, -120, -120])
+ Dict([[2, 2], [0, 1]] => [-60], [[2, 1], [0, 2]] => [-80], [[1, 0], [1, 2], [0, 1]] => [-80], [[1, 0], [1, 3]] => [-270], [[1, 0], [1, 1], [0, 2]] => [-210], [[1, 1], [1, 2]] => [-10], [[2, 0], [0, 3]] => [-180])
+ Dict([[2, 2], [0, 1]] => [], [[2, 1], [0, 2]] => [], [[1, 0], [1, 2], [0, 1]] => [], [[1, 0], [1, 3]] => [], [[1, 0], [1, 1], [0, 2]] => [], [[1, 1], [1, 2]] => [], [[2, 0], [0, 3]] => [])
+ Dict([[2, 2], [0, 1]] => [], [[2, 1], [0, 2]] => [], [[1, 0], [1, 2], [0, 1]] => [], [[1, 0], [1, 3]] => [], [[1, 0], [1, 1], [0, 2]] => [], [[1, 1], [1, 2]] => [], [[2, 0], [0, 3]] => [])
+```
+
+
+The ample generator of the Picard group of `M`.
+```julia-repl
+julia> L = Bundle(M, chern_character_line_bundle(M, [3, -2]));
+
+julia> map(i -> integral(L^i), 0:5)
+6-element Vector{Singular.n_Q}:
+ 1
+ 20
+ 148
+ 664
  2206
  5999
 ```
