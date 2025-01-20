@@ -325,7 +325,7 @@ function all_luna_types(
     QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
   )
 
-  luna_types = LunaType{nvertices(Q)}[]
+  luna_types = LunaType{n_vertices(Q)}[]
   # the highest possible amount of repetitions for a given stable dimension vector
   bound = sum(d) ÷ minimum(sum(e) for e in same_slope; init=1)
   for i in 1:(bound + 1), tau in with_replacement_combinations(same_slope, i)
@@ -603,7 +603,9 @@ end
 Cardinality of representation space ``\\mathrm{R}(Q,d), over \\mathbb{F}_q``.
 """
 function CardinalRd(Q::Quiver, d::AbstractVector{Int}, q)
-  return q^sum(d[i] * d[j] * Q.adjacency[i, j] for i in 1:nvertices(Q), j in 1:nvertices(Q))
+  return q^sum(
+    d[i] * d[j] * Q.adjacency[i, j] for i in 1:n_vertices(Q), j in 1:n_vertices(Q)
+  )
 end
 
 """
@@ -1085,7 +1087,7 @@ function motive(
   if all(ti == 0 for ti in theta)
     out = power(L, -euler_form(Q, d, d))
     den = 1
-    for i in 1:nvertices(Q)
+    for i in 1:n_vertices(Q)
       if d[i] > 0
         den *= prod(1 - power(L, -nu) for nu in 1:d[i])
       end
@@ -1126,11 +1128,11 @@ end
 # partial order on the forbidden dimension vectors as defined in
 # https://doi.org/10.48550/arXiv.1307.3066
 function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int})
-  if !all(f[i] <= g[i] for i in 1:nvertices(Q) if is_source(Q, i))
+  if !all(f[i] <= g[i] for i in 1:n_vertices(Q) if is_source(Q, i))
     return false
-  elseif !all(f[i] >= g[i] for i in 1:nvertices(Q) if is_sink(Q, i))
+  elseif !all(f[i] >= g[i] for i in 1:n_vertices(Q) if is_sink(Q, i))
     return false
-  elseif !all(f[i] == g[i] for i in 1:nvertices(Q) if !is_source(Q, i) && !is_sink(Q, i))
+  elseif !all(f[i] == g[i] for i in 1:n_vertices(Q) if !is_source(Q, i) && !is_sink(Q, i))
     return false
   end
   return true
@@ -1226,7 +1228,7 @@ function chow_ring(
   end
 
   # j varies first, then i
-  varnames = ["xi$i$j" for i in 1:nvertices(Q) for j in 1:d[i]]
+  varnames = ["xi$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
   R, vars = polynomial_ring(Singular.QQ, varnames)
 
   # Shorthand to address the variable `xi_{i,j}`.
@@ -1239,27 +1241,27 @@ function chow_ring(
 
   # This is the naive base that is described in Hans's 2013 paper.
   function base_for_ring()
-    bounds = [0:(d[i] - nu) for i in 1:nvertices(Q) for nu in 1:d[i]]
+    bounds = [0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
     lambdas = Iterators.product(bounds...)
 
     build_elem(lambda) = prod(
       prod(xi(i, nu)^lambda[sum(d[1:(i - 1)]) + nu] for nu in 1:d[i]) for
-      i in 1:nvertices(Q) if d[i] > 0
+      i in 1:n_vertices(Q) if d[i] > 0
     )
     return map(l -> build_elem(l), lambdas)
   end
 
   # build the permutation group W
-  W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i in 1:nvertices(Q)]...)
+  W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i in 1:n_vertices(Q)]...)
   sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
 
   # Action of the symmetric group on R by permutation of the variables.
   permute(f, sigma) =
-    f([xi(i, sigma[i][j]) for i in 1:nvertices(Q) for j in 1:d[i] if d[i] > 0]...)
+    f([xi(i, sigma[i][j]) for i in 1:n_vertices(Q) for j in 1:d[i] if d[i] > 0]...)
 
   # The discriminant in the definition of the antisymmetrization.
   delta = 1
-  for i in 1:nvertices(Q)
+  for i in 1:n_vertices(Q)
     if d[i] > 1
       delta *= prod(xi(i, l) - xi(i, k) for k in 1:(d[i] - 1) for l in (k + 1):d[i])
     end
@@ -1277,7 +1279,7 @@ function chow_ring(
   # builds a new forbidden polynomial for the minimal forbidden dimension vector e.
   function new_forbidden(e::AbstractVector{Int})
     out = 1
-    for (i, j) in Iterators.product(1:nvertices(Q), 1:nvertices(Q))
+    for (i, j) in Iterators.product(1:n_vertices(Q), 1:n_vertices(Q))
       for r in 1:e[i], s in (e[j] + 1):d[j]
         out *= (xi(j, s) - xi(i, r))^Q.adjacency[i, j]
       end
@@ -1286,7 +1288,7 @@ function chow_ring(
   end
   forbidden_polynomials = [new_forbidden(e) for e in minimal_forbidden]
 
-  varnames2 = ["x$i$j" for i in 1:nvertices(Q) for j in 1:d[i]]
+  varnames2 = ["x$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
   A, Avars = polynomial_ring(Singular.QQ, varnames2)
 
   # Shorthand to address the variables of A `x_{i,j}`.
@@ -1299,7 +1301,7 @@ function chow_ring(
 
   targets = [
     [symmetric_polynomial([xi(i, j) for j in 1:d[i]], k) for k in 1:d[i]] for
-    i in 1:nvertices(Q) if d[i] > 0
+    i in 1:n_vertices(Q) if d[i] > 0
   ]
   targets = reduce(vcat, targets)
 
@@ -1307,7 +1309,7 @@ function chow_ring(
 
   anti = [antisymmetrize(f * b) for f in forbidden_polynomials for b in base_for_ring()]
   tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
-  linear = [sum(chi[i] * xs(i, 1) for i in 1:nvertices(Q) if d[i] > 0)]
+  linear = [sum(chi[i] * xs(i, 1) for i in 1:n_vertices(Q) if d[i] > 0)]
 
   return (QuotientRing(A, std(Ideal(A, [tautological; linear]))), R, inclusion)
 end
@@ -1450,7 +1452,7 @@ function chern_class_line_bundle(
   I = quotient_ideal(A)
   Rvars = gens(base_ring(I))
 
-  chern_class = -sum(eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])] for i in 1:nvertices(M.Q))
+  chern_class = -sum(eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])] for i in 1:n_vertices(M.Q))
 
   return coerce_to_quotient(A, chern_class)
 end
@@ -1580,7 +1582,7 @@ function point_class(
   den = 1
   N = dimension(M)
 
-  for i in 1:nvertices(M.Q)
+  for i in 1:n_vertices(M.Q)
     c = total_chern_class_universal(M, i)
     num *= c^(M.d' * M.Q.adjacency[:, i])
     den *= c^M.d[i]
@@ -1668,7 +1670,7 @@ function todd_class(
     end
   end
 
-  for i in 1:nvertices(M.Q)
+  for i in 1:n_vertices(M.Q)
     for p in 1:M.d[i]
       for q in 1:M.d[i]
         den *= todd_Q(xi(i, q) - xi(i, p), N)

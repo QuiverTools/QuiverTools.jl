@@ -180,8 +180,8 @@ function QuiverModuliSpace(
   denom::Function=sum,
 )
   if condition in ["stable", "semistable"] &&
-    length(d) == nvertices(Q) &&
-    length(theta) == nvertices(Q)
+    length(d) == n_vertices(Q) &&
+    length(theta) == n_vertices(Q)
     d = coerce_vector(d)
     theta = coerce_vector(theta)
     M = QuiverModuliSpace(Q, d, theta, condition, denom, ChowRing())
@@ -237,8 +237,8 @@ struct QuiverModuliStack <: QuiverModuli
     denom::Function=sum,
   )
     if condition in ["stable", "semistable"] &&
-      length(d) == nvertices(Q) &&
-      length(theta) == nvertices(Q)
+      length(d) == n_vertices(Q) &&
+      length(theta) == n_vertices(Q)
       d = coerce_vector(d)
       theta = coerce_vector(theta)
       return new(Q, d, theta, condition, denom)

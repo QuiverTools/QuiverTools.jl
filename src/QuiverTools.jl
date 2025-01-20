@@ -31,8 +31,8 @@ import Singular:
   base_ring
 import Combinatorics: combinations, with_replacement_combinations, partitions
 
-export nvertices,
-  narrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
+export n_vertices,
+  n_arrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
 export euler_form, canonical_stability, is_coprime, slope
 export underlying_graph, euler_matrix
 export is_schur_root,
@@ -85,7 +85,7 @@ end
 
 function deglex_key(Q::Quiver, e::AbstractVector{Int})::Int
   b = maximum(e) + 1
-  n = nvertices(Q)
+  n = n_vertices(Q)
 
   return (sum(e[i] * b^(n - i) for i in 1:length(e)) + sum(e) * b^n)
 end
@@ -108,30 +108,30 @@ function underlying_graph(Q::Quiver)
 end
 
 """
-    nvertices(Q::Quiver)
+    n_vertices(Q::Quiver)
 
 Returns the number of vertices of the quiver.
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
-julia> nvertices(Q) == 2
+julia> n_vertices(Q) == 2
 true
 ```
 """
-nvertices(Q::Quiver) = size(Q.adjacency)[1]
+n_vertices(Q::Quiver) = size(Q.adjacency)[1]
 
 """
-    narrows(Q::Quiver)
+    n_arrows(Q::Quiver)
 
 Returns the number of arrows of the quiver.
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
-julia> narrows(Q) == 4
+julia> n_arrows(Q) == 4
 true
 ```
 """
-narrows(Q::Quiver) = sum(Q.adjacency)
+n_arrows(Q::Quiver) = sum(Q.adjacency)
 
 """
     is_acyclic(Q::Quiver)
@@ -144,7 +144,7 @@ julia> is_acyclic(Q)
 true
 ```
 """
-is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^nvertices(Q))
+is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^n_vertices(Q))
 
 """
     is_connected(Q::Quiver)
@@ -188,10 +188,10 @@ true
 """
 function is_connected(Q::Quiver)
   paths = underlying_graph(Q)
-  for i in 2:(nvertices(Q) - 1)
+  for i in 2:(n_vertices(Q) - 1)
     paths += paths * underlying_graph(Q)
   end
-  for i in 1:nvertices(Q), j in 1:nvertices(Q)
+  for i in 1:n_vertices(Q), j in 1:n_vertices(Q)
     if i != j && paths[i, j] == 0 && paths[j, i] == 0
       return false
     end
@@ -301,7 +301,7 @@ julia> arrows(Q)
 ```
 """
 function arrows(Q::Quiver)
-  n = nvertices(Q)
+  n = n_vertices(Q)
   return reduce(
     vcat,
     [[i, j] for k in 1:Q.adjacency[i, j]] for i in 1:n for
@@ -360,7 +360,7 @@ julia> euler_matrix(Q) == [1 -4; 0 1]
 true
 ```
 """
-@memoize Dict euler_matrix(Q::Quiver) = identity_matrix(nvertices(Q)) - Q.adjacency
+@memoize Dict euler_matrix(Q::Quiver) = identity_matrix(n_vertices(Q)) - Q.adjacency
 
 """
     euler_form(Q::Quiver, x, y)
@@ -1065,7 +1065,7 @@ function in_fundamental_domain(Q::Quiver, d::AbstractVector{Int}; interior::Bool
   # while https://arxiv.org/abs/2310.15927 uses a non-strict.
   # here we set it to non-strict by default.
 
-  simples = [unit_vector(nvertices(Q), i) for i in 1:nvertices(Q)]
+  simples = [unit_vector(n_vertices(Q), i) for i in 1:n_vertices(Q)]
   if interior
     return all(
       simple -> euler_form(Q, d, simple) + euler_form(Q, simple, d) < 0,
@@ -1116,7 +1116,7 @@ julia> QuiverTools.zero_vector(kronecker_quiver(3)) == [0, 0]
 true
 ```
 """
-zero_vector(Q::Quiver) = zero_vector(nvertices(Q))
+zero_vector(Q::Quiver) = zero_vector(n_vertices(Q))
 
 """
 	thin_dimension_vector(Q::Quiver)
@@ -1142,7 +1142,7 @@ true
 ```
 """
 function thin_dimension_vector(Q::Quiver)
-  return coerce_vector(ones(Int, nvertices(Q)))
+  return coerce_vector(ones(Int, n_vertices(Q)))
 end
 
 """
@@ -1300,7 +1300,7 @@ julia> QuiverTools.unit_vector(Q, 2) == [0, 1]
 true
 ```
 """
-unit_vector(Q::Quiver, i::Int) = unit_vector(nvertices(Q), i)
+unit_vector(Q::Quiver, i::Int) = unit_vector(n_vertices(Q), i)
 
 coerce_vector(v::AbstractVector) = SVector{length(v)}(v)
 coerce_vector(v::Tuple) = SVector{length(v)}(v)
