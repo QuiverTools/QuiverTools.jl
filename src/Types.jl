@@ -284,7 +284,6 @@ A struct for a Harder-Narasimhan type.
 """
 struct HNType{T}
   hn::Vector{SVector{T,Int}}
-  # should this contain Q, d and slope?
   function HNType(dstar::Vector{<:AbstractVector{Int}})
     T = length(dstar[1])
     return new{T}(coerce_vector.(dstar))
