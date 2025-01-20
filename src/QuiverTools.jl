@@ -40,10 +40,8 @@ export is_schur_root,
 export all_hn_types,
   is_hn_type, has_semistables, has_stables, codimension_hn_stratum, is_amply_stable
 
-# TODO add missing doctests across codebase.
-# TODO keyword arguments across codebase
+# TODO add missing doctests across codebase
 # TODO add safety checks everywhere in the codebase
-# TODO test nested functions
 
 include("Types.jl")
 

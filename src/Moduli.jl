@@ -253,7 +253,7 @@ Luna types for a 3-Kronecker quiver:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
 
 julia> all_luna_types(M)
-5-element Vector{Dict{AbstractVector, Vector{Int64}}}:
+5-element Vector{LunaType{2}}:
  Dict([3, 3] => [1])
  Dict([1, 1] => [1], [2, 2] => [1])
  Dict([1, 1] => [3])
@@ -289,7 +289,7 @@ A list of Luna types.
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
 
 julia> all_luna_types(M)
-5-element Vector{Dict{AbstractVector, Vector{Int64}}}:
+5-element Vector{LunaType{2}}:
  Dict([3, 3] => [1])
  Dict([1, 1] => [1], [2, 2] => [1])
  Dict([1, 1] => [3])
@@ -299,7 +299,7 @@ julia> all_luna_types(M)
 julia> X = QuiverModuliSpace(Q, [2, 3]);
 
 julia> all_luna_types(X)
-1-element Vector{Dict{AbstractVector, Vector{Int64}}}:
+1-element Vector{LunaType{2}}:
  Dict([2, 3] => [1])
 ```
 """
@@ -418,7 +418,7 @@ moduli space.
 julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [2, 2], [1, -1]);
 
 julia> luna = all_luna_types(M)
-2-element Vector{Dict{AbstractVector, Vector{Int64}}}:
+2-element Vector{LunaType{2}}:
  Dict([1, 1] => [2])
  Dict([1, 1] => [1, 1])
 
