@@ -35,7 +35,7 @@ export n_vertices,
   n_arrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source
 export euler_form, canonical_stability, is_coprime, slope
 export underlying_graph, euler_matrix
-export is_schur_root,
+export is_schur_root, is_real_root, is_imaginary_root, is_isotropic_root,
   generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
 export all_hn_types,
   is_hn_type, has_semistables, has_stables, codimension_hn_stratum, is_amply_stable
