@@ -199,7 +199,7 @@ function *(F::Bundle, G::Bundle)
 
   new = Bundle()
   setfield!(new, :parent, F.parent)
-  setfield!(new, :rank, F.rank + G.rank)
+  setfield!(new, :rank, F.rank * G.rank)
 
   _has_chern_data(F) &&
     setfield!(new, :chern_character, chern_character(F) * chern_character(G))
@@ -255,7 +255,7 @@ function exterior_power(F::Bundle, k::Int)
   CH = chow_ring(F)
 
   _has_chern_data(F) &&
-    setfield!(new, :chern_character, CH(_chern_characters_wedge(F, k)[end]))
+    setfield!(new, :chern_character, simplify!(CH(_chern_characters_wedge(F, k)[end])))
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
       hn_type =>
@@ -308,7 +308,7 @@ function symmetric_power(F::Bundle, k::Int)
   CH = chow_ring(F)
 
   _has_chern_data(F) &&
-    setfield!(new, :chern_character, CH(_chern_characters_symmetric(F, k)[end]))
+    setfield!(new, :chern_character, simplify!(CH(_chern_characters_symmetric(F, k)[end])))
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
       hn_type =>

@@ -376,6 +376,14 @@ function Bundle(parent::ChowRing, char::Int)
   return newbundle
 end
 
+function Bundle(M::QuiverModuliSpace, char::Int)
+  newbundle = Bundle()
+  setfield!(newbundle, :parent, M.chow)
+  setfield!(newbundle, :rank, char)
+  setfield!(newbundle, :chern_character, M.chow.ring(char))
+  return newbundle
+end
+
 function Bundle(M::QuiverModuliSpace, char::Singular.spoly{Singular.n_Q})
   newbundle = Bundle()
   setfield!(newbundle, :parent, M.chow)
