@@ -10,7 +10,7 @@ using Singular: Singular
 using AbstractAlgebra: AbstractAlgebra
 using Nemo: Nemo
 
-import Base.show, Base.==, Base.hash, Base.getindex, Base.length, Base.iterate
+import Base.show, Base.==, Base.hash, Base.getindex, Base.length, Base.iterate, Base.keys
 import Base: *, +, -, ^
 import Memoization: @memoize
 import IterTools: subsets

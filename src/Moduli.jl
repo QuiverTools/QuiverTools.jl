@@ -261,8 +261,8 @@ julia> all_luna_types(M)
  Dict([1, 1] => [1, 1, 1])
 ```
 """
-function all_luna_types(M::QuiverModuli; exclude_stable::Bool=false)
-  return all_luna_types(M.Q, M.d, M.theta, M.denom, exclude_stable)
+function all_luna_types(M::QuiverModuli; stable::Bool=true)
+  return all_luna_types(M.Q, M.d, M.theta, M.denom; stable=stable)
 end
 
 """
@@ -307,9 +307,9 @@ function all_luna_types(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
-  denom::Function=sum,
-  exclude_stable::Bool=false,
-)::Vector{Dict{AbstractVector,Vector{Int}}}
+  denom::Function=sum;
+  stable::Bool=true,
+)
   d = coerce_vector(d)
   theta = coerce_vector(theta)
 
@@ -321,44 +321,25 @@ function all_luna_types(
   # subdimensions with the same slope as d
   same_slope = filter(
     e ->
-      slope(e, theta, denom) == slope(d, theta, denom) &&
-        has_stables(Q, e, theta, denom),
-    QuiverTools.all_subdimension_vectors(d; nonzero=true),
+      slope(e, theta, denom) == slope(d, theta, denom) && has_stables(Q, e, theta, denom),
+    QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
   )
 
-  # TODO if same_slope is empty this crashes
-
-  luna_types = []
-
+  luna_types = LunaType{nvertices(Q)}[]
   # the highest possible amount of repetitions for a given stable dimension vector
-  bound = sum(d) ÷ minimum(sum(e) for e in same_slope)
-  for i in 1:(bound + 1)
-    for tau in with_replacement_combinations(same_slope, i)
-      if sum(tau) == d
-        partial = Dict()
-        for e in tau
-          if e in collect(keys(partial))
-            partial[e] += 1
-          else
-            partial[e] = 1
-          end
-        end
+  bound = sum(d) ÷ minimum(sum(e) for e in same_slope; init=1)
+  for i in 1:(bound + 1), tau in with_replacement_combinations(same_slope, i)
+    sum(tau) != d && continue
+    partial = Dict(e => 0 for e in tau)
+    map(e -> partial[e] += 1, tau)
 
-        for e in keys(partial)
-          partial[e] = partitions(partial[e])
-        end
-
-        for p in Iterators.product(values(partial)...)
-          new_luna_type = Dict(zip(collect(keys(partial)), p))
-          push!(luna_types, new_luna_type)
-        end
-      end
+    for p in Iterators.product(partitions.(values(partial))...)
+      push!(luna_types, LunaType(Dict(zip(collect(keys(partial)), p))))
     end
   end
 
-  if exclude_stable
-    return filter(luna -> luna != Dict(d => [1]), luna_types)
-  end
+  stable && has_stables(Q, d, theta, denom) &&
+    pushfirst!(luna_types, LunaType(Dict(d => [1])))
   return luna_types
 end
 
@@ -520,7 +501,7 @@ function semistable_equals_stable(M::QuiverModuli)
   if is_coprime(M.d, M.theta) || !has_semistables(M.Q, M.d, M.theta, M.denom)
     return true
   end
-  return length(all_luna_types(M; exclude_stable=true)) == 0
+  return length(all_luna_types(M; stable=false)) == 0
 end
 
 # TODO what if dim R = 1? or 0?

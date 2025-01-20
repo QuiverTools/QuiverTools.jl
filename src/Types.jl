@@ -1,7 +1,7 @@
 ########################################################################################
 # Definitions of types and primitive constructors for quivers and moduli spaces
 ########################################################################################
-export Quiver, HNType, QuiverModuli, QuiverModuliSpace, QuiverModuliStack, Bundle
+export Quiver, HNType, LunaType, QuiverModuli, QuiverModuliSpace, QuiverModuliStack, Bundle
 
 """
 # Summary
@@ -425,3 +425,50 @@ function Bundle(M::QuiverModuliSpace, weights::Dict{HNType,Vector{Int}})
   setfield!(newbundle, :teleman_weights, weights)
   return newbundle
 end
+
+"""
+# Summary
+
+`struct LunaType{T}`
+
+A struct to encode Luna types.
+
+# Fields
+
+ `data :: Dict{SVector{T,Int},Vector{Int}`\\
+
+"""
+struct LunaType{T}
+  data::Dict{SVector{T,Int},Vector{Int}}
+
+  function LunaType(new_luna::Dict{<:AbstractVector{Int},Vector{Int}})
+    T = length(collect(keys(new_luna))[1])
+
+    return new{T}(Dict(coerce_vector(tau) => new_luna[tau] for tau in keys(new_luna)))
+  end
+end
+
+# TODO to avoid ugly printing, define Base.show and Base.showcompact (for arrays of LunaTypes)
+function show(io::IO, L::LunaType)
+  print(io, "Dict(")
+  chiavi = collect(keys(L.data))
+  l = length(chiavi)
+  for i in 1:(l - 1)
+    print(io, "$(Vector(chiavi[i])) => $(L.data[chiavi[i]]), ")
+  end
+  print(io, "$(Vector(chiavi[l])) => $(L.data[chiavi[l]]))")
+end
+
+# function showcompact
+
+# show(io, Dict(k => v for (k,v) in L.data))
+
+==(L1::LunaType, L2::LunaType) = L1.data == L2.data
+==(L::LunaType, x::Dict{<:AbstractVector{Int},Vector{Int}}) = L.data == x
+hash(L::LunaType) = hash(L.data)
+length(L::LunaType) = length(L.data)
+Base.getindex(L::LunaType, i) = getindex(L.data, i)
+Base.iterate(L::LunaType) = iterate(L.data)
+Base.iterate(L::LunaType, i) = iterate(L.data, i)
+Base.getindex(L::LunaType, i::Int) = getindex(L.data, i)
+keys(L::LunaType) = keys(L.data)
