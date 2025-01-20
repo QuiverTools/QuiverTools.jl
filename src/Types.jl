@@ -1,7 +1,6 @@
 ########################################################################################
 # Definitions of types and primitive constructors for quivers and moduli spaces
 ########################################################################################
-import Base.getindex, Base.length, Base.iterate, Base.hash, Base.==, Base.show
 export Quiver, HNType, QuiverModuli, QuiverModuliSpace, QuiverModuliStack, Bundle
 
 """

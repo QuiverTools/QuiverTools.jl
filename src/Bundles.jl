@@ -1,9 +1,6 @@
 ###############################################################################
 # Tensor calculus on quiver moduli
 ###############################################################################
-
-import Base: *, +, -, ^
-
 export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
   det, canonical_bundle, universal_bundle, degree, rank, teleman_weights
 
