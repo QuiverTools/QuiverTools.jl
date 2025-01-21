@@ -91,6 +91,23 @@ function show(io::IO, Q::Quiver)
   print(io, Q.adjacency)
 end
 
+"""
+# Summary
+
+`struct ChowRing`
+
+A Type used to encode various Chow ring data.
+
+# Fields
+
+`parent :: Any`\\
+`ring   :: Singular.PolyRing{Singular.n_Q}`\\
+`chi    :: AbstractVector{Int}`\\
+`point  :: Union{Singular.spoly{Singular.n_Q},UndefInitializer}`\\
+`todd   :: Union{Singular.spoly{Singular.n_Q},UndefInitializer}`\\
+`_R     :: Singular.PolyRing{Singular.n_Q}`\\
+`_inclusion :: Singular.SAlgHom{Singular.Rationals}`
+"""
 mutable struct ChowRing
   parent::Any
   ring::Singular.PolyRing{Singular.n_Q}
