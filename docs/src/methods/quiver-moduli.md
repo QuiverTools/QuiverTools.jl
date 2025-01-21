@@ -1,9 +1,5 @@
 # Quiver moduli
 
-```@meta
-CurrentModule = QuiverTools
-```
-
 The main purpose of QuiverTools is to treat quiver moduli.
 This package implements methods to study stable and semistable loci,
 Harder--Narasimhan stratifications and quiver moduli spaces.

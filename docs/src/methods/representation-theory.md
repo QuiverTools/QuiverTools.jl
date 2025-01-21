@@ -1,9 +1,5 @@
 # Representation theory
 
-```@meta
-CurrentModule = QuiverTools
-```
-
 QuiverTools offers various methods to study the representation theory of quivers.
 
 ```@docs
