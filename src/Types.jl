@@ -116,6 +116,8 @@ mutable struct ChowRing
   todd::Union{Singular.spoly{Singular.n_Q},UndefInitializer}
   _R::Singular.PolyRing{Singular.n_Q}
   _inclusion::Singular.SAlgHom{Singular.Rationals}
+
+  """   ChowRing()"""
   ChowRing() = new()
 end
 

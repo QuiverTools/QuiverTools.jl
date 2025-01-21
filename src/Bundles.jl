@@ -5,7 +5,7 @@ export chern_character, chern_class, chern_classes, dual, exterior_power, symmet
   det, canonical_bundle, universal_bundle, degree, rank, teleman_weights
 
 _has_chern_data(F::Bundle) = isdefined(F, :chern_character) || isdefined(F, :chern_class)
-
+"""   chern_character(F::Bundle)"""
 function chern_character(F::Bundle)
   !_has_chern_data(F) &&
     throw(
@@ -17,7 +17,7 @@ function chern_character(F::Bundle)
     setfield!(F, :chern_character, _chern_character_from_classes(F))
   return F.chern_character
 end
-
+"""   chern_classes(F::Bundle)"""
 function chern_classes(F::Bundle)
   !_has_chern_data(F) &&
     throw(
@@ -29,7 +29,7 @@ function chern_classes(F::Bundle)
     setfield!(F, :chern_class, _chern_classes_from_character(F))
   return F.chern_class
 end
-
+"""   chern_class(F::Bundle)"""
 function chern_class(F::Bundle)
   !_has_chern_data(F) &&
     throw(
@@ -41,7 +41,7 @@ function chern_class(F::Bundle)
     setfield!(F, :chern_class, _chern_classes_from_character(F))
   return sum(values(chern_classes(F)))
 end
-
+"""   chern_class(F::Bundle, k)"""
 function chern_class(F::Bundle, k)
   !_has_chern_data(F) &&
     throw(
@@ -53,15 +53,21 @@ function chern_class(F::Bundle, k)
     setfield!(F, :chern_class, _chern_classes_from_character(F))
   return chern_classes(F)[k]
 end
-
+"""    teleman_weights(F::Bundle)"""
 function teleman_weights(F::Bundle)
   !isdefined(F, :teleman_weights) && throw(ArgumentError("Bundle has no weights."))
   return F.teleman_weights
 end
-
+"""    rank(F::Bundle)"""
 rank(F::Bundle) = F.rank
+
+"""   chow_ring(F::Bundle)"""
 chow_ring(F::Bundle) = F.parent.ring
+
+"""    variety(F::Bundle)"""
 variety(F::Bundle) = F.parent.parent
+
+"""    structure_sheaf(M::QuiverModuliSpace)"""
 structure_sheaf(M::QuiverModuliSpace) = Bundle(M, 1)
 
 ##############################
@@ -282,6 +288,13 @@ function exterior_power(F::Bundle, k::Int)
   end
   return new
 end
+
+"""
+    det(F::Bundle)
+
+Return the determinant of `F`.
+This is the top exterior power of `F`.
+"""
 det(F::Bundle) = exterior_power(F, rank(F))
 
 """
