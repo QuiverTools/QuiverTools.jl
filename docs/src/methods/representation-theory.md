@@ -5,7 +5,6 @@ QuiverTools offers various methods to study the representation theory of quivers
 ```@docs
 euler_form
 euler_matrix
-canonical_stability
 is_schur_root
 is_real_root
 is_imaginary_root

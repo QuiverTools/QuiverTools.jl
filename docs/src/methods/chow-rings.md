@@ -11,7 +11,7 @@ A `QuiverModuliSpace` comes with an intermediary structure, `ChowRing`, which is
 functionally just a container for various Chow ring data.
 
 ```@docs
-ChowRing
+QuiverTools.ChowRing
 ```
 
 ## Chow rings

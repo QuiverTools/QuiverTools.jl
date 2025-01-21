@@ -494,7 +494,7 @@ euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
   x' * euler_matrix(Q) * y
 
 """
-    canonical_stability(Q::Quiver, d)
+    canonical_stability(Q::Quiver, d::AbstractVector{Int})
 
 The canonical stability parameter for the couple ``(Q, d)`` is given by ``<d,-> - <-,d>``
 
