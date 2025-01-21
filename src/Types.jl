@@ -41,8 +41,7 @@ struct Quiver
     if !(size(adjacency)[1] == size(adjacency)[2])
       throw(DomainError(adjacency, "adjacency matrix must be square"))
     else
-      adj = SMatrix{size(adjacency)...}(adjacency)
-      new(adj, name)
+      new(SMatrix{size(adjacency)...}(adjacency), name)
     end
   end
 
@@ -122,10 +121,10 @@ mutable struct ChowRing
 end
 
 function show(io::IO, chow::ChowRing)
-  rng = isdefined(chow, :ring) ? chow.ring : UndefInitializer()
-  ch = isdefined(chow, :chi) ? chow.chi : UndefInitializer()
-  pt = isdefined(chow, :point) ? chow.point : UndefInitializer()
-  td = isdefined(chow, :todd) ? chow.todd : UndefInitializer()
+  ring = isdefined(chow, :ring) ? chow.ring : UndefInitializer()
+  chi = isdefined(chow, :chi) ? chow.chi : UndefInitializer()
+  point = isdefined(chow, :point) ? chow.point : UndefInitializer()
+  todd = isdefined(chow, :todd) ? chow.todd : UndefInitializer()
   print(
     io,
     "Chow ring on
@@ -133,10 +132,10 @@ function show(io::IO, chow::ChowRing)
 
   Intersection theory data:
 
- - Chow ring: $(rng),
- - Linearization: $(ch),
- - Point class: $(pt),
- - Todd class: $(td).
+ - Chow ring: $(ring),
+ - Linearization: $(chi),
+ - Point class: $(point),
+ - Todd class: $(todd).
     ",
   )
 end
@@ -289,6 +288,7 @@ function show(io::IO, M::QuiverModuliStack)
   )
 end
 
+# TODO this needs to be explained better
 """
 # Summary
 
@@ -358,98 +358,101 @@ function Bundle(
   parent::ChowRing, rank::Int, chern_classes::Vector{Singular.spoly{Singular.n_Q}}
 )
   n = dimension(parent.parent)
-  newbundle = Bundle()
-  setfield!(newbundle, :parent, parent)
-  setfield!(newbundle, :rank, rank)
+  bundle = Bundle()
+  setfield!(bundle, :parent, parent)
+  setfield!(bundle, :rank, rank)
   cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => chern_classes[i + 1] for i in 0:n)
-  setfield!(newbundle, :chern_class, cl)
-  return newbundle
+  setfield!(bundle, :chern_class, cl)
+  return bundle
 end
 
 function Bundle(parent::ChowRing, rank::Int, chern_class::Singular.spoly{Singular.n_Q})
   n = dimension(parent.parent)
-  newbundle = Bundle()
-  setfield!(newbundle, :parent, parent)
-  setfield!(newbundle, :rank, rank)
+  bundle = Bundle()
+  setfield!(bundle, :parent, parent)
+  setfield!(bundle, :rank, rank)
   hom = homogeneous_components(parent.parent, chern_class)
   cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:n)
-  setfield!(newbundle, :chern_class, cl)
-  return newbundle
+  setfield!(bundle, :chern_class, cl)
+  return bundle
 end
 
 function Bundle(parent::ChowRing, chern_character::Singular.spoly{Singular.n_Q})
   r = constant_coefficient(chern_character)
   denominator(r) != 1 && throw(DomainError("Incorrect Chern character."))
-  newbundle = Bundle()
-  setfield!(newbundle, :parent, parent)
-  setfield!(newbundle, :rank, Int(Singular.numerator(r)))
-  setfield!(newbundle, :chern_character, chern_character)
-  return newbundle
+  bundle = Bundle()
+  setfield!(bundle, :parent, parent)
+  setfield!(bundle, :rank, Int(Singular.numerator(r)))
+  setfield!(bundle, :chern_character, chern_character)
+  return bundle
 end
+# TODO why `char` here, and not `character` or `chern_character` as above?
 function Bundle(parent::ChowRing, char::Int)
   CH = parent.ring
-  newbundle = Bundle()
-  setfield!(newbundle, :parent, parent)
-  setfield!(newbundle, :rank, char)
-  setfield!(newbundle, :chern_character, CH(char))
-  return newbundle
+  bundle = Bundle()
+  setfield!(bundle, :parent, parent)
+  setfield!(bundle, :rank, char)
+  setfield!(bundle, :chern_character, CH(char))
+  return bundle
 end
 
+# TODO why `char` here, and not `character` or `chern_character` as above?
 function Bundle(M::QuiverModuliSpace, char::Int)
-  newbundle = Bundle()
-  setfield!(newbundle, :parent, M.chow)
-  setfield!(newbundle, :rank, char)
-  setfield!(newbundle, :chern_character, M.chow.ring(char))
-  return newbundle
+  bundle = Bundle()
+  setfield!(bundle, :parent, M.chow)
+  setfield!(bundle, :rank, char)
+  setfield!(bundle, :chern_character, M.chow.ring(char))
+  return bundle
 end
 
+# TODO why `char` here, and not `character` or `chern_character` as above?
 function Bundle(M::QuiverModuliSpace, char::Singular.spoly{Singular.n_Q})
-  newbundle = Bundle()
-  setfield!(newbundle, :parent, M.chow)
+  bundle = Bundle()
+  setfield!(bundle, :parent, M.chow)
   r = constant_coefficient(char)
   denominator(r) != 1 && throw(DomainError("Incorrect Chern character."))
-  setfield!(newbundle, :rank, Int(Singular.numerator(r)))
-  setfield!(newbundle, :chern_character, char)
-  return newbundle
+  setfield!(bundle, :rank, Int(Singular.numerator(r)))
+  setfield!(bundle, :chern_character, char)
+  return bundle
 end
 
 function Bundle(M::QuiverModuliSpace, rank::Int, x::Singular.spoly{Singular.n_Q})
-  newbundle = Bundle()
-  setfield!(newbundle, :parent, M.chow)
-  setfield!(newbundle, :rank, rank)
+  bundle = Bundle()
+  setfield!(bundle, :parent, M.chow)
+  setfield!(bundle, :rank, rank)
   hom = homogeneous_components(M, x)
   cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
-  setfield!(newbundle, :chern_class, cl)
-  return newbundle
+  setfield!(bundle, :chern_class, cl)
+  return bundle
 end
 
 function Bundle(M::QuiverModuliSpace, rank::Int, x::Dict{Int,Singular.spoly{Singular.n_Q}})
-  newbundle = Bundle()
-  setfield!(newbundle, :parent, M.chow)
-  setfield!(newbundle, :rank, rank)
-  setfield!(newbundle, :chern_class, x)
-  return newbundle
+  bundle = Bundle()
+  setfield!(bundle, :parent, M.chow)
+  setfield!(bundle, :rank, rank)
+  setfield!(bundle, :chern_class, x)
+  return bundle
 end
 
 function Bundle(M::QuiverModuliSpace, rank::Int, x::Vector{Singular.spoly{Singular.n_Q}})
-  newbundle = Bundle()
-  setfield!(newbundle, :parent, M.chow)
-  setfield!(newbundle, :rank, rank)
+  bundle = Bundle()
+  setfield!(bundle, :parent, M.chow)
+  setfield!(bundle, :rank, rank)
   hom = homogeneous_components(M, sum(x))
   cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
-  setfield!(newbundle, :chern_class, x)
-  return newbundle
+  setfield!(bundle, :chern_class, x)
+  return bundle
 end
 
 function Bundle(M::QuiverModuliSpace, weights::Dict{HNType,Vector{Int}})
   r = length(first(values(weights)))
   !all(length(v) == r for v in values(weights)) &&
     throw(ArgumentError("Incorrect weights."))
-  newbundle = Bundle()
-  setfield!(newbundle, :parent, M.chow)
-  setfield!(newbundle, :rank, r)
-  setfield!(newbundle, :teleman_weights, weights)
-  return newbundle
+  bundle = Bundle()
+  setfield!(bundle, :parent, M.chow)
+  setfield!(bundle, :rank, r)
+  setfield!(bundle, :teleman_weights, weights)
+  return bundle
 end
 
 """
@@ -476,6 +479,7 @@ end
 
 function show(io::IO, L::LunaType)
   print(io, "Dict(")
+  # TODO chiavi = keys?
   chiavi = collect(keys(L.data))
   l = length(chiavi)
   for i in 1:(l - 1)

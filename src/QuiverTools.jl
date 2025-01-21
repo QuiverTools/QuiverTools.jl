@@ -399,6 +399,7 @@ end
 
 # this is the wheel reinvention department.
 # I don't want to load the whole LinearAlgebra package just for this.
+# TODO is there a good reason for not wanting to do this? it's a standard library package?
 """
     identity_matrix(n::Int)
 
@@ -636,6 +637,8 @@ Returns the subdimension vectors of `d` with a strictly larger slope than `d`.
   denom::Function=sum,
 )
   # as silly as it looks this is faster.
+  # TODO faster than what? is the calculation `b = slope(d, theta, denom)` not being reused in the lambda expression?
+  # if that's the point, maybe it makes sense to cache the lambda function instead of the result of `slope(d, theta, denom)`?
   b = slope(d, theta, denom)
   return filter(
     e -> slope(e, theta, denom) > b,
@@ -701,11 +704,13 @@ false
   theta::AbstractVector{Int}=canonical_stability(Q, d),
   denom::Function=sum,
 )
+  # TODO Julia shorthand? + explain this is a base case
   if all(di == 0 for di in d)
     return true
   else
     # collect the list of all subdimension vectors e of bigger slope than d
     slope_d = slope(d, theta, denom)
+    # TODO this variable doesn't follow our conventions, why not `subdimensions_bigger_slope`?
     subdimensionsBiggerSlope = filter(
       e -> slope(e, theta, denom) > slope_d,
       all_subdimension_vectors(d; nonzero=true, strict=true),
@@ -770,6 +775,7 @@ false
   theta::AbstractVector{Int}=canonical_stability(Q, d),
   denom::Function=sum,
 )
+  # TODO Julia shorthand?
   if all(di == 0 for di in d)
     return false
   else
@@ -788,6 +794,7 @@ false
   end
 end
 
+# TODO the cited paper is published
 """
     is_schur_root(Q::Quiver, d)
 
@@ -889,14 +896,16 @@ false
   Q::Quiver,
   e::AbstractVector{Int},
   d::AbstractVector{Int},
-)::Bool
+)::Bool # TODO is specifying the output type a good idea? https://docs.julialang.org/en/v1/manual/functions/#The-return-Keyword says they are not a good idea usually
+  # TODO Julia shorthand?
   if e == d || all(ei == 0 for ei in e)
     return true
   end
-  # # considering subdimension vectors that violate the numerical condition
-  euler_matrix_temp = euler_matrix(Q) * (d - e) #to speed up computation of <eprime,d-e>
+  # to speed up computation of <eprime,d-e>
+  partial_evaluation = euler_matrix(Q) * (d - e)
+  # considering subdimension vectors that violate the numerical condition
   subdimensions = filter(
-    eprime -> eprime' * euler_matrix_temp < 0, all_subdimension_vectors(e)
+    eprime -> eprime' * partial_evaluation < 0, all_subdimension_vectors(e)
   )
   # none of the subdimension vectors violating the condition should be generic
   return all(eprime -> !is_generic_subdimension_vector(Q, eprime, e), subdimensions)
@@ -1024,8 +1033,9 @@ julia> all_hn_types(Q, d, theta; ordered=true)
   unstable::Bool=false,
   ordered::Bool=true,
 )
+  # TODO Julia shorthand?
   if all(di == 0 for di in d)
-    return [HNType([zero_vector(Q)])] # uses cached zero_vector
+    return [HNType([zero_vector(Q)])]
   end
   # We consider just proper subdimension vectors which admit a semistable
   # representation and for which μ(e) > μ(d)
@@ -1037,7 +1047,7 @@ julia> all_hn_types(Q, d, theta; ordered=true)
 
   # We sort the subdimension vectors by slope because that will return the list of
   # all HN types in ascending order with respect to the partial order from
-  # Def. 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
+  # Definition 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
   if ordered
     subdimensions = sort(subdimensions; by=e -> slope(e, theta, denom))
   end
@@ -1056,7 +1066,7 @@ julia> all_hn_types(Q, d, theta; ordered=true)
   ]
 
   # Possibly add d again, at the beginning, because it is smallest
-  # with respect to the partial order from Def. 3.6
+  # with respect to the partial order from Definition 3.6
   if !unstable && has_semistables(Q, d, theta, denom)
     pushfirst!(alltypes, HNType([d]))
   end
@@ -1346,9 +1356,9 @@ true
 ```
 """
 function canonical_decomposition(Q::Quiver, d::AbstractVector{Int})
-  generic_subdimensions = filter(e -> e != d, all_generic_subdimension_vectors(Q, d))
-  for e in generic_subdimensions
-    if d - e in generic_subdimensions &&
+  generic_subdimension_vectors = filter(e -> e != d, all_generic_subdimension_vectors(Q, d))
+  for e in generic_subdimension_vectors
+    if d - e in generic_subdimension_vectors &&
       generic_ext(Q, e, d - e) == 0 &&
       generic_ext(Q, d - e, e) == 0
       return vcat(canonical_decomposition(Q, e), canonical_decomposition(Q, d - e))
@@ -1482,9 +1492,7 @@ julia> QuiverTools.thin_dimension_vector(Q) == [1, 1]
 true
 ```
 """
-function thin_dimension_vector(Q::Quiver)
-  return coerce_vector(ones(Int, n_vertices(Q)))
-end
+thin_dimension_vector(Q::Quiver) = coerce_vector(ones(Int, n_vertices(Q)))
 
 """
 	all_subdimension_vectors(d::AbstractVector{Int}; nonzero::Bool=false, strict::Bool=false)
@@ -1552,14 +1560,14 @@ julia> QuiverTools.all_subdimension_vectors([2, 3]; nonzero=true, strict=true)
   nonzero::Bool=false,
   strict::Bool=false,
 )
-  subdims = coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...)))
+  subdimension_vectors = coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...)))
   if nonzero
-    subdims = filter(e -> any(ei != 0 for ei in e), subdims)
+    subdimension_vectors = filter(e -> any(ei != 0 for ei in e), subdimension_vectors)
   end
   if strict
-    subdims = filter(e -> e != d, subdims)
+    subdimension_vectors = filter(e -> e != d, subdimension_vectors)
   end
-  return filter(e -> true, subdims) #really now
+  return filter(e -> true, subdimension_vectors)
 end
 
 """
