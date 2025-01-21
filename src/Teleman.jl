@@ -23,6 +23,9 @@ corresponding to the given HN type.
 - `theta`: a stability parameter.
 - `denom`: a denominator for the slope function. Defaults to `sum`.
 
+# Output
+
+The weight of the 1-PS corresponding to the given HN type.
 """
 function teleman_bound_on_stratum(
   Q::Quiver,
@@ -51,6 +54,17 @@ end
 
 Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
 HN type for the given `Q`, `d`, `\\theta` and `denom`.
+
+# Input
+
+- `Q::Quiver`: a quiver
+- `d::AbstractVector{Int}`: a dimension vector
+- `theta::AbstractVector{Int}`: a stability parameter
+- `denom::Function`: a denominator for the slope function. Defaults to `sum`.
+
+# Output
+
+A dictionary with the weights of the 1-PS corresponding to each HN type.
 
 # Examples
 
@@ -82,6 +96,17 @@ end
 
 """
 	all_teleman_bounds(M::QuiverModuli)
+
+Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
+HN type for the datum of `M`.
+
+# Input
+
+- `M::QuiverModuli`: a quiver moduli space or stack
+
+# Output
+
+A dictionary with the weights of the 1-PS corresponding to each HN type.
 
 # Examples
 
@@ -149,6 +174,21 @@ end
 Computes the Teleman weights of the universal bundle ``U_i(chi)``
 for the linearization ``chi`` on all the non-dense Harder-Narasimhan strata.
 
+# Input
+
+- `Q::Quiver`: a quiver
+- `d::AbstractVector{Int}`: a dimension vector
+- `i::Int`: the index of the universal bundle
+- `theta::AbstractVector{Int}`: a stability parameter
+- `denom::Function`: a denominator for the slope function. Defaults to `sum`.
+
+Keyword arguments:
+
+- `chi::AbstractVector{Int}`: the linearization of the universal bundle. Defaults to `extended_gcd(d)[2]`.
+
+# Output
+
+A dictionary with the weights of the universal bundle on each stratum.
 """
 function all_weights_universal_bundle(
   Q::Quiver,
@@ -173,6 +213,18 @@ end
 
 Computes the Teleman weights of the universal bundle ``U_i(chi)``
 for the linearization `chi` on all the non-dense Harder-Narasimhan strata.
+
+# Input
+
+- `M::QuiverModuli`: a quiver moduli space or stack
+
+Keyword arguments:
+
+- `chi::AbstractVector{Int}`: the linearization of the universal bundle. Defaults to `M.chow.chi`.
+
+# Output
+
+A dictionary with the weights of the universal bundle ``U_{i}(chi)`` on each stratum.
 
 # Example
 
@@ -290,6 +342,16 @@ on all the non-dense Harder-Narasimhan strata.
 More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullback of
 ``\\mathcal{O}(H)`` on each stratum.
 
+# Input
+
+- `Q::Quiver`: a quiver
+- `d::AbstractVector{Int}`: a dimension vector
+- `theta::AbstractVector{Int}`: a stability parameter
+- `denom::Function`: a denominator for the slope function. Defaults to `sum`.
+
+# Output
+
+A dictionary with the weights of the irreducible component of the canonical bundle on each stratum.
 """
 function all_weights_irreducible_component_canonical(
   Q::Quiver,
@@ -308,12 +370,20 @@ function all_weights_irreducible_component_canonical(
 end
 
 """
-    all_weights_irreducible_component_canonical(M::QuiverModuli)
+    all_weights_irreducible_component_canonical(M::QuiverModuliSpace)
 
 Computes the Teleman weights of the irreducible component of ``\\omega_R|_Z``
 on all the non-dense Harder-Narasimhan strata.
 More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullback of
 ``\\mathcal{O}(H)`` on each stratum.
+
+# Input
+
+- `M::QuiverModuliSpace`: a quiver moduli space
+
+# Output
+
+A dictionary with the weights of ``\\mathcal{O}(H)`` on each stratum.
 
 # Example
 
@@ -332,7 +402,7 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [90]
 ```
 """
-function all_weights_irreducible_component_canonical(M::QuiverModuli)
+function all_weights_irreducible_component_canonical(M::QuiverModuliSpace)
   return all_weights_irreducible_component_canonical(M.Q, M.d, M.theta, M.denom)
 end
 
@@ -424,6 +494,14 @@ Checks if the Teleman quantization criterion of
 
 In case the quiver is acyclic, this ensures that the moduli space is infinitesimally
 rigid.
+
+# Input
+
+- `M::QuiverModuli`: a quiver moduli space or stack
+
+# Output
+
+`true` if the Teleman inequality holds, `false` otherwise.
 
 # Examples
 
