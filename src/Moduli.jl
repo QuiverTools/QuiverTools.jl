@@ -554,7 +554,7 @@ end
 ########################################################################################
 
 ###################################################
-# auxiliary functions for Hodge_polynomial() below
+# auxiliary functions for hodge_polynomial() below
 
 """
     solve(A, b)
@@ -660,11 +660,11 @@ function Td(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, q)
   return T
 end
 
-# auxiliary functions for Hodge_polynomial() above
+# auxiliary functions for hodge_polynomial() above
 ###################################################
 
 """
-    Hodge_polynomial(Q::Quiver, d, theta)
+    hodge_polynomial(Q::Quiver, d, theta)
 
 Returns the Hodge polynomial of the moduli space of ``\\theta``-semistable
 representations of ``Q`` with dimension vector ``d``.
@@ -693,11 +693,11 @@ julia> d = [2, 3];
 
 julia> theta = [3, -2];
 
-julia> Hodge_polynomial(Q, d, theta)
+julia> hodge_polynomial(Q, d, theta)
 x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 ```
 """
-function Hodge_polynomial(
+function hodge_polynomial(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
@@ -731,7 +731,7 @@ function Hodge_polynomial(
 end
 
 """
-    Hodge_polynomial(M::QuiverModuliSpace)
+    hodge_polynomial(M::QuiverModuliSpace)
 
 Returns the Hodge polynomial of the moduli space `M`.
 
@@ -751,16 +751,16 @@ julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> Hodge_polynomial(M)
+julia> hodge_polynomial(M)
 x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 ```
 """
-function Hodge_polynomial(M::QuiverModuliSpace)
-  return Hodge_polynomial(M.Q, M.d, M.theta)
+function hodge_polynomial(M::QuiverModuliSpace)
+  return hodge_polynomial(M.Q, M.d, M.theta)
 end
 
 """
-    Hodge_diamond(Q::Quiver, d, theta)
+    hodge_diamond(Q::Quiver, d, theta)
 
 Returns the Hodge diamond of the moduli space of
 ``\\theta``-semistable representations of ``Q`` with dimension vector ``d``.
@@ -781,7 +781,7 @@ The Hodge diamond of our favourite 6-fold:
 ```jldoctest
 julia> Q = kronecker_quiver(3);
 
-julia> Hodge_diamond(Q, [2, 3])
+julia> hodge_diamond(Q, [2, 3])
 7×7 Matrix{Int64}:
  1  0  0  0  0  0  0
  0  1  0  0  0  0  0
@@ -796,23 +796,23 @@ This method correctly handles the moduli spaces being empty or 0-dimensional:
 ```jldoctest
 julia> Q = kronecker_quiver(3);
 
-julia> Hodge_diamond(Q, [2, 3], [-3, 2])
+julia> hodge_diamond(Q, [2, 3], [-3, 2])
 0×0 Matrix{Int64}
 ```
 """
-function Hodge_diamond(
+function hodge_diamond(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
 )::Matrix{Int}
-  g = Hodge_polynomial(Q, d, theta)
+  g = hodge_polynomial(Q, d, theta)
 
   # collects the coefficients of the polynomial, converts them to integers
   # and returns them in the diagonal of a matrix.
   return diagonal(Int.(numerator.(collect(Singular.coefficients(g)))))
 end
 """
-    Hodge_diamond(M::QuiverModuliSpace)
+    hodge_diamond(M::QuiverModuliSpace)
 
 Returns the Hodge diamond of the moduli space `M`.
 
@@ -832,7 +832,7 @@ julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> Hodge_diamond(M)
+julia> hodge_diamond(M)
 7×7 Matrix{Int64}:
  1  0  0  0  0  0  0
  0  1  0  0  0  0  0
@@ -843,8 +843,8 @@ julia> Hodge_diamond(M)
  0  0  0  0  0  0  1
 ```
 """
-function Hodge_diamond(M::QuiverModuliSpace)
-  return Hodge_diamond(M.Q, M.d, M.theta)
+function hodge_diamond(M::QuiverModuliSpace)
+  return hodge_diamond(M.Q, M.d, M.theta)
 end
 
 """
