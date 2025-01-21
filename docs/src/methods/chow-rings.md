@@ -14,7 +14,7 @@ functionally just a container for various Chow ring data.
 QuiverTools.ChowRing
 ```
 
-## Chow rings
+## Presentation of Chow rings
 
 Chow rings must be initialized manually, passing a choice of linearization to the constructor.
 If no linearization is passed, the default one is used.

@@ -2,7 +2,7 @@
 
 QuiverTools implements Teleman weights and bounds computations.
 See also [Harder--Narasimhan types](@ref),
-as well as the [Tensor calculus](@ref).
+as well as [Tensor calculus](@ref).
 
 ```@docs
 all_teleman_bounds
