@@ -1,8 +1,12 @@
 using Documenter
-using QuiverTools
 
-# memo for myself: when changing dependencies of QuiverTools,
-# update the GLOBAL Julia environment to have the documenter work.
+using Pkg
+Pkg.activate(@__DIR__)
+# As long as it is not registered, this is nice, in general it locally always
+# renders docs of the current version checked out in this repo.
+Pkg.develop(PackageSpec(; path=(@__DIR__) * "/../"))
+
+using QuiverTools
 
 ```@meta
 CurrentModule = QuiverTools
