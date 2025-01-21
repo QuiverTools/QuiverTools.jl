@@ -397,7 +397,6 @@ function arrows(Q::Quiver)
   )
 end
 
-
 # this is the wheel reinvention department.
 # I don't want to load the whole LinearAlgebra package just for this.
 # TODO is there a good reason for not wanting to do this? it's a standard library package?
