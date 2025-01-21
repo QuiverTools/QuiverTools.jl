@@ -1,5 +1,9 @@
 # Teleman quantization
 
+```@meta
+CurrentModule = QuiverTools
+```
+
 QuiverTools implements Teleman weights and bounds computations.
 See also [the Harder--Narasimhan stratification methods](/methods/quiver-moduli.md),
 as well as the [tensor calculus for Bundle objects](/methods/chow-rings.md).

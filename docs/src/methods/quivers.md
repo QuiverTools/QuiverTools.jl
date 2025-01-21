@@ -1,5 +1,9 @@
 # Quivers
 
+```@meta
+CurrentModule = QuiverTools
+```
+
 Quivers are represented via their adjacency matrix.
 Vertices are numbered from ``1`` to ``n``.
 

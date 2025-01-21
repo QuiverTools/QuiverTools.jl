@@ -1,5 +1,9 @@
 # Chow rings
 
+```@meta
+CurrentModule = QuiverTools
+```
+
 QuiverTools implements Chow rings computations for quivers and their representations.
 There also is an implementation of `Bundle` objects in the Chow ring, which enable
 tensor calculus in the Chow ring.
@@ -9,6 +13,7 @@ tensor calculus.
 
 A `QuiverModuliSpace` comes with an intermediary structure, `ChowRing`, which is
 functionally just a container for various Chow ring data.
+
 ```@docs
 ChowRing
 ```
