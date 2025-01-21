@@ -94,10 +94,14 @@ Returns all Harder-Narasimhan types of the moduli space.
 # Input
 
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
-- `unstable::Bool = false`: if `true`, returns only Harder-Narasimhan types
-corresponding to unstable representations.
-- `ordered::Bool = true`: if `true`, returns the Harder-Narasimhan types in
+
+Keyword arguments:
+
+- `unstable::Bool`: if `true`, returns only Harder-Narasimhan types
+corresponding to unstable representations. Default is `false`
+- `ordered::Bool`: if `true`, returns the Harder-Narasimhan types in
 the order introduced by [MR1974891](https://doi.org/10.1007/s00222-002-0273-4).
+Default is `true`.
 
 # Output
 
@@ -144,7 +148,7 @@ the moduli space.
 # Input
 
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
-- `hn_type::HNType`: a sequence of dimension vectors.
+- `hn_type::HNType`: a Harder--Narasimhan type.
 
 # Output
 
@@ -180,7 +184,7 @@ corresponding to the given HN type.
 # Input
 
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
-- `hn_type::HNType`: a HN type for `M`.
+- `hn_type::HNType`: a Harder--Narasimhan type
 
 # Output
 
@@ -233,14 +237,17 @@ function codimension_unstable_locus(M::QuiverModuli)
 end
 
 """
-	all_luna_types(M::QuiverModuli; exclude_stable::Bool = false)
+	all_luna_types(M::QuiverModuli; stable::Bool = true)
 
 Returns all Luna types of the moduli space.
 
 # Input
 
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
-- `exclude_stable::Bool = false`: if `true`, excludes the stable Luna type.
+
+Keyword arguments:
+
+- `stable::Bool`: if `false`, excludes the stable Luna type. Default is `true`
 
 # Output
 
@@ -266,21 +273,24 @@ function all_luna_types(M::QuiverModuli; stable::Bool=true)
 end
 
 """
-    all_luna_types(Q::Quiver, d, theta, denom, exclude_stable)
+    all_luna_types(Q::Quiver, d, theta, denom; stable=true)
 
 Computes all the possible Luna types for the given data.
 
 # Input
 
-- `Q`: a quiver.
-- `d`: a dimension vector.
-- `theta`: a stability parameter. Defaults to the canonical stability.
-- `denom`: a function defining the denominator of the slope. Defaults to sum.
-- `exclude_stable`: whether to exclude the Luna type of stable representations.
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+- `theta::AbstractVector{Int}`: a stability parameter. Defaults to `canonical_stability(Q, d)`.
+- `denom::Function`: a function defining the denominator of the slope. Defaults to `sum`.
+
+Keyword arguments:
+
+- `stable::Bool`: if `false`, excludes the stable Luna type. Default is `true`
 
 # Output
 
-A list of Luna types.
+- a list of Luna types.
 
 
 # Examples
@@ -342,6 +352,8 @@ function all_luna_types(
     pushfirst!(luna_types, LunaType(Dict(d => [1])))
   return luna_types
 end
+
+# TODO test below with LunaType structs
 
 """
 	is_luna_type(M::QuiverModuli, tau)
@@ -519,7 +531,7 @@ in the parameter space is at least ``2``.
 
 # Output
 
-- whether the codimension of the unstable locus is at least `2`.
+- `true` if the codimension of the unstable locus is at least `2`, `false` otherwise.
 
 # Examples
 
@@ -663,9 +675,9 @@ and the current implementation is translated from the [Hodge diamond cutter]
 
 # Input
 
-- ``Q``: a quiver.
-- ``d``: a dimension vector.
-- ``theta``: a stability parameter. Default is the canonical stability.
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+- `theta::AbstractVector{Int}`: a stability parameter. Default is `canonical_stability(Q, d)`.
 
 # Output
 
@@ -725,7 +737,7 @@ Returns the Hodge polynomial of the moduli space `M`.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -755,9 +767,9 @@ Returns the Hodge diamond of the moduli space of
 
 # Input
 
-- ``Q``: a quiver.
-- ``d``: a dimension vector.
-- ``theta``: a stability parameter. Default is the canonical stability.
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+- `theta::AbstractVector{Int}`: a stability parameter. Default is the canonical stability.
 
 # Output
 
@@ -806,7 +818,7 @@ Returns the Hodge diamond of the moduli space `M`.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -831,7 +843,7 @@ julia> Hodge_diamond(M)
  0  0  0  0  0  0  1
 ```
 """
-function Hodge_diamond(M::QuiverModuli)
+function Hodge_diamond(M::QuiverModuliSpace)
   return Hodge_diamond(M.Q, M.d, M.theta)
 end
 
@@ -842,7 +854,7 @@ Returns the Picard rank of the moduli space `M`.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -879,7 +891,7 @@ This implementation currently only works for the canonical stability.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -922,7 +934,7 @@ Returns the Betti numbers of the moduli space `M`.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -991,7 +1003,7 @@ Returns the Poincaré polynomial of the moduli space `M`.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -1057,10 +1069,10 @@ Returns the motive of the moduli stack of ``\\theta``-semistable representations
 
 # Input
 
-- ``Q``: a quiver.
-- ``d``: a dimension vector.
-- ``theta``: a stability parameter. Default is the canonical stability.
-- ``denom``: a function. Default is the sum.
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+- `theta::AbstractVector{Int}`: a stability parameter. Default is the canonical stability.
+- `denom::Function`: a function. Default is the sum.
 
 # Output
 
@@ -1178,9 +1190,9 @@ and the inclusion morphism.
 
 # Input
 
-- ``Q``: a quiver.
-- ``d``: a dimension vector.
-- ``theta``: a stability parameter. Default is the canonical stability.
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+- `theta::AbstractVector{Int}`: a stability parameter. Default is the canonical stability.
 - ``a``: a linearization. Default is the extended gcd of ``d``.
 
 # Output
@@ -1321,8 +1333,8 @@ Computes the Chow ring of the moduli space `M` for the given linearization `chi`
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
-- `chi`: a choice of linearization for the trivial line bundle.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+- `chi::AbstractVector{Int}`: a choice of linearization for the trivial line bundle.
     It picks one by default if not provided.
 
 
@@ -1418,8 +1430,8 @@ This is given by ``L(eta) = \\bigoplus_{i \\in Q_0} \\det(U_i)^{-eta_i}``.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
-- `eta`: a choice of linearization for the trivial line bundle.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+- `eta::AbstractVector{Int]`: a choice of linearization for the trivial line bundle.
 
 # Output
 
@@ -1464,8 +1476,8 @@ Returns the Chern character of the line bundle L(eta).
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
-- `eta`: a choice of linearization for the trivial line bundle.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+- `eta::AbstractVector{Int}`: a choice of linearization for the trivial line bundle.
 
 # Output
 
@@ -1504,9 +1516,9 @@ Returns the total Chern class of the universal bundle ``U_i(\\chi)``.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 - `i`: the universal bundle we want the Chern class of.
-- `chi`: a choice of linearization to construct ``U_i(\\chi)``.
+- `chi::AbstractVector{Int}`: a choice of linearization to construct the universal bundldes.
 
 # Output
 
@@ -1541,8 +1553,8 @@ Returns the point class of the moduli space `M`.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
-- `chi`: a choice of linearization to construct the universal bundles.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+- `chi::AbstractVector{Int}`: a choice of linearization to construct the universal bundles.
 
 # Output
 
@@ -1623,8 +1635,8 @@ Returns the Todd class of the moduli space `M`.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
-- `chi`: a choice of linearization to construct the universal bundles.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+- `chi::AbstractVector{Int}`: a choice of linearization to construct the universal bundles.
 
 # Output
 
@@ -1707,9 +1719,9 @@ whose Chern character is `f`.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 - `f`: the Chern character in CH(M) to integrate.
-- `chi`: a choice of linearization to construct the universal bundles.
+- `chi::AbstractVector{Int}`: a choice of linearization to construct the universal bundles.
 
 # Output
 
@@ -1819,7 +1831,7 @@ the stabilizer `` \\mathbb{G}``.
 
 # Input
 
-- `M`: a moduli stack of representations of a quiver.
+- `M::QuiverModuliStack`: a moduli stack of representations of a quiver.
 
 # Output
 
@@ -1850,7 +1862,7 @@ Returns the dimension of the moduli space.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -1904,7 +1916,7 @@ Checks if the moduli space is smooth.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 
 # Output
 
@@ -1941,7 +1953,7 @@ This is always trus, as the quotient stack of a smooth variety is smooth.
 
 # Input
 
-- `M`: a moduli stack of representations of a quiver.
+- `M::QuiverModuliStack`: a moduli stack of representations of a quiver.
 
 # Output
 
@@ -1967,7 +1979,7 @@ Checks if the moduli space is projective.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
+- `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
 
 # Output
 
@@ -2010,7 +2022,7 @@ this is the affine base.
 
 # Input
 
-- `M`: a moduli space of representations of a quiver.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 
 # Output
 

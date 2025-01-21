@@ -273,7 +273,7 @@ end
 """
 # Summary
 
-`struct HNType`
+`struct HNType{T}`
 
 A struct for a Harder-Narasimhan type.
 
@@ -455,7 +455,6 @@ struct LunaType{T}
   end
 end
 
-# TODO to avoid ugly printing, define Base.show and Base.showcompact (for arrays of LunaTypes)
 function show(io::IO, L::LunaType)
   print(io, "Dict(")
   chiavi = collect(keys(L.data))
@@ -465,10 +464,6 @@ function show(io::IO, L::LunaType)
   end
   print(io, "$(Vector(chiavi[l])) => $(L.data[chiavi[l]]))")
 end
-
-# function showcompact
-
-# show(io, Dict(k => v for (k,v) in L.data))
 
 ==(L1::LunaType, L2::LunaType) = L1.data == L2.data
 ==(L::LunaType, x::Dict{<:AbstractVector{Int},Vector{Int}}) = L.data == x
