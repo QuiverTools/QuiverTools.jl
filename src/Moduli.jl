@@ -1997,19 +1997,14 @@ true
 """
 function is_projective(M::QuiverModuli)
   if is_acyclic(M.Q)
-    if M.condition == "semistable"
-      return true
-    elseif M.condition == "stable"
-      return semistable_equals_stable(M)
-    end
+    M.condition == "semistable" && return true
+    M.condition == "stable" && return semistable_equals_stable(M)
   end
 
   SSP = semisimple_moduli_space(M)
-  if M.condition == "semistable"
-    return dimension(SSP) in [0, -Inf]
-  elseif M.condition == "stable"
-    return dimension(SSP) in [1, -Inf] && semistable_equals_stable(M)
-  end
+  M.condition == "semistable" && return dimension(SSP) in [0, -Inf]
+  M.condition == "stable" &&
+    return (dimension(SSP) in [1, -Inf] && semistable_equals_stable(M))
 end
 
 """
