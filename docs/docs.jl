@@ -20,6 +20,9 @@ makedocs(;
   modules=[QuiverTools],
   format=Documenter.HTML(),
 
+  # TODO this should detect whether we are working locally or not
+  warnonly = true,
+
   # Use the following two parameters for local pdf build.
   # format=Documenter.LaTeX(),
   # remotes=nothing,
