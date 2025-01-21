@@ -43,6 +43,7 @@ of the properly semistable locus.
 ### Harder--Narasimhan types
 
 ```@docs
+HNType
 all_hn_types
 is_hn_type
 codimension_hn_stratum
@@ -52,6 +53,7 @@ is_amply_stable
 ### Luna types
 
 ```@docs
+LunaType
 all_luna_types
 is_luna_type
 dimension_of_luna_stratum
