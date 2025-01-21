@@ -848,7 +848,7 @@ function Hodge_diamond(M::QuiverModuliSpace)
 end
 
 """
-    Picard_rank(M::QuiverModuliSpace)
+    picard_rank(M::QuiverModuliSpace)
 
 Returns the Picard rank of the moduli space `M`.
 
@@ -868,11 +868,11 @@ julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> Picard_rank(M)
+julia> picard_rank(M)
 1
 ```
 """
-function Picard_rank(M::QuiverModuliSpace)
+function picard_rank(M::QuiverModuliSpace)
   if !(is_smooth(M) && is_projective(M))
     throw(ArgumentError("Moduli space is not smooth and projective"))
   end
