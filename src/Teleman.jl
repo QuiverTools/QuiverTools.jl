@@ -535,6 +535,13 @@ end
 # Below are methods to work with Bundle objects that pertain to Teleman quantization
 #####################################################################################
 
+"""
+    set_teleman_weights!(F::Bundle, weights::Dict{<:HNType,Vector{Int}})
+
+Sets the Teleman weights of the bundle `F` to the given dictionary.
+
+This is used to construct Bundle objects and assign them Teleman weights.
+"""
 function set_teleman_weights!(F::Bundle, weights::Dict{<:HNType,Vector{Int}})
   r = isdefined(F, :rank) ? F.rank : length(first(values(weights)))
   !all(length(v) == r for v in values(weights)) &&
