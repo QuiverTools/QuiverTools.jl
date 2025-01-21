@@ -96,6 +96,16 @@ end
 Returns the (necessarily symmetric) adjacency matrix
 of the underlying graph of the quiver.
 
+# Input
+
+- `Q::Quiver` a quiver
+
+# Output
+
+- the adjacency matrix of the underlying graph of the quiver
+
+# Examples
+
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
@@ -111,6 +121,17 @@ end
     n_vertices(Q::Quiver)
 
 Returns the number of vertices of the quiver.
+
+# Input
+
+- `Q::Quiver` a quiver
+
+# Output
+
+- the number of vertices of the quiver
+
+# Examples
+
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
@@ -124,6 +145,17 @@ n_vertices(Q::Quiver) = size(Q.adjacency)[1]
     n_arrows(Q::Quiver)
 
 Returns the number of arrows of the quiver.
+
+# Input
+
+- `Q::Quiver` a quiver
+
+# Output
+
+- the number of arrows of the quiver
+
+# Examples
+
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
@@ -137,6 +169,17 @@ n_arrows(Q::Quiver) = sum(Q.adjacency)
     is_acyclic(Q::Quiver)
 
 Checks whether the quiver is acyclic, i.e. has no oriented cycles.
+
+# Input
+
+- `Q::Quiver` a quiver
+
+# Output
+
+- `true` if the quiver is acyclic, `false` otherwise
+
+# Examples
+
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
@@ -149,7 +192,15 @@ is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^n_vertices(Q))
 """
     is_connected(Q::Quiver)
 
-Checks whether the underlying graph of the quiver is connected.
+Checks whether the quiver is connected.
+
+# Input
+
+- `Q::Quiver` a quiver
+
+# Output
+
+- `true` if the underlying graph of the quiver is connected, `false` otherwise
 
 # Examples
 
@@ -204,6 +255,15 @@ end
 
 Returns the number of incoming arrows to the vertex `j`.
 
+# Input
+
+- `Q::Quiver` a quiver
+- `j::Int`: an integer representing the vertex
+
+# Output
+
+- the number of incoming arrows to the vertex `j`
+
 # Examples
 
 ```jldoctest
@@ -222,6 +282,15 @@ indegree(Q::Quiver, j::Int) = sum(Q.adjacency[:, j])
     outdegree(Q::Quiver, i::Int)
 
 Returns the number of outgoing arrows from the vertex `i`.
+
+# Input
+
+- `Q::Quiver` a quiver
+- `i::Int`: an integer representing the vertex
+
+# Output
+
+- the number of outgoing arrows from the vertex `i`
 
 # Examples
 
@@ -242,6 +311,15 @@ outdegree(Q::Quiver, i::Int) = sum(Q.adjacency[i, :])
 
 Checks if the vertex `i` is a source, i.e., a vertex with no incoming arrows.
 
+# Input
+
+- `Q::Quiver` a quiver
+- `i::Int`: an integer representing the vertex
+
+# Output
+
+- `true` if the vertex `i` is a source, `false` otherwise
+
 # Examples
 
 ```jldoctest
@@ -260,6 +338,15 @@ is_source(Q::Quiver, i::Int) = indegree(Q, i) == 0
     is_sink(Q::Quiver, j::Int)
 
 Checks if the vertex `j` is a sink, i.e., a vertex with no outgoing arrows.
+
+# Input
+
+- `Q::Quiver` a quiver
+- `j::Int`: an integer representing the vertex
+
+# Output
+
+- `true` if the vertex `j` is a sink, `false` otherwise
 
 # Examples
 
@@ -282,7 +369,7 @@ Returns a list of all arrows of the quiver `Q`.
 
 # Input
 
-- `Q`: a quiver
+- `Q::Quiver` a quiver
 
 # Output
 
@@ -352,7 +439,16 @@ E = I - A,
 where ``A`` is the adjacency matrix of ``Q`` and ``I``
 is the identity matrix of the same size as ``A``.
 
-EXAMPLE:
+# Input
+
+- `Q::Quiver` a quiver
+
+# Output
+
+- the Euler matrix of the quiver
+
+# Examples
+
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
@@ -373,7 +469,18 @@ The Euler form is defined as the bilinear form
 ```
 where ``E`` is the Euler matrix of the quiver.
 
-EXAMPLE:
+# Input
+
+- `Q::Quiver` a quiver
+- `x::AbstractVector{Int}`: a vector
+- `y::AbstractVector{Int}`: a vector
+
+# Output
+
+- the Euler form ``\\langle x, y\\rangle_{Q}``
+
+# Examples
+
 ```jldoctest
 julia> Q = kronecker_quiver(4);
 
@@ -391,12 +498,12 @@ The canonical stability parameter for the couple ``(Q, d)`` is given by ``<d,-> 
 
 # Input
 
-- `Q`: a quiver
-- `d`: a dimension vector
+- `Q::Quiver` a quiver
+- `d::AbstractVector{Int}` a dimension vector
 
 # Output
 
-- the canonical stability parameter for the couple ``(Q, d)``
+- the canonical stability parameter for `Q` and `d`
 
 # Examples
 
@@ -414,8 +521,21 @@ end
 """
     is_coprime(d, theta)
 
-Checks whether the given dimension vector ``d`` is ``\\theta``-coprime for
+Checks whether the given dimension vector `d` is `theta`-coprime for
 the stability parameter ``\\theta``.
+
+A dimension vector ``d`` is said to be ``\\theta``-coprime for the
+stability parameter ``\\theta`` if all subdimension vectors ``0 \\neq e < d``
+satisfy ``\\theta * e \\neq 0``.
+
+# Input
+
+- `d::AbstractVector{Int}` a dimension vector
+- `theta::AbstractVector{Int}` a stability parameter
+
+# Output
+
+- `true` if `d` is `theta`-coprime, `false` otherwise
 
 # Examples
 
@@ -424,6 +544,9 @@ julia> d = [2, 3]; theta = [3, -2];
 
 julia> is_coprime(d, theta)
 true
+
+julia> is_coprime([3, 3], theta)
+false
 ```
 """
 function is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
@@ -437,17 +560,51 @@ end
     is_coprime(d)
 
 Checks if the gcd of all the entries of d is ``1``.
+
+# Input
+
+- `d::AbstractVector{Int}` a vector
+
+# Output
+
+- `true` if the gcd of all the entries of `d` is ``1``, `false` otherwise
+
+# Examples
+
+```jldoctest
+julia> is_coprime([2, 3])
+true
+
+julia> is_coprime([3, 3])
+false
+```
 """
 is_coprime(d::AbstractVector{Int}) = gcd(d) == 1
 
 """
     slope(d, theta, denom=sum)
 
-Returns the slope of the dimension vector ``d``
+Returns the slope of `d`
 with respect to the stability parameter ``\\theta``
-and a choice of a denominator function.
+and a choice of a denominator function `denom`.
 
-EXAMPLE:
+The slope function for ``\\theta`` and ``\\alpha`` is defined as
+```math
+\\mu = \\frac{\\theta}{\\alpha} := x \\mapsto \\frac{\\theta \\cdot x}{\\alpha(x)}.
+```
+
+# Input
+
+- `d::AbstractVector{Int}` a dimension vector
+- `theta::AbstractVector{Int}` a stability parameter
+- `denom::Function` a function to compute the denominator. Default is `sum`
+
+# Output
+
+- the slope of `d` with respect to `theta` and `denom`
+
+# Examples
+
 ```jldoctest
 julia> slope([2,3], [3,-2])
 0//1
@@ -460,7 +617,17 @@ end
 """
     all_destabilizing_subdimension_vectors(d, theta, denom=sum)
 
-Returns the subdimension vectors of ``d`` with a strictly larger slope than ``d``.
+Returns the subdimension vectors of `d` with a strictly larger slope than `d`.
+
+# Input
+
+- `d::AbstractVector{Int}` a dimension vector
+- `theta::AbstractVector{Int}` a stability parameter
+- `denom::Function` a function to compute the denominator. Default is `sum`
+
+# Output
+
+- an array of subdimension vectors of `d` with a strictly larger slope than `d`
 """
 @memoize Dict function all_destabilizing_subdimension_vectors(
   d::AbstractVector{Int},
@@ -478,7 +645,25 @@ end
 """
     has_semistables(Q::Quiver, d, theta=canonical_stability(Q, d), denom=sum)
 
-Checks if there is a ``\\theta``-semistable representation of dimension vector ``d``.
+Checks if `Q` admits a ``\\theta``-semistable representation of dimension vector ``d``.
+
+A representation ``V`` is said to be ``\\mu``-semistable if
+for all of its subrepresentations ``W`` with ``dim(W) < dim(V)``, we have
+```math
+\\mu(\\dim(W)) \\leq \\mu\\dim((V)).
+```
+
+# Input
+
+- `Q::Quiver` a quiver
+- `d::AbstractVector{Int}` a dimension vector
+- `theta::AbstractVector{Int}` a stability parameter. Default is `canonical_stability(Q, d)`
+- `denom::Function` a function to compute the denominator. Default is `sum`
+
+# Output
+
+- `true` if there is a `theta`-semistable representation of dimension vector `d`,
+  `false` otherwise
 
 # Examples
 
@@ -533,7 +718,25 @@ end
 """
     has_stables(Q::Quiver, d, theta=canonical_stability(Q, d), denom=sum)
 
-Checks if Q has a ``theta``-stable representation of dimension vector ``d``.
+Checks if Q admits a ``theta``-stable representation of dimension vector ``d``.
+
+A representation ``V`` is said to be ``mu``-stable if
+for all of its subrepresentations ``W`` with ``dim(W) < dim(V)``, we have
+```math
+\\mu(\\dim(W)) < \\mu\\dim((V)).
+```
+
+# Input
+
+- `Q::Quiver` a quiver
+- `d::AbstractVector{Int}` a dimension vector
+- `theta::AbstractVector{Int}` a stability parameter. Default is `canonical_stability(Q, d)`
+- `denom::Function` a function to compute the denominator. Default is `sum`
+
+# Output
+
+- `true` if there is a `theta`-stable representation of dimension vector `d`,
+  `false` otherwise
 
 # Examples
 
@@ -593,6 +796,15 @@ By [Lemma 4.2, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147),
 this is equivalent to the existence of a stable representation of dimension vector ``d``
 for the canonical stability parameter.
 
+# Input
+
+- `Q::Quiver` a quiver
+- `d::AbstractVector{Int}` a dimension vector
+
+# Output
+
+- `true` if `d` is a Schur root for `Q`, `false` otherwise
+
 # Examples
 
 ```jldoctest
@@ -641,6 +853,36 @@ By [Theorem 5.3, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147),
 <e',d-e> \\geq 0
 ```
 for all generic subdimension vectors ``e'`` of ``e``.
+
+# Input
+
+- `Q::Quiver` a quiver
+- `e::AbstractVector{Int}` a dimension vector
+- `d::AbstractVector{Int}` a dimension vector
+
+# Output
+
+- `true` if `e` is a generic subdimension vector of `d`, `false` otherwise
+
+# Examples
+
+Trivial examples on the 3-Kronecker quiver:
+
+```jldoctest
+julia> Q = kronecker_quiver(3); e = [1, 2]; d = [2, 3];
+
+julia> is_generic_subdimension_vector(Q, e, d)
+true
+
+julia> is_generic_subdimension_vector(Q, [0, 0], d)
+true
+
+julia> is_generic_subdimension_vector(Q, [2, 3], d)
+true
+
+julia> is_generic_subdimension_vector(Q, [2, 1], d)
+false
+```
 """
 @memoize Dict function is_generic_subdimension_vector(
   Q::Quiver,
@@ -657,13 +899,22 @@ for all generic subdimension vectors ``e'`` of ``e``.
   )
   # none of the subdimension vectors violating the condition should be generic
   return all(eprime -> !is_generic_subdimension_vector(Q, eprime, e), subdimensions)
-  # return generic_ext(Q, e, d - e) == 0
+  # return generic_ext(Q, e, d - e) == 0 # TODO test performance
 end
 
 """
     all_generic_subdimension_vectors(Q::Quiver, d)
 
 Returns the list of all generic subdimension vectors of ``d``.
+
+# Input
+
+- `Q::Quiver` a quiver
+- `d::AbstractVector{Int}` a dimension vector
+
+# Output
+
+- a list of all generic subdimension vectors of `d`
 
 # Examples
 
@@ -695,8 +946,27 @@ end
 """
     all_hn_types(Q::Quiver, d, theta, denom=sum; unstable::Bool=false, ordered::Bool=false)
 
-Returns a list of all the Harder Narasimhan types of representations of ``Q``
+Returns a list of all the Harder--Narasimhan types of representations of ``Q``
 with dimension vector ``d``, with respect to the slope function theta/denom.
+
+# Input
+
+- `Q::Quiver` a quiver
+- `d::AbstractVector{Int}` a dimension vector
+- `theta::AbstractVector{Int}` a stability parameter
+- `denom::Function` a function to compute the denominator. Default is `sum`
+
+Keyword inputs:
+
+- `unstable`: if `true` exclude the trivial Harder--Narasimhan type (d),
+which corresponds to stable representations. Default is `false`
+- `ordered`: if `true` return the list of all HN types in ascending order.
+Default is `true`
+
+# Output
+
+- a list of all the Harder--Narasimhan types
+of representations of `Q` with dimension vector `d`
 
 # Examples
 
@@ -798,6 +1068,17 @@ end
 Checks if the given ordered list of subdimension vectors ``dstar`` is an HN type
 for the datum ``(Q, d)`` and the slope stability given by ``(theta, denom)``.
 
+# Input
+
+- `Q::Quiver` a quiver
+- `d::AbstractVector{Int}` a dimension vector
+- `dstar::HNType` an Harder--Narasimhan type
+- `theta::AbstractVector{Int}` a stability parameter
+- `denom::Function` a function to compute the denominator. Default is `sum`
+
+# Output
+
+- `true` if `dstar` is an HN type for `Q`, `d` and the slope `theta`/`denom`, `false` otherwise
 
 # Examples
 
@@ -844,6 +1125,15 @@ is_hn_type(Q::Quiver,
 
 Returns the codimension of the given HN stratum.
 
+# Input
+
+- `Q::Quiver` a quiver
+- `stratum::HNType`: an HN type
+
+# Output
+
+- the codimension of the HN stratum as an integer
+
 # Examples
 
 ```jldoctest
@@ -883,6 +1173,17 @@ with respect to the slope function `theta`/`denominator`.
 
 This means that the codimension of the unstable locus
 in the parameter space is at least ``2``.
+
+# Input
+
+- `Q::Quiver` a quiver
+- `d::AbstractVector{Int}` a dimension vector
+- `theta::AbstractVector{Int}` a stability parameter
+- `denom::Function` a function to compute the denominator. Default is `sum`
+
+# Output
+
+- `true` if `d` is amply stable, `false` otherwise
 
 # Examples
 
@@ -927,6 +1228,16 @@ we have
 ext(a,b)=max\\{-\\langle c,b\\rangle~~|~~c~\\text{is a generic subdimension vector of }a\\}.
 ```
 
+# Input
+
+- `Q::Quiver` a quiver
+- `a::AbstractVector{Int}`: a vector
+- `b::AbstractVector{Int}`: a vector
+
+# Output
+
+- the dimension of the generic extensions ``\\mathrm{ext}^1(a, b)``
+
 # Examples
 
 ```jldoctest
@@ -953,6 +1264,16 @@ end
 
 Computes the dimension of the ``\\mathrm{Hom}`` group between generic representations
 of dimension vectors ``a`` and ``b``.
+
+# Input
+
+- `Q::Quiver` a quiver
+- `a::AbstractVector{Int}`: a vector
+- `b::AbstractVector{Int}`: a vector
+
+# Output
+
+- the dimension of the generic homomorphisms ``\\mathrm{hom}(a, b)``
 
 # Examples
 
@@ -993,6 +1314,15 @@ isomorphic to the direct sum of irreducible representations
 of dimension vectors ``\\beta_i``.
 
 Such a decomposition is called the canonical decomposition.
+
+# Input
+
+- `Q::Quiver` a quiver
+- `d::AbstractVector{Int}` a dimension vector
+
+# Output
+
+- a list of dimension vectors representing the canonical decomposition of `d`
 
 # Examples
 
@@ -1041,6 +1371,16 @@ for all vertices i,
 
 where ``s_i`` is the dimension vector with all entries set to ``0`` and the i-th
 set to ``1``.
+
+# Input
+
+- `Q::Quiver` a quiver
+- `d::AbstractVector{Int}` a dimension vector
+
+Keyword arguments:
+
+- `interior`: if `true` checks whether `d` belongs to the interior of the fundamental
+domain. Default is `false`
 
 # Examples
 
@@ -1131,7 +1471,7 @@ Compute the thin dimension vector for a given quiver `Q`.
 
 - A vector of ones of length `n`.
 
-EXAMPLE:
+# Examples:
 
 There is not much to it:
 ```jldoctest
@@ -1228,8 +1568,8 @@ Check if vector `e` is a subdimension of vector `d`.
 
 # Input
 
-- `e`: An abstract vector of integers.
-- `d`: An abstract vector of integers.
+- `e::AbstractVector{Int}` A vector of integers.
+- `d::AbstractVector{Int}` A vector of integers.
 
 # Output
 
