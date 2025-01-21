@@ -20,6 +20,10 @@ Black-box methods are provided to study some of their properties.
 is_nonempty
 dimension
 is_smooth
+is_projective
+index
+motive
+picard_rank
 semistable_equals_stable
 codimension_unstable_locus
 ```
@@ -57,12 +61,13 @@ LunaType
 all_luna_types
 is_luna_type
 dimension_of_luna_stratum
+semisimple_moduli_space
 ```
 
 ## Hodge diamonds
 
 ```@docs
-Hodge_diamond
-Hodge_polynomial
-Picard_rank
+hodge_diamond
+hodge_polynomial
+betti_numbers
 ```
