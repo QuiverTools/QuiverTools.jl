@@ -73,6 +73,14 @@ structure_sheaf(M::QuiverModuliSpace) = Bundle(M, 1)
 
 Return the dual bundle of `F`.
 
+# Input
+
+- `F::Bundle`: a bundle.
+
+# Output
+
+- the dual bundle of `F`.
+
 # Example
 
 On the projective line:
@@ -158,7 +166,6 @@ function ^(F::Bundle, n::Int)
   return new
 end
 
-# direct sum, quotient and tensor product
 function +(F::Bundle, G::Bundle)
   F.parent != G.parent && throw(DomainError("Different Chow rings."))
   homog_chow = _has_chern_data(F) == _has_chern_data(G)
@@ -219,6 +226,15 @@ end
 
 Return the `k`-th exterior power of `F`.
 
+# Input
+
+- `F::Bundle`: a bundle.
+- `k::Int`: the degree of the exterior power.
+
+# Output
+
+- the `k`-th exterior power of `F`.
+
 # Example
 
 On the projective line:
@@ -272,6 +288,15 @@ det(F::Bundle) = exterior_power(F, rank(F))
     symmetric_power(F::Bundle, k::Int)
 
 Return the `k`-th symmetric power of `F`.
+
+# Input
+
+- `F::Bundle`: a bundle.
+- `k::Int`: the degree of the symmetric power.
+
+# Output
+
+- the `k`-th symmetric power of `F`.
 
 # Example
 
@@ -460,6 +485,14 @@ is described in [Proposition 4.2, MR4352662](https://mathscinet.ams.org/mathscin
 This function computes both the Chern character and the Teleman weights
 of the canonical bundle.
 
+# Input
+
+- `M::QuiverModuliSpace`: a quiver moduli space.
+
+# Output
+
+- the canonical bundle on `M`.
+
 # Example
 
 On various projective spaces:
@@ -529,6 +562,22 @@ end
     universal_bundle(M:::QuiverModuliSpace, i::Int)
 
 Returns the `i`-th universal bundle of `M`.
+
+This function computes both the Chern classes and the Teleman weights
+of the universal bundle.
+
+To use this method, the moduli space `M` must have a linearization.
+If not, this method will initialize the Chow ring of `M`
+by calling `chow_ring(M)` and it will use the default linearization.
+
+# Input
+
+- `M::QuiverModuliSpace`: a quiver moduli space.
+- `i::Int`: the universal bundle on the `i`-th vertex of the quiver.
+
+# Output
+
+- the `i`-th universal bundle on `M`.
 
 # Example
 
@@ -606,6 +655,14 @@ end
 
 Return the degree of the bundle `F`.
 If `rank(F)` is larger than ``1``, returns the degree of the determinant of `F`.
+
+# Input
+
+- `F::Bundle`: a bundle.
+
+# Output
+
+- the degree of `F`.
 
 # Example
 
