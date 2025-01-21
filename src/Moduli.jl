@@ -1,4 +1,4 @@
-export Hodge_diamond, Hodge_polynomial, Picard_rank
+export Hodge_diamond, Hodge_polynomial, picard_rank
 
 export chow_ring,
   motive,
