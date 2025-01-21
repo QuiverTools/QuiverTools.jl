@@ -39,6 +39,7 @@ export is_schur_root, is_real_root, is_imaginary_root, is_isotropic_root,
   generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
 export all_hn_types,
   is_hn_type, has_semistables, has_stables, codimension_hn_stratum, is_amply_stable
+export is_generic_subdimension_vector, all_generic_subdimension_vectors
 
 # TODO add missing doctests across codebase
 # TODO add safety checks everywhere in the codebase
