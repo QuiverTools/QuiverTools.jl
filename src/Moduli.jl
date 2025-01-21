@@ -170,9 +170,9 @@ julia> is_hn_type(M, [[1, 2], [1, 1]])
 false
 ```
 """
-is_hn_type(M::QuiverModuli, hn_type::HNType)::Bool =
+is_hn_type(M::QuiverModuli, hn_type::HNType) =
   is_hn_type(M.Q, M.d, hn_type, M.theta, M.denom)
-is_hn_type(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}})::Bool =
+is_hn_type(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}}) =
   is_hn_type(M, HNType(hn_type))
 
 """

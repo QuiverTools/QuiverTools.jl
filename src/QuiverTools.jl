@@ -896,7 +896,7 @@ false
   Q::Quiver,
   e::AbstractVector{Int},
   d::AbstractVector{Int},
-)::Bool # TODO is specifying the output type a good idea? https://docs.julialang.org/en/v1/manual/functions/#The-return-Keyword says they are not a good idea usually
+)
   # TODO Julia shorthand?
   if e == d || all(ei == 0 for ei in e)
     return true
@@ -1108,7 +1108,7 @@ function is_hn_type(
   dstar::HNType,
   theta::AbstractVector{Int}=canonical_stability(Q, d),
   denom::Function=sum,
-)::Bool
+)
   sum(dstar) != d && throw(ArgumentError("$(dstar) does not sum to $(d)."))
 
   if !all(
@@ -1128,7 +1128,7 @@ is_hn_type(Q::Quiver,
   dstar::Vector{<:AbstractVector{Int}};
   theta::AbstractVector{Int}=canonical_stability(Q, d),
   denom::Function=sum,
-)::Bool =
+) =
   is_hn_type(Q, d, HNType(dstar), theta, denom)
 
 """

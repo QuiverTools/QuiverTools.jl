@@ -7,7 +7,7 @@ files = [
   "src/Moduli.jl",
   "src/Constructors.jl",
   "src/Bundles.jl",
-  "docs/make.jl",
+  "docs/docs.jl",
   "benchmark/benchmarks.jl",
   "test/runtests.jl",
   ".JuliaFormatter.jl",
