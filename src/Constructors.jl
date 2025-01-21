@@ -240,6 +240,15 @@ end
 
 Constructs the bipartite quiver on `m` and `n` vertices.
 
+# Input
+
+- `m`: The number of vertices in the first part.
+- `n`: The number of vertices in the second part.
+
+# Output
+
+A bipartite quiver with `m + n` vertices.
+
 # Examples
 
 ```jldoctest
@@ -266,6 +275,8 @@ function bipartite_quiver(m::Int, n::Int)
 end
 
 """"
+    opposite_quiver(Q::Quiver)
+
 Returns a Quiver with the same vertices and an arrow
 ``j \\to i`` for every arrow  ``i \\to j`` in the original quiver.
 
@@ -291,6 +302,8 @@ opposite_quiver(Q::Quiver) =
   Quiver(Matrix{Int}(transpose(Q.adjacency)), "opposite of " * Q.name)
 
 """
+    double_quiver(Q::Quiver)
+
 The adjacency matrix of the double of a quiver is the sum of
 the adjacency matrix of the original quiver and its transpose.
 
