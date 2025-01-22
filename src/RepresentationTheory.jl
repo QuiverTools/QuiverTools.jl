@@ -203,9 +203,7 @@ true
 function canonical_decomposition(Q::Quiver, d::AbstractVector{Int})
   generic_subdimension_vectors = filter(e -> e != d, all_generic_subdimension_vectors(Q, d))
   for e in generic_subdimension_vectors
-    if d - e in generic_subdimension_vectors &&
-      generic_ext(Q, e, d - e) == 0 &&
-      generic_ext(Q, d - e, e) == 0
+    if d - e in generic_subdimension_vectors
       return vcat(canonical_decomposition(Q, e), canonical_decomposition(Q, d - e))
     end
   end
