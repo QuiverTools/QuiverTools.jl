@@ -18,18 +18,18 @@ function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int}
 end
 
 """
-    symmetric_polynomial(vars, degree)
+    symmetric_polynomial(vars, degree::Int)
 
-Returns the symmetric polynomial of degree ``degree`` in the variables ``vars``.
+Compute the symmetric polynomial of degree `degree` in the variables `vars`.
 
 # Input
 
-- ``vars``: a list of variables.
-- ``degree``: the degree of the wanted symmetric polynomial.
+- `vars`: a list of variables.
+- `degree`: the degree of the wanted symmetric polynomial.
 
 # Output
 
-- The symmetric polynomial of degree ``degree`` in the variables ``vars``.
+- The symmetric polynomial of degree `degree` in the variables `vars`.
 
 # Examples
 
@@ -47,10 +47,10 @@ function symmetric_polynomial(vars, degree::Int)
 end
 
 """
-    chow_ring(Q::Quiver, d, theta; chi=extended_gcd(M.d)[2])
+    chow_ring(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d); chi::AbstractVector{Int}=extended_gcd(d)[2])
 
-Computes the Chow ring of the moduli space of ``\\theta``-semistable representations of
-``Q`` with dimension vector ``d``, for a choice of linearization ``a``.
+Compute the Chow ring of the moduli space of `theta`-semistable representations of
+`Q` with dimension vector `d`, for a choice of linearization `a`.
 
 This method of the function `chow_ring` also returns the ambient ring ``R``
 and the inclusion morphism.
@@ -59,8 +59,8 @@ and the inclusion morphism.
 
 - `Q::Quiver`: a quiver.
 - `d::AbstractVector{Int}`: a dimension vector.
-- `theta::AbstractVector{Int}`: a stability parameter. Default is the canonical stability.
-- ``a``: a linearization. Default is the extended gcd of ``d``.
+- `theta::AbstractVector{Int}`: a stability parameter. Default is `canonical_stability(Q, d)`.
+- `chi`: a linearization. Default is the extended gcd of `extended_gcd(d)[2]`.
 
 # Output
 
@@ -194,15 +194,15 @@ function chow_ring(
 end
 
 """
-    chow_ring(M::QuiverModuliSpace; chi=undef)
+    chow_ring(M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef)
 
-Computes the Chow ring of the moduli space `M` for the given linearization `chi`.
+Compute the Chow ring of the moduli space `M` for the given linearization `chi`.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 - `chi::AbstractVector{Int}`: a choice of linearization for the trivial line bundle.
-    It picks one by default if not provided.
+  Default is `extended_gcd(M.d)[2]`.
 
 
 # Output
@@ -246,11 +246,11 @@ end
 """
     extended_gcd(x)
 
-Computes the gcd and the Bezout coefficients of a list of integers.
+Compute the gcd and the Bezout coefficients of a list of integers.
 
 # Input
 
-- ``x``: a list of integers.
+- `x`: a list of integers.
 
 # Output
 
@@ -289,9 +289,9 @@ function extended_gcd(x)
 end
 
 """
-    chern_class_line_bundle(M::QuiverModuliSpace, eta)
+    chern_class_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
 
-Returns the first Chern class of the line bundle L(eta).
+Compute the first Chern class of the line bundle `L(eta)`.
 
 This is given by ``L(eta) = \\bigoplus_{i \\in Q_0} \\det(U_i)^{-eta_i}``.
 
@@ -337,9 +337,9 @@ function chern_class_line_bundle(
 end
 
 """
-    chern_character_line_bundle(M::QuiverModuliSpace, eta)
+    chern_character_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
 
-Returns the Chern character of the line bundle L(eta).
+Compute the Chern character of the line bundle `L(eta)`.
 
 # Input
 
@@ -348,7 +348,7 @@ Returns the Chern character of the line bundle L(eta).
 
 # Output
 
-- the Chern character of the line bundle L(eta).
+- the Chern character of the line bundle `L(eta)`.
 
 # Examples
 
@@ -379,13 +379,12 @@ end
 """
     total_chern_class_universal(M::QuiverModuliSpace, i)
 
-Returns the total Chern class of the universal bundle ``U_i(\\chi)``.
+Compute the total Chern class of the universal bundle `U_i`.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 - `i`: the universal bundle we want the Chern class of.
-- `chi::AbstractVector{Int}`: a choice of linearization to construct the universal bundldes.
 
 # Output
 
@@ -416,12 +415,11 @@ end
 """
     point_class(M::QuiverModuliSpace)
 
-Returns the point class of the moduli space `M`.
+Compute the point class of the moduli space `M`.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `chi::AbstractVector{Int}`: a choice of linearization to construct the universal bundles.
 
 # Output
 
@@ -498,12 +496,11 @@ end
 """
     todd_class(M::QuiverModuliSpace)
 
-Returns the Todd class of the moduli space `M`.
+Compute the Todd class of the moduli space `M`.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `chi::AbstractVector{Int}`: a choice of linearization to construct the universal bundles.
 
 # Output
 
@@ -587,12 +584,11 @@ whose Chern character is `f`.
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `f`: the Chern character in CH(M) to integrate.
-- `chi::AbstractVector{Int}`: a choice of linearization to construct the universal bundles.
+- `f`: the Chern character in to integrate.
 
 # Output
 
-the integral of `f`.
+- the integral of `f`.
 
 # Examples
 
@@ -635,8 +631,10 @@ function integral(M::QuiverModuliSpace, f)
   integ = div(homogeneous_components(M, f * todd_class(M))[n + 1], point_class(M))
   return Singular.constant_coefficient(integ)
 end
+
 integral(F::Bundle) = integral(variety(F), chern_character(F))
 chi(F::Bundle) = integral(F::Bundle)
+
 """
 Takes a quotient ring R/I and a polynomial f in R and returns the image of f in R/I.
 """
@@ -667,7 +665,7 @@ end
 """
     __chow_ring__monomial_grading(M::QuiverModuliSpace, f)
 
-Returns the "pseudodegree" of the monomial `f` in the Chow ring of the moduli
+Compute the "pseudodegree" of the monomial `f` in the Chow ring of the moduli
 space `M` passed.
 
 This method is unsafe, as it does not consider the actual degree of the MPolyRingElem
@@ -681,7 +679,7 @@ end
 """
     __chow_degrees(d)
 
-Returns the vector of degrees for the variables of a Chow ring.
+Compute the vector of degrees for the variables of a Chow ring.
 
 For internal use only.
 """
