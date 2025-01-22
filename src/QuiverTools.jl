@@ -1074,7 +1074,7 @@ julia> all_hn_types(Q, d, theta; ordered=true)
 end
 
 """
-	is_hn_type(Q::Quiver, d, dstar, theta, denom=sum)
+    is_hn_type(Q::Quiver, d, dstar, theta, denom=sum)
 
 Checks if the given ordered list of subdimension vectors ``dstar`` is an HN type
 for the datum ``(Q, d)`` and the slope stability given by ``(theta, denom)``.
@@ -1431,7 +1431,7 @@ end
 ########################################################################################
 
 """
-	zero_vector(n::Int)
+    zero_vector(n::Int)
 
 Create a zero vector of length `n`.
 
@@ -1470,7 +1470,7 @@ true
 zero_vector(Q::Quiver) = zero_vector(n_vertices(Q))
 
 """
-	thin_dimension_vector(Q::Quiver)
+    thin_dimension_vector(Q::Quiver)
 
 Compute the thin dimension vector for a given quiver `Q`.
 
@@ -1495,7 +1495,7 @@ true
 thin_dimension_vector(Q::Quiver) = coerce_vector(ones(Int, n_vertices(Q)))
 
 """
-	all_subdimension_vectors(d::AbstractVector{Int}; nonzero::Bool=false, strict::Bool=false)
+    all_subdimension_vectors(d::AbstractVector{Int}; nonzero::Bool=false, strict::Bool=false)
 
 Compute all subdimension vectors of a given dimension vector `d`.
 

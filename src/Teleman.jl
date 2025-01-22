@@ -95,7 +95,7 @@ function all_teleman_bounds(
 end
 
 """
-	all_teleman_bounds(M::QuiverModuli)
+    all_teleman_bounds(M::QuiverModuli)
 
 Computes the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
 HN type for the datum of `M`.

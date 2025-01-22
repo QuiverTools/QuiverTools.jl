@@ -21,7 +21,7 @@ export is_nonempty,
   dimension, is_smooth, semistable_equals_stable, codimension_unstable_locus
 
 """
-	is_nonempty(M::QuiverModuli)
+    is_nonempty(M::QuiverModuli)
 
 Checks if the quiver moduli is nonempty.
 
@@ -58,7 +58,7 @@ function is_nonempty(M::QuiverModuli)
 end
 
 """
-	is_coprime(M::QuiverModuli)
+    is_coprime(M::QuiverModuli)
 
 Checks if the stability parameter is coprime with the dimension vector,
 i.e., if for all subdimension vectors ``e`` of ``d``, ``\\theta\\cdot e \\neq 0``.
@@ -87,7 +87,7 @@ function is_coprime(M::QuiverModuli)
 end
 
 """
-	all_hn_types(M::QuiverModuli; unstable::Bool=false, ordered::Bool=true)
+    all_hn_types(M::QuiverModuli; unstable::Bool=false, ordered::Bool=true)
 
 Returns all Harder-Narasimhan types of the moduli space.
 
@@ -140,7 +140,7 @@ function all_hn_types(M::QuiverModuli; unstable::Bool=false, ordered::Bool=true)
 end
 
 """
-	is_hn_type(M::QuiverModuli, hn_type::HNType)
+    is_hn_type(M::QuiverModuli, hn_type::HNType)
 
 Checks if the given sequence of dimension vectors is a valid HN type for
 the moduli space.
@@ -176,7 +176,7 @@ is_hn_type(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}}) =
   is_hn_type(M, HNType(hn_type))
 
 """
-	codimension_hn_stratum(M::QuiverModuli, hn_type::HNType)
+    codimension_hn_stratum(M::QuiverModuli, hn_type::HNType)
 
 Computes the codimension of the Harder-Narasimhan stratum
 corresponding to the given HN type.
@@ -209,7 +209,7 @@ codimension_hn_stratum(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}}) 
   codimension_hn_stratum(M, HNType(hn_type))
 
 """
-	codimension_unstable_locus(M::QuiverModuli)
+    codimension_unstable_locus(M::QuiverModuli)
 
 Computes the codimension of the unstable locus in the parameter space.
 
@@ -237,7 +237,7 @@ function codimension_unstable_locus(M::QuiverModuli)
 end
 
 """
-	all_luna_types(M::QuiverModuli; stable::Bool = true)
+    all_luna_types(M::QuiverModuli; stable::Bool = true)
 
 Returns all Luna types of the moduli space.
 
@@ -356,7 +356,7 @@ end
 # TODO test below with LunaType structs
 
 """
-	is_luna_type(M::QuiverModuli, tau)
+    is_luna_type(M::QuiverModuli, tau)
 
 Checks if the given tau is a valid Luna type for `M`.
 
@@ -410,7 +410,7 @@ end
 
 # TODO this should return 0 for the type Dict([0, 0] => [1])??
 """
-	dimension_of_luna_stratum(M::QuiverModuli, tau)
+    dimension_of_luna_stratum(M::QuiverModuli, tau)
 
 Computes the dimension of the Luna stratum corresponding to the given Luna type in the
 moduli space.
@@ -445,7 +445,7 @@ function dimension_of_luna_stratum(M::QuiverModuli, tau)
 end
 
 """
-	local_quiver_setting(M::QuiverModuli, tau)
+    local_quiver_setting(M::QuiverModuli, tau)
 
 Returns the local quiver and dimension vector for the given Luna type.
 
@@ -476,7 +476,7 @@ function local_quiver_setting(M::QuiverModuli, tau)
 end
 
 """
-	semistable_equals_stable(M::QuiverModuli)
+    semistable_equals_stable(M::QuiverModuli)
 
 Checks if stability and semistability are equivalent on the given moduli space.
 In other words, checks if there are no properly semistable points in the representation
@@ -517,7 +517,7 @@ function semistable_equals_stable(M::QuiverModuli)
 end
 
 """
-	is_amply_stable(M::QuiverModuli)
+    is_amply_stable(M::QuiverModuli)
 
 Checks whether the dimension vector ``d`` is amply stable
 with respect to the slope function `theta`/`denominator`.
@@ -1151,7 +1151,7 @@ function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int}
 end
 
 """
-	symmetric_polynomial(vars, degree)
+    symmetric_polynomial(vars, degree)
 
 Returns the symmetric polynomial of degree ``degree`` in the variables ``vars``.
 
