@@ -1,4 +1,6 @@
 using Test, QuiverTools, Documenter
+using Pkg
+Pkg.activate(@__DIR__)
 
 @info "Almost all the tests are in the documentation."
 
