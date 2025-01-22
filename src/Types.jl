@@ -25,7 +25,7 @@ struct Quiver
   """
       Quiver(adjacency, name = "")
 
-  Constructs a quiver starting from its adjacency matrix, and an optional name.
+  Construct a quiver from the adjacency matrix and optionally a name.
 
   # Examples
 
@@ -47,7 +47,7 @@ struct Quiver
   """
       Quiver(arrows)
 
-  Constructs a quiver based on its arrows encoded in a string.
+  Construct a quiver from its arrows encoded in a string.
 
   the string `arrows` must be of the form
 
