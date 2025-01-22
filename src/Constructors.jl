@@ -12,6 +12,8 @@ export kronecker_quiver,
   double_quiver,
   dynkin_quiver
 
+export kronecker_moduli
+
 """
     kronecker_quiver(m::Int)
 
@@ -322,3 +324,23 @@ double of 2-Kronecker quiver, with adjacency matrix [0 2; 2 0]
 """
 double_quiver(Q::Quiver) =
   Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "double of " * Q.name)
+
+"""
+    kronecker_moduli(m::Int, d::Int, e::Int)
+
+Construct the Kronecker moduli space with `m` vertices and dimension vector `(d, e)`.
+
+# Examples
+
+```jldoctest
+julia> kronecker_moduli(3, 2, 3)
+Quiver moduli space defined as follows:
+ - quiver: 3-Kronecker quiver, with adjacency matrix [0 3; 0 0]
+ - dimension vector: [2, 3]
+ - stability parameter: [9, -6]
+ - condition: semistable
+```
+"""
+function kronecker_moduli(m::Int, d::Int, e::Int)
+  return QuiverModuliSpace(kronecker_quiver(m), [d, e])
+end
