@@ -269,10 +269,10 @@ function show(io::IO, M::QuiverModuliSpace)
   print(
     io,
     "Quiver moduli space defined as follows:
- - quiver: $(M.Q),
- - dimension vector: $(M.d),
- - stability parameter $(M.theta),
- - condition: $(M.condition).
+ - quiver: $(M.Q)
+ - dimension vector: $(M.d)
+ - stability parameter: $(M.theta)
+ - condition: $(M.condition)
     ",
   )
 end
@@ -280,10 +280,10 @@ function show(io::IO, M::QuiverModuliStack)
   print(
     io,
     "Quiver moduli stack defined as follows:
- - quiver: $(M.Q),
- - dimension vector: $(M.d),
- - stability parameter $(M.theta),
- - condition: $(M.condition).
+ - quiver: $(M.Q)
+ - dimension vector: $(M.d)
+ - stability parameter $(M.theta)
+ - condition: $(M.condition)
     ",
   )
 end
