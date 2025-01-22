@@ -260,7 +260,7 @@ function hodge_diamond(
 
   # collects the coefficients of the polynomial, converts them to integers
   # and returns them in the diagonal of a matrix.
-  return diagonal(Int.(numerator.(collect(Singular.coefficients(g)))))
+  return Matrix{Int}(diagonal(Int.(numerator.(collect(Singular.coefficients(g))))))
 end
 """
     hodge_diamond(M::QuiverModuliSpace)
