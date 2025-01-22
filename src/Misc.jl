@@ -2,13 +2,10 @@
 # Misc
 ######
 
-# this is the wheel reinvention department.
-# I don't want to load the whole LinearAlgebra package just for this.
-# TODO is there a good reason for not wanting to do this? it's a standard library package?
 """
     identity_matrix(n::Int)
 
-Returns the identity matrix of size `n`.
+Return the identity matrix of size `n`.
 """
 @memoize Dict identity_matrix(n::Int) =
   map(ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n))
@@ -16,8 +13,7 @@ Returns the identity matrix of size `n`.
 """
     diagonal(m::AbstractMatrix{Int})
 
-Returns a copy of the input matrix `m` with the diagonal untouched,
-and all other entries set to zero.
+Return the diagonal matrix with the diagonal of `m` as its diagonal.
 """
 function diagonal(m::AbstractMatrix{Int})
   n = size(m)[1]
@@ -27,7 +23,7 @@ end
 """
     diagonal(v::AbstractVector)
 
-Returns a square matrix with diagonal `v`.
+Return a square matrix with diagonal `v`.
 """
 function diagonal(v::AbstractVector)
   n = length(v)
@@ -43,25 +39,14 @@ end
 
 Create a zero vector of length `n`.
 
-# Input
+# Examples
 
-- `n::Int`: The length of the zero vector.
-
-# Output
-
-- A zero vector of length `n`.
-
-EXAMPLE:
-
-There is not much to it:
 ```jldoctest
 julia> QuiverTools.zero_vector(3) == [0, 0, 0]
 true
 ```
 """
-@memoize Dict function zero_vector(n::Int)
-  return coerce_vector(zeros(Int, n))
-end
+@memoize Dict zero_vector(n::Int) = coerce_vector(zeros(Int, n))
 
 """
   zero_vector(Q::Quiver)
@@ -80,19 +65,10 @@ zero_vector(Q::Quiver) = zero_vector(n_vertices(Q))
 """
     thin_dimension_vector(Q::Quiver)
 
-Compute the thin dimension vector for a given quiver `Q`.
-
-# Input
-
-- `Q::Quiver`: The input quiver.
-
-# Output
-
-- A vector of ones of length `n`.
+Create the thin dimension vector for a given quiver `Q`.
 
 # Examples:
 
-There is not much to it:
 ```jldoctest
 julia> Q = kronecker_quiver(3);
 
@@ -181,18 +157,10 @@ end
 """
     is_subdimension_vector(e::AbstractVector{Int}, d::AbstractVector{Int})
 
-Check if vector `e` is a subdimension of vector `d`.
+Check whether vector `e` is a subdimension of vector `d`.
 
-# Input
+# Examples
 
-- `e::AbstractVector{Int}` A vector of integers.
-- `d::AbstractVector{Int}` A vector of integers.
-
-# Output
-
-whether `e` is a subdimension of `d`.
-
-EXAMPLE:
 ```jldoctest
 julia> QuiverTools.is_subdimension_vector([1, 1], [2, 3])
 true
@@ -213,14 +181,10 @@ end
 
 Return a vector of length `n` with a `1` at index `i` and `0` elsewhere.
 
-# Input
+# Arguments
 
 - `n::Int`: The length of the unit vector.
 - `i::Int`: The index at which to place the `1` in the unit vector.
-
-# Output
-
-A unit vector of length `n` with a `1` at index `i` and `0` elsewhere.
 
 # Examples
 
@@ -240,14 +204,10 @@ end
 
 Return a dimension vector for the quiver `Q` with a `1` at index `i` and `0` elsewhere.
 
-# Input
+# Arguments
 
 - `Q::Quiver`: The input quiver.
 - `i::Int`: The index at which to place the `1` in the unit vector.
-
-# Output
-
-- A dimension vector for the quiver `Q` with a `1` at index `i` and `0` elsewhere.
 
 # Examples
 ```jldoctest
