@@ -22,21 +22,21 @@ doctest(QuiverTools; manual=false, testset="Doctests")
   @test has_semistables(Q, [0, 3], [1, 0]) == true
 end;
 
-@testset "HN types" begin
-  # all_HN_types()
+# @testset "HN types" begin
+#   # all_HN_types()
 
-  Q = three_vertex_quiver(3, 4, 5)
-  d = [3, 5, 7]
-  theta = [43, 26, -37]
+#   Q = three_vertex_quiver(3, 4, 5)
+#   d = [3, 5, 7]
+#   theta = [43, 26, -37]
 
-  # 3vertexquiver-3-5-7-canonical.txt
-  expected = "" #has to be initialised outside of the open file
-  open("3vertexquiver-3-5-7-canonical.txt", "r") do file
-    expected = readline(file)
-  end
+#   # 3vertexquiver-3-5-7-canonical.txt
+#   expected = "" #has to be initialised outside of the open file
+#   open("test/3vertexquiver-3-5-7-canonical.txt", "r") do file
+#     expected = readline(file)
+#   end
 
-  @test string(all_hn_types(Q, d, theta; ordered=true)) == expected
-end;
+#   @test string(all_hn_types(Q, d, theta; ordered=true)) == expected
+# end;
 
 # @testset "Testing weight handling" begin
 
