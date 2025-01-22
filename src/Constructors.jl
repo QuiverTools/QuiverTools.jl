@@ -116,7 +116,6 @@ function subspace_quiver(m::Int)
 end
 
 function dynkin_quiver(Tn::String)
-  #parse the string Tn
   T = Tn[1:(end - 1)]
   n = parse(Int, Tn[end])
   return dynkin_quiver(T, n)
@@ -140,8 +139,7 @@ function dynkin_quiver(T::String, n::Int)
       throw(ArgumentError("$n is out of bounds"))
     end
     if n == 1
-      #            return Quiver([[1]], "Dynkin quiver of type A1")
-      return loop_quiver(1)
+      return Quiver([[1]], "Dynkin quiver of type A1")
     else
       M = zeros(Int, n, n)
       for i in 1:(n - 1)
