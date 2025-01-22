@@ -75,7 +75,7 @@ structure_sheaf(M::QuiverModuliSpace) = Bundle(M, 1)
 """
     dual(F::Bundle)
 
-Return the dual bundle of `F`.
+Compute the dual bundle of `F`.
 
 # Input
 
@@ -228,7 +228,7 @@ end
 """
     exterior_power(F::Bundle, k::Int)
 
-Return the `k`-th exterior power of `F`.
+Compute the `k`-th exterior power of `F`.
 
 # Input
 
@@ -290,15 +290,14 @@ end
 """
     det(F::Bundle)
 
-Return the determinant of `F`.
-This is the top exterior power of `F`.
+Compute the determinant of `F`. This is the top exterior power of `F`.
 """
 det(F::Bundle) = exterior_power(F, rank(F))
 
 """
     symmetric_power(F::Bundle, k::Int)
 
-Return the `k`-th symmetric power of `F`.
+Compute the `k`-th symmetric power of `F`.
 
 # Input
 
@@ -488,7 +487,7 @@ end
 """
     canonical_bundle(M::QuiverModuliSpace)
 
-Return the canonical bundle on the quiver moduli space `M`.
+Compute the canonical bundle on the quiver moduli space `M`.
 
 If ``d`` is ``theta``-coprime and amply stable, the canonical bundle
 is described in [Proposition 4.2, MR4352662](https://mathscinet.ams.org/mathscinet-getitem?mr=4352662).
@@ -572,7 +571,7 @@ end
 """
     universal_bundle(M:::QuiverModuliSpace, i::Int)
 
-Returns the `i`-th universal bundle of `M`.
+Compute the `i`-th universal bundle of `M`.
 
 This function computes both the Chern classes and the Teleman weights
 of the universal bundle.
@@ -664,7 +663,7 @@ end
 """
     degree(F::Bundle)
 
-Return the degree of the bundle `F`.
+Compute the degree of the bundle `F`.
 If `rank(F)` is larger than ``1``, returns the degree of the determinant of `F`.
 
 # Input
