@@ -341,6 +341,19 @@ Quiver moduli space defined as follows:
  - condition: semistable
 ```
 """
-function kronecker_moduli(m::Int, d::Int, e::Int)
-  return QuiverModuliSpace(kronecker_quiver(m), [d, e])
-end
+kronecker_moduli(m::Int, d::Int, e::Int) = QuiverModuliSpace(kronecker_quiver(m), [d, e])
+
+"""
+    subspace_quiver_moduli(m::Int, d::Int)
+
+Construct the subspace quiver moduli space for `m` points on ℙᵈ⁻¹
+julia> subspace_quiver_moduli(3, 2, 3)
+Quiver moduli space defined as follows:
+ - quiver: 5-subspace quiver, with adjacency matrix [0 0 0 0 0 1; 0 0 0 0 0 1; 0 0 0 0 0 1; 0 0 0 0 0 1; 0 0 0 0 0 1; 0 0 0 0 0 0]
+ - dimension vector: [1, 1, 1, 1, 1, 2]
+ - stability parameter: [2, 2, 2, 2, 2, -5]
+ - condition: semistable
+```
+"""
+subspace_quiver_moduli(m::Int, d::Int) =
+  QuiverModuliSpace(subspace_quiver(m), vcat(repeat([1], m), [d]))
