@@ -115,10 +115,10 @@ end
 ###################################################
 
 """
-    hodge_polynomial(Q::Quiver, d, theta)
+    hodge_polynomial(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d))
 
-Returns the Hodge polynomial of the moduli space of ``\\theta``-semistable
-representations of ``Q`` with dimension vector ``d``.
+Return the Hodge polynomial of the moduli space of `theta`-semistable
+representations of `Q` with dimension vector `d`.
 
 The algorithm is based on [MR1974891](https://doi.org/10.1007/s00222-002-0273-4),
 and the current implementation is translated from the [Hodge diamond cutter]
@@ -182,7 +182,7 @@ end
 """
     hodge_polynomial(M::QuiverModuliSpace)
 
-Returns the Hodge polynomial of the moduli space `M`.
+Compute the Hodge polynomial of the moduli space `M`.
 
 # Input
 
@@ -209,10 +209,10 @@ function hodge_polynomial(M::QuiverModuliSpace)
 end
 
 """
-    hodge_diamond(Q::Quiver, d, theta)
+    hodge_diamond(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d))
 
-Returns the Hodge diamond of the moduli space of
-``\\theta``-semistable representations of ``Q`` with dimension vector ``d``.
+Compute the Hodge diamond of the moduli space of
+`theta`-semistable representations of `Q` with dimension vector `d`.
 
 # Input
 
@@ -263,7 +263,7 @@ end
 """
     hodge_diamond(M::QuiverModuliSpace)
 
-Returns the Hodge diamond of the moduli space `M`.
+Compute the Hodge diamond of the moduli space `M`.
 
 # Input
 
@@ -299,7 +299,7 @@ end
 """
     picard_rank(M::QuiverModuliSpace)
 
-Returns the Picard rank of the moduli space `M`.
+Compute the Picard rank of the moduli space `M`.
 
 # Input
 
@@ -330,9 +330,9 @@ end
 """
     index(M::QuiverModuliSpace)
 
-Returns the index of the moduli space `M`.
+Compute the index of the moduli space `M`.
 
-The index of a variety ``X`` is the largest which divides
+The index of a variety ``X`` is the largest integer which divides
 the canonical divisor ``K_X`` in ``Pic(X)``.
 
 This implementation currently only works for the canonical stability.
@@ -378,7 +378,7 @@ end
 """
     betti_numbers(M::QuiverModuliSpace)
 
-Returns the Betti numbers of the moduli space `M`.
+Compute the Betti numbers of the moduli space `M`.
 
 # Input
 
@@ -445,7 +445,7 @@ end
 """
     poincare_polynomial(M::QuiverModuliSpace)
 
-Returns the Poincaré polynomial of the moduli space `M`.
+Compute the Poincaré polynomial of the moduli space `M`.
 
 # Input
 
@@ -505,7 +505,7 @@ end
 """
     motive(Q::Quiver, d, theta, denom=sum)
 
-Returns the motive of the moduli stack of ``\\theta``-semistable representations.
+Compute the motive of the moduli stack of `theta`-semistable representations.
 
 # Input
 
