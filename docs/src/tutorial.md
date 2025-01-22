@@ -22,7 +22,8 @@ julia> MyQ = Quiver([0 3; 0 0], "My personal quiver")
 My personal quiver, with adjacency matrix [0 3; 0 0]
 ```
 
-QuiverTools has several constructors in place for many common examples:
+QuiverTools has several constructors in place for many common examples. See
+[Constructors](@ref) for all the special constructors.
 
 ```julia-repl
 julia> kronecker_quiver(4)
@@ -91,6 +92,8 @@ where ``s_i`` is the dimension vector with all entries set to ``0`` and the i-th
 set to ``1``.
 
 ```julia-repl
+julia> Q = kronecker_quiver(3); d = [2,2];
+
 julia> in_fundamental_domain(Q, d)
 true
 
@@ -146,21 +149,40 @@ julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3])
 Quiver moduli space defined as follows:
- - quiver: 3-Kronecker quiver, with adjacency matrix [0 3; 0 0],
- - dimension vector: [2, 3],
- - stability parameter [9, -6],
- - condition: semistable.
+ - quiver: 3-Kronecker quiver
+ - dimension vector: [2, 3]
+ - stability parameter: [9, -6]
+ - condition: semistable
 ```
 
-All the functionalities of QuiverTools are accessible either directly, by passing a quiver,
-dimension vector, stability parameter etc, or directly via these objects. See the docstring
-of each method for more information and examples.
+Some special constructors are implemented for Kronecker moduli and subspace moduli.
+
+```julia-repl
+julia> kronecker_moduli(3, 3, 4)
+Quiver moduli space defined as follows:
+ - quiver: 3-Kronecker quiver
+ - dimension vector: [3, 4]
+ - stability parameter: [12, -9]
+ - condition: semistable
+
+julia> subspace_quiver_moduli(7, 5)
+Quiver moduli space defined as follows:
+ - quiver: 7-subspace quiver
+ - dimension vector: [1, 1, 1, 1, 1, 1, 1, 5]
+ - stability parameter: [5, 5, 5, 5, 5, 5, 5, -7]
+ - condition: semistable
+```
+
+
+Several functionalities of QuiverTools are accessible either directly,
+by passing a quiver, dimension vector, stability parameter etc,
+or directly via these objects.
+See the docstring of each method for more information and examples.
 
 ## Harder-Narasimhan types
 
-This module provides methods to investigate
-the Harder-Narasimhan stratification of the parameter space
-``\mathrm{R}(Q,\mathbf{d})``.
+QuiverTools provides methods to study the Harder-Narasimhan stratification
+of the parameter space ``\mathrm{R}(Q,\mathbf{d})``.
 
 ```julia-repl
 julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
@@ -182,7 +204,11 @@ true
 
 The method `is_amply_stable()` determines whether
 the codimension of the θ-semistable locus,
-``\mathrm{R}^{\theta-sst}(Q,\mathbf{d})\subset\mathrm{R}(Q,\mathbf{d})``,
+
+```math
+\mathrm{R}^{\theta-sst}(Q,\mathbf{d})\subset\mathrm{R}(Q,\mathbf{d}),
+```
+
 is at least 2.
 
 The method `all_hn_types()` provides a list of
@@ -361,10 +387,10 @@ if the base field is ``\mathbb{C}`` and the dimension vector is a coprime Schuri
 ```julia-repl
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> Hodge_polynomial(M)
+julia> hodge_polynomial(M)
 x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 
-julia> Hodge_diamond(M)
+julia> hodge_diamond(M)
 7×7 Matrix{Int64}:
  1  0  0  0  0  0  0
  0  1  0  0  0  0  0

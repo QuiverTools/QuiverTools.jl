@@ -1,6 +1,7 @@
 # Representation theory
 
-QuiverTools offers various methods to study the representation theory of quivers.
+QuiverTools offers various methods to study the representation theory of quivers,
+their Schur roots, their canonical decomposition, and their Hochschild cohomology.
 
 ```@docs
 euler_form
