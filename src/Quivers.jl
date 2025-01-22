@@ -199,23 +199,26 @@ Return a list of all arrows of `Q`.
 
 ```jldoctest
 julia> arrows(kronecker_quiver(3))
-3-element Vector{Vector{Int64}}:
- [1, 2]
- [1, 2]
- [1, 2]
+3-element Vector{Tuple{Int64, Int64}}:
+ (1, 2)
+ (1, 2)
+ (1, 2)
 
 julia> arrows(loop_quiver(3))
-3-element Vector{Vector{Int64}}:
- [1, 1]
- [1, 1]
- [1, 1]
+3-element Vector{Tuple{Int64, Int64}}:
+ (1, 1)
+ (1, 1)
+ (1, 1)
 ```
 """
 function arrows(Q::Quiver)
   n = n_vertices(Q)
   return reduce(
     vcat,
-    [[i, j] for k in 1:Q.adjacency[i, j]] for i in 1:n for
-    j in 1:n if Q.adjacency[i, j] > 0
+    [(i, j) for k in 1:Q.adjacency[i, j]]
+    for i in 1:n for j in 1:n if Q.adjacency[i, j] > 0
+  )
+end
+
   )
 end
