@@ -490,7 +490,7 @@ end
 Compute the canonical bundle on the quiver moduli space `M`.
 
 If ``d`` is ``theta``-coprime and amply stable, the canonical bundle
-is described in [Proposition 4.2, MR4352662](https://mathscinet.ams.org/mathscinet-getitem?mr=4352662).
+is described in [[Proposition 4.2, MR4352662](https://mathscinet.ams.org/mathscinet-getitem?mr=4352662)].
 
 This function computes both the Chern character and the Teleman weights
 of the canonical bundle.
@@ -694,7 +694,7 @@ julia> map(degree, omega)
  7776
 ```
 
-An example from [arXiv:2411.15125](https://arxiv.org/abs/2411.15125):
+An example from [[arXiv:2411.15125](https://arxiv.org/abs/2411.15125)]:
 
 ```jldoctest
 julia> Q = Quiver("1-2,1-3,2---3"); d = [1, 1, 1]; a = [1, 1, -1];

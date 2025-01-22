@@ -80,7 +80,7 @@ end
 
 """
 Entry of the transfer matrix, as per Corollary 6.9 of
-[MR1974891](https://doi.org/10.1007/s00222-002-0273-4)
+[[MR1974891](https://doi.org/10.1007/s00222-002-0273-4)].
 """
 function TransferMatrixEntry(Q, e, f, q)
   fe = f - e
@@ -120,7 +120,7 @@ end
 Return the Hodge polynomial of the moduli space of `theta`-semistable
 representations of `Q` with dimension vector `d`.
 
-The algorithm is based on [MR1974891](https://doi.org/10.1007/s00222-002-0273-4),
+The algorithm is based on [[]MR1974891](https://doi.org/10.1007/s00222-002-0273-4)],
 and the current implementation is translated from the [Hodge diamond cutter]
 (https://zenodo.org/doi/10.5281/zenodo.3893509).
 

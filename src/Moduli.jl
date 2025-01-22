@@ -82,7 +82,7 @@ Keyword arguments:
 - `unstable::Bool`: if `true`, returns only Harder-Narasimhan types
 corresponding to unstable representations. Default is `false`
 - `ordered::Bool`: if `true`, returns the Harder-Narasimhan types in
-the order introduced by [MR1974891](https://doi.org/10.1007/s00222-002-0273-4).
+the order introduced by [[MR1974891](https://doi.org/10.1007/s00222-002-0273-4)].
 Default is `true`.
 
 # Output

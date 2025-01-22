@@ -311,7 +311,7 @@ end
 
 Check if `d` is a Schur root for `Q`.
 
-By [Lemma 4.2, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147),
+By [[Lemma 4.2, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)],
 this is equivalent to the existence of a stable representation of dimension vector ``d``
 for the canonical stability parameter.
 
@@ -366,7 +366,7 @@ A dimension vector ``e`` is called a generic subdimension vector of ``d``
 if a generic representation of dimension vector ``d`` possesses a subrepresentation
 of dimension vector ``e``.
 
-By [Theorem 5.3, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147),
+By [[Theorem 5.3, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)],
 ``e`` is a generic subdimension vector of ``d`` if and only if
 ```math
 <e',d-e> \\geq 0

@@ -226,13 +226,15 @@ end
 Compute the first Hochschild cohomology group.
 
 The Hochschild cohomology groups of an acyclic quiver `Q` are described by Happel in
-[Proposition 1.6, MR1035222](https://mathscinet.ams.org/mathscinet/relay-station?mr=1035222)
+[[Proposition 1.6, MR1035222](https://mathscinet.ams.org/mathscinet/relay-station?mr=1035222)]
 to be
 
 ```math
-\\mathrm{H}^{0}(Q) = k,
-\\quad \\mathrm{H}^{1}(Q) = 1 - n + \\sum_{i,j} #\\{\\text{paths from } i \\text{ to } j\\},
-\\quad \\mathrm{H}^{n}(Q) = 0 \\text{ for } n > 1.
+\\begin{aligned}
+\\mathrm{HH}^{0}(Q) &= k,\\\\
+\\mathrm{HH}^{1}(Q) &= 1 - n + \\sum_{\\alpha \\in Q_1} \\# \\{ \\text{paths from } s(\\alpha) \\text{ to } t(\\alpha) \\},\\\\
+\\mathrm{HH}^{n}(Q) &= 0 \\text{ for } n > 1.
+\\end{aligned}
 ```
 
 # Examples

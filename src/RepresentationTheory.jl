@@ -76,8 +76,8 @@ euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
 Compute the dimension of the ``\\mathrm{Ext}^1`` group between generic representations
 of dimension vectors `a` and `b`.
 
-According to [Theorem 5.4, MR1162487]
-(https://mathscinet.ams.org/mathscinet/relay-station?mr=1162487),
+According to [[Theorem 5.4, MR1162487]
+(https://mathscinet.ams.org/mathscinet/relay-station?mr=1162487)],
 we have
 
 ```math

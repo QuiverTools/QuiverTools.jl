@@ -496,7 +496,7 @@ end
     does_rigidity_inequality_hold(M::QuiverModuli)
 
 Check if the Teleman quantization criterion of
-[arXiv:2311.17003](https://doi.org/10.48550/arXiv.2311.17003) holds.
+[[arXiv:2311.17003](https://doi.org/10.48550/arXiv.2311.17003)] holds.
 
 In case the quiver is acyclic, this ensures that the moduli space is infinitesimally
 rigid.
@@ -522,7 +522,7 @@ true
 Some quiver moduli are rigid, but it can't be proved by this criterion:
 the following moduli space can be shown to be ``\\mathbb{P}^6``, whose rigidity follows
 from the Euler sequence (see
-[Example 4.8, arXiv:2311.17003](https://doi.org/10.48550/arXiv.2311.17003)). However,
+[[Example 4.8, arXiv:2311.17003](https://doi.org/10.48550/arXiv.2311.17003)]). However,
 the Teleman inequality does not hold:
 ```jldoctest
 julia> Q = three_vertex_quiver(1, 6, 1); M = QuiverModuliSpace(Q, [1, 6, 6], [42, 5, -12]);
