@@ -131,10 +131,10 @@ function show(io::IO, chow::ChowRing)
 
   Intersection theory data:
 
- - Chow ring: $(ring),
- - Linearization: $(chi),
- - Point class: $(point),
- - Todd class: $(todd).
+ - Chow ring: $(ring)
+ - Linearization: $(chi)
+ - Point class: $(point)
+ - Todd class: $(todd)
     ",
   )
 end
