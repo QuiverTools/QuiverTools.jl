@@ -5,16 +5,18 @@
 """
     canonical_stability(Q::Quiver, d::AbstractVector{Int})
 
-The canonical stability parameter for the couple ``(Q, d)`` is given by ``<d,-> - <-,d>``
+Compute the canonical stability parameter for `Q` and `d`.
+
+This is defined to be ``<d,-> - <-,d>``
 
 # Input
 
-- `Q::Quiver` a quiver
-- `d::AbstractVector{Int}` a dimension vector
+- `Q::Quiver` a quiver.
+- `d::AbstractVector{Int}` a dimension vector.
 
 # Output
 
-- the canonical stability parameter for `Q` and `d`
+- the canonical stability parameter for `Q` and `d`.
 
 # Examples
 
@@ -30,10 +32,9 @@ function canonical_stability(Q::Quiver, d::AbstractVector{Int})
 end
 
 """
-    is_coprime(d, theta)
+    is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
 
-Checks whether the given dimension vector `d` is `theta`-coprime for
-the stability parameter ``\\theta``.
+Check if `d` is `theta`-coprime.
 
 A dimension vector ``d`` is said to be ``\\theta``-coprime for the
 stability parameter ``\\theta`` if all subdimension vectors ``0 \\neq e < d``
@@ -41,12 +42,12 @@ satisfy ``\\theta * e \\neq 0``.
 
 # Input
 
-- `d::AbstractVector{Int}` a dimension vector
-- `theta::AbstractVector{Int}` a stability parameter
+- `d::AbstractVector{Int}` a dimension vector.
+- `theta::AbstractVector{Int}` a stability parameter.
 
 # Output
 
-- `true` if `d` is `theta`-coprime, `false` otherwise
+- `true` if `d` is `theta`-coprime, `false` otherwise.
 
 # Examples
 
@@ -68,17 +69,17 @@ function is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
 end
 
 """
-    is_coprime(d)
+    is_coprime(d::AbstractVector{Int})
 
-Checks if the gcd of all the entries of d is ``1``.
+Check if the gcd of all the entries of d is ``1``.
 
 # Input
 
-- `d::AbstractVector{Int}` a vector
+- `d::AbstractVector{Int}` a vector.
 
 # Output
 
-- `true` if the gcd of all the entries of `d` is ``1``, `false` otherwise
+- `true` if the gcd of all the entries of `d` is ``1``, `false` otherwise.
 
 # Examples
 
@@ -93,10 +94,10 @@ false
 is_coprime(d::AbstractVector{Int}) = gcd(d) == 1
 
 """
-    slope(d, theta, denom=sum)
+    slope(d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
 
-Returns the slope of `d`
-with respect to the stability parameter ``\\theta``
+Return the slope of `d`
+with respect to the stability parameter `theta`
 and a choice of a denominator function `denom`.
 
 The slope function for ``\\theta`` and ``\\alpha`` is defined as
@@ -106,13 +107,13 @@ The slope function for ``\\theta`` and ``\\alpha`` is defined as
 
 # Input
 
-- `d::AbstractVector{Int}` a dimension vector
-- `theta::AbstractVector{Int}` a stability parameter
-- `denom::Function` a function to compute the denominator. Default is `sum`
+- `d::AbstractVector{Int}` a dimension vector.
+- `theta::AbstractVector{Int}` a stability parameter.
+- `denom::Function` a function to compute the denominator. Default is `sum`.
 
 # Output
 
-- the slope of `d` with respect to `theta` and `denom`
+- the slope of `d` with respect to `theta` and `denom`.
 
 # Examples
 
@@ -126,19 +127,19 @@ function slope(d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Functi
 end
 
 """
-    all_destabilizing_subdimension_vectors(d, theta, denom=sum)
+    all_destabilizing_subdimension_vectors(d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
 
-Returns the subdimension vectors of `d` with a strictly larger slope than `d`.
+Return the subdimension vectors of `d` with a strictly larger slope than `d`.
 
 # Input
 
-- `d::AbstractVector{Int}` a dimension vector
-- `theta::AbstractVector{Int}` a stability parameter
-- `denom::Function` a function to compute the denominator. Default is `sum`
+- `d::AbstractVector{Int}` a dimension vector.
+- `theta::AbstractVector{Int}` a stability parameter.
+- `denom::Function` a function to compute the denominator. Default is `sum`.
 
 # Output
 
-- an array of subdimension vectors of `d` with a strictly larger slope than `d`
+- an array of subdimension vectors of `d` with a strictly larger slope than `d`.
 """
 @memoize Dict function all_destabilizing_subdimension_vectors(
   d::AbstractVector{Int},
@@ -156,9 +157,9 @@ Returns the subdimension vectors of `d` with a strictly larger slope than `d`.
 end
 
 """
-    has_semistables(Q::Quiver, d, theta=canonical_stability(Q, d), denom=sum)
+    has_semistables(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum)
 
-Checks if `Q` admits a ``\\theta``-semistable representation of dimension vector ``d``.
+Check if `Q` admits a `theta`-semistable representation of dimension vector `d`.
 
 A representation ``V`` is said to be ``\\mu``-semistable if
 for all of its subrepresentations ``W`` with ``dim(W) < dim(V)``, we have
@@ -168,15 +169,15 @@ for all of its subrepresentations ``W`` with ``dim(W) < dim(V)``, we have
 
 # Input
 
-- `Q::Quiver` a quiver
-- `d::AbstractVector{Int}` a dimension vector
-- `theta::AbstractVector{Int}` a stability parameter. Default is `canonical_stability(Q, d)`
-- `denom::Function` a function to compute the denominator. Default is `sum`
+- `Q::Quiver` a quiver.
+- `d::AbstractVector{Int}` a dimension vector.
+- `theta::AbstractVector{Int}` a stability parameter. Default is `canonical_stability(Q, d)`.
+- `denom::Function` a function to compute the denominator. Default is `sum`.
 
 # Output
 
 - `true` if there is a `theta`-semistable representation of dimension vector `d`,
-  `false` otherwise
+  `false` otherwise.
 
 # Examples
 
@@ -231,9 +232,9 @@ false
 end
 
 """
-    has_stables(Q::Quiver, d, theta=canonical_stability(Q, d), denom=sum)
+    has_stables(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum)
 
-Checks if Q admits a ``theta``-stable representation of dimension vector ``d``.
+Check if Q admits a `theta`-stable representation of dimension vector `d`.
 
 A representation ``V`` is said to be ``mu``-stable if
 for all of its subrepresentations ``W`` with ``dim(W) < dim(V)``, we have
@@ -243,15 +244,15 @@ for all of its subrepresentations ``W`` with ``dim(W) < dim(V)``, we have
 
 # Input
 
-- `Q::Quiver` a quiver
-- `d::AbstractVector{Int}` a dimension vector
-- `theta::AbstractVector{Int}` a stability parameter. Default is `canonical_stability(Q, d)`
-- `denom::Function` a function to compute the denominator. Default is `sum`
+- `Q::Quiver` a quiver.
+- `d::AbstractVector{Int}` a dimension vector.
+- `theta::AbstractVector{Int}` a stability parameter. Default is `canonical_stability(Q, d)`.
+- `denom::Function` a function to compute the denominator. Default is `sum`.
 
 # Output
 
 - `true` if there is a `theta`-stable representation of dimension vector `d`,
-  `false` otherwise
+  `false` otherwise.
 
 # Examples
 
@@ -304,10 +305,11 @@ false
 end
 
 # TODO the cited paper is published
+# The published version is not open access.
 """
-    is_schur_root(Q::Quiver, d)
+    is_schur_root(Q::Quiver, d::AbstractVector{Int})
 
-Checks if ``d`` is a Schur root for ``Q``.
+Check if `d` is a Schur root for `Q`.
 
 By [Lemma 4.2, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147),
 this is equivalent to the existence of a stable representation of dimension vector ``d``
@@ -315,12 +317,12 @@ for the canonical stability parameter.
 
 # Input
 
-- `Q::Quiver` a quiver
-- `d::AbstractVector{Int}` a dimension vector
+- `Q::Quiver` a quiver.
+- `d::AbstractVector{Int}` a dimension vector.
 
 # Output
 
-- `true` if `d` is a Schur root for `Q`, `false` otherwise
+- `true` if `d` is a Schur root for `Q`, `false` otherwise.
 
 # Examples
 
@@ -337,28 +339,28 @@ is_schur_root(Q::Quiver, d::AbstractVector{Int}) =
 """
     is_real_root(Q::Quiver, d)
 
-Checks whether `d` is a real root, i.e., if ``<d, d> = 1``.
+Check whether `d` is a real root, i.e., if ``<d, d> = 1``.
 """
-is_real_root(Q, d) = euler_form(Q, d, d) == 1
+is_real_root(Q::Quiver, d) = euler_form(Q, d, d) == 1
 
 """
     is_imaginary_root(Q::Quiver, d)
 
-Checks whether `d` is an imaginary root, i.e., if ``<d, d> \\geq 0``.
+Check whether `d` is an imaginary root, i.e., if ``<d, d> \\geq 0``.
 """
-is_imaginary_root(Q, d) = euler_form(Q, d, d) <= 0
+is_imaginary_root(Q::Quiver, d) = euler_form(Q, d, d) <= 0
 
 """
     is_isotropic_root(Q::Quiver, d)
 
-Checks whether `d` is an isotropic root, i.e., if ``<d, d> = 0``.
+Check whether `d` is an isotropic root, i.e., if ``<d, d> = 0``.
 """
-is_isotropic_root(Q, d) = euler_form(Q, d, d) == 0
+is_isotropic_root(Q::Quiver, d) = euler_form(Q, d, d) == 0
 
 """
-    is_generic_subdimension_vector(Q::Quiver, e, d)
+    is_generic_subdimension_vector(Q::Quiver, e::AbstractVector{Int}, d::AbstractVector{Int})
 
-Checks if ``e`` is a generic subdimension vector of ``d``.
+Check if `e` is a generic subdimension vector of `d`.
 
 A dimension vector ``e`` is called a generic subdimension vector of ``d``
 if a generic representation of dimension vector ``d`` possesses a subrepresentation
@@ -373,13 +375,13 @@ for all generic subdimension vectors ``e'`` of ``e``.
 
 # Input
 
-- `Q::Quiver` a quiver
-- `e::AbstractVector{Int}` a dimension vector
-- `d::AbstractVector{Int}` a dimension vector
+- `Q::Quiver` a quiver.
+- `e::AbstractVector{Int}` a dimension vector.
+- `d::AbstractVector{Int}` a dimension vector.
 
 # Output
 
-- `true` if `e` is a generic subdimension vector of `d`, `false` otherwise
+- `true` if `e` is a generic subdimension vector of `d`, `false` otherwise.
 
 # Examples
 
@@ -422,18 +424,18 @@ false
 end
 
 """
-    all_generic_subdimension_vectors(Q::Quiver, d)
+    all_generic_subdimension_vectors(Q::Quiver, d::AbstractVector{Int})
 
-Returns the list of all generic subdimension vectors of ``d``.
+Return the list of all generic subdimension vectors of `d`.
 
 # Input
 
-- `Q::Quiver` a quiver
-- `d::AbstractVector{Int}` a dimension vector
+- `Q::Quiver` a quiver.
+- `d::AbstractVector{Int}` a dimension vector.
 
 # Output
 
-- a list of all generic subdimension vectors of `d`
+- a list of all generic subdimension vectors of `d`.
 
 # Examples
 
@@ -463,29 +465,29 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
 end
 
 """
-    all_hn_types(Q::Quiver, d, theta, denom=sum; unstable::Bool=false, ordered::Bool=false)
+    all_hn_types(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum; unstable::Bool=false, ordered::Bool=true)
 
-Returns a list of all the Harder--Narasimhan types of representations of ``Q``
-with dimension vector ``d``, with respect to the slope function theta/denom.
+Return a list of all the Harder--Narasimhan types of representations of `Q`
+with dimension vector `d`, with respect to the slope function `theta`/`denom`.
 
 # Input
 
-- `Q::Quiver` a quiver
-- `d::AbstractVector{Int}` a dimension vector
-- `theta::AbstractVector{Int}` a stability parameter
-- `denom::Function` a function to compute the denominator. Default is `sum`
+- `Q::Quiver` a quiver.
+- `d::AbstractVector{Int}` a dimension vector.
+- `theta::AbstractVector{Int}` a stability parameter.
+- `denom::Function` a function to compute the denominator. Default is `sum`.
 
 Keyword inputs:
 
 - `unstable`: if `true` exclude the trivial Harder--Narasimhan type (d),
-which corresponds to stable representations. Default is `false`
-- `ordered`: if `true` return the list of all HN types in ascending order.
-Default is `true`
+which corresponds to stable representations. Default is `false`.
+- `ordered`: if `true` return the list of all Harder--Narasimhan types in ascending order.
+Default is `true`.
 
 # Output
 
 - a list of all the Harder--Narasimhan types
-of representations of `Q` with dimension vector `d`
+of representations of `Q` with dimension vector `d`.
 
 # Examples
 
@@ -542,10 +544,8 @@ julia> all_hn_types(Q, d, theta; ordered=true)
   unstable::Bool=false,
   ordered::Bool=true,
 )
-  # TODO Julia shorthand?
-  if all(di == 0 for di in d)
-    return [HNType([zero_vector(Q)])]
-  end
+  all(di == 0 for di in d) && return [HNType([zero_vector(Q)])]
+
   # We consider just proper subdimension vectors which admit a semistable
   # representation and for which μ(e) > μ(d)
   # Note that we also eliminate d by the following
@@ -583,22 +583,22 @@ julia> all_hn_types(Q, d, theta; ordered=true)
 end
 
 """
-    is_hn_type(Q::Quiver, d, dstar, theta, denom=sum)
+    is_hn_type(Q::Quiver, d::AbstractVector{Int}, dstar::HNType, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum)
 
-Checks if the given ordered list of subdimension vectors ``dstar`` is an HN type
-for the datum ``(Q, d)`` and the slope stability given by ``(theta, denom)``.
+Check if the given ordered list of subdimension vectors `dstar` is a Harder--Narasimhan type
+for the datum `Q`, `d` and the slope function `theta`/`denom`.
 
 # Input
 
-- `Q::Quiver` a quiver
-- `d::AbstractVector{Int}` a dimension vector
-- `dstar::HNType` an Harder--Narasimhan type
-- `theta::AbstractVector{Int}` a stability parameter
-- `denom::Function` a function to compute the denominator. Default is `sum`
+- `Q::Quiver` a quiver.
+- `d::AbstractVector{Int}` a dimension vector.
+- `dstar::HNType` an Harder--Narasimhan type.
+- `theta::AbstractVector{Int}` a stability parameter.
+- `denom::Function` a function to compute the denominator. Default is `sum`.
 
 # Output
 
-- `true` if `dstar` is an HN type for `Q`, `d` and the slope `theta`/`denom`, `false` otherwise
+- `true` if `dstar` is a Harder--Narasimhan type for `Q`, `d` and the slope `theta`/`denom`, `false` otherwise.
 
 # Examples
 
@@ -641,18 +641,18 @@ is_hn_type(Q::Quiver,
   is_hn_type(Q, d, HNType(dstar), theta, denom)
 
 """
-    codimension_hn_stratum(Q::Quiver, stratum)
+    codimension_hn_stratum(Q::Quiver, stratum::HNType)
 
-Returns the codimension of the given HN stratum.
+Compute the codimension of the given Harder--Narasimhan stratum.
 
 # Input
 
-- `Q::Quiver` a quiver
-- `stratum::HNType`: an HN type
+- `Q::Quiver` a quiver.
+- `stratum::HNType`: a Harder--Narasimhan type.
 
 # Output
 
-- the codimension of the HN stratum as an integer
+- the codimension of the Harder--Narasimhan stratum as an integer.
 
 # Examples
 
@@ -686,9 +686,9 @@ codimension_hn_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}}) =
   codimension_hn_stratum(Q, HNType(stratum))
 
 """
-    is_amply_stable(Q::Quiver, d, theta, denom=sum)
+    is_amply_stable(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
 
-Checks whether the dimension vector ``d`` is amply stable
+Check whether the dimension vector `d` is amply stable
 with respect to the slope function `theta`/`denominator`.
 
 This means that the codimension of the unstable locus
@@ -696,14 +696,14 @@ in the parameter space is at least ``2``.
 
 # Input
 
-- `Q::Quiver` a quiver
-- `d::AbstractVector{Int}` a dimension vector
-- `theta::AbstractVector{Int}` a stability parameter
-- `denom::Function` a function to compute the denominator. Default is `sum`
+- `Q::Quiver` a quiver.
+- `d::AbstractVector{Int}` a dimension vector.
+- `theta::AbstractVector{Int}` a stability parameter.
+- `denom::Function` a function to compute the denominator. Default is `sum`.
 
 # Output
 
-- `true` if `d` is amply stable, `false` otherwise
+- `true` if `d` is amply stable, `false` otherwise.
 
 # Examples
 
