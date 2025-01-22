@@ -2,18 +2,6 @@
 # Constructors
 ##############
 
-export kronecker_quiver,
-  loop_quiver,
-  subspace_quiver,
-  three_vertex_quiver,
-  cyclic_quiver,
-  bipartite_quiver,
-  opposite_quiver,
-  double_quiver,
-  dynkin_quiver
-
-export kronecker_moduli
-
 """
     kronecker_quiver(m::Int)
 
