@@ -356,34 +356,6 @@ function symmetric_power(F::Bundle, k::Int)
   return new
 end
 
-# """
-# schur_functor(F::Bundle, λ::Vector{Int})
-
-# Compute the Schur functor ``\\Sigma^\\lambda``.
-# """
-# function schur_functor(F::Bundle, λ::Vector{Int})
-#   return schur_functor(F, partition(λ))
-# end
-# function schur_functor(F::Bundle, λ::Partition)
-#   λ = conjugate(λ)
-#   X = F.parent
-#   w = _chern_characters_wedge(F, sum(λ))
-#   S, ei = polynomial_ring(QQ, "e#" => 1:length(w))
-#   e = i -> i < 0 ? S() : ei[i + 1]
-#   M = [e(λ[i] - i + j) for i in 1:length(λ), j in 1:length(λ)]
-#   sch = det(matrix(S, M)) # Jacobi-Trudi
-#   R = X.ring
-#   if R isa MPolyQuoRing
-#     # StoX = hom(S, R.R.R, [wi.f.f for wi in w])
-#     StoX = hom(S, base_ring(R).R, [wi.f.f for wi in w])
-#     # return Bundle(X, X(R.R(StoX(sch))))
-#     return Bundle(X, X(base_ring(R)(StoX(sch))))
-#   else
-#     StoX = hom(S, R.R, [wi.f for wi in w])
-#     return Bundle(X, X(StoX(sch)))
-#   end
-# end
-
 function homogeneous_components(M::QuiverModuliSpace, x)
   n = dimension(M)
   CH = chow_ring(M)
