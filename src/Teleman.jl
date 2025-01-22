@@ -3,15 +3,15 @@
 ######################################################################
 
 """
-    teleman_bound_on_stratum(Q::Quiver, hn_type, theta, denom=sum)
+    teleman_bound_on_stratum(Q::Quiver, hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)::Int
 
 Compute the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS ``\\lambda``
 corresponding to the given HN type.
 
 # Input
 
-- `Q`: a quiver
-- `hn_type`: a Harder-Narasimhan type
+- `Q`: a quiver.
+- `hn_type`: a Harder--Narasimhan type.
 - `theta`: a stability parameter.
 - `denom`: a denominator for the slope function. Defaults to `sum`.
 
@@ -42,7 +42,7 @@ function teleman_bound_on_stratum(M::QuiverModuli, hn_type::HNType)
 end
 
 """
-    all_teleman_bounds(Q::Quiver, d, theta, denom=sum)
+    all_teleman_bounds(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
 
 Compute the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
 HN type for the given `Q`, `d`, `\\theta` and `denom`.
@@ -136,7 +136,7 @@ function all_teleman_bounds(M::QuiverModuli)
 end
 
 """
-    weights_universal_bundle_on_stratum(hn_type, i, theta, denom=sum; chi)
+    weights_universal_bundle_on_stratum(hn_type::HNType, i::Int, theta::AbstractVector{Int}, denom::Function=sum; chi::AbstractVector{Int})::Vector{Int}
 
 Returns the weights of a universal bundle ``U_i(a)`` for the linearization ``a``
 for the 1-PS corresponding to the given HN type.
@@ -161,7 +161,7 @@ function weights_universal_bundle_on_stratum(
 end
 
 """
-    all_weights_universal_bundle(Q::Quiver, d, theta, i, denom=sum; chi)
+    all_weights_universal_bundle(Q::Quiver, d::AbstractVector{Int}, i::Int, theta::AbstractVector{Int}, denom::Function=sum; chi::AbstractVector{Int})
 
 Compute the Teleman weights of the universal bundle ``U_i(chi)``
 for the linearization ``chi`` on all the non-dense Harder-Narasimhan strata.
@@ -201,14 +201,14 @@ function all_weights_universal_bundle(
 end
 
 """
-    all_weights_universal_bundle(M::QuiverModuli; chi)
+    all_weights_universal_bundle(M::QuiverModuli, i::Int; chi::Union{AbstractVector{Int},UndefInitializer}=undef)
 
 Compute the Teleman weights of the universal bundle ``U_i(chi)``
 for the linearization `chi` on all the non-dense Harder-Narasimhan strata.
 
 # Input
 
-- `M::QuiverModuli`: a quiver moduli space or stack
+- `M::QuiverModuli`: a quiver moduli space or stack.
 
 Keyword arguments:
 
@@ -280,7 +280,7 @@ function all_weights_universal_bundle(
 end
 
 """
-    weight_irreducible_component_canonical_on_stratum(Q::Quiver, d, hn_type, theta, denom=sum)
+    weight_irreducible_component_canonical_on_stratum(Q::Quiver, d::AbstractVector{Int}, hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)::Vector{Int}
 
 Compute the Teleman weight of the irreducible component of ``\\omega_R|_Z``
 on the Harder-Narasimhan stratum `hn_type`.
@@ -306,7 +306,7 @@ function weight_irreducible_component_canonical_on_stratum(
 end
 
 """
-    weight_irreducible_component_canonical_on_stratum(M::QuiverModuli, hn_type)
+    weight_irreducible_component_canonical_on_stratum(M::QuiverModuli, hn_type::HNType)
 
 Compute the Teleman weight of the irreducible component of ``\\omega_R|_Z``
 on the Harder-Narasimhan stratum `hn_type`.
@@ -329,7 +329,7 @@ function weight_irreducible_component_canonical_on_stratum(
 end
 
 """
-    all_weights_irreducible_component_canonical(Q::Quiver, d, theta, denom=sum)
+    all_weights_irreducible_component_canonical(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
 
 Compute the Teleman weights of the irreducible component of ``\\omega_R|_Z``
 on all the non-dense Harder-Narasimhan strata.
@@ -339,9 +339,9 @@ More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullb
 
 # Input
 
-- `Q::Quiver`: a quiver
-- `d::AbstractVector{Int}`: a dimension vector
-- `theta::AbstractVector{Int}`: a stability parameter
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+- `theta::AbstractVector{Int}`: a stability parameter.
 - `denom::Function`: a denominator for the slope function. Defaults to `sum`.
 
 # Output
@@ -375,7 +375,7 @@ More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullb
 
 # Input
 
-- `M::QuiverModuliSpace`: a quiver moduli space
+- `M::QuiverModuliSpace`: a quiver moduli space.
 
 # Output
 
@@ -406,7 +406,7 @@ end
 # methods below shall be obsolete
 
 """
-    weights_endomorphism_universal_bundle_on_stratum(hn_type, theta, denom=sum)
+    weights_endomorphism_universal_bundle_on_stratum(hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)::Vector{Int}
 
 Compute the weights of the endomorphism of the universal bundle ``U_i \\otimes U_j``
 on the given Harder-Narasimhan stratum for the 1-PS relative to the HN type.
@@ -423,7 +423,7 @@ function weights_endomorphism_universal_bundle_on_stratum(
 end
 
 """
-    weights_endomorphism_universal_bundle_on_stratum(M::QuiverModuli, hn_type)
+    weights_endomorphism_universal_bundle_on_stratum(M::QuiverModuli, hn_type::HNType)
 
 Compute the weights of the endomorphism of the universal bundle ``U_i \\otimes U_j``
 on the given Harder-Narasimhan stratum for the 1-PS relative to the HN type.
@@ -437,7 +437,7 @@ function weights_endomorphism_universal_bundle_on_stratum(
 end
 
 """
-    all_weights_endomorphisms_universal_bundle(Q::Quiver, d, theta, denom=sum)
+    all_weights_endomorphisms_universal_bundle(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
 
 Compute the weights of the endomorphisms of the universal bundles ``U_i \\otimes U_j``
 on all the non-dense Harder-Narasimhan strata for each 1-PS relative to the HN type.
@@ -459,7 +459,7 @@ function all_weights_endomorphisms_universal_bundle(
 end
 
 """
-    all_weights_endomorphisms_universal_bundle(Q::Quiver, d, theta, denom=sum)
+    all_weights_endomorphisms_universal_bundle(M::QuiverModuli)
 
 Compute the weights of the endomorphisms of the universal bundles ``U_i \\otimes U_j``
 on all the non-dense Harder-Narasimhan strata for each 1-PS relative to the HN type.
@@ -491,7 +491,7 @@ end
 """
     does_rigidity_inequality_hold(M::QuiverModuli)
 
-Checks if the Teleman quantization criterion of
+Check if the Teleman quantization criterion of
 [arXiv:2311.17003](https://doi.org/10.48550/arXiv.2311.17003) holds.
 
 In case the quiver is acyclic, this ensures that the moduli space is infinitesimally
@@ -499,11 +499,11 @@ rigid.
 
 # Input
 
-- `M::QuiverModuli`: a quiver moduli space or stack
+- `M::QuiverModuli`: a quiver moduli space or stack.
 
 # Output
 
-`true` if the Teleman inequality holds, `false` otherwise.
+- `true` if the Teleman inequality holds, `false` otherwise.
 
 # Examples
 
@@ -540,7 +540,7 @@ end
 """
     set_teleman_weights!(F::Bundle, weights::Dict{<:HNType,Vector{Int}})
 
-Sets the Teleman weights of the bundle `F` to the given dictionary.
+Set the Teleman weights of the bundle `F` to the given dictionary.
 
 This is used to construct Bundle objects and assign them Teleman weights.
 """
