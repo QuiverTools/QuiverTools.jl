@@ -9,19 +9,11 @@ function deglex_key(Q::Quiver, e::AbstractVector{Int})::Int
   return (sum(e[i] * b^(n - i) for i in 1:length(e)) + sum(e) * b^n)
 end
 
+# TODO why is this a symmetric matrix? this should be `underlying_undirectd_graph`?
 """
     underlying_graph(Q::Quiver)
 
-Returns the (necessarily symmetric) adjacency matrix
-of the underlying graph of the quiver.
-
-# Input
-
-- `Q::Quiver` a quiver
-
-# Output
-
-- the adjacency matrix of the underlying graph of the quiver
+Return the (necessarily symmetric) adjacency matrix of the underlying graph of the quiver.
 
 # Examples
 
@@ -39,15 +31,7 @@ end
 """
     n_vertices(Q::Quiver)
 
-Returns the number of vertices of the quiver.
-
-# Input
-
-- `Q::Quiver` a quiver
-
-# Output
-
-- the number of vertices of the quiver
+Return the number of vertices of the quiver.
 
 # Examples
 
@@ -65,14 +49,6 @@ n_vertices(Q::Quiver) = size(Q.adjacency)[1]
 
 Returns the number of arrows of the quiver.
 
-# Input
-
-- `Q::Quiver` a quiver
-
-# Output
-
-- the number of arrows of the quiver
-
 # Examples
 
 ```jldoctest
@@ -87,15 +63,7 @@ n_arrows(Q::Quiver) = sum(Q.adjacency)
 """
     is_acyclic(Q::Quiver)
 
-Checks whether the quiver is acyclic, i.e. has no oriented cycles.
-
-# Input
-
-- `Q::Quiver` a quiver
-
-# Output
-
-- `true` if the quiver is acyclic, `false` otherwise
+Check whether the quiver is acyclic, i.e., has no oriented cycles.
 
 # Examples
 
@@ -111,48 +79,24 @@ is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^n_vertices(Q))
 """
     is_connected(Q::Quiver)
 
-Checks whether the quiver is connected.
-
-# Input
-
-- `Q::Quiver` a quiver
-
-# Output
-
-- `true` if the underlying graph of the quiver is connected, `false` otherwise
+Check whether the quiver is connected.
 
 # Examples
 
 ```jldoctest
-julia> Q = Quiver([0 1 0; 0 0 1; 1 0 0]);
-
-julia> is_connected(Q)
+julia> is_connected(Quiver([0 1 0; 0 0 1; 1 0 0]))
 true
 
-julia> Q = Quiver([0 1 0; 1 0 0; 0 0 2]);
-
-julia> is_connected(Q)
+julia> is_connected(Quiver([0 1 0; 1 0 0; 0 0 2]))
 false
 
-julia> # The 4-Kronecker quiver:
-
-julia> Q = kronecker_quiver(4);
-
-julia> is_connected(Q)
+julia> is_connected(kronecker_quiver(4))
 true
 
-julia> # The 4-loop quiver:
-
-julia> Q = loop_quiver(4);
-
-julia> is_connected(Q)
+julia> is_connected(loop_quiver(4))
 true
 
-julia> # The 4-subspace quiver:
-
-julia> Q = subspace_quiver(4);
-
-julia> is_connected(Q)
+julia> is_connected(subspace_quiver(4))
 true
 ```
 """
@@ -172,16 +116,7 @@ end
 """
     indegree(Q::Quiver, j::Int)
 
-Returns the number of incoming arrows to the vertex `j`.
-
-# Input
-
-- `Q::Quiver` a quiver
-- `j::Int`: an integer representing the vertex
-
-# Output
-
-- the number of incoming arrows to the vertex `j`
+Return the number of incoming arrows to the vertex `j`.
 
 # Examples
 
@@ -200,16 +135,7 @@ indegree(Q::Quiver, j::Int) = sum(Q.adjacency[:, j])
 """
     outdegree(Q::Quiver, i::Int)
 
-Returns the number of outgoing arrows from the vertex `i`.
-
-# Input
-
-- `Q::Quiver` a quiver
-- `i::Int`: an integer representing the vertex
-
-# Output
-
-- the number of outgoing arrows from the vertex `i`
+Return the number of outgoing arrows from the vertex `i`.
 
 # Examples
 
@@ -228,16 +154,7 @@ outdegree(Q::Quiver, i::Int) = sum(Q.adjacency[i, :])
 """
     is_source(Q::Quiver, i::Int)
 
-Checks if the vertex `i` is a source, i.e., a vertex with no incoming arrows.
-
-# Input
-
-- `Q::Quiver` a quiver
-- `i::Int`: an integer representing the vertex
-
-# Output
-
-- `true` if the vertex `i` is a source, `false` otherwise
+Check whether the vertex `i` is a source, i.e., a vertex with no incoming arrows.
 
 # Examples
 
@@ -258,15 +175,6 @@ is_source(Q::Quiver, i::Int) = indegree(Q, i) == 0
 
 Checks if the vertex `j` is a sink, i.e., a vertex with no outgoing arrows.
 
-# Input
-
-- `Q::Quiver` a quiver
-- `j::Int`: an integer representing the vertex
-
-# Output
-
-- `true` if the vertex `j` is a sink, `false` otherwise
-
 # Examples
 
 ```jldoctest
@@ -284,26 +192,22 @@ is_sink(Q::Quiver, j::Int) = outdegree(Q, j) == 0
 """
     arrows(Q::Quiver)
 
-Returns a list of all arrows of the quiver `Q`.
-
-# Input
-
-- `Q::Quiver` a quiver
-
-# Output
-
-- a list of all arrows of the quiver `Q`.
+Return a list of all arrows of the quiver `Q`.
 
 # Examples
 
 ```jldoctest
-julia> Q = kronecker_quiver(3);
-
-julia> arrows(Q)
+julia> arrows(kronecker_quiver(3))
 3-element Vector{Vector{Int64}}:
  [1, 2]
  [1, 2]
  [1, 2]
+
+julia> arrows(loop_quiver(3))
+3-element Vector{Vector{Int64}}:
+ [1, 1]
+ [1, 1]
+ [1, 1]
 ```
 """
 function arrows(Q::Quiver)
