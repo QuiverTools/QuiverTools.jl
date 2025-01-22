@@ -117,14 +117,14 @@ function subspace_quiver(m::Int)
 end
 
 function dynkin_quiver(Tn::String)
-  T = Tn[1:(end - 1)]
+  type = Tn[1:(end - 1)]
   n = parse(Int, Tn[end])
-  return dynkin_quiver(T, n)
+  return dynkin_quiver(type, n)
 end
 
 # TODO is it arbitrary? is it not the Bourbaki orientation?
 """
-    dynkin_quiver(T, n)
+    dynkin_quiver(type, n)
 
 Construct the Dynkin quiver, with arbitrary orientation of the arrows.
 
@@ -135,8 +135,8 @@ julia> dynkin_quiver("D", 4)
 Dynkin quiver of type D4, with adjacency matrix [0 1 0 0; 0 0 1 1; 0 0 0 0; 0 0 0 0]
 ```
 """
-function dynkin_quiver(T::String, n::Int)
-  if T == "A"
+function dynkin_quiver(type::String, n::Int)
+  if type == "A"
     if !(n >= 1)
       throw(ArgumentError("$n is out of bounds for type $type."))
     end
@@ -149,7 +149,7 @@ function dynkin_quiver(T::String, n::Int)
       end
       return Quiver(M, "Dynkin quiver of type A$n")
     end
-  elseif T == "D"
+  elseif type == "D"
     if !(n >= 3)
       throw(ArgumentError("$n is out of bounds for type $type."))
     end
@@ -160,7 +160,7 @@ function dynkin_quiver(T::String, n::Int)
     M[n - 2, n] = 1
 
     return Quiver(M, "Dynkin quiver of type D$n")
-  elseif T == "E"
+  elseif type == "E"
     if !(n in [6, 7, 8])
       throw(ArgumentError("$n is out of bounds for type $type."))
     end
@@ -208,7 +208,7 @@ function dynkin_quiver(T::String, n::Int)
       )
     end
   else
-    throw(ArgumentError("$T is not a valid ADE Dynkin type."))
+    throw(ArgumentError("$type is not a valid ADE Dynkin type."))
   end
 end
 """
