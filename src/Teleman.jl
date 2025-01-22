@@ -154,7 +154,7 @@ function weights_universal_bundle_on_stratum(
   ell = length(hn_type)
   slopes = map(h -> slope(h, theta, denom), hn_type)
   constant_term = sum(slopes[s] * (chi' * hn_type[s]) for s in 1:ell)
-  den = lcm(denominator.([slopes[s] for s in 1:ell if hn_type[s][i] > 0]))
+  den = lcm(denominator.(slopes))
 
   slopes_mult = reduce(
     vcat, [slopes[s] for _ in 1:hn_type[s][i]] for s in 1:ell
