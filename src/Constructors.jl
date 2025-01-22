@@ -136,7 +136,7 @@ Dynkin quiver of type D4, with adjacency matrix [0 1 0 0; 0 0 1 1; 0 0 0 0; 0 0 
 function dynkin_quiver(T::String, n::Int)
   if T == "A"
     if !(n >= 1)
-      throw(ArgumentError("$n is out of bounds"))
+      throw(ArgumentError("$n is out of bounds for type $type."))
     end
     if n == 1
       return Quiver([[1]], "Dynkin quiver of type A1")
@@ -149,7 +149,7 @@ function dynkin_quiver(T::String, n::Int)
     end
   elseif T == "D"
     if !(n >= 3)
-      throw(ArgumentError("$n is out of bounds."))
+      throw(ArgumentError("$n is out of bounds for type $type."))
     end
     M = zeros(Int, n, n)
     for i in 1:(n - 2)
@@ -160,7 +160,7 @@ function dynkin_quiver(T::String, n::Int)
     return Quiver(M, "Dynkin quiver of type D$n")
   elseif T == "E"
     if !(n in [6, 7, 8])
-      throw(ArgumentError("$n is out of bounds."))
+      throw(ArgumentError("$n is out of bounds for type $type."))
     end
     if n == 6
       return Quiver(
@@ -206,7 +206,7 @@ function dynkin_quiver(T::String, n::Int)
       )
     end
   else
-    throw(ArgumentError("not implemented"))
+    throw(ArgumentError("$T is not a valid ADE Dynkin type."))
   end
 end
 """
