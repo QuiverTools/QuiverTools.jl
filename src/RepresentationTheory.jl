@@ -5,7 +5,7 @@
 """
     euler_matrix(Q::Quiver)
 
-Returns the Euler matrix of the quiver.
+Compute the Euler matrix of `Q`.
 
 The Euler matrix of a quiver ``Q`` is defined as
 ```math
@@ -16,11 +16,11 @@ is the identity matrix of the same size as ``A``.
 
 # Input
 
-- `Q::Quiver` a quiver
+- `Q::Quiver` a quiver.
 
 # Output
 
-- the Euler matrix of the quiver
+- the Euler matrix of the quiver.
 
 # Examples
 
@@ -34,9 +34,9 @@ true
 @memoize Dict euler_matrix(Q::Quiver) = identity_matrix(n_vertices(Q)) - Q.adjacency
 
 """
-    euler_form(Q::Quiver, x, y)
+    euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int})
 
-Computes the Euler form of the quiver for vectors `x` and `y`.
+Compute the Euler form of `Q` for `x` and `y`.
 
 The Euler form is defined as the bilinear form
 ```math
@@ -46,13 +46,13 @@ where ``E`` is the Euler matrix of the quiver.
 
 # Input
 
-- `Q::Quiver` a quiver
-- `x::AbstractVector{Int}`: a vector
-- `y::AbstractVector{Int}`: a vector
+- `Q::Quiver` a quiver.
+- `x::AbstractVector{Int}`: a vector.
+- `y::AbstractVector{Int}`: a vector.
 
 # Output
 
-- the Euler form ``\\langle x, y\\rangle_{Q}``
+- the Euler form ``\\langle x, y\\rangle_{Q}``.
 
 # Examples
 
@@ -71,10 +71,10 @@ euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
 ########################################################################################
 
 """
-    generic_ext(Q::Quiver, a, b)
+    generic_ext(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
 
-Computes the dimension of the ``\\mathrm{Ext}^1`` group between generic representations
-of dimension vectors ``a`` and ``b``.
+Compute the dimension of the ``\\mathrm{Ext}^1`` group between generic representations
+of dimension vectors `a` and `b`.
 
 According to [Theorem 5.4, MR1162487]
 (https://mathscinet.ams.org/mathscinet/relay-station?mr=1162487),
@@ -86,13 +86,13 @@ ext(a,b)=max\\{-\\langle c,b\\rangle~~|~~c~\\text{is a generic subdimension vect
 
 # Input
 
-- `Q::Quiver` a quiver
-- `a::AbstractVector{Int}`: a vector
-- `b::AbstractVector{Int}`: a vector
+- `Q::Quiver` a quiver.
+- `a::AbstractVector{Int}`: a vector.
+- `b::AbstractVector{Int}`: a vector.
 
 # Output
 
-- the dimension of the generic extensions ``\\mathrm{ext}^1(a, b)``
+- the dimension of the generic extensions ``\\mathrm{ext}^1(a, b)``.
 
 # Examples
 
@@ -116,20 +116,20 @@ function generic_ext(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
 end
 
 """
-    generic_hom(Q::Quiver, a, b)
+    generic_hom(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
 
-Computes the dimension of the ``\\mathrm{Hom}`` group between generic representations
-of dimension vectors ``a`` and ``b``.
+Compute the dimension of the ``\\mathrm{Hom}`` group between generic representations
+of dimension vectors `a` and `b`.
 
 # Input
 
-- `Q::Quiver` a quiver
-- `a::AbstractVector{Int}`: a vector
-- `b::AbstractVector{Int}`: a vector
+- `Q::Quiver` a quiver.
+- `a::AbstractVector{Int}`: a vector.
+- `b::AbstractVector{Int}`: a vector.
 
 # Output
 
-- the dimension of the generic homomorphisms ``\\mathrm{hom}(a, b)``
+- the dimension of the generic homomorphisms ``\\mathrm{hom}(a, b)``.
 
 # Examples
 
@@ -155,8 +155,7 @@ end
 """
     canonical_decomposition(Q::Quiver, d)
 
-Computes the canonical decomposition of the dimension vector ``d``
-for the given quiver ``Q``.
+Compute the canonical decomposition of `d` for the quiver `Q`.
 
 If ``\\beta_1, \\dots, \\beta_{\\ell}`` is a sequence
 of Schur roots such that, for all ``i \\neq j``, one has
@@ -173,12 +172,12 @@ Such a decomposition is called the canonical decomposition.
 
 # Input
 
-- `Q::Quiver` a quiver
-- `d::AbstractVector{Int}` a dimension vector
+- `Q::Quiver` a quiver.
+- `d::AbstractVector{Int}` a dimension vector.
 
 # Output
 
-- a list of dimension vectors representing the canonical decomposition of `d`
+- a list of dimension vectors representing the canonical decomposition of `d`.
 
 # Examples
 
@@ -211,9 +210,9 @@ function canonical_decomposition(Q::Quiver, d::AbstractVector{Int})
 end
 
 """
-    in_fundamental_domain(Q::Quiver, d; interior::Bool=false)
+    in_fundamental_domain(Q::Quiver, d::AbstractVector{Int}; interior::Bool=false)
 
-Checks if the dimension vector ``d`` is in the fundamental domain of the quiver ``Q``.
+Check if the dimension vector `d` is in the fundamental domain of the quiver `Q`.
 
 The fundamental domain is the cone of dimension vectors in ``\\mathbb{Z}^{Q_0}``
 such that the symmetric Tits form is negative on all the simple roots, i.e.,
@@ -228,13 +227,13 @@ set to ``1``.
 
 # Input
 
-- `Q::Quiver` a quiver
-- `d::AbstractVector{Int}` a dimension vector
+- `Q::Quiver` a quiver.
+- `d::AbstractVector{Int}` a dimension vector.
 
 Keyword arguments:
 
 - `interior`: if `true` checks whether `d` belongs to the interior of the fundamental
-domain. Default is `false`
+domain. Default is `false`.
 
 # Examples
 
