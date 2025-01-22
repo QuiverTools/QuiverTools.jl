@@ -3,7 +3,7 @@
 ######################################################################
 
 """
-    teleman_bound_on_stratum(Q::Quiver, hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)::Int
+    teleman_bound_on_stratum(Q::Quiver, hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)
 
 Compute the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS ``\\lambda``
 corresponding to the given HN type.
@@ -24,16 +24,18 @@ function teleman_bound_on_stratum(
   hn_type::HNType,
   theta::AbstractVector{Int},
   denom::Function=sum,
-)::Int # Rational is ok?
+)
   ell = length(hn_type)
   ell == 1 &&
     throw(ArgumentError("Weight not defined on the dense stratum"))
 
   slopes = map(h -> slope(h, theta, denom), hn_type)
   slopes = lcm(denominator.(slopes)) .* slopes
-  return sum(
-    (slopes[t] - slopes[s]) * euler_form(Q, hn_type[s], hn_type[t])
-    for s in 1:(ell - 1) for t in (s + 1):ell
+  return Int(
+    sum(
+      (slopes[t] - slopes[s]) * euler_form(Q, hn_type[s], hn_type[t])
+      for s in 1:(ell - 1) for t in (s + 1):ell
+    ),
   )
 end
 
@@ -136,7 +138,7 @@ function all_teleman_bounds(M::QuiverModuli)
 end
 
 """
-    weights_universal_bundle_on_stratum(hn_type::HNType, i::Int, theta::AbstractVector{Int}, denom::Function=sum; chi::AbstractVector{Int})::Vector{Int}
+    weights_universal_bundle_on_stratum(hn_type::HNType, i::Int, theta::AbstractVector{Int}, denom::Function=sum; chi::AbstractVector{Int})
 
 Returns the weights of a universal bundle ``U_i(a)`` for the linearization ``a``
 for the 1-PS corresponding to the given HN type.
@@ -148,7 +150,7 @@ function weights_universal_bundle_on_stratum(
   theta::AbstractVector{Int},
   denom::Function=sum;
   chi::AbstractVector{Int},
-)::Vector{Int}
+)
   ell = length(hn_type)
   slopes = map(h -> slope(h, theta, denom), hn_type)
   constant_term = sum(slopes[s] * (chi' * hn_type[s]) for s in 1:ell)
@@ -157,7 +159,7 @@ function weights_universal_bundle_on_stratum(
   slopes_mult = reduce(
     vcat, [slopes[s] for _ in 1:hn_type[s][i]] for s in 1:ell
   )
-  return den .* (-constant_term .+ slopes_mult)
+  return Int.(den .* (-constant_term .+ slopes_mult))
 end
 
 """
@@ -280,7 +282,7 @@ function all_weights_universal_bundle(
 end
 
 """
-    weight_irreducible_component_canonical_on_stratum(Q::Quiver, d::AbstractVector{Int}, hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)::Vector{Int}
+    weight_irreducible_component_canonical_on_stratum(Q::Quiver, d::AbstractVector{Int}, hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)
 
 Compute the Teleman weight of the irreducible component of ``\\omega_R|_Z``
 on the Harder-Narasimhan stratum `hn_type`.
@@ -295,14 +297,14 @@ function weight_irreducible_component_canonical_on_stratum(
   hn_type::HNType,
   theta::AbstractVector{Int},
   denom::Function=sum,
-)::Vector{Int}
+)
   kweights = map(di -> slope(di, theta, denom), hn_type)
   kweights = kweights * lcm(denominator.(kweights))
 
   dd = sum(kweights[m] .* hn_type[m] for m in 1:length(hn_type))
   can = canonical_stability(Q, d)
   can /= gcd(can)
-  return [can' * dd]
+  return [Int(can' * dd)]
 end
 
 """
@@ -406,7 +408,7 @@ end
 # methods below shall be obsolete
 
 """
-    weights_endomorphism_universal_bundle_on_stratum(hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)::Vector{Int}
+    weights_endomorphism_universal_bundle_on_stratum(hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)
 
 Compute the weights of the endomorphism of the universal bundle ``U_i \\otimes U_j``
 on the given Harder-Narasimhan stratum for the 1-PS relative to the HN type.
@@ -416,10 +418,12 @@ function weights_endomorphism_universal_bundle_on_stratum(
   hn_type::HNType,
   theta::AbstractVector{Int},
   denom::Function=sum,
-)::Vector{Int}
+)
   kweights = map(di -> slope(di, theta, denom), hn_type)
   kweights = kweights * lcm(denominator.(kweights))
-  return [kweights[i] - kweights[j] for i in 1:length(hn_type) for j in 1:length(hn_type)]
+  return [
+    Int(kweights[i] - kweights[j]) for i in 1:length(hn_type) for j in 1:length(hn_type)
+  ]
 end
 
 """

@@ -27,7 +27,7 @@ Return a square matrix with diagonal `v`.
 """
 function diagonal(v::AbstractVector)
   n = length(v)
-  return map(ind -> ind[1] == ind[2] ? v[ind[1]] : 0, Iterators.product(1:n, 1:n))
+  return Matrix(map(ind -> ind[1] == ind[2] ? v[ind[1]] : 0, Iterators.product(1:n, 1:n)))
 end
 
 ########################################################################################

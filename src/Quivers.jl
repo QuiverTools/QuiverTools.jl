@@ -2,11 +2,11 @@
 # Methods that deal with quivers and their properties
 #####################################################
 
-function deglex_key(Q::Quiver, e::AbstractVector{Int})::Int
+function deglex_key(Q::Quiver, e::AbstractVector{Int})
   b = maximum(e) + 1
   n = n_vertices(Q)
 
-  return (sum(e[i] * b^(n - i) for i in 1:length(e)) + sum(e) * b^n)
+  return Int(sum(e[i] * b^(n - i) for i in 1:length(e)) + sum(e) * b^n)
 end
 
 # TODO why is this a symmetric matrix? this should be `underlying_undirectd_graph`?

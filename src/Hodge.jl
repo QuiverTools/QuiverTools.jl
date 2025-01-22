@@ -255,7 +255,7 @@ function hodge_diamond(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
-)::Matrix{Int}
+)
   g = hodge_polynomial(Q, d, theta)
 
   # collects the coefficients of the polynomial, converts them to integers
