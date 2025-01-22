@@ -2,9 +2,6 @@
 # Tensor calculus on quiver moduli
 ##################################
 
-export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
-  det, canonical_bundle, universal_bundle, degree, rank, teleman_weights, structure_sheaf
-
 _has_chern_data(F::Bundle) = isdefined(F, :chern_character) || isdefined(F, :chern_class)
 """   chern_character(F::Bundle)"""
 function chern_character(F::Bundle)
