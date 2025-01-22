@@ -15,7 +15,7 @@ export kronecker_quiver,
 """
     kronecker_quiver(m::Int)
 
-Constructs a Kronecker quiver with `m` vertices.
+Construct the Kronecker quiver with `m` vertices.
 
 # Input
 
@@ -23,7 +23,7 @@ Constructs a Kronecker quiver with `m` vertices.
 
 # Output
 
-A Kronecker quiver with `m` vertices.
+The Kronecker quiver with `m` vertices.
 
 # Examples
 
@@ -39,7 +39,7 @@ end
 """
     three_vertex_quiver(m12::Int, m13::Int, m23::Int)
 
-Constructs a three-vertex quiver with the given edge weights.
+Construct the three-vertex quiver with the given edge counts.
 
 # Input
 
@@ -65,7 +65,7 @@ end
 """
     loop_quiver(m::Int)
 
-Constructs a loop quiver with `m` vertices.
+Construct the loop quiver with `m` vertices.
 
 # Input
 
@@ -73,7 +73,7 @@ Constructs a loop quiver with `m` vertices.
 
 # Output
 
-A loop quiver with `m` vertices.
+The loop quiver with `m` vertices.
 
 # Examples
 
@@ -89,7 +89,7 @@ end
 """
     subspace_quiver(m::Int)
 
-Constructs a subspace quiver with `m` vertices.
+Construct the subspace quiver with `m` vertices.
 
 # Input
 
@@ -97,8 +97,7 @@ Constructs a subspace quiver with `m` vertices.
 
 # Output
 
-A subspace quiver with `m` subspaces.
-
+The subspace quiver with `m` subspaces.
 
 # Examples
 
@@ -121,15 +120,16 @@ function dynkin_quiver(Tn::String)
   return dynkin_quiver(T, n)
 end
 
+# TODO is it arbitrary? is it not the Bourbaki orientation?
 """
     dynkin_quiver(T, n)
 
-Constructs the Dynkin quiver, with arbitrary orientation of the arrows.
+Construct the Dynkin quiver, with arbitrary orientation of the arrows.
 
 # Examples
 
 ```jldoctest
-julia> dynkin_quiver("D4")
+julia> dynkin_quiver("D", 4)
 Dynkin quiver of type D4, with adjacency matrix [0 1 0 0; 0 0 1 1; 0 0 0 0; 0 0 0 0]
 ```
 """
@@ -212,7 +212,7 @@ end
 """
     cyclic_quiver(n)
 
-Returns a cyclic quiver on n vertices.
+Construct the cyclic quiver on `n` vertices.
 
 # Examples
 
@@ -223,7 +223,7 @@ cyclic quiver on 4 vertices, with adjacency matrix [0 1 0 0; 0 0 1 0; 0 0 0 1; 1
 """
 function cyclic_quiver(n::Int)
   if n < 1
-    throw(ArgumentError("n must be greater than 0"))
+    throw(ArgumentError("$n must be greater than 0"))
   end
   A = zeros(Int, n, n)
   for i in 1:(n - 1)
@@ -236,7 +236,7 @@ end
 """
     bipartite_quiver(m, n)
 
-Constructs the bipartite quiver on `m` and `n` vertices.
+Construct the bipartite quiver on `m` and `n` vertices.
 
 # Input
 
@@ -245,7 +245,7 @@ Constructs the bipartite quiver on `m` and `n` vertices.
 
 # Output
 
-A bipartite quiver with `m + n` vertices.
+The bipartite quiver with `m + n` vertices.
 
 # Examples
 
@@ -275,8 +275,10 @@ end
 """"
     opposite_quiver(Q::Quiver)
 
-Returns a Quiver with the same vertices and an arrow
-``j \\to i`` for every arrow  ``i \\to j`` in the original quiver.
+Construct the opposite quiver.
+
+The opposite quiver has the same vertices,
+and an arrow ``j \\to i`` for every arrow  ``i \\to j`` in the original quiver.
 
 # Input
 
@@ -284,7 +286,7 @@ Returns a Quiver with the same vertices and an arrow
 
 # Output
 
-A quiver with the same vertices and reversed arrows.
+The quiver with the same vertices and reversed arrows.
 
 # Examples
 
@@ -302,9 +304,12 @@ opposite_quiver(Q::Quiver) =
 """
     double_quiver(Q::Quiver)
 
-The adjacency matrix of the double of a quiver is the sum of
-the adjacency matrix of the original quiver and its transpose.
+Construct the double of a quiver.
 
+The double of a quiver has the same vertices,
+and for every arrow ``i \\to j`` in the original quiver, an arrow ``j\\to i`` is added.
+In other words, the double of a quiver is the quiver obtained by adding the transpose
+of the adjacency matrix.
 
 # Examples
 
