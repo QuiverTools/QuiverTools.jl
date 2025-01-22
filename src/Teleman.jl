@@ -2,14 +2,6 @@
 # Weights of various standard vector bundles for the HN stratification
 ######################################################################
 
-export
-  all_teleman_bounds,
-  all_weights_universal_bundle,
-  all_weights_irreducible_component_canonical,
-  all_weights_endomorphisms_universal_bundle,
-  does_rigidity_inequality_hold,
-  set_teleman_weights!
-
 """
     teleman_bound_on_stratum(Q::Quiver, hn_type, theta, denom=sum)
 
@@ -406,6 +398,9 @@ function all_weights_irreducible_component_canonical(M::QuiverModuliSpace)
   return all_weights_irreducible_component_canonical(M.Q, M.d, M.theta, M.denom)
 end
 
+########################
+# methods below shall be obsolete
+
 """
     weights_endomorphism_universal_bundle_on_stratum(hn_type, theta, denom=sum)
 
@@ -485,6 +480,9 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
 function all_weights_endomorphisms_universal_bundle(M::QuiverModuli)
   return all_weights_endomorphisms_universal_bundle(M.Q, M.d, M.theta, M.denom)
 end
+
+# methods above shall be obsolete
+##########################
 
 """
     does_rigidity_inequality_hold(M::QuiverModuli)

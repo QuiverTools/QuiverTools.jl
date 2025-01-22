@@ -1,6 +1,6 @@
-#################
+##############
 # Constructors
-#################
+##############
 
 export kronecker_quiver,
   loop_quiver,
