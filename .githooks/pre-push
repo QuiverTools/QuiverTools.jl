@@ -1,6 +1,6 @@
 #!/bin/bash
 
-julia test.jl
+make test
 
 if [ $? -eq 0 ]; then
     echo >&2 "Tests passed."
