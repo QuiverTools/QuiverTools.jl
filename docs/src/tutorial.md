@@ -382,7 +382,7 @@ In other words, the point of the diamond is on the upper left side of the matrix
 This allows us to conclude that the Picard rank of the moduli space is 1.
 
 ```julia-repl
-julia> Picard_rank(M)
+julia> picard_rank(M)
 1
 ```
 
@@ -431,7 +431,7 @@ julia> degree(ω)
 julia> integral(ω)
 1
 
-julia> OO = QuiverTools.structure_sheaf(M)
+julia> OO = structure_sheaf(M)
 Bundle of rank 1
 
 julia> integral(OO)
@@ -535,4 +535,18 @@ julia> map(i -> integral(L^i), 0:5)
  664
  2206
  5999
+```
+
+## Hochschild cohomology
+
+For acyclic quivers, the Hochschild cohomologies are described in
+[[Proposition 1.6, MR1035222](https://mathscinet.ams.org/mathscinet/relay-station?mr=1035222)].
+
+QuiverTools provides a method to compute the only nontrivial one.
+
+```julia-repl
+julia> Q = kronecker_quiver(3);
+
+julia> first_hochschild_cohomology(Q)
+8
 ```

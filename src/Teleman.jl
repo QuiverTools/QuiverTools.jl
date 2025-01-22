@@ -465,8 +465,9 @@ end
 """
     all_weights_endomorphisms_universal_bundle(M::QuiverModuli)
 
-Compute the weights of the endomorphisms of the universal bundles ``U_i \\otimes U_j``
-on all the non-dense Harder-Narasimhan strata for each 1-PS relative to the HN type.
+Compute all the possible weights of the endomorphisms of the universal bundles
+``U_i \\otimes U_j`` on all the non-dense Harder-Narasimhan strata
+for each 1-PS relative to the HN type.
 
 # Example
 

@@ -15,4 +15,5 @@ all_generic_subdimension_vectors
 is_generic_subdimension_vector
 canonical_decomposition
 in_fundamental_domain
+first_hochschild_cohomology
 ```
