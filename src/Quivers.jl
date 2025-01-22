@@ -220,5 +220,40 @@ function arrows(Q::Quiver)
   )
 end
 
+"""
+    first_hochschild_cohomology(Q::Quiver)
+
+Compute the first Hochschild cohomology group.
+
+The Hochschild cohomology groups of an acyclic quiver `Q` are described by Happel in
+[Proposition 1.6, MR1035222](https://mathscinet.ams.org/mathscinet/relay-station?mr=1035222)
+to be
+
+```math
+\\mathrm{H}^{0}(Q) = k,
+\\quad \\mathrm{H}^{1}(Q) = 1 - n + \\sum_{i,j} #\\{\\text{paths from } i \\text{ to } j\\},
+\\quad \\mathrm{H}^{n}(Q) = 0 \\text{ for } n > 1.
+```
+
+# Examples
+
+On the 3-Kronecker quiver:
+
+```jldoctest
+julia> first_hochschild_cohomology(kronecker_quiver(3))
+8
+
+julia> first_hochschild_cohomology(subspace_quiver(7))
+0
+
+julia> first_hochschild_cohomology(three_vertex_quiver(2, 1, 3))
+18
+```
+"""
+function first_hochschild_cohomology(Q::Quiver)
+  !is_acyclic(Q) && throw(ArgumentError("The quiver must be acyclic."))
+  return 1 - n_vertices(Q) + sum(
+    (Q.adjacency^n)[i, j]
+    for n in 1:(n_vertices(Q) - 1), (i, j) in arrows(Q)
   )
 end

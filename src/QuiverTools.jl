@@ -24,7 +24,7 @@ export Quiver, HNType, LunaType, QuiverModuli, QuiverModuliSpace, QuiverModuliSt
 # Quivers
 export n_vertices,
   n_arrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source,
-  underlying_graph
+  underlying_graph, first_hochschild_cohomology
 
 # Constructors
 export kronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver, cyclic_quiver,
