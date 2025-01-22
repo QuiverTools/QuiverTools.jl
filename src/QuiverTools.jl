@@ -10,25 +10,12 @@ using Singular: Singular
 using AbstractAlgebra: AbstractAlgebra
 using Nemo: Nemo
 
-import Base.show, Base.==, Base.hash, Base.getindex, Base.length, Base.iterate, Base.keys
-import Base: *, +, -, ^
+import Base: show, ==, hash, getindex, length, iterate, keys, *, +, -, ^
 import Memoization: @memoize
 import IterTools: subsets
 import LinearAlgebraX: rankx
-import Singular:
-  polynomial_ring,
-  degree,
-  coeff,
-  constant_coefficient,
-  AlgebraHomomorphism,
-  preimage,
-  Ideal,
-  quotient_ideal,
-  QuotientRing,
-  fraction_field,
-  std,
-  gens,
-  base_ring
+import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHomomorphism,
+  preimage, Ideal, quotient_ideal, QuotientRing, fraction_field, std, gens, base_ring
 import Combinatorics: combinations, with_replacement_combinations, partitions
 
 # Types
