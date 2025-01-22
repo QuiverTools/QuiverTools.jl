@@ -10,10 +10,11 @@ function deglex_key(Q::Quiver, e::AbstractVector{Int})::Int
 end
 
 # TODO why is this a symmetric matrix? this should be `underlying_undirectd_graph`?
+# a "graph", as opposed to a "directed graph (i.e., a quiver)", is undirected - and thus the adjacency matrix is symmetric
 """
     underlying_graph(Q::Quiver)
 
-Return the (necessarily symmetric) adjacency matrix of the underlying graph of the quiver.
+Return the (necessarily symmetric) adjacency matrix of the underlying graph of `Q`.
 
 # Examples
 
@@ -31,7 +32,7 @@ end
 """
     n_vertices(Q::Quiver)
 
-Return the number of vertices of the quiver.
+Return the number of vertices of `Q`.
 
 # Examples
 
@@ -47,7 +48,7 @@ n_vertices(Q::Quiver) = size(Q.adjacency)[1]
 """
     n_arrows(Q::Quiver)
 
-Returns the number of arrows of the quiver.
+Return the number of arrows of `Q`.
 
 # Examples
 
@@ -63,7 +64,7 @@ n_arrows(Q::Quiver) = sum(Q.adjacency)
 """
     is_acyclic(Q::Quiver)
 
-Check whether the quiver is acyclic, i.e., has no oriented cycles.
+Check whether `Q` is acyclic, i.e., has no oriented cycles.
 
 # Examples
 
@@ -79,7 +80,7 @@ is_acyclic(Q::Quiver) = all(entry == 0 for entry in Q.adjacency^n_vertices(Q))
 """
     is_connected(Q::Quiver)
 
-Check whether the quiver is connected.
+Check whether `Q` is connected.
 
 # Examples
 
@@ -192,7 +193,7 @@ is_sink(Q::Quiver, j::Int) = outdegree(Q, j) == 0
 """
     arrows(Q::Quiver)
 
-Return a list of all arrows of the quiver `Q`.
+Return a list of all arrows of `Q`.
 
 # Examples
 
