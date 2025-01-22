@@ -19,7 +19,7 @@ The Kronecker quiver with `m` vertices.
 
 ```jldoctest
 julia> kronecker_quiver(3)
-3-Kronecker quiver, with adjacency matrix [0 3; 0 0]
+3-Kronecker quiver
 ```
 """
 function kronecker_quiver(m::Int=2)
@@ -45,7 +45,7 @@ A three-vertex quiver with the specified arrows.
 
 ```jldoctest
 julia> three_vertex_quiver(1, 2, 3)
-Acyclic 3-vertex quiver, with adjacency matrix [0 1 2; 0 0 3; 0 0 0]
+Acyclic 3-vertex quiver
 ```
 """
 function three_vertex_quiver(m12::Int, m13::Int, m23::Int)
@@ -69,7 +69,7 @@ The loop quiver with `m` vertices.
 
 ```jldoctest
 julia> loop_quiver(4)
-4-loop quiver, with adjacency matrix [4;;]
+4-loop quiver
 ```
 """
 function loop_quiver(m::Int)
@@ -93,7 +93,7 @@ The subspace quiver with `m` subspaces.
 
 ```jldoctest
 julia> subspace_quiver(3)
-3-subspace quiver, with adjacency matrix [0 0 0 1; 0 0 0 1; 0 0 0 1; 0 0 0 0]
+3-subspace quiver
 ```
 """
 function subspace_quiver(m::Int)
@@ -120,7 +120,7 @@ Construct the Dynkin quiver, with arbitrary orientation of the arrows.
 
 ```jldoctest
 julia> dynkin_quiver("D", 4)
-Dynkin quiver of type D4, with adjacency matrix [0 1 0 0; 0 0 1 1; 0 0 0 0; 0 0 0 0]
+Dynkin quiver of type D4
 ```
 """
 function dynkin_quiver(type::String, n::Int)
@@ -208,7 +208,7 @@ Construct the cyclic quiver on `n` vertices.
 
 ```jldoctest
 julia> cyclic_quiver(4)
-cyclic quiver on 4 vertices, with adjacency matrix [0 1 0 0; 0 0 1 0; 0 0 0 1; 1 0 0 0]
+cyclic quiver on 4 vertices
 ```
 """
 function cyclic_quiver(n::Int)
@@ -282,10 +282,10 @@ The quiver with the same vertices and reversed arrows.
 
 ```jldoctest
 julia> Q = kronecker_quiver()
-2-Kronecker quiver, with adjacency matrix [0 2; 0 0]
+2-Kronecker quiver
 
 julia> opposite_quiver(Q)
-opposite of 2-Kronecker quiver, with adjacency matrix [0 0; 2 0]
+opposite of 2-Kronecker quiver
 ```
 """
 opposite_quiver(Q::Quiver) =
@@ -307,7 +307,7 @@ of the adjacency matrix.
 julia> Q = kronecker_quiver();
 
 julia> double_quiver(Q)
-double of 2-Kronecker quiver, with adjacency matrix [0 2; 2 0]
+double of 2-Kronecker quiver
 ```
 """
 double_quiver(Q::Quiver) =
@@ -323,7 +323,7 @@ Construct the Kronecker moduli space with `m` vertices and dimension vector `(d,
 ```jldoctest
 julia> kronecker_moduli(3, 2, 3)
 Quiver moduli space defined as follows:
- - quiver: 3-Kronecker quiver, with adjacency matrix [0 3; 0 0]
+ - quiver: 3-Kronecker quiver
  - dimension vector: [2, 3]
  - stability parameter: [9, -6]
  - condition: semistable
@@ -337,7 +337,7 @@ kronecker_moduli(m::Int, d::Int, e::Int) = QuiverModuliSpace(kronecker_quiver(m)
 Construct the subspace quiver moduli space for `m` points on ℙᵈ⁻¹
 julia> subspace_quiver_moduli(3, 2, 3)
 Quiver moduli space defined as follows:
- - quiver: 5-subspace quiver, with adjacency matrix [0 0 0 0 0 1; 0 0 0 0 0 1; 0 0 0 0 0 1; 0 0 0 0 0 1; 0 0 0 0 0 1; 0 0 0 0 0 0]
+ - quiver: 5-subspace quiver
  - dimension vector: [1, 1, 1, 1, 1, 2]
  - stability parameter: [2, 2, 2, 2, 2, -5]
  - condition: semistable

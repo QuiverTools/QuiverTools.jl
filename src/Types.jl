@@ -83,10 +83,10 @@ hash(Q::Quiver) = hash(Q.adjacency)
 function show(io::IO, Q::Quiver)
   if Q.name == ""
     print(io, "Quiver with adjacency matrix ")
+    print(io, Q.adjacency)
   else
-    print(io, Q.name * ", with adjacency matrix ")
+    print(io, Q.name)
   end
-  print(io, Q.adjacency)
 end
 
 """
