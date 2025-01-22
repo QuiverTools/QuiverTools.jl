@@ -13,6 +13,12 @@ QuiverModuli
 QuiverModuliSpace
 QuiverModuliStack
 ```
+We also have some basic constructors for well-known quiver moduli:
+
+```@docs
+kronecker_moduli
+subspace_quiver_moduli
+```
 
 Black-box methods are provided to study some of their properties.
 
