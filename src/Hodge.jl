@@ -172,9 +172,7 @@ function hodge_polynomial(
 
   # @warn "result needs to be a polynomial, otherwise the moduli space is singular."
   solution = solve(T, one_at_the_end)[1] * (1 - v)
-  if denominator(solution) != 1
-    throw(DomainError("Moduli space is singular!"))
-  end
+  denominator(solution) != 1 && throw(DomainError("Moduli space is singular!"))
   result = numerator(solution)
 
   S, (x, y) = polynomial_ring(Singular.QQ, ["x", "y"])
@@ -324,9 +322,8 @@ julia> picard_rank(M)
 ```
 """
 function picard_rank(M::QuiverModuliSpace)
-  if !(is_smooth(M) && is_projective(M))
+  !(is_smooth(M) && is_projective(M)) &&
     throw(ArgumentError("Moduli space is not smooth and projective"))
-  end
   return betti_numbers(M)[3]
 end
 
@@ -429,9 +426,7 @@ julia> betti_numbers(M)
 ```
 """
 function betti_numbers(M::QuiverModuliSpace)
-  if !is_coprime(M.d, M.theta)
-    throw(ArgumentError("d and theta are not coprime"))
-  end
+  !is_coprime(M.d, M.theta) && throw(ArgumentError("d and theta are not coprime"))
 
   N = dimension(M)
   P = poincare_polynomial(M)
@@ -483,17 +478,13 @@ L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1
 ```
 """
 function poincare_polynomial(M::QuiverModuliSpace)
-  if !is_coprime(M.d, M.theta)
-    throw(ArgumentError("d and theta are not coprime"))
-  end
+  !is_coprime(M.d, M.theta) && throw(ArgumentError("d and theta are not coprime"))
 
   m = motive(M.Q, M.d, M.theta, M.denom)
   v = Singular.transcendence_basis(Singular.parent(m))[1]
   P = (1 - v) * m
 
-  if denominator(P) != 1
-    throw(DomainError("must be a polynomial"))
-  end
+  denominator(P) != 1 && throw(DomainError("must be a polynomial"))
   # returns a polynomial object instead of a FunctionField element.
   return Singular.n_transExt_to_spoly(numerator(P))
 end
@@ -507,9 +498,7 @@ function power(x, n::Int)
 end
 
 function motive(M::QuiverModuliStack)
-  if M.condition != "stable"
-    throw(ArgumentError("Motive unknown if not stable"))
-  end
+  M.condition != "stable" && throw(ArgumentError("Motive unknown if not stable"))
   return motive(M.Q, M.d, M.theta)
 end
 
@@ -562,7 +551,7 @@ function motive(
   ds = filter(e -> slope(e, theta, denom) > slope(d, theta, denom), ds)
 
   push!(ds, zero_vector(Q), d)
-  sort!(ds; by=e -> deglex_key(Q, e)) #hopefully
+  sort!(ds; by=e -> deglex_key(Q, e))
 
   T = Matrix{Any}(undef, length(ds), length(ds))
   for (i, j) in Iterators.product(1:length(ds), 1:length(ds))
