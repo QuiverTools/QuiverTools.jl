@@ -385,33 +385,31 @@ function Bundle(parent::ChowRing, chern_character::Singular.spoly{Singular.n_Q})
   setfield!(bundle, :chern_character, chern_character)
   return bundle
 end
-# TODO why `char` here, and not `character` or `chern_character` as above?
-function Bundle(parent::ChowRing, char::Int)
+
+function Bundle(parent::ChowRing, chern_character::Int)
   CH = parent.ring
   bundle = Bundle()
   setfield!(bundle, :parent, parent)
-  setfield!(bundle, :rank, char)
-  setfield!(bundle, :chern_character, CH(char))
+  setfield!(bundle, :rank, chern_character)
+  setfield!(bundle, :chern_character, CH(chern_character))
   return bundle
 end
 
-# TODO why `char` here, and not `character` or `chern_character` as above?
-function Bundle(M::QuiverModuliSpace, char::Int)
+function Bundle(M::QuiverModuliSpace, chern_character::Int)
   bundle = Bundle()
   setfield!(bundle, :parent, M.chow)
-  setfield!(bundle, :rank, char)
-  setfield!(bundle, :chern_character, M.chow.ring(char))
+  setfield!(bundle, :rank, chern_character)
+  setfield!(bundle, :chern_character, M.chow.ring(chern_character))
   return bundle
 end
 
-# TODO why `char` here, and not `character` or `chern_character` as above?
-function Bundle(M::QuiverModuliSpace, char::Singular.spoly{Singular.n_Q})
+function Bundle(M::QuiverModuliSpace, chern_character::Singular.spoly{Singular.n_Q})
   bundle = Bundle()
   setfield!(bundle, :parent, M.chow)
-  r = constant_coefficient(char)
+  r = constant_coefficient(chern_character)
   denominator(r) != 1 && throw(DomainError("Incorrect Chern character."))
   setfield!(bundle, :rank, Int(Singular.numerator(r)))
-  setfield!(bundle, :chern_character, char)
+  setfield!(bundle, :chern_character, chern_character)
   return bundle
 end
 
@@ -478,7 +476,7 @@ end
 
 function show(io::IO, L::LunaType)
   print(io, "Dict(")
-  # TODO chiavi = keys?
+  # TODO chiavi = keys? yes, 'keys' is a function name though
   chiavi = collect(keys(L.data))
   l = length(chiavi)
   for i in 1:(l - 1)
@@ -491,8 +489,8 @@ end
 ==(L::LunaType, x::Dict{<:AbstractVector{Int},Vector{Int}}) = L.data == x
 hash(L::LunaType) = hash(L.data)
 length(L::LunaType) = length(L.data)
-Base.getindex(L::LunaType, i) = getindex(L.data, i)
-Base.iterate(L::LunaType) = iterate(L.data)
-Base.iterate(L::LunaType, i) = iterate(L.data, i)
-Base.getindex(L::LunaType, i::Int) = getindex(L.data, i)
+getindex(L::LunaType, i) = getindex(L.data, i)
+iterate(L::LunaType) = iterate(L.data)
+iterate(L::LunaType, i) = iterate(L.data, i)
+getindex(L::LunaType, i::Int) = getindex(L.data, i)
 keys(L::LunaType) = keys(L.data)
