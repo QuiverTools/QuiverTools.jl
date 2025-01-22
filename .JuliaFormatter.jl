@@ -1,12 +1,18 @@
 using JuliaFormatter
 
 files = [
-  "src/QuiverTools.jl",
-  "src/Types.jl",
-  "src/Teleman.jl",
-  "src/Moduli.jl",
-  "src/Constructors.jl",
   "src/Bundles.jl",
+  "src/Chow.jl",
+  "src/Constructors.jl",
+  "src/Hodge.jl",
+  "src/Misc.jl",
+  "src/Moduli.jl",
+  "src/Quivers.jl",
+  "src/QuiverTools.jl",
+  "src/RepresentationTheory.jl",
+  "src/Stability.jl",
+  "src/Teleman.jl",
+  "src/Types.jl",
   "docs/docs.jl",
   "benchmark/benchmarks.jl",
   "test/runtests.jl",
