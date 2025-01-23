@@ -3,6 +3,17 @@
 ######################################################################
 
 """
+    weights_hn_type(hntype::HNType, theta::AbstractVector{Int}, denom::Function=sum)
+
+Compute the weights of the 1-PS corresponding to `hn_type` for the slope function
+`theta`/`denom`.
+"""
+function weights_hn_type(hntype::HNType, theta::AbstractVector{Int}, denom::Function=sum)
+  k_weights = map(h -> slope(h, theta, denom), hntype)
+  return Int.(lcm(denominator.(k_weights)) .* k_weights)
+end
+
+"""
     teleman_bound_on_stratum(Q::Quiver, hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)
 
 Compute the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS ``\\lambda``
@@ -29,13 +40,10 @@ function teleman_bound_on_stratum(
   ell == 1 &&
     throw(ArgumentError("Weight not defined on the dense stratum"))
 
-  slopes = map(h -> slope(h, theta, denom), hn_type)
-  slopes = lcm(denominator.(slopes)) .* slopes
-  return Int(
-    sum(
-      (slopes[t] - slopes[s]) * euler_form(Q, hn_type[s], hn_type[t])
-      for s in 1:(ell - 1) for t in (s + 1):ell
-    ),
+  k_weights = weights_hn_type(hn_type, theta, denom)
+  return sum(
+    (k_weights[t] - k_weights[s]) * euler_form(Q, hn_type[s], hn_type[t])
+    for s in 1:(ell - 1) for t in (s + 1):ell
   )
 end
 
@@ -136,7 +144,6 @@ Dict{HNType{3}, Int64} with 24 entries:
 function teleman_bounds(M::QuiverModuli)
   return teleman_bounds(M.Q, M.d, M.theta, M.denom)
 end
-end
 
 """
     weights_universal_bundle_on_stratum(hn_type::HNType, i::Int, theta::AbstractVector{Int}, denom::Function=sum; chi::AbstractVector{Int})
@@ -153,14 +160,13 @@ function weights_universal_bundle_on_stratum(
   chi::AbstractVector{Int},
 )
   ell = length(hn_type)
-  slopes = map(h -> slope(h, theta, denom), hn_type)
-  constant_term = sum(slopes[s] * (chi' * hn_type[s]) for s in 1:ell)
-  den = lcm(denominator.(slopes))
+  k_weights = weights_hn_type(hn_type, theta, denom)
+  constant_term = sum(k_weights[s] * (chi' * hn_type[s]) for s in 1:ell)
 
-  slopes_mult = reduce(
-    vcat, [slopes[s] for _ in 1:hn_type[s][i]] for s in 1:ell
+  weights_mult = reduce(
+    vcat, [k_weights[s] for _ in 1:hn_type[s][i]] for s in 1:ell
   )
-  return Int.(den .* (-constant_term .+ slopes_mult))
+  return -constant_term .+ weights_mult
 end
 
 """
@@ -290,20 +296,17 @@ Compute the Teleman weight of ``\\omega_R|_Z``
 on the Harder-Narasimhan stratum `hn_type`.
 
 """
-function weight_canonical_on_stratum(
+function weight_canonical_on_stratum( # TODO refactor with line bundle method
   Q::Quiver,
   d::AbstractVector{Int},
   hn_type::HNType,
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  kweights = map(di -> slope(di, theta, denom), hn_type)
-  kweights = kweights * lcm(denominator.(kweights))
+  k_weights = weights_hn_type(hn_type, theta, denom)
+  dd = sum(k_weights[m] .* hn_type[m] for m in 1:length(hn_type))
 
-  dd = sum(kweights[m] .* hn_type[m] for m in 1:length(hn_type))
-  can = canonical_stability(Q, d)
-  # can /= gcd(can) # for irreducible component
-  return [Int(can' * dd)]
+  return [dd' * canonical_stability(Q, d)]
 end
 
 """
@@ -415,8 +418,7 @@ function weights_endomorphism_universal_bundle_on_stratum(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  kweights = map(di -> slope(di, theta, denom), hn_type)
-  kweights = kweights * lcm(denominator.(kweights))
+  kweights = weights_hn_type(hn_type, theta, denom)
   return [
     Int(kweights[i] - kweights[j]) for i in 1:length(hn_type) for j in 1:length(hn_type)
   ]
@@ -508,12 +510,11 @@ function weights_endomorphisms_universal_bundles_on_stratum(
   denom::Function=sum,
 )
   ell = length(hn_type)
-  slopes = map(h -> slope(h, theta, denom), hn_type)
-  slopes = Int.(lcm(denominator.(slopes)) .* slopes)
+  k_weights = weights_hn_type(hn_type, theta, denom)
 
   return reduce(
     vcat,
-    Int[slopes[t] - slopes[s] for _ in 1:(hn_type[s][i] * hn_type[t][j])]
+    Int[k_weights[t] - k_weights[s] for _ in 1:(hn_type[s][i] * hn_type[t][j])]
     for s in 1:ell for t in 1:ell
   )
 end
