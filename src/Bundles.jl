@@ -497,6 +497,31 @@ Construct the descent of `L(eta)` on the quiver moduli space `M`.
 # Output
 
 - the line bundle on `M` with Chern class `chern_class_line_bundle(M, eta)`.
+
+# Examples
+
+The ample generator of the Picard group of our favourite 6-fold:
+
+```jldoctest
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> chow_ring(M; chi=[-1, 1]);
+
+julia> H = line_bundle(M, [3, -2]);
+
+julia> chern_class(H)
+-x21
+
+julia> teleman_weights(H)
+Dict{HNType{2}, Vector{Int64}} with 7 entries:
+  [[2, 2], [0, 1]]         => [-30]
+  [[2, 1], [0, 2]]         => [-40]
+  [[1, 0], [1, 2], [0, 1]] => [-40]
+  [[1, 0], [1, 3]]         => [-135]
+  [[1, 0], [1, 1], [0, 2]] => [-105]
+  [[1, 1], [1, 2]]         => [-5]
+  [[2, 0], [0, 3]]         => [-90]
+```
 """
 function line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
   eta' * M.d != 0 && throw(ArgumentError("$(eta) is not a linearization."))
