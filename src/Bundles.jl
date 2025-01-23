@@ -650,7 +650,7 @@ function universal_bundle(M::QuiverModuliSpace, i::Int)
   cl = total_chern_class_universal(M, i)
   new = Bundle(M, M.d[i], cl)
 
-  weights = all_weights_universal_bundle(M, i)
+  weights = weights_universal_bundle(M, i)
   return set_teleman_weights!(new, weights)
 end
 

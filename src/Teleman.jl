@@ -408,8 +408,8 @@ end
 """
     weights_endomorphism_universal_bundle_on_stratum(hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)
 
-Compute the weights of the endomorphism of the universal bundle ``U_i \\otimes U_j``
-on the given Harder-Narasimhan stratum for the 1-PS relative to the HN type.
+Compute all the weights that can occur in ``U^{\\vee} \\otimes U``
+on the given Harder-Narasimhan stratum.
 
 """
 function weights_endomorphism_universal_bundle_on_stratum(
@@ -427,8 +427,8 @@ end
 """
     weights_endomorphism_universal_bundle_on_stratum(M::QuiverModuli, hn_type::HNType)
 
-Compute the weights of the endomorphism of the universal bundle ``U_i \\otimes U_j``
-on the given Harder-Narasimhan stratum for the 1-PS relative to the HN type.
+Compute all the weights that can occur in ``U^{\\vee} \\otimes U``
+on the given Harder-Narasimhan stratum.
 
 """
 function weights_endomorphism_universal_bundle_on_stratum(
@@ -441,8 +441,8 @@ end
 """
     all_weights_endomorphisms_universal_bundle(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
 
-Compute the weights of the endomorphisms of the universal bundles ``U_i \\otimes U_j``
-on all the non-dense Harder-Narasimhan strata for each 1-PS relative to the HN type.
+Compute all the weights that can occur in ``U^{\\vee} \\otimes U``
+on the given Harder-Narasimhan stratum.
 
 """
 function all_weights_endomorphisms_universal_bundle(
@@ -490,6 +490,61 @@ end
 
 # methods above shall be obsolete
 ##########################
+
+#####################################################
+# These return the correct multiplicities for weights.
+# They can be used when Teleman fails for all of the pairs, but still holds for most.
+#####################################################
+
+"""
+    weights_endomorphisms_universal_bundles_on_stratum(i::Int, j::Int, hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)
+
+Compute the weights of ``U_i^{\\vee} \\otimes U_j`` on `hn_type` for the slope `theta`/`denom`,
+with the correct multiplicities.
+"""
+function weights_endomorphisms_universal_bundles_on_stratum(
+  i::Int,
+  j::Int,
+  hn_type::HNType,
+  theta::AbstractVector{Int},
+  denom::Function=sum,
+)
+  ell = length(hn_type)
+  slopes = map(h -> slope(h, theta, denom), hn_type)
+  slopes = Int.(lcm(denominator.(slopes)) .* slopes)
+
+  return reduce(
+    vcat,
+    Int[slopes[t] - slopes[s] for _ in 1:(hn_type[s][i] * hn_type[t][j])]
+    for s in 1:ell for t in 1:ell
+  )
+end
+
+function weights_endomorphisms_universal_bundles(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  i::Int,
+  j::Int,
+  theta::AbstractVector{Int},
+  denom::Function=sum,
+)
+  hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
+  return Dict(
+    hn_type =>
+      weights_endomorphisms_universal_bundles_on_stratum(i, j, hn_type, theta, denom)
+    for hn_type in hn_types
+  )
+end
+
+function weights_endomorphisms_universal_bundles(
+  M::QuiverModuli,
+  i::Int,
+  j::Int,
+)
+  return weights_endomorphisms_universal_bundles(
+    M.Q, M.d, i, j, M.theta, M.denom
+  )
+end
 
 """
     does_rigidity_inequality_hold(M::QuiverModuli)

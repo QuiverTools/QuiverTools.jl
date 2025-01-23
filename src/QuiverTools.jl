@@ -57,8 +57,8 @@ export chow_ring, motive, index, betti_numbers, poincare_polynomial, is_smooth,
   chern_character_line_bundle, total_chern_class_universal, integral
 
 # Teleman
-export all_teleman_bounds, all_weights_universal_bundle,
-  all_weights_irreducible_component_canonical, all_weights_endomorphisms_universal_bundle,
+export teleman_bounds, weights_universal_bundle, weights_canonical_bundle,
+  all_weights_endomorphisms_universal_bundle, weights_endomorphisms_universal_bundles,
   does_rigidity_inequality_hold, set_teleman_weights!
 
 # Bundles
