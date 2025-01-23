@@ -14,6 +14,47 @@ function weights_hn_type(hntype::HNType, theta::AbstractVector{Int}, denom::Func
 end
 
 """
+    weight_line_bundle_on_stratum(hn_type::HNType, eta::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
+
+Compute the weight on `hn_type` of the line bundle with linearization `eta`.
+"""
+function weight_line_bundle_on_stratum(
+  hn_type::HNType,
+  eta::AbstractVector{Int},
+  theta::AbstractVector{Int},
+  denom::Function=sum,
+)
+  k_weights = weights_hn_type(hn_type, theta, denom)
+  return [-eta' * sum(k_weights[m] .* hn_type[m] for m in 1:length(hn_type))]
+end
+
+"""
+    weights_line_bundle(Q::Quiver, d::AbstractVector{Int}, eta::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
+
+Compute the Teleman weights on the line bundle given by the linearization `eta`.
+"""
+function weights_line_bundle(Q::Quiver,
+  d::AbstractVector{Int},
+  eta::AbstractVector{Int},
+  theta::AbstractVector{Int},
+  denom::Function=sum,
+)
+  hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
+  return Dict(
+    hn_type => weight_line_bundle_on_stratum(hn_type, eta, theta, denom) for
+    hn_type in hn_types
+  )
+end
+
+function weights_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
+  hn_types = all_hn_types(M.Q, M.d, M.theta, M.denom; unstable=true)
+  return Dict(
+    hn_type => weight_line_bundle_on_stratum(hn_type, eta, M.theta, M.denom) for
+    hn_type in hn_types
+  )
+end
+
+"""
     teleman_bound_on_stratum(Q::Quiver, hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)
 
 Compute the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS ``\\lambda``
@@ -296,17 +337,14 @@ Compute the Teleman weight of ``\\omega_R|_Z``
 on the Harder-Narasimhan stratum `hn_type`.
 
 """
-function weight_canonical_on_stratum( # TODO refactor with line bundle method
+function weight_canonical_on_stratum(
   Q::Quiver,
   d::AbstractVector{Int},
   hn_type::HNType,
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  k_weights = weights_hn_type(hn_type, theta, denom)
-  dd = sum(k_weights[m] .* hn_type[m] for m in 1:length(hn_type))
-
-  return [dd' * canonical_stability(Q, d)]
+  return weight_line_bundle_on_stratum(hn_type, -canonical_stability(Q, d), theta, denom)
 end
 
 """
@@ -360,12 +398,7 @@ function weights_canonical_bundle(
 )
   !(is_coprime(d, theta) && is_amply_stable(Q, d, theta)) &&
     throw(ArgumentError("$(d) is not $(theta)-coprime and amply stable."))
-  hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
-  return Dict(
-    hn_type =>
-      weight_canonical_on_stratum(Q, d, hn_type, theta, denom)
-    for hn_type in hn_types
-  )
+  return weights_line_bundle(Q, d, -canonical_stability(Q, d), theta, denom)
 end
 
 """
