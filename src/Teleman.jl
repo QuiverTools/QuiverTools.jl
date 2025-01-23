@@ -164,7 +164,7 @@ function weights_universal_bundle_on_stratum(
 end
 
 """
-    all_weights_universal_bundle(Q::Quiver, d::AbstractVector{Int}, i::Int, theta::AbstractVector{Int}, denom::Function=sum; chi::AbstractVector{Int})
+    weights_universal_bundle(Q::Quiver, d::AbstractVector{Int}, i::Int, theta::AbstractVector{Int}, denom::Function=sum; chi::AbstractVector{Int})
 
 Compute the Teleman weights of the universal bundle ``U_i(chi)``
 for the linearization ``chi`` on all the non-dense Harder-Narasimhan strata.
@@ -185,7 +185,7 @@ Keyword arguments:
 
 A dictionary with the weights of the universal bundle on each stratum.
 """
-function all_weights_universal_bundle(
+function weights_universal_bundle(
   Q::Quiver,
   d::AbstractVector{Int},
   i::Int,
@@ -204,7 +204,7 @@ function all_weights_universal_bundle(
 end
 
 """
-    all_weights_universal_bundle(M::QuiverModuli, i::Int; chi::Union{AbstractVector{Int},UndefInitializer}=undef)
+    weights_universal_bundle(M::QuiverModuli, i::Int; chi::Union{AbstractVector{Int},UndefInitializer}=undef)
 
 Compute the Teleman weights of the universal bundle ``U_i(chi)``
 for the linearization `chi` on all the non-dense Harder-Narasimhan strata.
@@ -228,7 +228,7 @@ The weights of the universal bundles on our favourite 6-fold:
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> all_weights_universal_bundle(M, 1; chi=[2, -1])
+julia> weights_universal_bundle(M, 1; chi=[2, -1])
 Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [-15, -15]
   [[2, 1], [0, 2]]         => [-20, -20]
@@ -245,7 +245,7 @@ defaults to `extended_gcd(M.d)[2]` if not defined.
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> all_weights_universal_bundle(M, 1)
+julia> weights_universal_bundle(M, 1)
 Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [15, 15]
   [[2, 1], [0, 2]]         => [20, 20]
@@ -257,7 +257,7 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
 
 julia> QuiverTools.set_linearization!(M, [-4, 3]);
 
-julia> all_weights_universal_bundle(M, 1)
+julia> weights_universal_bundle(M, 1)
 Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [45, 45]
   [[2, 1], [0, 2]]         => [60, 60]
@@ -268,7 +268,7 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [135, 135]
 ```
 """
-function all_weights_universal_bundle(
+function weights_universal_bundle(
   M::QuiverModuli,
   i::Int;
   chi::Union{AbstractVector{Int},UndefInitializer}=undef,
@@ -276,10 +276,10 @@ function all_weights_universal_bundle(
   # chi is provided => use it but DO NOT change the one in M.chow.
   # chi is not provided => use M.chow.chi if defined, and a default one if not.
   chi != undef &&
-    return all_weights_universal_bundle(M.Q, M.d, i, M.theta, M.denom; chi=chi)
+    return weights_universal_bundle(M.Q, M.d, i, M.theta, M.denom; chi=chi)
 
   chi = isdefined(M.chow, :chi) ? linearization(M) : extended_gcd(M.d)[2]
-  return all_weights_universal_bundle(M.Q, M.d, i, M.theta, M.denom; chi=chi)
+  return weights_universal_bundle(M.Q, M.d, i, M.theta, M.denom; chi=chi)
 end
 
 """
@@ -534,7 +534,7 @@ false
 ```
 """
 function does_rigidity_inequality_hold(M::QuiverModuli)
-  bounds = all_teleman_bounds(M.Q, M.d, M.theta)
+  bounds = teleman_bounds(M.Q, M.d, M.theta)
   weights = all_weights_endomorphisms_universal_bundle(M.Q, M.d, M.theta)
   return all(maximum(weights[hn]) < bounds[hn] for hn in collect(keys(bounds)))
 end
