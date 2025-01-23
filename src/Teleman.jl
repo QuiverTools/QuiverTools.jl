@@ -44,7 +44,7 @@ function teleman_bound_on_stratum(M::QuiverModuli, hn_type::HNType)
 end
 
 """
-    all_teleman_bounds(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
+    teleman_bounds(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
 
 Compute the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
 HN type for the given `Q`, `d`, `\\theta` and `denom`.
@@ -65,7 +65,7 @@ A dictionary with the weights of the 1-PS corresponding to each HN type.
 ```jldoctest
 julia> Q = kronecker_quiver(3);
 
-julia> all_teleman_bounds(Q, [2, 3], [3, -2])
+julia> teleman_bounds(Q, [2, 3], [3, -2])
 Dict{HNType{2}, Int64} with 7 entries:
   [[2, 2], [0, 1]]         => 20
   [[2, 1], [0, 2]]         => 100
@@ -76,7 +76,7 @@ Dict{HNType{2}, Int64} with 7 entries:
   [[2, 0], [0, 3]]         => 90
 ```
 """
-function all_teleman_bounds(
+function teleman_bounds(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int},
@@ -89,7 +89,7 @@ function all_teleman_bounds(
 end
 
 """
-    all_teleman_bounds(M::QuiverModuli)
+    teleman_bounds(M::QuiverModuli)
 
 Compute the weight on ``\\det(N_{S/R}|_Z)`` of the 1-PS corresponding to each
 HN type for the datum of `M`.
@@ -109,7 +109,7 @@ julia> Q = three_vertex_quiver(1, 2, 3); d = [3, 1, 2]; theta = [5, 3, -9];
 
 julia> M = QuiverModuliSpace(Q, d, theta);
 
-julia> all_teleman_bounds(M)
+julia> teleman_bounds(M)
 Dict{HNType{3}, Int64} with 24 entries:
   [[2, 1, 1], [1, 0, 1]]                       => 12
   [[1, 0, 0], [0, 1, 0], [2, 0, 1], [0, 0, 1]] => 306
@@ -133,8 +133,9 @@ Dict{HNType{3}, Int64} with 24 entries:
   ⋮                                            => ⋮
 ```
 """
-function all_teleman_bounds(M::QuiverModuli)
-  return all_teleman_bounds(M.Q, M.d, M.theta, M.denom)
+function teleman_bounds(M::QuiverModuli)
+  return teleman_bounds(M.Q, M.d, M.theta, M.denom)
+end
 end
 
 """
