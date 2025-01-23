@@ -485,6 +485,26 @@ function simplify!(f::Singular.spoly{Singular.n_Q})
 end
 
 """
+    line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
+
+Construct the descent of `L(eta)` on the quiver moduli space `M`.
+
+# Input
+
+- `M::QuiverModuliSpace`: a quiver moduli space.
+- `eta::AbstractVector{Int}`: a dimension vector.
+
+# Output
+
+- the line bundle on `M` with Chern class `chern_class_line_bundle(M, eta)`.
+"""
+function line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
+  eta' * M.d != 0 && throw(ArgumentError("$(eta) is not a linearization."))
+  new = Bundle(M, 1, chern_class_line_bundle(M, eta))
+  return set_teleman_weights!(new, weights_line_bundle(M, eta))
+end
+
+"""
     canonical_bundle(M::QuiverModuliSpace)
 
 Compute the canonical bundle on the quiver moduli space `M`.
@@ -557,9 +577,7 @@ function canonical_bundle(M::QuiverModuliSpace)
         "not coprime and amply stable, cannot compute the canonical bundle."
       ),
     )
-  cl_omega = chern_class_line_bundle(M, -canonical_stability(M.Q, M.d))
-  new = Bundle(M, 1, cl_omega)
-  return set_teleman_weights!(new, weights_canonical_bundle(M))
+  return line_bundle(M, -canonical_stability(M.Q, M.d))
 end
 
 """

@@ -63,7 +63,8 @@ export teleman_bounds, weights_universal_bundle, weights_canonical_bundle,
 
 # Bundles
 export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
-  det, canonical_bundle, universal_bundle, degree, rank, teleman_weights, structure_sheaf
+  det, line_bundle, canonical_bundle, universal_bundle, degree, rank, teleman_weights,
+  structure_sheaf
 
 # TODO add missing doctests across codebase
 # TODO add safety checks everywhere in the codebase
