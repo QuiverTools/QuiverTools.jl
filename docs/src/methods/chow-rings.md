@@ -40,6 +40,20 @@ rank
 teleman_weights
 ```
 
+A line bundle descending from a linearization above can be computed.
+
+```@docs
+line_bundle
+```
+
+Some special bundles can be computed out of the box.
+
+```@docs
+structure_sheaf
+canonical_bundle
+universal_bundle
+```
+
 ## Tensor calculus
 
 ```@docs
@@ -47,11 +61,4 @@ dual
 exterior_power
 symmetric_power
 det
-```
-Some special bundles can be computed out of the box.
-
-```@docs
-structure_sheaf
-canonical_bundle
-universal_bundle
 ```
