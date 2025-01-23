@@ -282,6 +282,7 @@ function weights_universal_bundle(
   return weights_universal_bundle(M.Q, M.d, i, M.theta, M.denom; chi=chi)
 end
 
+# TODO implement irreducible component as well.
 """
     weight_canonical_on_stratum(Q::Quiver, d::AbstractVector{Int}, hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)
 
@@ -367,11 +368,8 @@ end
 """
     weights_canonical_bundle(M::QuiverModuliSpace)
 
-Compute the Teleman weights of the irreducible component of ``\\omega_R|_Z``
+Compute the Teleman weights of ``\\omega_R|_Z``
 on all the non-dense Harder-Narasimhan strata.
-
-More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullback of
-``\\mathcal{O}(H)`` on each stratum.
 
 # Input
 
@@ -379,23 +377,23 @@ More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullb
 
 # Output
 
-A dictionary with the weights of ``\\mathcal{O}(H)`` on each stratum.
+A dictionary with the weights of ``\\omega_{R}|_{Z}`` on each stratum ``Z``.
 
 # Example
 
-The irreducible component of the canonical bundle of our favourite 6-fold:
+The canonical bundle of our favourite 6-fold:
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> weights_canonical_bundle(M)
 Dict{HNType{2}, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [30]
-  [[2, 1], [0, 2]]         => [40]
-  [[1, 0], [1, 2], [0, 1]] => [40]
-  [[1, 0], [1, 3]]         => [135]
-  [[1, 0], [1, 1], [0, 2]] => [105]
-  [[1, 1], [1, 2]]         => [5]
-  [[2, 0], [0, 3]]         => [90]
+  [[2, 2], [0, 1]]         => [90]
+  [[2, 1], [0, 2]]         => [120]
+  [[1, 0], [1, 2], [0, 1]] => [120]
+  [[1, 0], [1, 3]]         => [405]
+  [[1, 0], [1, 1], [0, 2]] => [315]
+  [[1, 1], [1, 2]]         => [15]
+  [[2, 0], [0, 3]]         => [270]
 ```
 """
 function weights_canonical_bundle(M::QuiverModuliSpace)
