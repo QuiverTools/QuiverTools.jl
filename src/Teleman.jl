@@ -552,6 +552,9 @@ function weights_endomorphisms_universal_bundles_on_stratum(
   )
 end
 
+"""
+    weights_endomorphisms_universal_bundles(Q::Quiver, d::AbstractVector{Int}, i::Int, j::Int, theta::AbstractVector{Int}, denom::Function=sum)
+"""
 function weights_endomorphisms_universal_bundles(
   Q::Quiver,
   d::AbstractVector{Int},
@@ -568,6 +571,9 @@ function weights_endomorphisms_universal_bundles(
   )
 end
 
+"""
+    weights_endomorphisms_universal_bundles(M::QuiverModuli, i::Int, j::Int)
+"""
 function weights_endomorphisms_universal_bundles(
   M::QuiverModuli,
   i::Int,
