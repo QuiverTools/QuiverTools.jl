@@ -283,16 +283,13 @@ function weights_universal_bundle(
 end
 
 """
-    weight_irreducible_component_canonical_on_stratum(Q::Quiver, d::AbstractVector{Int}, hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)
+    weight_canonical_on_stratum(Q::Quiver, d::AbstractVector{Int}, hn_type::HNType, theta::AbstractVector{Int}, denom::Function=sum)
 
-Compute the Teleman weight of the irreducible component of ``\\omega_R|_Z``
+Compute the Teleman weight of ``\\omega_R|_Z``
 on the Harder-Narasimhan stratum `hn_type`.
 
-More explicitly, if ``\\omega_X = \\mathcal{O}(rH)``, this returns the weight of
-the pullback of O(H) on the given stratum.
-
 """
-function weight_irreducible_component_canonical_on_stratum(
+function weight_canonical_on_stratum(
   Q::Quiver,
   d::AbstractVector{Int},
   hn_type::HNType,
@@ -304,7 +301,7 @@ function weight_irreducible_component_canonical_on_stratum(
 
   dd = sum(kweights[m] .* hn_type[m] for m in 1:length(hn_type))
   can = canonical_stability(Q, d)
-  can /= gcd(can)
+  # can /= gcd(can) # for irreducible component
   return [Int(can' * dd)]
 end
 
@@ -318,11 +315,11 @@ More explicitly, if ``\\omega_X = \\mathcal{O}(rH)``, this returns the weight of
 the pullback of O(H) on the given stratum.
 
 """
-function weight_irreducible_component_canonical_on_stratum(
+function weight_canonical_on_stratum(
   M::QuiverModuli,
   hn_type::HNType,
 )
-  return weight_irreducible_component_canonical_on_stratum(
+  return weight_canonical_on_stratum(
     M.Q,
     M.d,
     hn_type,
@@ -332,7 +329,7 @@ function weight_irreducible_component_canonical_on_stratum(
 end
 
 """
-    all_weights_irreducible_component_canonical(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
+    weights_canonical_bundle(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
 
 Compute the Teleman weights of the irreducible component of ``\\omega_R|_Z``
 on all the non-dense Harder-Narasimhan strata.
@@ -351,7 +348,7 @@ More explicitly, if ``\\omega_X = O(rH)``, this returns the weights of the pullb
 
 A dictionary with the weights of the irreducible component of the canonical bundle on each stratum.
 """
-function all_weights_irreducible_component_canonical(
+function weights_canonical_bundle(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int},
@@ -362,13 +359,13 @@ function all_weights_irreducible_component_canonical(
   hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type =>
-      weight_irreducible_component_canonical_on_stratum(Q, d, hn_type, theta, denom)
+      weight_canonical_on_stratum(Q, d, hn_type, theta, denom)
     for hn_type in hn_types
   )
 end
 
 """
-    all_weights_irreducible_component_canonical(M::QuiverModuliSpace)
+    weights_canonical_bundle(M::QuiverModuliSpace)
 
 Compute the Teleman weights of the irreducible component of ``\\omega_R|_Z``
 on all the non-dense Harder-Narasimhan strata.
@@ -390,7 +387,7 @@ The irreducible component of the canonical bundle of our favourite 6-fold:
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> all_weights_irreducible_component_canonical(M)
+julia> weights_canonical_bundle(M)
 Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [30]
   [[2, 1], [0, 2]]         => [40]
@@ -401,8 +398,8 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [90]
 ```
 """
-function all_weights_irreducible_component_canonical(M::QuiverModuliSpace)
-  return all_weights_irreducible_component_canonical(M.Q, M.d, M.theta, M.denom)
+function weights_canonical_bundle(M::QuiverModuliSpace)
+  return weights_canonical_bundle(M.Q, M.d, M.theta, M.denom)
 end
 
 ########################

@@ -559,13 +559,7 @@ function canonical_bundle(M::QuiverModuliSpace)
     )
   cl_omega = chern_class_line_bundle(M, -canonical_stability(M.Q, M.d))
   new = Bundle(M, 1, cl_omega)
-
-  r = index(M)
-  weights = all_weights_irreducible_component_canonical(M)
-  for hn in keys(weights)
-    weights[hn] *= r
-  end
-  return set_teleman_weights!(new, weights)
+  return set_teleman_weights!(new, weights_canonical_bundle(M))
 end
 
 """
