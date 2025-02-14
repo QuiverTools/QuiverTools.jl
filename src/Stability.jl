@@ -726,6 +726,6 @@ function is_amply_stable(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
+  hn_types = all_hn_types(Q, d, theta, denom; unstable=true, ordered=false)
   return all(stratum -> codimension_hn_stratum(Q, stratum) >= 2, hn_types)
 end
