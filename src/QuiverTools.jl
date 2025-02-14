@@ -11,7 +11,7 @@ using AbstractAlgebra: AbstractAlgebra
 using Nemo: Nemo
 
 import Base: show, ==, hash, getindex, length, iterate, keys, *, +, -, ^
-import Memoization: @memoize
+import Memoization: @memoize, empty_all_caches!
 import IterTools: subsets
 import LinearAlgebraX: rankx
 import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHomomorphism,
