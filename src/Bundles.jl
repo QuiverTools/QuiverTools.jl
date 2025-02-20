@@ -161,6 +161,7 @@ end
 *(F::Bundle, n::Int) = n * F
 
 function ^(F::Bundle, n::Int)
+  n == 0 && return structure_sheaf(variety(F))
   new = Bundle()
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, F.rank * n)
