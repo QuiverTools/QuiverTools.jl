@@ -757,7 +757,7 @@ julia> Q = Quiver("1-2,1-3,2---3"); d = [1, 1, 1]; a = [1, 1, -1];
 julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=a);
 
 julia> F = dual(canonical_bundle(M))
-Bundle of rank 1.
+Bundle of rank 1
 
 julia> chern_class(F)
 2*x31 + 1
