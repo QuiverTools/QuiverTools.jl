@@ -72,6 +72,16 @@ function structure_sheaf(M::QuiverModuliSpace)
   set_teleman_weights!(new, Dict(hn_type => [0] for hn_type in HN))
   return new
 end
+
+"""    zero_sheaf(M::QuiverModuliSpace)"""
+function zero_sheaf(M::QuiverModuliSpace)
+  new = Bundle(M, 0)
+  HN = all_hn_types(M; unstable=true, ordered=false)
+  set_teleman_weights!(new, Dict(hn_type => [] for hn_type in HN))
+  return new
+end
+
+"""    universal_bundle(M::QuiverModuliSpace)"""
 ##############################
 # Operations on Bundle objects
 ##############################
@@ -177,13 +187,6 @@ function ^(F::Bundle, n::Int)
   end
   return new
 end
-
-# TODO implement directly for better performance
-# function ^(F::Bundle, n::Int)
-#   n < 0 && return dual(F^(-n))
-#   n == 0 && return structure_sheaf(variety(F))
-#   return prod(F for k in 1:n)
-# end
 
 function +(F::Bundle, G::Bundle)
   F.parent != G.parent && throw(DomainError("Different Chow rings."))
