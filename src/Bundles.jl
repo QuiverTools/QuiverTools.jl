@@ -139,6 +139,7 @@ function dual(F::Bundle)
 end
 
 function *(n::Int, F::Bundle)
+  n == 0 && return structure_sheaf(variety(F))
   new = Bundle()
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, F.rank * n)
@@ -746,6 +747,7 @@ julia> chern_class(F)
 
 julia> degree(F)
 56
+```
 """
 function degree(F::Bundle)
   M = variety(F)
