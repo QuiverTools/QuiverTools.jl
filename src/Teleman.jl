@@ -25,7 +25,11 @@ function weight_line_bundle_on_stratum(
   denom::Function=sum,
 )
   k_weights = weights_hn_type(hn_type, theta, denom)
-  return [-eta' * sum(k_weights[m] .* hn_type[m] for m in 1:length(hn_type))]
+  return [
+    Int(
+      -eta' * sum(k_weights[m] .* hn_type[m] for m in 1:length(hn_type))
+    ),
+  ]
 end
 
 """

@@ -160,21 +160,30 @@ end
 
 *(F::Bundle, n::Int) = n * F
 
+# power = tensor product
 function ^(F::Bundle, n::Int)
   n == 0 && return structure_sheaf(variety(F))
   new = Bundle()
   setfield!(new, :parent, F.parent)
-  setfield!(new, :rank, F.rank * n)
+  setfield!(new, :rank, (F.rank)^n)
   _has_chern_data(F) && setfield!(new, :chern_character, chern_character(F)^n)
   if isdefined(F, :teleman_weights)
     pow_weights = Dict(
-      hn_type => [sum(c) for c in combinations(teleman_weights(F), n)]
+      hn_type =>
+        map(sum, Iterators.product(map(k -> teleman_weights(F)[hn_type], 1:n)...))[:]
       for hn_type in keys(teleman_weights(F))
     )
     set_teleman_weights!(new, pow_weights)
   end
   return new
 end
+
+# TODO implement directly for better performance
+# function ^(F::Bundle, n::Int)
+#   n < 0 && return dual(F^(-n))
+#   n == 0 && return structure_sheaf(variety(F))
+#   return prod(F for k in 1:n)
+# end
 
 function +(F::Bundle, G::Bundle)
   F.parent != G.parent && throw(DomainError("Different Chow rings."))
