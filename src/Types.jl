@@ -476,7 +476,6 @@ end
 
 function show(io::IO, L::LunaType)
   print(io, "Dict(")
-  # TODO chiavi = keys? yes, 'keys' is a function name though
   chiavi = collect(keys(L.data))
   l = length(chiavi)
   for i in 1:(l - 1)
