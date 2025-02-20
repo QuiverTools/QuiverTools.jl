@@ -66,8 +66,12 @@ chow_ring(F::Bundle) = F.parent.ring
 variety(F::Bundle) = F.parent.parent
 
 """    structure_sheaf(M::QuiverModuliSpace)"""
-structure_sheaf(M::QuiverModuliSpace) = Bundle(M, 1)
-
+function structure_sheaf(M::QuiverModuliSpace)
+  new = Bundle(M, 1)
+  HN = all_hn_types(M; unstable=true, ordered=false)
+  set_teleman_weights!(new, Dict(hn_type => [0] for hn_type in HN))
+  return new
+end
 ##############################
 # Operations on Bundle objects
 ##############################
