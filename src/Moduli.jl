@@ -212,9 +212,21 @@ julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 julia> codimension_unstable_locus(M)
 3
 ```
+
+If the unstable locus is empty, the codimension is `Inf`:
+```jldoctest
+julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 0]);
+
+julia> all_hn_types(M; unstable=true)
+HNType[]
+
+julia> codimension_unstable_locus(M)
+Inf
+```
 """
 function codimension_unstable_locus(M::QuiverModuli)
   hn_types = all_hn_types(M; unstable=true)
+  isempty(hn_types) && return Inf
   return minimum(codimension_hn_stratum(M, hn_type) for hn_type in hn_types)
 end
 
