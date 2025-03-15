@@ -221,13 +221,13 @@ false
     # collect the list of all subdimension vectors e of bigger slope than d
     slope_d = slope(d, theta, denom)
     # TODO this variable doesn't follow our conventions, why not `subdimensions_bigger_slope`?
-    subdimensionsBiggerSlope = filter(
+    subdimensions_bigger_slope = filter(
       e -> slope(e, theta, denom) > slope_d,
       all_subdimension_vectors(d; nonzero=true, strict=true),
     )
     # to have semistable representations, none of the vectors above must be
     # a generic subdimension vector.
-    return all(e -> !is_generic_subdimension_vector(Q, e, d), subdimensionsBiggerSlope)
+    return all(e -> !is_generic_subdimension_vector(Q, e, d), subdimensions_bigger_slope)
   end
 end
 
