@@ -408,10 +408,8 @@ false
   e::AbstractVector{Int},
   d::AbstractVector{Int},
 )
-  # TODO Julia shorthand?
-  if e == d || all(ei == 0 for ei in e)
-    return true
-  end
+  (e == d || all(ei == 0 for ei in e)) && return true
+
   # to speed up computation of <eprime,d-e>
   partial_evaluation = euler_matrix(Q) * (d - e)
   # considering subdimension vectors that violate the numerical condition
