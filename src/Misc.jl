@@ -143,15 +143,14 @@ julia> QuiverTools.all_subdimension_vectors([2, 3]; nonzero=true, strict=true)
   d::AbstractVector{Int};
   nonzero::Bool=false,
   strict::Bool=false,
-)
-  subdimension_vectors = coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...)))
-  if nonzero
-    subdimension_vectors = filter(e -> any(ei != 0 for ei in e), subdimension_vectors)
-  end
-  if strict
-    subdimension_vectors = filter(e -> e != d, subdimension_vectors)
-  end
-  return filter(e -> true, subdimension_vectors)
+) #TODO should this be memoized at all?
+  subdims = reshape(
+    coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...))),
+    prod(di + 1 for di in d),
+  )
+  nonzero && deleteat!(subdims, 1)
+  strict && pop!(subdims)
+  return subdims
 end
 
 """
