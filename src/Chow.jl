@@ -332,7 +332,7 @@ function chern_class_line_bundle(
   Rvars = gens(base_ring(I))
 
   chern_class =
-    -sum(eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])] for i in 1:length(support(M.d)))
+    -sum(eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])] for i in support(M.d))
 
   return coerce_to_quotient(A, chern_class)
 end
