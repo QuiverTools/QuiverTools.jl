@@ -30,6 +30,10 @@ function diagonal(v::AbstractVector)
   return map(ind -> ind[1] == ind[2] ? v[ind[1]] : 0, Iterators.product(1:n, 1:n))
 end
 
+function support(d::AbstractVector{Int})
+  return findall(x -> x != 0, d)
+end
+
 ########################################################################################
 # Technical tools
 ########################################################################################

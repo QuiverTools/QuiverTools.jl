@@ -539,10 +539,8 @@ function motive(
   if all(ti == 0 for ti in theta)
     out = power(L, -euler_form(Q, d, d))
     den = 1
-    for i in 1:n_vertices(Q)
-      if d[i] > 0
-        den *= prod(1 - power(L, -nu) for nu in 1:d[i])
-      end
+    for i in support(d)
+      den *= prod(1 - power(L, -nu) for nu in 1:d[i])
     end
     return out / den
   end

@@ -125,7 +125,7 @@ function chow_ring(
 
     build_elem(lambda) = prod(
       prod(xi(i, nu)^lambda[sum(d[1:(i - 1)]) + nu] for nu in 1:d[i]) for
-      i in 1:n_vertices(Q) if d[i] > 0
+      i in support(d)
     )
     return map(l -> build_elem(l), lambdas)
   end
@@ -136,7 +136,7 @@ function chow_ring(
 
   # Action of the symmetric group on R by permutation of the variables.
   permute(f, sigma) =
-    f([xi(i, sigma[i][j]) for i in 1:n_vertices(Q) for j in 1:d[i] if d[i] > 0]...)
+    f([xi(i, sigma[i][j]) for i in support(d) for j in 1:d[i]]...)
 
   # The discriminant in the definition of the antisymmetrization.
   delta = 1
@@ -180,7 +180,7 @@ function chow_ring(
 
   targets = [
     [symmetric_polynomial([xi(i, j) for j in 1:d[i]], k) for k in 1:d[i]] for
-    i in 1:n_vertices(Q) if d[i] > 0
+    i in support(d)
   ]
   targets = reduce(vcat, targets)
 
@@ -188,7 +188,7 @@ function chow_ring(
 
   anti = [antisymmetrize(f * b) for f in forbidden_polynomials for b in base_for_ring()]
   tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
-  linear = [sum(chi[i] * xs(i, 1) for i in 1:n_vertices(Q) if d[i] > 0)]
+  linear = [sum(chi[i] * xs(i, 1) for i in support(d))]
 
   return (QuotientRing(A, std(Ideal(A, [tautological; linear]))), R, inclusion)
 end
@@ -331,7 +331,8 @@ function chern_class_line_bundle(
   I = quotient_ideal(A)
   Rvars = gens(base_ring(I))
 
-  chern_class = -sum(eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])] for i in 1:n_vertices(M.Q))
+  chern_class =
+    -sum(eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])] for i in 1:length(support(M.d)))
 
   return coerce_to_quotient(A, chern_class)
 end
