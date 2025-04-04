@@ -140,8 +140,11 @@ function chow_ring(
   delta = 1
   for i in 1:n_vertices(Q)
     if d[i] > 1
-      delta *= prod(xi(i, l) - xi(i, k) for k in 1:(d[i] - 1) for l in (k + 1):d[i])
-    end
+    d[i] > 1 && (
+      delta *= prod(
+        xi(i, l) - xi(i, k) for k in 1:(d[i] - 1) for l in (k + 1):d[i]
+      )
+    )
   end
 
   antisymmetrize(f) = div(sum(sign(w) * permute(f, w) for w in W), R(delta))
