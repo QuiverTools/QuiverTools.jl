@@ -112,9 +112,7 @@ function chow_ring(
 
   # Shorthand to address the variable `xi_{i,j}`.
   function xi(i, j)
-    if d[i] == 0
-      throw(ArgumentError("i is not in the support of d."))
-    end
+    d[i] == 0 && throw(ArgumentError("i is not in the support of d."))
     return vars[sum(d[1:(i - 1)]) + j]
   end
 
@@ -172,9 +170,7 @@ function chow_ring(
 
   # Shorthand to address the variables of A `x_{i,j}`.
   function xs(i, j)
-    if d[i] == 0
-      throw(ArgumentError("i is not in the support of d."))
-    end
+    d[i] == 0 && throw(ArgumentError("i is not in the support of d."))
     return Avars[sum(d[1:(i - 1)]) + j]
   end
 
