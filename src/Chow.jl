@@ -153,7 +153,6 @@ function chow_ring(
   # The discriminant in the definition of the antisymmetrization.
   delta = 1
   for i in 1:n_vertices(Q)
-    if d[i] > 1
     d[i] > 1 && (
       delta *= prod(
         xi(i, l) - xi(i, k) for k in 1:(d[i] - 1) for l in (k + 1):d[i]
