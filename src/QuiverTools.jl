@@ -9,6 +9,7 @@ using LinearAlgebraX: LinearAlgebraX
 using Singular: Singular
 using AbstractAlgebra: AbstractAlgebra
 using Nemo: Nemo
+using SchubertPolynomials: SchubertPolynomials
 
 import Base: show, ==, hash, getindex, length, iterate, keys, *, +, -, ^
 import Memoization: @memoize, empty_all_caches!, empty_cache!
@@ -17,6 +18,7 @@ import LinearAlgebraX: rankx
 import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHomomorphism,
   preimage, Ideal, quotient_ideal, QuotientRing, fraction_field, std, gens, base_ring
 import Combinatorics: combinations, with_replacement_combinations, partitions
+import SchubertPolynomials: xy_ring, schub_poly
 
 # Types
 export Quiver, HNType, LunaType, QuiverModuli, QuiverModuliSpace, QuiverModuliStack, Bundle

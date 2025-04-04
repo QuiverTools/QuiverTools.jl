@@ -47,6 +47,29 @@ function symmetric_polynomial(vars, degree::Int)
 end
 
 """
+    schubert_polynomials(n::Int)
+
+Compute all the Schubert polynomials for permutations in S_n.
+
+For internal use only.
+"""
+@memoize Dict function schubert_polynomials(n)
+  # returns all the Schubert polynomials for permutations in S_n
+  RR = xy_ring(n)[1]
+  return [schub_poly(p.d, RR) for p in AbstractAlgebra.SymmetricGroup(n)]
+end
+
+"""
+    product_lists(L)
+
+For internal use only.
+"""
+function product_lists(L)
+  length(L) == 1 && return L[1]
+  return [p * l for p in product_lists(L[1:(end - 1)]) for l in L[end]]
+end
+
+"""
     chow_ring(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d); chi::AbstractVector{Int}=extended_gcd(d)[2])
 
 Compute the Chow ring of the moduli space of `theta`-semistable representations of
@@ -116,17 +139,8 @@ function chow_ring(
     return vars[sum(d[1:(i - 1)]) + j]
   end
 
-  # This is the naive base that is described in Hans's 2013 paper.
-  function base_for_ring()
-    bounds = [0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
-    lambdas = Iterators.product(bounds...)
-
-    build_elem(lambda) = prod(
-      prod(xi(i, nu)^lambda[sum(d[1:(i - 1)]) + nu] for nu in 1:d[i]) for
-      i in support(d)
-    )
-    return map(l -> build_elem(l), lambdas)
-  end
+  schubs(i) = map(p -> p([xi(i, j) for j in 1:d[i]]...), schubert_polynomials(d[i]))
+  schubert = product_lists([schubs(i) for i in support(d)])
 
   # build the permutation group W
   W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i in 1:n_vertices(Q)]...)
@@ -185,7 +199,7 @@ function chow_ring(
 
   inclusion = AlgebraHomomorphism(A, R, targets)
 
-  anti = [antisymmetrize(f * b) for f in forbidden_polynomials for b in base_for_ring()]
+  anti = [antisymmetrize(f * b) for f in forbidden_polynomials for b in schubert]
   tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
   linear = [sum(chi[i] * xs(i, 1) for i in support(d))]
 
