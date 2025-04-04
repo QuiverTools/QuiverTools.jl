@@ -186,6 +186,7 @@ function chow_ring(
 
   anti = [antisymmetrize(f * b) for f in forbidden_polynomials for b in base_for_ring()]
   tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
+  tautological = unique(tautological)
   linear = [sum(chi[i] * xs(i, 1) for i in support(d))]
 
   return (QuotientRing(A, std(Ideal(A, [tautological; linear]))), R, inclusion)
