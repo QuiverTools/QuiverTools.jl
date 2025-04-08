@@ -198,8 +198,8 @@ function chow_ring(
 
   inclusion = AlgebraHomomorphism(A, R, targets)
 
-  anti = [antisymmetrize(f * b) for f in forbidden_polynomials for b in schubert]
-  tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
+  anti = unique([antisymmetrize(f * b) for f in forbidden_polynomials for b in schubert])
+  tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti if g != 0]
   linear = [sum(chi[i] * xs(i, 1) for i in support(d))]
 
   return (QuotientRing(A, std(Ideal(A, [tautological; linear]))), R, inclusion)
