@@ -19,9 +19,11 @@ files = [
   ".JuliaFormatter.jl",
 ]
 
-for file in files
-  if !format(file)
-    exit(1)
-  end
+clean = map(format, files)
+all(clean) && exit(0)
+
+# print non-formatted files
+for x in files[.!(clean .== true)]
+  println("Not formatted: ", x)
 end
-exit(0)
+exit(1)
