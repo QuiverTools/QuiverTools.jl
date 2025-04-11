@@ -139,8 +139,22 @@ function chow_ring(
     return vars[sum(d[1:(i - 1)]) + j]
   end
 
-  schubs(i) = map(p -> p([xi(i, j) for j in 1:d[i]]...), schubert_polynomials(d[i]))
-  schubert = product_lists([schubs(i) for i in support(d)])
+  base = []
+  try # if Schubert polynomial functionnality is available
+    schubs(i) = map(p -> p([xi(i, j) for j in 1:d[i]]...), schubert_polynomials(d[i]))
+    base = product_lists([schubs(i) for i in support(d)])
+
+  catch e # else
+    bounds = [0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
+    build_elem(lambda) = prod(
+      prod(
+        xi(i, nu)^lambda[sum(d[1:(i - 1)]) + nu]
+        for nu in 1:d[i]
+      )
+      for i in support(d)
+    )
+    base = map(build_elem, Iterators.product(bounds...))
+  end
 
   # build the permutation group W
   W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i in 1:n_vertices(Q)]...)
@@ -198,7 +212,7 @@ function chow_ring(
 
   inclusion = AlgebraHomomorphism(A, R, targets)
 
-  anti = unique([antisymmetrize(f * b) for f in forbidden_polynomials for b in schubert])
+  anti = unique([antisymmetrize(f * b) for f in forbidden_polynomials for b in base])
   tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti if g != 0]
   linear = [sum(chi[i] * xs(i, 1) for i in support(d))]
 
