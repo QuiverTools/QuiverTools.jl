@@ -288,8 +288,9 @@ julia> opposite_quiver(Q)
 opposite of 2-Kronecker quiver
 ```
 """
-opposite_quiver(Q::Quiver) =
-  Quiver(Matrix{Int}(transpose(Q.adjacency)), "opposite of " * Q.name)
+opposite_quiver(Q::Quiver) = Quiver(
+  Matrix{Int}(transpose(Q.adjacency)), "opposite of " * Q.name
+)
 
 """
     double_quiver(Q::Quiver)
@@ -310,8 +311,9 @@ julia> double_quiver(Q)
 double of 2-Kronecker quiver
 ```
 """
-double_quiver(Q::Quiver) =
-  Quiver(Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "double of " * Q.name)
+double_quiver(Q::Quiver) = Quiver(
+  Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "double of " * Q.name
+)
 
 """
     kronecker_moduli(m::Int, d::Int, e::Int)
@@ -343,5 +345,6 @@ Quiver moduli space defined as follows:
  - condition: semistable
 ```
 """
-subspace_quiver_moduli(m::Int, d::Int) =
-  QuiverModuliSpace(subspace_quiver(m), vcat(repeat([1], m), [d]))
+subspace_quiver_moduli(m::Int, d::Int) = QuiverModuliSpace(
+  subspace_quiver(m), vcat(repeat([1], m), [d])
+)

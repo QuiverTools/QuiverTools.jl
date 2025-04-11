@@ -161,8 +161,7 @@ function chow_ring(
   sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
 
   # Action of the symmetric group on R by permutation of the variables.
-  permute(f, sigma) =
-    f([xi(i, sigma[i][j]) for i in support(d) for j in 1:d[i]]...)
+  permute(f, sigma) = f([xi(i, sigma[i][j]) for i in support(d) for j in 1:d[i]]...)
 
   # The discriminant in the definition of the antisymmetrization.
   delta = 1
