@@ -23,7 +23,7 @@ import Combinatorics: combinations, with_replacement_combinations, partitions
 try
   using SchubertPolynomials: SchubertPolynomials
   import SchubertPolynomials: xy_ring, schub_poly
-catch
+catch # will not run as long as SchubertPolynomials is installed or in the [deps]
   @warn "SchubertPolynomials not found. Chow ring default functionnality may be slower.
 To solve this, install SchubertPolynomials.jl by running\n\n
 using Pkg; Pkg.rm(\"QuiverTools\"); Pkg.add(url=\"https://github.com/pseudoeffective/SchubertPolynomials.jl\")\n\n
