@@ -12,11 +12,13 @@ LinearAlgebraX = "9b3f67b0-2d00-526e-9884-9e4938f8fb88"
 Memoization = "6fafb56a-5788-4b4e-91ca-c0cea6611c73"
 Nemo = "2edaba10-b0f1-5616-af89-8c11ac63239a"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
-SchubertPolynomials = "ca6918c7-c46a-4663-8c75-d24c3a15490e"
 Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+SchubertPolynomials = "ca6918c7-c46a-4663-8c75-d24c3a15490e"
+
+[extras]
+SchubertPolynomials = "ca6918c7-c46a-4663-8c75-d24c3a15490e"
 
 [sources]
 SchubertPolynomials = {rev = "main", url = "https://github.com/pseudoeffective/SchubertPolynomials.jl"}
-

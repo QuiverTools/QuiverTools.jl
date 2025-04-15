@@ -25,8 +25,13 @@ try
   import SchubertPolynomials: xy_ring, schub_poly
 catch
   @warn "SchubertPolynomials not found. Chow ring default functionnality may be slower.
-  Solve this by `using Pkg; Pkg.add(url=\"https://github.com/pseudoeffective/SchubertPolynomials.jl\")`,
-  then recompile QuiverTools.jl with `using Pkg; Pkg.build(\"QuiverTools\")."
+To solve this, install SchubertPolynomials.jl by running\n\n
+using Pkg; Pkg.rm(\"QuiverTools\"); Pkg.add(url=\"https://github.com/pseudoeffective/SchubertPolynomials.jl\")\n\n
+Then remove the compiled binary of QuiverTools.jl, by removing the folder\n\n
+`~/.julia/compiled/YOUR_JULIA_VERSION/QuiverTools` \n
+from your machine (replace YOUR_JULIA_VERSION with the current version of Julia).\n\n
+Lastly, reinstall QuiverTools.jl by running\n\n
+using Pkg; Pkg.add(url=\"https://github.com/QuiverTools/QuiverTools.jl\")\n\n"
 end
 
 # Types
