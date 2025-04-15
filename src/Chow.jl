@@ -143,7 +143,7 @@ function chow_ring(
   try # if Schubert polynomial functionnality is available
     schubs(i) = map(p -> p([xi(i, j) for j in 1:d[i]]...), schubert_polynomials(d[i]))
     base = product_lists([schubs(i) for i in support(d)])
-    println("schubert")
+
   catch e # else
     bounds = [0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
     build_elem(lambda) = prod(
