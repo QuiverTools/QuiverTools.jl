@@ -5,15 +5,15 @@
 """
     kronecker_quiver(m::Int)
 
-Construct the Kronecker quiver with `m` vertices.
+Construct the Kronecker quiver with `m` arrows.
 
 # Input
 
-- `m`: (Default = 2) The number of arrows in the Kronecker quiver.
+- `m`: (Default = 2) The number of arrows.
 
 # Output
 
-The Kronecker quiver with `m` vertices.
+The Kronecker quiver with `m` arrows.
 
 # Examples
 
@@ -29,7 +29,7 @@ end
 """
     three_vertex_quiver(m12::Int, m13::Int, m23::Int)
 
-Construct the three-vertex quiver with the given edge counts.
+Construct the three-vertex quiver with the given arrow counts.
 
 # Input
 
@@ -55,15 +55,15 @@ end
 """
     loop_quiver(m::Int)
 
-Construct the loop quiver with `m` vertices.
+Construct the loop quiver with `m` arrows.
 
 # Input
 
-- `m`: The number of vertices in the loop quiver.
+- `m`: The number of arrows.
 
 # Output
 
-The loop quiver with `m` vertices.
+The loop quiver with `m` arrows.
 
 # Examples
 
@@ -79,7 +79,7 @@ end
 """
     subspace_quiver(m::Int)
 
-Construct the subspace quiver with `m` vertices.
+Construct the subspace quiver with `m + 1` vertices.
 
 # Input
 
@@ -94,6 +94,9 @@ The subspace quiver with `m` subspaces.
 ```jldoctest
 julia> subspace_quiver(3)
 3-subspace quiver
+
+julia> n_vertices(subspace_quiver(3))
+4
 ```
 """
 function subspace_quiver(m::Int)
