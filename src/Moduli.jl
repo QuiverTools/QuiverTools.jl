@@ -463,7 +463,7 @@ function local_quiver_setting(M::QuiverModuli, tau)
 
   ks = collect(keys(tau))
   A = coerce_matrix([
-    [generic_ext(M.Q, e, eprime) for eprime in ks for n in tau[eprime]] for e in ks
+    [general_ext(M.Q, e, eprime) for eprime in ks for n in tau[eprime]] for e in ks
     for m in tau[e]
   ])
 

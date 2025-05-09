@@ -313,21 +313,21 @@ julia> canonical_decomposition(Q, [12, 4])
  [3, 1]
 ```
 
-QuiverTools also implements computations of generic hom and ext for dimension vectors.
+QuiverTools also implements computations of general hom and ext for dimension vectors.
 
 ```julia-repl
 julia> e = [1, 2];
 
-julia> generic_hom(Q, d, e)
+julia> general_hom(Q, d, e)
 0
 
-julia> generic_hom(Q, e, d)
+julia> general_hom(Q, e, d)
 0
 
-julia> generic_ext(Q, d, e)
+julia> general_ext(Q, d, e)
 4
 
-julia> generic_ext(Q, e, d)
+julia> general_ext(Q, e, d)
 1
 ```
 

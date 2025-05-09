@@ -71,9 +71,9 @@ euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
 ########################################################################################
 
 """
-    generic_ext(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
+    general_ext(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
 
-Compute the dimension of the ``\\mathrm{Ext}^1`` group between generic representations
+Compute the dimension of the ``\\mathrm{Ext}^1`` group between general representations
 of dimension vectors `a` and `b`.
 
 According to [[Theorem 5.4, MR1162487]
@@ -81,7 +81,7 @@ According to [[Theorem 5.4, MR1162487]
 we have
 
 ```math
-ext(a,b)=max\\{-\\langle c,b\\rangle~~|~~c~\\text{is a generic subdimension vector of }a\\}.
+ext(a,b)=max\\{-\\langle c,b\\rangle~~|~~c~\\text{is a general subdimension vector of }a\\}.
 ```
 
 # Input
@@ -92,33 +92,33 @@ ext(a,b)=max\\{-\\langle c,b\\rangle~~|~~c~\\text{is a generic subdimension vect
 
 # Output
 
-- the dimension of the generic extensions ``\\mathrm{ext}^1(a, b)``.
+- the dimension of the general extensions ``\\mathrm{ext}^1(a, b)``.
 
 # Examples
 
 ```jldoctest
 julia> Q1 = kronecker_quiver(3);
 
-julia> generic_ext(Q1, [2, 3], [6, 7])
+julia> general_ext(Q1, [2, 3], [6, 7])
 9
 
-julia> generic_ext(Q1, [1, 1], [1, 0])
+julia> general_ext(Q1, [1, 1], [1, 0])
 0
 
 julia> Q2 = three_vertex_quiver(1, 6, 7);
 
-julia> generic_ext(Q2, [5, 6, 7], [6, 7, 8])
+julia> general_ext(Q2, [5, 6, 7], [6, 7, 8])
 483
 ```
 """
-function generic_ext(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
-  return maximum(-euler_form(Q, c, b) for c in all_generic_subdimension_vectors(Q, a))
+function general_ext(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
+  return maximum(-euler_form(Q, c, b) for c in all_general_subdimension_vectors(Q, a))
 end
 
 """
-    generic_hom(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
+    general_hom(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
 
-Compute the dimension of the ``\\mathrm{Hom}`` group between generic representations
+Compute the dimension of the ``\\mathrm{Hom}`` group between general representations
 of dimension vectors `a` and `b`.
 
 # Input
@@ -129,27 +129,27 @@ of dimension vectors `a` and `b`.
 
 # Output
 
-- the dimension of the generic homomorphisms ``\\mathrm{hom}(a, b)``.
+- the dimension of the general homomorphisms ``\\mathrm{hom}(a, b)``.
 
 # Examples
 
 ```jldoctest
 julia> Q1 = kronecker_quiver(3);
 
-julia> generic_hom(Q1, [2, 3], [6, 7])
+julia> general_hom(Q1, [2, 3], [6, 7])
 0
 
-julia> generic_hom(Q1, [1, 1], [1, 0])
+julia> general_hom(Q1, [1, 1], [1, 0])
 1
 
 julia> Q2 = three_vertex_quiver(1, 6, 7);
 
-julia> generic_hom(Q2, [5, 6, 7], [6, 7, 8])
+julia> general_hom(Q2, [5, 6, 7], [6, 7, 8])
 0
 ```
 """
-function generic_hom(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
-  return euler_form(Q, a, b) + generic_ext(Q, a, b)
+function general_hom(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
+  return euler_form(Q, a, b) + general_ext(Q, a, b)
 end
 
 """
@@ -200,9 +200,9 @@ true
 ```
 """
 function canonical_decomposition(Q::Quiver, d::AbstractVector{Int})
-  generic_subdimension_vectors = filter(e -> e != d, all_generic_subdimension_vectors(Q, d))
-  for e in generic_subdimension_vectors
-    if d - e in generic_subdimension_vectors
+  general_subdimension_vectors = filter(e -> e != d, all_general_subdimension_vectors(Q, d))
+  for e in general_subdimension_vectors
+    if d - e in general_subdimension_vectors
       return vcat(canonical_decomposition(Q, e), canonical_decomposition(Q, d - e))
     end
   end
