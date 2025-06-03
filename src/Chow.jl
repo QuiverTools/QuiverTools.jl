@@ -516,7 +516,13 @@ Takes an element in a graded ring and discards all homogeneous components
 of degree > n
 """
 function truncate(f, n)
-  return sum(term for term in Singular.terms(f) if Singular.total_degree(term) <= n)
+  context = Singular.MPolyBuildCtx(parent(f))
+  for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
+    if sum(e) <= n
+      Singular.push_term!(context, c, e)
+    end
+  end
+  return Singular.finish(context)
 end
 
 """
