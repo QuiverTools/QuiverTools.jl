@@ -476,12 +476,12 @@ end
 
 function show(io::IO, L::LunaType)
   print(io, "Dict(")
-  chiavi = collect(keys(L.data))
-  l = length(chiavi)
+  luna_types = collect(keys(L.data))
+  l = length(luna_types)
   for i in 1:(l - 1)
-    print(io, "$(Vector(chiavi[i])) => $(L.data[chiavi[i]]), ")
+    print(io, "$(Vector(luna_types[i])) => $(L.data[luna_types[i]]), ")
   end
-  print(io, "$(Vector(chiavi[l])) => $(L.data[chiavi[l]]))")
+  print(io, "$(Vector(luna_types[l])) => $(L.data[luna_types[l]]))")
 end
 
 ==(L1::LunaType, L2::LunaType) = L1.data == L2.data
