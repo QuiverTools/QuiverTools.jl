@@ -20,19 +20,16 @@ import Combinatorics: combinations, with_replacement_combinations, partitions
 
 # optional dependencies
 
-try
-  using SchubertPolynomials: SchubertPolynomials
-  import SchubertPolynomials: xy_ring, schub_poly
-catch # will not run as long as SchubertPolynomials is installed or in the [deps]
-  @warn "SchubertPolynomials not found. Chow ring default functionnality may be slower.
-To solve this, install SchubertPolynomials.jl by running\n\n
-using Pkg; Pkg.rm(\"QuiverTools\"); Pkg.add(url=\"https://github.com/pseudoeffective/SchubertPolynomials.jl\")\n\n
-Then remove the compiled binary of QuiverTools.jl, by removing the folder\n\n
-`~/.julia/compiled/YOUR_JULIA_VERSION/QuiverTools` \n
-from your machine (replace YOUR_JULIA_VERSION with the current version of Julia).\n\n
-Lastly, reinstall QuiverTools.jl by running\n\n
-using Pkg; Pkg.add(url=\"https://github.com/QuiverTools/QuiverTools.jl\")\n\n"
-end
+# try
+#   using SchubertPolynomials: SchubertPolynomials
+#   import SchubertPolynomials: xy_ring, schub_poly
+# catch # will not run as long as SchubertPolynomials is installed or in the [deps]
+#   @warn "SchubertPolynomials not found. Chow ring default functionnality may be slower.
+# To solve this, install SchubertPolynomials.jl by running\n\n
+# using Pkg; Pkg.rm(\"QuiverTools\"); Pkg.add(url=\"https://github.com/pseudoeffective/SchubertPolynomials.jl\", rev=\"9f1d979b20860ccba474775e02cd15663f31e304\")\n\n
+# Then force recompilation of QuiverTools.jl by running\n\n
+# Base.compilecache(Base.identify_package("QuiverTools"))\n\n"
+# end
 
 # Types
 export Quiver, HNType, LunaType, QuiverModuli, QuiverModuliSpace, QuiverModuliStack, Bundle

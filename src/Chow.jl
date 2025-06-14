@@ -143,7 +143,6 @@ function chow_ring(
   try # if Schubert polynomial functionnality is available
     schubs(i) = map(p -> p([xi(i, j) for j in 1:d[i]]...), schubert_polynomials(d[i]))
     base = product_lists([schubs(i) for i in support(d)])
-
   catch e # else
     bounds = [0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
     build_elem(lambda) = prod(
@@ -510,7 +509,6 @@ function todd_Q(t, n)
   return sum((-1)^i * (Nemo.bernoulli(i) * t^i) / factorial(big(i)) for i in 0:n)
 end
 
-# TODO rewrite this with in-place operations.
 """
 Takes an element in a graded ring and discards all homogeneous components
 of degree > n
