@@ -18,6 +18,19 @@ import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHo
   preimage, Ideal, quotient_ideal, QuotientRing, fraction_field, std, gens, base_ring
 import Combinatorics: combinations, with_replacement_combinations, partitions
 
+# optional dependencies
+
+# try
+#   using SchubertPolynomials: SchubertPolynomials
+#   import SchubertPolynomials: xy_ring, schub_poly
+# catch # will not run as long as SchubertPolynomials is installed or in the [deps]
+#   @warn "SchubertPolynomials not found. Chow ring default functionnality may be slower.
+# To solve this, install SchubertPolynomials.jl by running\n\n
+# using Pkg; Pkg.rm(\"QuiverTools\"); Pkg.add(url=\"https://github.com/pseudoeffective/SchubertPolynomials.jl\", rev=\"9f1d979b20860ccba474775e02cd15663f31e304\")\n\n
+# Then force recompilation of QuiverTools.jl by running\n\n
+# Base.compilecache(Base.identify_package("QuiverTools"))\n\n"
+# end
+
 # Types
 export Quiver, HNType, LunaType, QuiverModuli, QuiverModuliSpace, QuiverModuliStack, Bundle
 
@@ -35,12 +48,12 @@ export kronecker_moduli, subspace_quiver_moduli
 export canonical_stability, is_coprime, slope
 export all_hn_types,
   is_hn_type, has_semistables, has_stables, codimension_hn_stratum, is_amply_stable
-export is_generic_subdimension_vector, all_generic_subdimension_vectors
+export is_general_subdimension_vector, all_general_subdimension_vectors
 
 # Representation theory
 export euler_form, euler_matrix, is_schur_root, is_real_root, is_imaginary_root,
   is_isotropic_root,
-  generic_ext, generic_hom, canonical_decomposition, in_fundamental_domain
+  general_ext, general_hom, canonical_decomposition, in_fundamental_domain
 
 # Moduli
 export all_luna_types, is_luna_type, dimension_of_luna_stratum

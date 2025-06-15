@@ -226,8 +226,8 @@ false
       all_subdimension_vectors(d; nonzero=true, strict=true),
     )
     # to have semistable representations, none of the vectors above must be
-    # a generic subdimension vector.
-    return all(e -> !is_generic_subdimension_vector(Q, e, d), subdimensions_bigger_slope)
+    # a general subdimension vector.
+    return all(e -> !is_general_subdimension_vector(Q, e, d), subdimensions_bigger_slope)
   end
 end
 
@@ -296,9 +296,9 @@ false
       all_subdimension_vectors(d; nonzero=true, strict=true),
     )
     # to have semistable representations,
-    # none of the vectors above must be generic subdimension vectors.
+    # none of the vectors above must be general subdimension vectors.
     return all(
-      e -> !is_generic_subdimension_vector(Q, e, d),
+      e -> !is_general_subdimension_vector(Q, e, d),
       subdimensions_bigger_or_equal_slope,
     )
   end
@@ -333,8 +333,9 @@ julia> is_schur_root(Q, d)
 true
 ```
 """
-is_schur_root(Q::Quiver, d::AbstractVector{Int}) =
-  has_stables(Q, d, canonical_stability(Q, d))
+is_schur_root(Q::Quiver, d::AbstractVector{Int}) = has_stables(
+  Q, d, canonical_stability(Q, d)
+)
 
 """
     is_real_root(Q::Quiver, d)
@@ -358,20 +359,20 @@ Check whether `d` is an isotropic root, i.e., if ``<d, d> = 0``.
 is_isotropic_root(Q::Quiver, d) = euler_form(Q, d, d) == 0
 
 """
-    is_generic_subdimension_vector(Q::Quiver, e::AbstractVector{Int}, d::AbstractVector{Int})
+    is_general_subdimension_vector(Q::Quiver, e::AbstractVector{Int}, d::AbstractVector{Int})
 
-Check if `e` is a generic subdimension vector of `d`.
+Check if `e` is a general subdimension vector of `d`.
 
-A dimension vector ``e`` is called a generic subdimension vector of ``d``
-if a generic representation of dimension vector ``d`` possesses a subrepresentation
+A dimension vector ``e`` is called a general subdimension vector of ``d``
+if a general representation of dimension vector ``d`` possesses a subrepresentation
 of dimension vector ``e``.
 
 By [[Theorem 5.3, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)],
-``e`` is a generic subdimension vector of ``d`` if and only if
+``e`` is a general subdimension vector of ``d`` if and only if
 ```math
 <e',d-e> \\geq 0
 ```
-for all generic subdimension vectors ``e'`` of ``e``.
+for all general subdimension vectors ``e'`` of ``e``.
 
 # Input
 
@@ -381,7 +382,7 @@ for all generic subdimension vectors ``e'`` of ``e``.
 
 # Output
 
-- `true` if `e` is a generic subdimension vector of `d`, `false` otherwise.
+- `true` if `e` is a general subdimension vector of `d`, `false` otherwise.
 
 # Examples
 
@@ -390,20 +391,20 @@ Trivial examples on the 3-Kronecker quiver:
 ```jldoctest
 julia> Q = kronecker_quiver(3); e = [1, 2]; d = [2, 3];
 
-julia> is_generic_subdimension_vector(Q, e, d)
+julia> is_general_subdimension_vector(Q, e, d)
 true
 
-julia> is_generic_subdimension_vector(Q, [0, 0], d)
+julia> is_general_subdimension_vector(Q, [0, 0], d)
 true
 
-julia> is_generic_subdimension_vector(Q, [2, 3], d)
+julia> is_general_subdimension_vector(Q, [2, 3], d)
 true
 
-julia> is_generic_subdimension_vector(Q, [2, 1], d)
+julia> is_general_subdimension_vector(Q, [2, 1], d)
 false
 ```
 """
-@memoize Dict function is_generic_subdimension_vector(
+@memoize Dict function is_general_subdimension_vector(
   Q::Quiver,
   e::AbstractVector{Int},
   d::AbstractVector{Int},
@@ -416,15 +417,15 @@ false
   subdimensions = filter(
     eprime -> eprime' * partial_evaluation < 0, all_subdimension_vectors(e)
   )
-  # none of the subdimension vectors violating the condition should be generic
-  return all(eprime -> !is_generic_subdimension_vector(Q, eprime, e), subdimensions)
-  # return generic_ext(Q, e, d - e) == 0 # TODO test performance
+  # none of the subdimension vectors violating the condition should be general
+  return all(eprime -> !is_general_subdimension_vector(Q, eprime, e), subdimensions)
+  # return general_ext(Q, e, d - e) == 0 # TODO test performance
 end
 
 """
-    all_generic_subdimension_vectors(Q::Quiver, d::AbstractVector{Int})
+    all_general_subdimension_vectors(Q::Quiver, d::AbstractVector{Int})
 
-Return the list of all generic subdimension vectors of `d`.
+Return the list of all general subdimension vectors of `d`.
 
 # Input
 
@@ -433,14 +434,14 @@ Return the list of all generic subdimension vectors of `d`.
 
 # Output
 
-- a list of all generic subdimension vectors of `d`.
+- a list of all general subdimension vectors of `d`.
 
 # Examples
 
 ```jldoctest
 julia> Q = kronecker_quiver(3);
 
-julia> QuiverTools.all_generic_subdimension_vectors(Q, [2, 3])
+julia> QuiverTools.all_general_subdimension_vectors(Q, [2, 3])
 7-element Vector{StaticArraysCore.SVector{2, Int64}}:
  [0, 0]
  [0, 1]
@@ -450,7 +451,7 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, [2, 3])
  [1, 3]
  [2, 3]
 
-julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
+julia> QuiverTools.all_general_subdimension_vectors(Q, [3, 0])
 4-element Vector{StaticArraysCore.SVector{2, Int64}}:
  [0, 0]
  [1, 0]
@@ -458,8 +459,8 @@ julia> QuiverTools.all_generic_subdimension_vectors(Q, [3, 0])
  [3, 0]
 ```
 """
-@memoize Dict function all_generic_subdimension_vectors(Q::Quiver, d::AbstractVector{Int})
-  return filter(e -> is_generic_subdimension_vector(Q, e, d), all_subdimension_vectors(d))
+@memoize Dict function all_general_subdimension_vectors(Q::Quiver, d::AbstractVector{Int})
+  return filter(e -> is_general_subdimension_vector(Q, e, d), all_subdimension_vectors(d))
 end
 
 """
@@ -631,12 +632,11 @@ function is_hn_type(
   return true
 end
 is_hn_type(Q::Quiver,
-  d::AbstractVector{Int},
-  dstar::Vector{<:AbstractVector{Int}};
-  theta::AbstractVector{Int}=canonical_stability(Q, d),
-  denom::Function=sum,
-) =
-  is_hn_type(Q, d, HNType(dstar), theta, denom)
+d::AbstractVector{Int},
+dstar::Vector{<:AbstractVector{Int}};
+theta::AbstractVector{Int}=canonical_stability(Q, d),
+denom::Function=sum
+) = is_hn_type(Q, d, HNType(dstar), theta, denom)
 
 """
     codimension_hn_stratum(Q::Quiver, stratum::HNType)
@@ -680,8 +680,9 @@ function codimension_hn_stratum(Q::Quiver, stratum::HNType)
     for j in (i + 1):length(stratum)
   )
 end
-codimension_hn_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}}) =
-  codimension_hn_stratum(Q, HNType(stratum))
+codimension_hn_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}}) = codimension_hn_stratum(
+  Q, HNType(stratum)
+)
 
 """
     is_amply_stable(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)

@@ -7,8 +7,9 @@
 
 Return the identity matrix of size `n`.
 """
-@memoize Dict identity_matrix(n::Int) =
-  map(ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n))
+@memoize Dict identity_matrix(n::Int) = map(
+  ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n)
+)
 
 """
     diagonal(m::AbstractMatrix{Int})

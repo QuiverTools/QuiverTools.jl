@@ -9,13 +9,12 @@ with moduli spaces of quiver representations.
 
 ## Installation
 
-QuiverTools is not registered at the moment;
-to install the package, run the following command in the Julia REPL:
+To install QuiverTools, run the following commands in the Julia REPL:
 
 ```julia
 julia> using Pkg
 
-julia> Pkg.add(url="https://github.com/QuiverTools/QuiverTools.jl.git")
+julia> Pkg.add(url="https://github.com/QuiverTools/QuiverTools.jl");
 ```
 
 ## Documentation

@@ -255,7 +255,7 @@ julia> first_hochschild_cohomology(three_vertex_quiver(2, 1, 3))
 function first_hochschild_cohomology(Q::Quiver)
   !is_acyclic(Q) && throw(ArgumentError("The quiver must be acyclic."))
   return 1 - n_vertices(Q) + sum(
-    (Q.adjacency^n)[i, j]
+    prod(Q.adjacency for i in 1:n)[i, j]
     for n in 1:(n_vertices(Q) - 1), (i, j) in arrows(Q)
   )
 end

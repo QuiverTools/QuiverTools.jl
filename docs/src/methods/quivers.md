@@ -3,6 +3,10 @@
 Quivers are represented via their adjacency matrix.
 Vertices are numbered from ``1`` to ``n``.
 
+```@docs
+Quiver
+```
+
 ## Constructors
 
 QuiverTools implements constructors for most known quivers.

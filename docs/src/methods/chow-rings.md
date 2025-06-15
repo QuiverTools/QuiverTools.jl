@@ -35,7 +35,7 @@ Bundle
 chern_character
 chern_class
 chern_classes
-degree
+QuiverTools.degree
 rank
 teleman_weights
 ```
@@ -49,6 +49,7 @@ line_bundle
 Some special bundles can be computed out of the box.
 
 ```@docs
+QuiverTools.zero_sheaf
 structure_sheaf
 canonical_bundle
 universal_bundle

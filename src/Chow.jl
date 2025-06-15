@@ -47,6 +47,29 @@ function symmetric_polynomial(vars, degree::Int)
 end
 
 """
+    schubert_polynomials(n::Int)
+
+Compute all the Schubert polynomials for permutations in S_n.
+
+For internal use only.
+"""
+@memoize Dict function schubert_polynomials(n)
+  # returns all the Schubert polynomials for permutations in S_n
+  RR = xy_ring(n)[1]
+  return [schub_poly(p.d, RR) for p in AbstractAlgebra.SymmetricGroup(n)]
+end
+
+"""
+    product_lists(L)
+
+For internal use only.
+"""
+function product_lists(L)
+  length(L) == 1 && return L[1]
+  return [p * l for p in product_lists(L[1:(end - 1)]) for l in L[end]]
+end
+
+"""
     chow_ring(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d); chi::AbstractVector{Int}=extended_gcd(d)[2])
 
 Compute the Chow ring of the moduli space of `theta`-semistable representations of
@@ -116,16 +139,20 @@ function chow_ring(
     return vars[sum(d[1:(i - 1)]) + j]
   end
 
-  # This is the naive base that is described in Hans's 2013 paper.
-  function base_for_ring()
+  base = []
+  try # if Schubert polynomial functionnality is available
+    schubs(i) = map(p -> p([xi(i, j) for j in 1:d[i]]...), schubert_polynomials(d[i]))
+    base = product_lists([schubs(i) for i in support(d)])
+  catch e # else
     bounds = [0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
-    lambdas = Iterators.product(bounds...)
-
     build_elem(lambda) = prod(
-      prod(xi(i, nu)^lambda[sum(d[1:(i - 1)]) + nu] for nu in 1:d[i]) for
-      i in support(d)
+      prod(
+        xi(i, nu)^lambda[sum(d[1:(i - 1)]) + nu]
+        for nu in 1:d[i]
+      )
+      for i in support(d)
     )
-    return map(l -> build_elem(l), lambdas)
+    base = map(build_elem, Iterators.product(bounds...))
   end
 
   # build the permutation group W
@@ -133,8 +160,7 @@ function chow_ring(
   sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
 
   # Action of the symmetric group on R by permutation of the variables.
-  permute(f, sigma) =
-    f([xi(i, sigma[i][j]) for i in support(d) for j in 1:d[i]]...)
+  permute(f, sigma) = f([xi(i, sigma[i][j]) for i in support(d) for j in 1:d[i]]...)
 
   # The discriminant in the definition of the antisymmetrization.
   delta = 1
@@ -184,9 +210,8 @@ function chow_ring(
 
   inclusion = AlgebraHomomorphism(A, R, targets)
 
-  anti = [antisymmetrize(f * b) for f in forbidden_polynomials for b in base_for_ring()]
-  tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti]
-  tautological = unique(tautological)
+  anti = unique([antisymmetrize(f * b) for f in forbidden_polynomials for b in base])
+  tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti if g != 0]
   linear = [sum(chi[i] * xs(i, 1) for i in support(d))]
 
   return (QuotientRing(A, std(Ideal(A, [tautological; linear]))), R, inclusion)
@@ -481,16 +506,21 @@ We use this instead of the more conventional notation `Q` to avoid a
 clash with the notation for the quiver.
 """
 function todd_Q(t, n)
-  return sum((-1)^i * (Nemo.bernoulli(i) * t^i) / factorial(i) for i in 0:n)
+  return sum((-1)^i * (Nemo.bernoulli(i) * t^i) / factorial(big(i)) for i in 0:n)
 end
 
-# TODO rewrite this with in-place operations.
 """
 Takes an element in a graded ring and discards all homogeneous components
 of degree > n
 """
 function truncate(f, n)
-  return sum(term for term in Singular.terms(f) if Singular.total_degree(term) <= n)
+  context = Singular.MPolyBuildCtx(parent(f))
+  for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
+    if sum(e) <= n
+      Singular.push_term!(context, c, e)
+    end
+  end
+  return Singular.finish(context)
 end
 
 """
