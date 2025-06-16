@@ -14,7 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@latest
-      - uses: julia-actions/cache@v2
       - name: Install JuliaFormatter
         run: julia -e 'using Pkg; Pkg.add("JuliaFormatter")'
       - name: Run JuliaFormatter
