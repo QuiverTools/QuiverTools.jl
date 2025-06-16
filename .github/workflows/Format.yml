@@ -1,0 +1,21 @@
+name: Format
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'docs/make.jl'
+      - '.JuliaFormatter.jl'
+      - '.github/workflows/Format.yml'
+  workflow_dispatch:
+jobs:
+  code-style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@latest
+      - uses: julia-actions/cache@v2
+      - name: Install JuliaFormatter
+        run: julia -e 'using Pkg; Pkg.add("JuliaFormatter")'
+      - name: Run JuliaFormatter
+        run: julia .JuliaFormatter.jl

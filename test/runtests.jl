@@ -1,43 +1,44 @@
 using Test, QuiverTools, Documenter
+using Pkg
+Pkg.activate(@__DIR__)
 
 @info "Almost all the tests are in the documentation."
 
 DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools))
-doctest(QuiverTools, manual = false, testset = "Doctests")
+doctest(QuiverTools; manual=false, testset="Doctests")
 
 @testset "strict sst" begin
-    # proper-semistability
-    Q = mKronecker_quiver(2)
-    d = [2, 2]
-    theta = [1, -1]
+  # proper-semistability
+  Q = kronecker_quiver(2)
+  d = [2, 2]
+  theta = [1, -1]
 
-    @test has_semistables(Q, d, theta) == true
-    @test has_stables(Q, d, theta) == false
-    Q = mKronecker_quiver(3)
-    @test has_stables(Q, [1, 0], [0, -1]) == true
-    @test has_stables(Q, [0, 1], [1, 0]) == true
-    @test has_stables(Q, [3, 0], [0, -1]) == false
-    @test has_stables(Q, [0, 3], [1, 0]) == false
-    @test has_semistables(Q, [3, 0], [0, -1]) == true
-    @test has_semistables(Q, [0, 3], [1, 0]) == true
+  @test has_semistables(Q, d, theta) == true
+  @test has_stables(Q, d, theta) == false
+  Q = kronecker_quiver(3)
+  @test has_stables(Q, [1, 0], [0, -1]) == true
+  @test has_stables(Q, [0, 1], [1, 0]) == true
+  @test has_stables(Q, [3, 0], [0, -1]) == false
+  @test has_stables(Q, [0, 3], [1, 0]) == false
+  @test has_semistables(Q, [3, 0], [0, -1]) == true
+  @test has_semistables(Q, [0, 3], [1, 0]) == true
 end;
 
 @testset "HN types" begin
-    # all_HN_types()
+  # all_HN_types()
 
-    Q = three_vertex_quiver(3, 4, 5)
-    d = [3, 5, 7]
-    theta = [43, 26, -37]
+  Q = three_vertex_quiver(3, 4, 5)
+  d = [3, 5, 7]
+  theta = [43, 26, -37]
 
-    # 3vertexquiver-3-5-7-canonical.txt
-    expected = "" #has to be initialised outside of the open file
-    open("3vertexquiver-3-5-7-canonical.txt", "r") do file
-        expected = readline(file)
-    end
+  # 3vertexquiver-3-5-7-canonical.txt
+  expected = "" #has to be initialised outside of the open file
+  open("3vertexquiver-3-5-7-canonical.txt", "r") do file
+    expected = readline(file)
+  end
 
-    @test string(all_HN_types(Q, d, theta; ordered = true)) == expected
+  @test string(all_hn_types(Q, d, theta; ordered=true)) == expected
 end;
-
 
 # @testset "Testing weight handling" begin
 
@@ -50,7 +51,6 @@ end;
 #                             [2, 3], [2, 3], [2, 3]], 6)
 
 #     @test U - V == Bundle([1, 2, -3, -3, -3], 5)
-
 
 #     @test wedge(U,0) == Bundle([0], 1)
 #     @test wedge(U,1) == Bundle([1, 2], 2)
