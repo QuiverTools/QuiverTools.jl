@@ -15,7 +15,9 @@ Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-# SchubertPolynomials = "ca6918c7-c46a-4663-8c75-d24c3a15490e"
+BumplessPipeDreams = "23042ae9-e41c-4e47-ad99-03128c974ced"
+SchubertPolynomials = "ca6918c7-c46a-4663-8c75-d24c3a15490e"
+
 
 # [sources]
 # SchubertPolynomials = {rev = "9f1d979b20860ccba474775e02cd15663f31e304", url = "https://github.com/pseudoeffective/SchubertPolynomials.jl"}

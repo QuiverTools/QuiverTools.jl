@@ -19,17 +19,12 @@ import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHo
 import Combinatorics: combinations, with_replacement_combinations, partitions
 
 # optional dependencies
-
-# try
-#   using SchubertPolynomials: SchubertPolynomials
-#   import SchubertPolynomials: xy_ring, schub_poly
-# catch # will not run as long as SchubertPolynomials is installed or in the [deps]
-#   @warn "SchubertPolynomials not found. Chow ring default functionnality may be slower.
-# To solve this, install SchubertPolynomials.jl by running\n\n
-# using Pkg; Pkg.rm(\"QuiverTools\"); Pkg.add(url=\"https://github.com/pseudoeffective/SchubertPolynomials.jl\", rev=\"9f1d979b20860ccba474775e02cd15663f31e304\")\n\n
-# Then force recompilation of QuiverTools.jl by running\n\n
-# Base.compilecache(Base.identify_package("QuiverTools"))\n\n"
-# end
+try
+  using SchubertPolynomials: SchubertPolynomials
+  import SchubertPolynomials: xy_ring, schub_poly
+catch e
+  rethrow(e)
+end
 
 # Types
 export Quiver, HNType, LunaType, QuiverModuli, QuiverModuliSpace, QuiverModuliStack, Bundle
