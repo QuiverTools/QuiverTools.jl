@@ -42,4 +42,6 @@ makedocs(;
 deploydocs(;
   branch="docs",
   repo="github.com/QuiverTools/QuiverTools.jl.git",
-  cname="julia.quiver.tools")
+  cname="julia.quiver.tools",
+  versions=["v#.#.#"],
+)
