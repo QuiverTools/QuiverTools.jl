@@ -32,9 +32,7 @@ Then, add the dependencies manually by running
 
 julia> using Pkg
 
-julia> Pkg.add(url="https://github.com/pseudoeffective/BumplessPipeDreams.jl");
-
-julia> Pkg.add(url="https://github.com/pseudoeffective/SchubertPolynomials.jl");
+julia> Pkg.add(url="https://github.com/pseudoeffective/SchubertPolynomials.jl", rev="9f1d979b20860ccba474775e02cd15663f31e304");
 
 julia> Pkg.add(url="https://github.com/QuiverTools/QuiverTools.jl", rev="schubert-polynomials");
 ```
