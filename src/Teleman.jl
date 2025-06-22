@@ -10,7 +10,8 @@ Compute the weights of the 1-PS corresponding to `hn_type` for the slope functio
 """
 function weights_hn_type(hntype::HNType, theta::AbstractVector{Int}, denom::Function=sum)
   k_weights = map(h -> slope(h, theta, denom), hntype)
-  return Int.(lcm(denominator.(k_weights)) .* k_weights)
+  k_weights = Int.(lcm(denominator.(k_weights)) .* k_weights)
+  return Int.(1/gcd(k_weights) .* k_weights)
 end
 
 """
