@@ -338,6 +338,13 @@ is_schur_root(Q::Quiver, d::AbstractVector{Int}) = has_stables(
 )
 
 """
+    is_root(Q::Quiver, d)
+
+Check whether `d` is a root, i.e., if ``<d, d> \\leq 1``.
+"""
+is_root(Q::Quiver, d) = euler_form(Q, d, d) <= 1
+
+"""
     is_real_root(Q::Quiver, d)
 
 Check whether `d` is a real root, i.e., if ``<d, d> = 1``.
