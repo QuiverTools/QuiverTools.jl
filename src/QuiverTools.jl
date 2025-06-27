@@ -10,7 +10,7 @@ using Singular: Singular
 using AbstractAlgebra: AbstractAlgebra
 using Nemo: Nemo
 
-import Base: show, ==, hash, getindex, length, iterate, keys, *, +, -, ^
+import Base: show, ==, hash, convert, getindex, length, iterate, keys, *, +, -, ^
 import Memoization: @memoize, empty_all_caches!, empty_cache!
 import IterTools: subsets
 import LinearAlgebraX: rankx
@@ -46,7 +46,7 @@ export all_hn_types,
 export is_general_subdimension_vector, all_general_subdimension_vectors
 
 # Representation theory
-export euler_form, euler_matrix, is_schur_root, is_real_root, is_imaginary_root,
+export euler_form, euler_matrix, is_root, is_schur_root, is_real_root, is_imaginary_root,
   is_isotropic_root,
   general_ext, general_hom, canonical_decomposition, in_fundamental_domain
 

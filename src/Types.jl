@@ -320,6 +320,7 @@ Base.getindex(H::HNType, i) = getindex(H.hn, i)
 Base.iterate(H::HNType) = iterate(H.hn)
 Base.iterate(H::HNType, i) = iterate(H.hn, i)
 Base.getindex(H::HNType, i::Int) = getindex(H.hn, i)
+Base.convert(::Type{<:HNType}, x::Vector{<:AbstractVector{Int}}) = HNType(x)
 
 """
 # Summary
