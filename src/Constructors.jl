@@ -339,8 +339,12 @@ kronecker_moduli(m::Int, d::Int, e::Int) = QuiverModuliSpace(kronecker_quiver(m)
 """
     subspace_quiver_moduli(m::Int, d::Int)
 
-Construct the subspace quiver moduli space for `m` points on ℙᵈ⁻¹
-julia> subspace_quiver_moduli(3, 2, 3)
+Construct the subspace quiver moduli space for `m` points on ``\\mathbb{P}^{d-1}``
+
+# Examples
+
+```jldoctest
+julia> subspace_quiver_moduli(5, 2)
 Quiver moduli space defined as follows:
  - quiver: 5-subspace quiver
  - dimension vector: [1, 1, 1, 1, 1, 2]
