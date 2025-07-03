@@ -102,16 +102,8 @@ true
 ```
 """
 function is_connected(Q::Quiver)
-  paths = underlying_graph(Q)
-  for i in 2:(n_vertices(Q) - 1)
-    paths += paths * underlying_graph(Q)
-  end
-  for i in 1:n_vertices(Q), j in 1:n_vertices(Q)
-    if i != j && paths[i, j] == 0 && paths[j, i] == 0
-      return false
-    end
-  end
-  return true
+  paths = sum(underlying_graph(Q)^k for k in 0:(n_vertices(Q) - 1))
+  return all(p -> p > 0, paths)
 end
 
 """
