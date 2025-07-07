@@ -142,6 +142,9 @@ julia> QuiverTools.all_subdimension_vectors([2, 3]; nonzero=true, strict=true)
  [2, 2]
  [0, 3]
  [1, 3]
+
+julia> QuiverTools.all_subdimension_vectors([0, 0, 0]; nonzero=true, strict=true)
+StaticArraysCore.SVector{3, Int64}[]
 ```
 """
 @memoize Dict function all_subdimension_vectors(
@@ -153,6 +156,7 @@ julia> QuiverTools.all_subdimension_vectors([2, 3]; nonzero=true, strict=true)
     coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...))),
     prod(di + 1 for di in d),
   )
+  all(di == 0 for di in d) && (nonzero || strict) && return deleteat!(subdims, 1)
   nonzero && deleteat!(subdims, 1)
   strict && pop!(subdims)
   return subdims
