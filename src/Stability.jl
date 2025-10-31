@@ -449,7 +449,7 @@ Return the list of all general subdimension vectors of `d`.
 julia> Q = kronecker_quiver(3);
 
 julia> QuiverTools.all_general_subdimension_vectors(Q, [2, 3])
-7-element Vector{StaticArraysCore.SVector{2, Int64}}:
+7-element Vector{Vector{Int64}}:
  [0, 0]
  [0, 1]
  [0, 2]
@@ -459,7 +459,7 @@ julia> QuiverTools.all_general_subdimension_vectors(Q, [2, 3])
  [2, 3]
 
 julia> QuiverTools.all_general_subdimension_vectors(Q, [3, 0])
-4-element Vector{StaticArraysCore.SVector{2, Int64}}:
+4-element Vector{Vector{Int64}}:
  [0, 0]
  [1, 0]
  [2, 0]

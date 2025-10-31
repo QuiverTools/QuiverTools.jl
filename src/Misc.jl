@@ -102,7 +102,7 @@ Compute all subdimension vectors of a given dimension vector `d`.
 
 ```jldoctest
 julia> QuiverTools.all_subdimension_vectors([2, 3])
-12-element Vector{StaticArraysCore.SVector{2, Int64}}:
+12-element Vector{Vector{Int64}}:
  [0, 0]
  [1, 0]
  [2, 0]
@@ -117,7 +117,7 @@ julia> QuiverTools.all_subdimension_vectors([2, 3])
  [2, 3]
 
 julia> QuiverTools.all_subdimension_vectors([2, 3]; nonzero=true)
-11-element Vector{StaticArraysCore.SVector{2, Int64}}:
+11-element Vector{Vector{Int64}}:
  [1, 0]
  [2, 0]
  [0, 1]
@@ -131,7 +131,7 @@ julia> QuiverTools.all_subdimension_vectors([2, 3]; nonzero=true)
  [2, 3]
 
 julia> QuiverTools.all_subdimension_vectors([2, 3]; nonzero=true, strict=true)
-10-element Vector{StaticArraysCore.SVector{2, Int64}}:
+10-element Vector{Vector{Int64}}:
  [1, 0]
  [2, 0]
  [0, 1]
@@ -144,7 +144,7 @@ julia> QuiverTools.all_subdimension_vectors([2, 3]; nonzero=true, strict=true)
  [1, 3]
 
 julia> QuiverTools.all_subdimension_vectors([0, 0, 0]; nonzero=true, strict=true)
-StaticArraysCore.SVector{3, Int64}[]
+Vector{Int64}[]
 ```
 """
 @memoize Dict function all_subdimension_vectors(
@@ -153,7 +153,7 @@ StaticArraysCore.SVector{3, Int64}[]
   strict::Bool=false,
 ) #TODO should this be memoized at all?
   subdims = reshape(
-    coerce_vector.(collect(Iterators.product(map(di -> 0:di, d)...))),
+    collect.(collect(Iterators.product(map(di -> 0:di, d)...))),
     prod(di + 1 for di in d),
   )
   all(di == 0 for di in d) && (nonzero || strict) && return deleteat!(subdims, 1)
@@ -227,9 +227,12 @@ true
 """
 unit_vector(Q::Quiver, i::Int) = unit_vector(n_vertices(Q), i)
 
-coerce_vector(v::AbstractVector) = SVector{length(v)}(v)
-coerce_vector(v::Tuple) = SVector{length(v)}(v)
-coerce_vector(v::SVector) = v
+# coerce_vector(v::AbstractVector) = SVector{length(v)}(v)
+# coerce_vector(v::Tuple) = SVector{length(v)}(v)
+# coerce_vector(v::SVector) = v
 
-coerce_matrix(m::AbstractMatrix) = SMatrix{size(m)...}(m)
-coerce_matrix(m::SMatrix) = m
+# coerce_matrix(m::AbstractMatrix) = SMatrix{size(m)...}(m)
+# coerce_matrix(m::SMatrix) = m
+
+coerce_vector(v) = v
+coerce_matrix(m) = m
