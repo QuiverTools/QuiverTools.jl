@@ -227,12 +227,5 @@ true
 """
 unit_vector(Q::Quiver, i::Int) = unit_vector(n_vertices(Q), i)
 
-# coerce_vector(v::AbstractVector) = SVector{length(v)}(v)
-# coerce_vector(v::Tuple) = SVector{length(v)}(v)
-# coerce_vector(v::SVector) = v
-
-# coerce_matrix(m::AbstractMatrix) = SMatrix{size(m)...}(m)
-# coerce_matrix(m::SMatrix) = m
-
 coerce_vector(v) = v
 coerce_matrix(m) = m

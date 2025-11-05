@@ -1,7 +1,6 @@
 module QuiverTools
 
 using Pkg
-# using StaticArrays
 
 using Memoization: Memoization
 using IterTools: IterTools
