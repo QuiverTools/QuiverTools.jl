@@ -244,7 +244,7 @@ The bipartite quiver with `m + n` vertices.
 
 ```jldoctest
 julia> bipartite_quiver(2, 3).adjacency
-5×5 StaticArraysCore.SMatrix{5, 5, Int64, 25} with indices SOneTo(5)×SOneTo(5):
+5×5 Matrix{Int64}:
  0  0  1  1  1
  0  0  1  1  1
  0  0  0  0  0

@@ -40,7 +40,7 @@ struct Quiver
     if !(size(adjacency)[1] == size(adjacency)[2])
       throw(DomainError(adjacency, "adjacency matrix must be square"))
     else
-      new(SMatrix{size(adjacency)...}(adjacency), name)
+      new(adjacency, name)
     end
   end
 
@@ -301,7 +301,7 @@ A struct for a Harder-Narasimhan type.
 
 """
 struct HNType{T}
-  hn::Vector{SVector{T,Int}}
+  hn::Vector{Vector{Int}}
   function HNType(dstar::Vector{<:AbstractVector{Int}})
     T = length(dstar[1])
     return new{T}(coerce_vector.(dstar))
@@ -466,7 +466,7 @@ A struct to encode Luna types.
 
 """
 struct LunaType{T}
-  data::Dict{SVector{T,Int},Vector{Int}}
+  data::Dict{Vector{Int},Vector{Int}}
 
   function LunaType(new_luna::Dict{<:AbstractVector{Int},Vector{Int}})
     T = length(collect(keys(new_luna))[1])
