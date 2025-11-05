@@ -112,7 +112,11 @@ julia> general_ext(Q2, [5, 6, 7], [6, 7, 8])
 ```
 """
 function general_ext(Q::Quiver, a::AbstractVector{Int}, b::AbstractVector{Int})
-  return maximum(-euler_form(Q, c, b) for c in all_general_subdimension_vectors(Q, a))
+  if sum(a) <= sum(b)
+    return maximum(-euler_form(Q, c, b) for c in all_general_subdimension_vectors(Q, a))
+  else
+    return maximum(-euler_form(Q, a, b - c) for c in all_general_subdimension_vectors(Q, b))
+  end
 end
 
 """
