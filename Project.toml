@@ -16,7 +16,7 @@ Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat] # we conform to minimal compatibilities of Oscar.jl
-julia = ">= 1.10"
+julia = "1.10"
 AbstractAlgebra = "0"
 Nemo = "0"
 Singular = "0"
