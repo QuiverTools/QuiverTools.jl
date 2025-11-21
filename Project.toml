@@ -17,9 +17,9 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat] # we conform to minimal compatibilities of Oscar.jl
 julia = ">= 1.10"
-AbstractAlgebra = "0.47"
-Nemo = "0.52"
-Singular = "0.26"
+AbstractAlgebra = "0"
+Nemo = "0"
+Singular = "0"
 Combinatorics = "1"
 Documenter = "1"
 IterTools = "1"
