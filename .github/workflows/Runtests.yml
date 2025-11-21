@@ -7,7 +7,7 @@ on:
       - '.github/workflows/Runtests.yml'
   workflow_dispatch:
 jobs:
-  test:
+  test-latest:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -16,5 +16,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@latest
+      - uses: julia-actions/julia-buildpkg@latest
+      - uses: julia-actions/julia-runtest@latest
+  test-oldest-supported:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        julia-arch: [x64]
+        os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@latest
+        with:
+          version: '1.10'
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
