@@ -9,13 +9,11 @@ QuiverTools is available as a Julia package and as a Sage library.
 
 ## Installation
 
-At the moment the package is not registered, so you can install it by running
-the following command in the Julia REPL:
+You can install `QuiverTools` as any other Julia package, by running
 
 ```julia-repl
-julia> using Pkg
+julia> using Pkg; Pkg.add("QuiverTools")
 
-julia> Pkg.add(url="https://github.com/QuiverTools/QuiverTools.jl.git")
 ```
 
 ## Acknowledgements

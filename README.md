@@ -9,22 +9,23 @@ with moduli spaces of quiver representations.
 
 ## Installation
 
-To install QuiverTools, run the following commands in the Julia REPL:
+To install QuiverTools,
+run the following commands in the Julia REPL:
 
 ```julia
-julia> using Pkg
+julia> using Pkg; Pkg.add("QuiverTools");
 
-julia> Pkg.add(url="https://github.com/QuiverTools/QuiverTools.jl");
 ```
 
 ## Documentation
 
 The documentation for QuiverTools is available
-[here](https://QuiverTools.github.io/QuiverTools.jl/dev/).
+[here](https://QuiverTools.github.io/QuiverTools.jl/).
 
 ## Acknowledgements
 
-QuiverTools is developed by [Pieter Belmans](https://pbelmans.ncag.info/),
+QuiverTools is developed by
+[Pieter Belmans](https://pbelmans.ncag.info/),
 Hans Franzen and
 [Gianni Petrella](https://www.giannipetrella.eu/).
 
