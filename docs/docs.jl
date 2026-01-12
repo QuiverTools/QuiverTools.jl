@@ -35,6 +35,7 @@ makedocs(;
       "Representation theory" => "methods/representation-theory.md",
       "Teleman quantization" => "methods/teleman-quantization.md",
       "Chow rings" => "methods/chow-rings.md",
+      "Walls and chamber decompositions" => "methods/walls-and-chambers.md",
     ],
     "Benchmarks" => "benchmarks.md"],
 )
