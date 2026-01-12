@@ -8,6 +8,7 @@ using LinearAlgebraX: LinearAlgebraX
 using Singular: Singular
 using AbstractAlgebra: AbstractAlgebra
 using Nemo: Nemo
+using Oscar
 
 import Base: show, ==, hash, convert, getindex, length, iterate, keys, *, +, -, ^
 import Memoization: @memoize, empty_all_caches!, empty_cache!
@@ -77,6 +78,10 @@ export teleman_bounds, weights_hn_type, weights_universal_bundle, weights_canoni
 export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
   det, line_bundle, canonical_bundle, universal_bundle, degree, rank, teleman_weights,
   structure_sheaf
+
+# Walls and Chambers
+export is_special_subdimension_vector, all_special_subdimension_vectors, sst,
+  vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent
 
 # TODO add missing doctests across codebase
 # TODO add safety checks everywhere in the codebase

@@ -13,6 +13,7 @@ files = [
   "src/Stability.jl",
   "src/Teleman.jl",
   "src/Types.jl",
+  "src/WallsAndChambers.jl",
   "docs/docs.jl",
   "benchmark/benchmarks.jl",
   "test/runtests.jl",
