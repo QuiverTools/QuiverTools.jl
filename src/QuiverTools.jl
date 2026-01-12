@@ -2,14 +2,17 @@ module QuiverTools
 
 using Pkg
 
+using Oscar: Oscar
 using Memoization: Memoization
 using IterTools: IterTools
 using LinearAlgebraX: LinearAlgebraX
 using Singular: Singular
 using AbstractAlgebra: AbstractAlgebra
 using Nemo: Nemo
-using Oscar
 
+import Oscar:
+  Polyhedron, polyhedron, positive_hull, affine_hull, minkowski_sum,
+  rays, facets, dim
 import Base: show, ==, hash, convert, getindex, length, iterate, keys, *, +, -, ^
 import Memoization: @memoize, empty_all_caches!, empty_cache!
 import IterTools: subsets
@@ -17,7 +20,6 @@ import LinearAlgebraX: rankx
 import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHomomorphism,
   preimage, Ideal, quotient_ideal, QuotientRing, fraction_field, std, gens, base_ring
 import Combinatorics: combinations, with_replacement_combinations, partitions
-
 # optional dependencies
 
 # try
@@ -80,7 +82,7 @@ export chern_character, chern_class, chern_classes, dual, exterior_power, symmet
   structure_sheaf
 
 # Walls and Chambers
-export is_special_subdimension_vector, all_special_subdimension_vectors, sst,
+export rays, is_special_subdimension_vector, all_special_subdimension_vectors, sst,
   vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent
 
 # TODO add missing doctests across codebase
@@ -137,6 +139,7 @@ include("Hodge.jl")
 include("Chow.jl")
 include("Teleman.jl")
 include("Bundles.jl")
+include("WallsAndChambers.jl")
 
 ######################
 # end of QuiverTools
