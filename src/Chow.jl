@@ -508,7 +508,7 @@ We use this instead of the more conventional notation `Q` to avoid a
 clash with the notation for the quiver.
 """
 function todd_Q(t, n)
-  return sum((-1)^i * (Nemo.bernoulli(i) * t^i) / factorial(big(i)) for i in 0:n)
+  return sum((-1)^i * (Oscar.bernoulli(i) * t^i) / factorial(big(i)) for i in 0:n)
 end
 
 """

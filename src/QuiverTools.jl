@@ -8,7 +8,6 @@ using LinearAlgebraX: LinearAlgebraX
 using Combinatorics
 
 using Singular: Singular
-using Nemo: Nemo
 using Oscar: Oscar
 
 import Base: show, ==, hash, convert, getindex, length, iterate, keys, *, +, -, ^
