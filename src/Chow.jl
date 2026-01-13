@@ -47,19 +47,6 @@ function symmetric_polynomial(vars, degree::Int)
 end
 
 """
-    schubert_polynomials(n::Int)
-
-Compute all the Schubert polynomials for permutations in S_n.
-
-For internal use only.
-"""
-@memoize Dict function schubert_polynomials(n)
-  # returns all the Schubert polynomials for permutations in S_n
-  RR = xy_ring(n)[1]
-  return [schub_poly(p.d, RR) for p in AbstractAlgebra.SymmetricGroup(n)]
-end
-
-"""
     product_lists(L)
 
 For internal use only.
@@ -140,20 +127,15 @@ function chow_ring(
   end
 
   base = []
-  try # if Schubert polynomial functionality is available
-    schubs(i) = map(p -> p([xi(i, j) for j in 1:d[i]]...), schubert_polynomials(d[i]))
-    base = product_lists([schubs(i) for i in support(d)])
-  catch e # else
-    bounds = [0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
-    build_elem(lambda) = prod(
-      prod(
-        xi(i, nu)^lambda[sum(d[1:(i - 1)]) + nu]
-        for nu in 1:d[i]
-      )
-      for i in support(d)
+  bounds = [0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
+  build_elem(lambda) = prod(
+    prod(
+      xi(i, nu)^lambda[sum(d[1:(i - 1)]) + nu]
+      for nu in 1:d[i]
     )
-    base = map(build_elem, Iterators.product(bounds...))
-  end
+    for i in support(d)
+  )
+  base = map(build_elem, Iterators.product(bounds...))
 
   # build the permutation group W
   W = Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
