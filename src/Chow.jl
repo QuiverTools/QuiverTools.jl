@@ -140,7 +140,7 @@ function chow_ring(
   # build the permutation group W
   W = Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
 
-  # this is a function definition, avoid circular definitions!
+  # sign for the product of symmetric groups
   sign_product(w) = prod(sign(Oscar.perm(wi)) for wi in w)
 
   # Action of the symmetric group on R by permutation of the variables.
