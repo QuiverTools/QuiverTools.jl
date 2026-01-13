@@ -131,7 +131,7 @@ function chow_ring(
 
   # j varies first, then i
   varnames = ["xi$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
-  R, vars = polynomial_ring(Singular.QQ, varnames)
+  R, vars = Singular.polynomial_ring(Singular.QQ, varnames)
 
   # Shorthand to address the variable `xi_{i,j}`.
   function xi(i, j)
@@ -140,7 +140,7 @@ function chow_ring(
   end
 
   base = []
-  try # if Schubert polynomial functionnality is available
+  try # if Schubert polynomial functionality is available
     schubs(i) = map(p -> p([xi(i, j) for j in 1:d[i]]...), schubert_polynomials(d[i]))
     base = product_lists([schubs(i) for i in support(d)])
   catch e # else
@@ -156,8 +156,10 @@ function chow_ring(
   end
 
   # build the permutation group W
-  W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i in 1:n_vertices(Q)]...)
-  sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
+  W = Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
+
+  # this is a function definition, avoid circular definitions!
+  sign_product(w) = prod(sign(Oscar.perm(wi)) for wi in w)
 
   # Action of the symmetric group on R by permutation of the variables.
   permute(f, sigma) = f([xi(i, sigma[i][j]) for i in support(d) for j in 1:d[i]]...)
@@ -172,7 +174,7 @@ function chow_ring(
     )
   end
 
-  antisymmetrize(f) = div(sum(sign(w) * permute(f, w) for w in W), R(delta))
+  antisymmetrize(f) = div(sum(sign_product(w) * permute(f, w) for w in W), R(delta))
 
   # All the destabilizing subdimension vectors of `d` with respect to the slope
   # `theta/denom` that are minimal with respect to the total order.

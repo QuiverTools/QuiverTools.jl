@@ -1,27 +1,27 @@
 name = "QuiverTools"
 uuid = "dc2e10be-62a3-4315-9c95-46bb97ac152d"
-authors = ["Gianni Petrella <gianni.petrella99@gmail.com>", "Pieter Belmans <p.belmans@uu.nl>", "Hans Franzen <hans.franzen.math@gmail.com>"]
 version = "1.0.3"
+authors = ["Gianni Petrella <gianni.petrella99@gmail.com>", "Pieter Belmans <p.belmans@uu.nl>", "Hans Franzen <hans.franzen.math@gmail.com>"]
 
 [deps]
-AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 IterTools = "c8e1da08-722c-5040-9ed9-7db0dc04731e"
 LinearAlgebraX = "9b3f67b0-2d00-526e-9884-9e4938f8fb88"
 Memoization = "6fafb56a-5788-4b4e-91ca-c0cea6611c73"
 Nemo = "2edaba10-b0f1-5616-af89-8c11ac63239a"
+Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
-[compat] # we conform to minimal compatibilities of Oscar.jl
-julia = "1.10"
-AbstractAlgebra = "0.47"
-Nemo = "0.52"
-Singular = "0.26"
+[compat]
 Combinatorics = "1"
 Documenter = "1"
 IterTools = "1"
 LinearAlgebraX = "0.2.10"
 Memoization = "0.2.2"
+Nemo = "0.52.4"
+Oscar = "1.5.1"
+Singular = "0.26.1"
+julia = "1.10"
