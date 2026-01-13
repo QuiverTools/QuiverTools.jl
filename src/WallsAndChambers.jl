@@ -103,7 +103,7 @@ of the quiver `Q` with dimension vector `e` exist.
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
 julia> collect(rays(sst(Q, d)))
-3-element Vector{RayVector{QQFieldElem}}:
+3-element Vector{Oscar.RayVector{Nemo.QQFieldElem}}:
  [0, 0, 1, -1]
  [0, 1, -1, 0]
  [1, -1, 0, 0]
@@ -134,7 +134,7 @@ to not include the outer walls.
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
 julia> map(rays, vgit_walls(Q, d; inner=false, top_dimension=false))
-7-element Vector{SubObjectIterator{RayVector{QQFieldElem}}}:
+7-element Vector{Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}}:
  [[0, 0, 1, -1], [0, 1, -1, 0]]
  [[0, 0, 1, -1], [1, 0, -1, 0]]
  [[0, 0, 1, -1], [1, -1, 0, 0]]
@@ -205,7 +205,7 @@ than the corresponding `H_e \\cap sst(d)` in the wall system.
 julia> Q = Quiver("1-2,2-3,3-4,1-4"); d = [1, 1, 1, 1];
 
 julia> map(rays, vgit_chambers(Q, d; verbose=false))
-3-element Vector{SubObjectIterator{RayVector{QQFieldElem}}}:
+3-element Vector{Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}}:
  [[1, -1, 0, 0], [1, 0, 0, -1], [0, 0, 1, -1]]
  [[0, 1, -1, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
  [[1, -1, 0, 0], [1, 0, 0, -1], [0, 1, -1, 0]]
@@ -218,7 +218,7 @@ hyperplane and the two others are not.
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
 julia> map(rays, vgit_chambers(Q, d; verbose=false))
-4-element Vector{SubObjectIterator{RayVector{QQFieldElem}}}:
+4-element Vector{Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}}:
  [[1, -1, 0, 0], [1, 0, 0, -1], [0, 0, 1, -1]]
  [[1, -1, 0, 0], [1, 0, -1, 0], [1, 0, 0, -1]]
  [[0, 1, -1, 0], [1, 0, 0, -1], [1, 0, -1, 0]]
