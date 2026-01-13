@@ -47,19 +47,6 @@ function symmetric_polynomial(vars, degree::Int)
 end
 
 """
-    schubert_polynomials(n::Int)
-
-Compute all the Schubert polynomials for permutations in S_n.
-
-For internal use only.
-"""
-@memoize Dict function schubert_polynomials(n)
-  # returns all the Schubert polynomials for permutations in S_n
-  RR = xy_ring(n)[1]
-  return [schub_poly(p.d, RR) for p in AbstractAlgebra.SymmetricGroup(n)]
-end
-
-"""
     product_lists(L)
 
 For internal use only.
@@ -131,7 +118,7 @@ function chow_ring(
 
   # j varies first, then i
   varnames = ["xi$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
-  R, vars = polynomial_ring(Singular.QQ, varnames)
+  R, vars = Singular.polynomial_ring(Singular.QQ, varnames)
 
   # Shorthand to address the variable `xi_{i,j}`.
   function xi(i, j)
@@ -140,24 +127,21 @@ function chow_ring(
   end
 
   base = []
-  try # if Schubert polynomial functionnality is available
-    schubs(i) = map(p -> p([xi(i, j) for j in 1:d[i]]...), schubert_polynomials(d[i]))
-    base = product_lists([schubs(i) for i in support(d)])
-  catch e # else
-    bounds = [0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
-    build_elem(lambda) = prod(
-      prod(
-        xi(i, nu)^lambda[sum(d[1:(i - 1)]) + nu]
-        for nu in 1:d[i]
-      )
-      for i in support(d)
+  bounds = [0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
+  build_elem(lambda) = prod(
+    prod(
+      xi(i, nu)^lambda[sum(d[1:(i - 1)]) + nu]
+      for nu in 1:d[i]
     )
-    base = map(build_elem, Iterators.product(bounds...))
-  end
+    for i in support(d)
+  )
+  base = map(build_elem, Iterators.product(bounds...))
 
   # build the permutation group W
-  W = Iterators.product([AbstractAlgebra.SymmetricGroup(d[i]) for i in 1:n_vertices(Q)]...)
-  sign(w) = prod(AbstractAlgebra.sign(wi) for wi in w)
+  W = Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
+
+  # sign for the product of symmetric groups
+  sign_product(w) = prod(sign(Oscar.perm(wi)) for wi in w)
 
   # Action of the symmetric group on R by permutation of the variables.
   permute(f, sigma) = f([xi(i, sigma[i][j]) for i in support(d) for j in 1:d[i]]...)
@@ -172,7 +156,7 @@ function chow_ring(
     )
   end
 
-  antisymmetrize(f) = div(sum(sign(w) * permute(f, w) for w in W), R(delta))
+  antisymmetrize(f) = div(sum(sign_product(w) * permute(f, w) for w in W), R(delta))
 
   # All the destabilizing subdimension vectors of `d` with respect to the slope
   # `theta/denom` that are minimal with respect to the total order.
@@ -506,7 +490,7 @@ We use this instead of the more conventional notation `Q` to avoid a
 clash with the notation for the quiver.
 """
 function todd_Q(t, n)
-  return sum((-1)^i * (Nemo.bernoulli(i) * t^i) / factorial(big(i)) for i in 0:n)
+  return sum((-1)^i * (Oscar.bernoulli(i) * t^i) / factorial(big(i)) for i in 0:n)
 end
 
 """
