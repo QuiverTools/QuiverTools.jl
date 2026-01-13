@@ -1,6 +1,6 @@
 name = "QuiverTools"
 uuid = "dc2e10be-62a3-4315-9c95-46bb97ac152d"
-version = "1.0.3"
+version = "1.0.4"
 authors = ["Gianni Petrella <gianni.petrella99@gmail.com>", "Pieter Belmans <p.belmans@uu.nl>", "Hans Franzen <hans.franzen.math@gmail.com>"]
 
 [deps]
@@ -20,6 +20,6 @@ Documenter = "1"
 IterTools = "1"
 LinearAlgebraX = "0.2.10"
 Memoization = "0.2.2"
-Oscar = "1.5.1"
-Singular = "0.26.1"
+Oscar = "1"
+Singular = "0.28"
 julia = "1.10"
