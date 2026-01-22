@@ -387,20 +387,20 @@ julia> F = vgit_fan(Q, d); rays(F)
  [1, 1//2, -1]
  [0, 1, -1]
 
- julia> theta1 = [2, -1//2, -1//2];
+julia> theta1 = [2, -1//2, -1//2];
 
- julia> theta2 = [2, 1//2, -3//2];
+julia> theta2 = [2, 1//2, -3//2];
 
- julia> theta3 = [1, 3//2, -2];
+julia> theta3 = [1, 3//2, -2];
 
- julia> git_equivalent(Q, d, theta1, theta2)
- false
+julia> git_equivalent(Q, d, theta1, theta2)
+false
 
- julia> git_equivalent(Q, d, theta1, theta3)
- false
+julia> git_equivalent(Q, d, theta1, theta3)
+false
 
- julia> git_equivalent(Q, d, theta2, theta3)
- false
+julia> git_equivalent(Q, d, theta2, theta3)
+false
 ```
 """
 function git_equivalent(Q, d, theta1, theta2)
