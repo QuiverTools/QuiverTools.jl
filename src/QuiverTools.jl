@@ -12,8 +12,8 @@ using Singular: Singular
 using Oscar: Oscar
 
 import Oscar:
-  Polyhedron, polyhedron, positive_hull, affine_hull, minkowski_sum,
-  rays, facets, dim
+  Polyhedron, polyhedron, polyhedral_fan, positive_hull, affine_hull, convex_hull,
+  minkowski_sum, rays, facets, dim
 import Base: show, ==, hash, convert, getindex, length, iterate, keys, *, +, -, ^
 import Memoization: @memoize, empty_all_caches!, empty_cache!
 import IterTools: subsets

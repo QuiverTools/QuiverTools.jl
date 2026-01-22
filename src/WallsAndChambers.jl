@@ -336,6 +336,24 @@ end
     vgit_fan(Q, d; verbose=false)
 
 Compute the VGIT fan for the quiver `Q` with dimension vector `d`.
+
+# Example
+
+```jldoctests
+julia> Q = three_vertex_quiver(2, 3, 4); d = [2, 3, 4];
+
+julia> F = vgit_fan(Q, d); rays(F)
+9-element Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}:
+ [1, -2//3, 0]
+ [1, -1//2, -1//8]
+ [1, -2//5, -1//5]
+ [1, 0, -1//2]
+ [1, 2//9, -2//3]
+ [1, 2//5, -4//5]
+ [1, 2//3, -1]
+ [1, 2, -2]
+ [0, 1, -3//4]
+```
 """
 function vgit_fan(Q, d; verbose=false)
   return polyhedral_fan(
@@ -351,6 +369,33 @@ Check if the two stability parameters `theta1` and `theta2` are equivalent.
 
 By [Corollary 4.4, arXiv:2506.20568], this is equivalent to their convex hull
 either lying in a wall or not intersecting any of them.
+
+# Example
+
+```jldoctests
+julia> Q = three_vertex_quiver(2, 3, 4); d = [1, 2, 2];
+
+julia> F = vgit_fan(Q, d); rays(F)
+4-element Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}:
+ [1, -1//2, 0]
+ [1, 0, -1//2]
+ [1, 1//2, -1]
+ [0, 1, -1]
+
+ julia> theta1 = [2, -1//2, -1//2];
+
+ julia> theta2 = [2, 1//2, -3//2];
+
+ julia> theta3 = [1, 3//2, -2];
+
+ julia> git_equivalent(Q, d, theta1, theta2)
+ false
+
+ julia> git_equivalent(Q, d, theta1, theta3)
+ false
+
+ julia> git_equivalent(Q, d, theta2, theta3)
+ false
 """
 function git_equivalent(Q, d, theta1, theta2)
   theta1 == theta2 && return true
