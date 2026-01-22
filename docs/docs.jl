@@ -6,6 +6,9 @@ Pkg.activate(@__DIR__)
 # renders docs of the current version checked out in this repo.
 Pkg.develop(PackageSpec(; path=(@__DIR__) * "/../"))
 
+# make sure QuiverTools is updated
+Pkg.update()
+
 using QuiverTools
 
 ```@meta
