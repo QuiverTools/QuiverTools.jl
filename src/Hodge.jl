@@ -367,12 +367,14 @@ julia> index(M)
 ```
 """
 function index(M::QuiverModuliSpace)
-  if M.theta == canonical_stability(M.Q, M.d) &&
-    is_coprime(M.d, M.theta) &&
-    is_amply_stable(M)
+  !git_equivalent(M.Q, M.d, M.theta, canonical_stability(M.Q, M.d)) &&
+    throw(ArgumentError("Only implemented for canonical stability."))
+  if is_coprime(M.d, M.theta) && is_amply_stable(M)
     return gcd(M.theta)
   end
-  throw(NotImplementedError("Only implemented for canonical stability."))
+  throw(
+    ArgumentError("Index computation requires ample stability and `theta`-coprimality.")
+  )
 end
 
 """
