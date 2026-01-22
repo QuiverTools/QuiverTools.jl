@@ -3,6 +3,9 @@
 
 Compute whether `e` is a special subdimension vector of `d` for `Q`.
 
+Special subdimension vectors are defined in
+[[Definition 6.1, doi:10.1016/j.jpaa.2025.108153](https://doi.org/10.1016/j.jpaa.2025.108153)].
+
 # Example
 
 ```jldoctests
@@ -367,7 +370,8 @@ end
     git_equivalent(Q, d, theta1, theta2)
 Check if the two stability parameters `theta1` and `theta2` are equivalent.
 
-By [Corollary 4.4, arXiv:2506.20568], this is equivalent to their convex hull
+By [[Corollary 4.4, doi:10.1016/j.jpaa.2025.108153](https://doi.org/10.1016/j.jpaa.2025.108153)],
+this is equivalent to their convex hull
 either lying in a wall or not intersecting any of them.
 
 # Example
