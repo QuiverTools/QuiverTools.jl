@@ -1,15 +1,4 @@
-using Documenter
-
-using Pkg
-Pkg.activate(@__DIR__)
-# As long as it is not registered, this is nice, in general it locally always
-# renders docs of the current version checked out in this repo.
-Pkg.develop(PackageSpec(; path=(@__DIR__) * "/../"))
-
-# make sure QuiverTools is updated
-Pkg.update()
-
-using QuiverTools
+using Documenter, QuiverTools
 
 ```@meta
 CurrentModule = QuiverTools

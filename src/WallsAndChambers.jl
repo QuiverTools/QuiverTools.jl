@@ -368,6 +368,7 @@ end
 
 """
     git_equivalent(Q, d, theta1, theta2)
+
 Check if the two stability parameters `theta1` and `theta2` are equivalent.
 
 By [[Corollary 4.4, doi:10.1016/j.jpaa.2025.108153](https://doi.org/10.1016/j.jpaa.2025.108153)],
