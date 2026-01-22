@@ -583,4 +583,4 @@ QuiverTools provides an implementation of the walls and chambers decomposition
 of the space of stability parameters in a quiver moduli problem,
 as described in [[doi:10.1016/j.jpaa.2025.108153](https://doi.org/10.1016/j.jpaa.2025.108153)].
 
-The provided methods are described in [Walls-and-Chambers](@ref).
+The provided methods are described in [Walls and Chambers decomposition](@ref).

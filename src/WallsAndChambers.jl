@@ -401,6 +401,7 @@ julia> F = vgit_fan(Q, d); rays(F)
 
  julia> git_equivalent(Q, d, theta2, theta3)
  false
+```
 """
 function git_equivalent(Q, d, theta1, theta2)
   theta1 == theta2 && return true
