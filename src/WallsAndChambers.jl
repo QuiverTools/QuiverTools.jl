@@ -4,7 +4,7 @@
 Compute whether `e` is a special subdimension vector of `d` for `Q`.
 
 Special subdimension vectors are defined in
-[[Definition 6.1, doi:10.1016/j.jpaa.2025.108153](https://doi.org/10.1016/j.jpaa.2025.108153)].
+[[Definition 6.1, MR5007902](https://mathscinet.ams.org/mathscinet-getitem?mr=5007902)].
 
 # Example
 
@@ -371,7 +371,7 @@ end
 
 Check if the two stability parameters `theta1` and `theta2` are equivalent.
 
-By [[Corollary 4.4, doi:10.1016/j.jpaa.2025.108153](https://doi.org/10.1016/j.jpaa.2025.108153)],
+By [[Corollary 4.4, MR5007902](https://mathscinet.ams.org/mathscinet-getitem?mr=5007902)],
 this is equivalent to their convex hull
 either lying in a wall or not intersecting any of them.
 
