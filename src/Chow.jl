@@ -639,6 +639,17 @@ julia> [integral(M, L^i) for i in 0:5]
  2206
  5999
 ```
+
+This method can be used to compute the Euler characteristic of any bundle `F`:
+
+```jldoctest
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> U1 = universal_bundle(M, 1);
+
+julia> integral(U1)
+0
+```
 """
 function integral(M::QuiverModuliSpace, f)
   n = dimension(M)
