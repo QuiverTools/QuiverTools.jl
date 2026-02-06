@@ -148,14 +148,13 @@ julia> map(rays, vgit_walls(Q, d; inner=false, top_dimension=false))
 ```
 """
 @memoize Dict function vgit_walls(Q, d; inner=false, top_dimension=true)
+  all_subd = QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true)
   out = map(
     e -> reduce(intersect, [sst(Q, e), sst(Q, d - e), sst(Q, d)]), # definition of W_{e}
-    QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
-  )
-  top_dimension && (out = filter(w -> dim(w) == length(d) - 2, out))
-  inner &&
-    (out = filter(w -> !any(issubset(w, f) for f in facets(Polyhedron, sst(Q, d))), out))
-  return map(__helper_accelerate, unique(out)) # remove duplicates, accelerate intersection
+    all_subd)
+  top_dimension && filter!(w -> dim(w) == length(d) - 2, out)
+  inner && filter!(w -> !any(issubset(w, f) for f in facets(Polyhedron, sst(Q, d))), out)
+  return unique!(__helper_accelerate, out)
 end
 
 """
@@ -209,7 +208,7 @@ julia> Q = Quiver("1-2,2-3,3-4,1-4"); d = [1, 1, 1, 1];
 
 julia> map(rays, vgit_chambers(Q, d; verbose=false))
 3-element Vector{Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}}:
- [[1, -1, 0, 0], [1, 0, 0, -1], [0, 0, 1, -1]]
+ [[1, -1, 0, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
  [[0, 1, -1, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
  [[1, -1, 0, 0], [1, 0, 0, -1], [0, 1, -1, 0]]
 ```
@@ -222,8 +221,8 @@ julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
 julia> map(rays, vgit_chambers(Q, d; verbose=false))
 4-element Vector{Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}}:
- [[1, -1, 0, 0], [1, 0, 0, -1], [0, 0, 1, -1]]
- [[1, -1, 0, 0], [1, 0, -1, 0], [1, 0, 0, -1]]
+ [[1, -1, 0, 0], [1, 0, 0, -1], [1, 0, -1, 0]]
+ [[1, -1, 0, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
  [[0, 1, -1, 0], [1, 0, 0, -1], [1, 0, -1, 0]]
  [[0, 1, -1, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
 ```
@@ -257,29 +256,43 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
   top_chambers = [sstd]
 
   # helper function
-  helper_split(wall, chamber) = [
-    intersect(chamber, polyhedron([wall], [0])),
-    intersect(chamber, polyhedron([-wall], [0])),
-  ]
-
+  function helper_split(wall, chamber)
+    return [
+      intersect(chamber, polyhedron([wall], [0])),
+      intersect(chamber, polyhedron([-wall], [0])),
+    ]
+  end
   verbose &&
     @info "There are $(length(full_walls)) full walls and $(length(smaller_walls)) smaller walls."
 
   verbose && @info "Treating the full walls..."
   for i in full_walls_iterate
-    top_chambers = vcat(
-      map(
-        chamber -> helper_split(full_walls[i], chamber),
-        top_chambers)...,
-    )
     if verbose
-      @time top_chambers = filter(
-        c -> dim(c) == length(d) - 1, __helper_accelerate.(unique(top_chambers))
-      )
+      @time begin
+        # in-place
+        n = length(top_chambers)
+        for j in 1:n
+          push!(top_chambers,
+            helper_split(full_walls[i], top_chambers[j])...,
+          )
+        end
+        deleteat!(top_chambers, 1:n)
+
+        map!(__helper_accelerate, top_chambers)
+        filter!(c -> dim(c) == length(d) - 1, top_chambers)
+      end
     else
-      top_chambers = filter(
-        c -> dim(c) == length(d) - 1, __helper_accelerate.(unique(top_chambers))
-      )
+      # in-place
+      n = length(top_chambers)
+      for j in 1:n
+        push!(top_chambers,
+          helper_split(full_walls[i], top_chambers[j])...,
+        )
+      end
+      deleteat!(top_chambers, 1:n)
+
+      map!(__helper_accelerate, top_chambers)
+      filter!(c -> dim(c) == length(d) - 1, top_chambers)
     end
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
   end
@@ -288,24 +301,34 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
 
   verbose && @info "Treating the smaller walls..."
   for i in smaller_walls_iterate
-    top_chambers = vcat(
-      map(
-        chamber -> if issubset(smaller_walls[i], chamber)
-          helper_split(smaller_walls_ah[i], chamber)
-        else
-          [chamber]
-        end,
-        top_chambers,
-      )...,
-    )
     if verbose
-      @time top_chambers = filter(
-        c -> dim(c) == length(d) - 1, __helper_accelerate.(unique(top_chambers))
-      )
+      @time begin
+        top_chambers = vcat(
+          map(
+            chamber -> if issubset(smaller_walls[i], chamber)
+              helper_split(smaller_walls_ah[i], chamber)
+            else
+              [chamber]
+            end,
+            top_chambers,
+          )...,
+        )
+        map!(__helper_accelerate, top_chambers)
+        filter!(c -> dim(c) == length(d) - 1, top_chambers)
+      end
     else
-      top_chambers = filter(
-        c -> dim(c) == length(d) - 1, __helper_accelerate.(unique(top_chambers))
+      top_chambers = vcat(
+        map(
+          chamber -> if issubset(smaller_walls[i], chamber)
+            helper_split(smaller_walls_ah[i], chamber)
+          else
+            [chamber]
+          end,
+          top_chambers,
+        )...,
       )
+      map!(__helper_accelerate, top_chambers)
+      filter!(c -> dim(c) == length(d) - 1, top_chambers)
     end
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
   end
@@ -318,7 +341,6 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
     incomplete = false
     for (ch1, ch2) in IterTools.subsets(top_chambers, 2)
       inters = intersect(ch1, ch2)
-
       # we are looking for common facets
       dim(inters) != length(d) - 2 && continue
       # if their intersection (the common facet) lays on a W_e, good.
