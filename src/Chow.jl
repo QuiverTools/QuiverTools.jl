@@ -672,18 +672,6 @@ function __projection_to_quotient_ring(A)
 end
 
 """
-Takes a ring R and a polynomial in R/I and returns the canonical preimage of f in R.
-"""
-function pullback_from_quotient(R, f)
-  B = base_ring(R)
-  g = Singular.MPolyBuildCtx(R)
-  for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
-    Singular.push_term!(g, B(c), e)
-  end
-  return Singular.finish(g)
-end
-
-"""
     __chow_ring__monomial_grading(M::QuiverModuliSpace, f)
 
 Compute the "pseudodegree" of the monomial `f` in the Chow ring of the moduli
