@@ -214,21 +214,18 @@ false
   theta::AbstractVector{Int}=canonical_stability(Q, d),
   denom::Function=sum,
 )
-  # TODO Julia shorthand? + explain this is a base case
-  if all(di == 0 for di in d)
-    return true
-  else
-    # collect the list of all subdimension vectors e of bigger slope than d
-    slope_d = slope(d, theta, denom)
-    # TODO this variable doesn't follow our conventions, why not `subdimensions_bigger_slope`?
-    subdimensions_bigger_slope = filter(
-      e -> slope(e, theta, denom) > slope_d,
-      all_subdimension_vectors(d; nonzero=true, strict=true),
-    )
-    # to have semistable representations, none of the vectors above must be
-    # a general subdimension vector.
-    return all(e -> !is_general_subdimension_vector(Q, e, d), subdimensions_bigger_slope)
-  end
+  all(di == 0 for di in d) && return true
+
+  # collect the list of all subdimension vectors e of bigger slope than d
+  slope_d = slope(d, theta, denom)
+
+  subdimensions_bigger_slope = filter(
+    e -> slope(e, theta, denom) > slope_d,
+    all_subdimension_vectors(d; nonzero=true, strict=true),
+  )
+  # to have semistable representations, none of the vectors above must be
+  # a general subdimension vector.
+  return all(e -> !is_general_subdimension_vector(Q, e, d), subdimensions_bigger_slope)
 end
 
 """
@@ -285,23 +282,20 @@ false
   theta::AbstractVector{Int}=canonical_stability(Q, d),
   denom::Function=sum,
 )
-  # TODO Julia shorthand?
-  if all(di == 0 for di in d)
-    return false
-  else
-    # collect the list of all subdimension vectors e of bigger slope than d
-    slope_d = slope(d, theta, denom)
-    subdimensions_bigger_or_equal_slope = filter(
-      e -> slope(e, theta, denom) >= slope_d,
-      all_subdimension_vectors(d; nonzero=true, strict=true),
-    )
-    # to have semistable representations,
-    # none of the vectors above must be general subdimension vectors.
-    return all(
-      e -> !is_general_subdimension_vector(Q, e, d),
-      subdimensions_bigger_or_equal_slope,
-    )
-  end
+  all(di == 0 for di in d) && return false
+  # collect the list of all subdimension vectors e of bigger slope than d
+  slope_d = slope(d, theta, denom)
+
+  subdimensions_bigger_or_equal_slope = filter(
+    e -> slope(e, theta, denom) >= slope_d,
+    all_subdimension_vectors(d; nonzero=true, strict=true),
+  )
+  # to have semistable representations,
+  # none of the vectors above must be general subdimension vectors.
+  return all(
+    e -> !is_general_subdimension_vector(Q, e, d),
+    subdimensions_bigger_or_equal_slope,
+  )
 end
 
 # TODO the cited paper is published
