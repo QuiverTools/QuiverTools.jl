@@ -338,11 +338,12 @@ function chern_class_line_bundle(
   A = chow_ring(M)
   I = quotient_ideal(A)
   Rvars = gens(base_ring(I))
+  proj = __projection_to_quotient_ring(A)
 
   chern_class =
     -sum(eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])] for i in support(M.d))
 
-  return coerce_to_quotient(A, chern_class)
+  return A(div(proj(chern_class), A(1)))
 end
 
 """
@@ -542,6 +543,7 @@ function todd_class(
   A = chow_ring(M)
   R, inclusion = M.chow._R, M.chow._inclusion
   Rvars = gens(R)
+  proj = __projection_to_quotient_ring(A)
 
   function xi(i, p)
     return Rvars[sum(M.d[1:(i - 1)]) + p]
@@ -575,15 +577,14 @@ function todd_class(
   num = gens(preimage(inclusion, Ideal(R, num)))[1]
   den = gens(preimage(inclusion, Ideal(R, den)))[1]
 
-  # renormalizing the constant term because it should be 1, but Singular does not keep
-  # it fixed.
+  # renormalizing the constant term because it should be 1,
+  #  but Singular does not keep it fixed.
   num /= constant_coefficient(num)
   den /= constant_coefficient(den)
 
-  num = coerce_to_quotient(A, num)
-  den = coerce_to_quotient(A, den)
-
-  setfield!(M.chow, :todd, A(div(A(num), A(den))))
+  quot = div(proj(num), proj(den))
+  quot = div(quot, A(1))
+  setfield!(M.chow, :todd, A(quot))
   return M.chow.todd
 end
 
@@ -661,18 +662,13 @@ integral(F::Bundle) = integral(variety(F), chern_character(F))
 chi(F::Bundle) = integral(F::Bundle)
 
 """
-Takes a quotient ring R/I and a polynomial f in R and returns the image of f in R/I.
+Takes a quotient ring R/I and returns the projection map from R to R/I.
+For internal use only.
 """
-function coerce_to_quotient(R, f)
-  I = quotient_ideal(R)
-  q = Singular.reduce(f, I)
-
-  B = base_ring(R)
-  g = Singular.MPolyBuildCtx(R)
-  for (c, e) in zip(Singular.coefficients(q), Singular.exponent_vectors(q))
-    Singular.push_term!(g, B(c), e)
-  end
-  return Singular.finish(g)
+function __projection_to_quotient_ring(A)
+  I = quotient_ideal(A)
+  R = base_ring(I)
+  return AlgebraHomomorphism(R, A, gens(A))
 end
 
 """
