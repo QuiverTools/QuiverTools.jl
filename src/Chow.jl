@@ -383,7 +383,7 @@ function chern_character_line_bundle(
   eta::AbstractVector{Int},
 )
   x = chern_class_line_bundle(M, eta)
-  return sum(x^i / factorial(i) for i in 0:dimension(M))
+  return sum(x^i / factorial(big(i)) for i in 0:dimension(M))
 end
 
 """
