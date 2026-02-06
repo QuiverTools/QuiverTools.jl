@@ -537,9 +537,7 @@ julia> length(all_hn_types(Q, d, theta; ordered=true))
   # We sort the subdimension vectors by slope because that will return the list of
   # all HN types in ascending order with respect to the partial order from
   # Definition 3.6 of https://mathscinet.ams.org/mathscinet-getitem?mr=1974891
-  if ordered
-    subdimensions = sort(subdimensions; by=e -> slope(e, theta, denom))
-  end
+  ordered && sort!(subdimensions; by=e -> slope(e, theta, denom))
 
   # The HN types which are not of the form (d) are (e,f^1,...,f^s) where e is a
   # proper semistable subdimension vector with μ(e) > μ(d), (f^1,...,f^s) is a HN
