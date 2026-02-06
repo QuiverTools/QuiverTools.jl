@@ -278,7 +278,7 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
         end
         deleteat!(top_chambers, 1:n)
 
-        map!(__helper_accelerate, top_chambers)
+        map!(__helper_accelerate, top_chambers, top_chambers)
         filter!(c -> dim(c) == length(d) - 1, top_chambers)
       end
     else
@@ -291,7 +291,7 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
       end
       deleteat!(top_chambers, 1:n)
 
-      map!(__helper_accelerate, top_chambers)
+      map!(__helper_accelerate, top_chambers, top_chambers)
       filter!(c -> dim(c) == length(d) - 1, top_chambers)
     end
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
@@ -313,7 +313,7 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
             top_chambers,
           )...,
         )
-        map!(__helper_accelerate, top_chambers)
+        map!(__helper_accelerate, top_chambers, top_chambers)
         filter!(c -> dim(c) == length(d) - 1, top_chambers)
       end
     else
@@ -327,7 +327,7 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
           top_chambers,
         )...,
       )
-      map!(__helper_accelerate, top_chambers)
+      map!(__helper_accelerate, top_chambers, top_chambers)
       filter!(c -> dim(c) == length(d) - 1, top_chambers)
     end
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
