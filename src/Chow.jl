@@ -495,20 +495,6 @@ function todd_Q(t, n)
 end
 
 """
-Takes an element in a graded ring and discards all homogeneous components
-of degree > n
-"""
-function truncate(f, n)
-  context = Singular.MPolyBuildCtx(parent(f))
-  for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
-    if sum(e) <= n
-      Singular.push_term!(context, c, e)
-    end
-  end
-  return Singular.finish(context)
-end
-
-"""
     todd_class(M::QuiverModuliSpace)
 
 Compute the Todd class of the moduli space `M`.
@@ -549,15 +535,15 @@ function todd_class(
     return Rvars[sum(M.d[1:(i - 1)]) + p]
   end
 
-  num = 1
-  den = 1
+  num = R(1)
+  den = R(1)
 
   for a in arrows(M.Q)
     i, j = a
     for p in 1:M.d[i]
       for q in 1:M.d[j]
         num *= todd_Q(xi(j, q) - xi(i, p), N)
-        num = truncate(num, N)
+        num = Singular.jet(num, N)
       end
     end
   end
@@ -566,7 +552,7 @@ function todd_class(
     for p in 1:M.d[i]
       for q in 1:M.d[i]
         den *= todd_Q(xi(i, q) - xi(i, p), N)
-        den = truncate(den, N)
+        den = Singular.jet(den, N)
       end
     end
   end
