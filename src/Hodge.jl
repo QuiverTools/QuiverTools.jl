@@ -547,8 +547,7 @@ function motive(
     return out / den
   end
 
-  ds = all_subdimension_vectors(d; nonzero=true, strict=true)
-  ds = filter(e -> slope(e, theta, denom) > slope(d, theta, denom), ds)
+  ds = all_destabilizing_subdimension_vectors(d, theta, denom)
 
   push!(ds, zero_vector(Q), d)
   sort!(ds; by=e -> deglex_key(Q, e))

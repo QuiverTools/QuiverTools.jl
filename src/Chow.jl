@@ -160,9 +160,10 @@ function chow_ring(
 
   # All the destabilizing subdimension vectors of `d` with respect to the slope
   # `theta/denom` that are minimal with respect to the total order.
-  dest = all_destabilizing_subdimension_vectors(d, theta)
-  minimal_forbidden = filter(
-    e -> !any(f -> partial_order(Q, f, e), filter(f -> f != e, dest)), dest
+  minimal_forbidden = all_destabilizing_subdimension_vectors(d, theta)
+  filter!(
+    e -> !any(partial_order(Q, f, e) for f in minimal_forbidden if f != e),
+    minimal_forbidden,
   )
 
   # builds a new forbidden polynomial for the minimal forbidden dimension vector e.

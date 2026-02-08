@@ -546,10 +546,8 @@ julia> length(all_hn_types(Q, d, theta; ordered=true))
   # We consider just proper subdimension vectors which admit a semistable
   # representation and for which μ(e) > μ(d)
   # Note that we also eliminate d by the following
-  subdimensions = filter(
-    e -> has_semistables(Q, e, theta, denom),
-    all_destabilizing_subdimension_vectors(d, theta, denom),
-  )
+  subdimensions = all_destabilizing_subdimension_vectors(d, theta, denom)
+  filter!(e -> has_semistables(Q, e, theta, denom), subdimensions)
 
   # We sort the subdimension vectors by slope because that will return the list of
   # all HN types in ascending order with respect to the partial order from
