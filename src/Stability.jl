@@ -140,6 +140,24 @@ Return the subdimension vectors of `d` with a strictly larger slope than `d`.
 # Output
 
 - an array of subdimension vectors of `d` with a strictly larger slope than `d`.
+
+# Examples
+
+```jldoctest
+julia> QuiverTools.all_destabilizing_subdimension_vectors([2, 3], [3, -2])
+5-element Vector{Vector{Int64}}:
+ [1, 0]
+ [2, 0]
+ [1, 1]
+ [2, 1]
+ [2, 2]
+
+julia> QuiverTools.all_destabilizing_subdimension_vectors([2, 3], [0, 0])
+Vector{Int64}[]
+
+julia> QuiverTools.all_destabilizing_subdimension_vectors([0, 0], [1, -1])
+Vector{Int64}[]
+```
 """
 function all_destabilizing_subdimension_vectors(
   d::AbstractVector{Int},
