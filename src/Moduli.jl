@@ -262,7 +262,7 @@ julia> all_luna_types(M)
  Dict([3, 3] => [1])
  Dict([1, 1] => [1], [2, 2] => [1])
  Dict([1, 1] => [3])
- Dict([1, 1] => [2, 1])
+ Dict([1, 1] => [1, 2])
  Dict([1, 1] => [1, 1, 1])
 ```
 """
@@ -301,7 +301,7 @@ julia> all_luna_types(M)
  Dict([3, 3] => [1])
  Dict([1, 1] => [1], [2, 2] => [1])
  Dict([1, 1] => [3])
- Dict([1, 1] => [2, 1])
+ Dict([1, 1] => [1, 2])
  Dict([1, 1] => [1, 1, 1])
 
 julia> X = QuiverModuliSpace(Q, [2, 3]);
@@ -318,40 +318,88 @@ function all_luna_types(
   denom::Function=sum;
   stable::Bool=true,
 )
-  d = coerce_vector(d)
-  theta = coerce_vector(theta)
 
   # treat the zero case separately
-  if all(di == 0 for di in d)
-    return [Dict(d => [1])]
-  end
+  all(di == 0 for di in d) && return [LunaType(Dict(d => [1]))]
 
   # subdimensions with the same slope as d
-  same_slope = filter(
-    e ->
-      slope(e, theta, denom) == slope(d, theta, denom) && has_stables(Q, e, theta, denom),
-    QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
-  )
+  μ = slope(d, theta, denom)
+  same_slope = all_subdimension_vectors(d; nonzero=true, strict=true)
+  filter!(e -> slope(e, theta, denom) == μ, same_slope)
+  filter!(e -> has_stables(Q, e, theta, denom), same_slope)
 
   luna_types = LunaType{n_vertices(Q)}[]
-  # the highest possible amount of repetitions for a given stable dimension vector
-  bound = sum(d) ÷ minimum(sum(e) for e in same_slope; init=1)
-  for i in 1:(bound + 1), tau in with_replacement_combinations(same_slope, i)
-    sum(tau) != d && continue
-    partial = Dict(e => 0 for e in tau)
-    map(e -> partial[e] += 1, tau)
-
-    for p in Iterators.product(partitions.(values(partial))...)
-      push!(luna_types, LunaType(Dict(zip(collect(keys(partial)), p))))
+  for e in same_slope
+    for luna_type in all_luna_types(Q, d - e, theta, denom; stable=true)
+      if haskey(luna_type, e)
+        for i in eachindex(luna_type[e])
+          push!(luna_types, __add_and_return(luna_type, e, i))
+        end
+        push!(luna_types, __add_and_return(luna_type, e))
+      else
+        push!(luna_types, __add_and_return_new(luna_type, e))
+      end
     end
   end
 
   stable && has_stables(Q, d, theta, denom) &&
     pushfirst!(luna_types, LunaType(Dict(d => [1])))
-  return luna_types
+
+  # sort the multiplicities vectors, so that we can apply `unique!` to remove duplicates
+  #
+  # Example: this avoids having both `Dict([1, 1] => [2, 1])` and `Dict([1, 1] => [1, 2])`
+  map(
+    lt -> begin
+      for key in keys(lt)
+        sort!(lt[key])
+      end
+    end,
+    luna_types,
+  )
+  return unique!(luna_types)
 end
 
-# TODO test below with LunaType structs
+"""
+    __add_and_return(luna_type, e, i)
+
+Returns a new Luna type obtained by increasing the multiplicity of the `i`-th copy
+the subdimension vector `e` by 1, in the given Luna type.
+
+Internal use only.
+"""
+function __add_and_return(luna_type, e, i)
+  new_luna_type = deepcopy(luna_type)
+  new_luna_type[e][i] += 1
+  return new_luna_type
+end
+
+"""
+    __add_and_return(luna_type, e)
+
+Returns a new Luna type obtained by adding a new copy
+of the subdimension vector `e` in the given Luna type.
+
+Internal use only.
+"""
+function __add_and_return(luna_type, e)
+  new_luna_type = deepcopy(luna_type)
+  pushfirst!(new_luna_type[e], 1)
+  return new_luna_type
+end
+
+"""
+    __add_and_return_new(luna_type, e)
+
+Returns a new Luna type obtained by adding a subdimension vector `e`
+with multiplicity 1 to the given Luna type.
+
+Internal use only.
+"""
+function __add_and_return_new(luna_type, e)
+  new_luna_type = deepcopy(luna_type)
+  new_luna_type[e] = [1]
+  return new_luna_type
+end
 
 """
     is_luna_type(M::QuiverModuli, tau)
