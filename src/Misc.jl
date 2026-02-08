@@ -147,7 +147,7 @@ julia> QuiverTools.all_subdimension_vectors([0, 0, 0]; nonzero=true, strict=true
 Vector{Int64}[]
 ```
 """
-@memoize Dict function all_subdimension_vectors(
+function all_subdimension_vectors(
   d::AbstractVector{Int};
   nonzero::Bool=false,
   strict::Bool=false,
