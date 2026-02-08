@@ -141,18 +141,17 @@ Return the subdimension vectors of `d` with a strictly larger slope than `d`.
 
 - an array of subdimension vectors of `d` with a strictly larger slope than `d`.
 """
-@memoize Dict function all_destabilizing_subdimension_vectors(
+function all_destabilizing_subdimension_vectors(
   d::AbstractVector{Int},
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  # as silly as it looks this is faster.
-  # TODO faster than what? is the calculation `b = slope(d, theta, denom)` not being reused in the lambda expression?
-  # if that's the point, maybe it makes sense to cache the lambda function instead of the result of `slope(d, theta, denom)`?
+  all(di == 0 for di in d) && return Vector{Int}[]
+
   b = slope(d, theta, denom)
   return filter(
     e -> slope(e, theta, denom) > b,
-    all_subdimension_vectors(d; nonzero=true),
+    all_subdimension_vectors(d; nonzero=true, strict=true),
   )
 end
 
