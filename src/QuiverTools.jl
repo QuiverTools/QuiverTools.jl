@@ -14,7 +14,8 @@ using Oscar: Oscar
 import Oscar:
   Polyhedron, polyhedron, polyhedral_fan, positive_hull, affine_hull, convex_hull,
   minkowski_sum, rays, facets, dim
-import Base: show, ==, hash, convert, getindex, length, iterate, keys, *, +, -, ^
+import Base:
+  show, ==, hash, convert, getindex, setindex!, length, iterate, keys, haskey, *, +, -, ^
 import Memoization: @memoize, empty_all_caches!, empty_cache!
 import IterTools: subsets
 import LinearAlgebraX: rankx
