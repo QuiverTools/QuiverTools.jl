@@ -10,8 +10,12 @@ Compute the weights of the 1-PS corresponding to `hn_type` for the slope functio
 """
 function weights_hn_type(hntype::HNType, theta::AbstractVector{Int}, denom::Function=sum)
   k_weights = map(h -> slope(h, theta, denom), hntype)
-  k_weights = Int.(lcm(denominator.(k_weights)) .* k_weights)
-  return Int.(1/gcd(k_weights) .* k_weights)
+
+  c = lcm(denominator.(k_weights))
+  map!(k -> c * k, k_weights, k_weights)
+  gg = gcd(k_weights)
+  map!(k -> k / gg, k_weights, k_weights)
+  return map(Int, k_weights) # if we accepted rational weights this would not be needed.
 end
 
 """
@@ -192,7 +196,8 @@ function weights_universal_bundle_on_stratum(
   weights_mult = reduce(
     vcat, [k_weights[s] for _ in 1:hn_type[s][i]] for s in 1:ell
   )
-  return -constant_term .+ weights_mult
+  map!(w -> -constant_term + w, weights_mult, weights_mult)
+  return weights_mult
 end
 
 """
@@ -436,9 +441,9 @@ function weights_endomorphism_universal_bundle_on_stratum(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  kweights = weights_hn_type(hn_type, theta, denom)
+  k_weights = weights_hn_type(hn_type, theta, denom)
   return [
-    Int(kweights[i] - kweights[j]) for i in 1:length(hn_type) for j in 1:length(hn_type)
+    Int(k_weights[i] - k_weights[j]) for i in 1:length(hn_type) for j in 1:length(hn_type)
   ]
 end
 
