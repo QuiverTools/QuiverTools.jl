@@ -7,6 +7,26 @@
 
 Compute the weights of the 1-PS corresponding to `hn_type` for the slope function
 `theta`/`denom`.
+
+# Example
+
+For our favourite 6-fold, the weights of the 1-PS corresponding to each HN type are:
+
+```jldoctest
+julia> Q = kronecker_quiver(3); d = [2, 3]; theta = [3, -2];
+
+julia> hn = all_hn_types(Q, d, theta; unstable=true);
+
+julia> map(hn_type -> weights_hn_type(hn_type, theta), hn)
+7-element Vector{Vector{Int64}}:
+ [3, -2]
+ [1, -4]
+ [2, -3]
+ [4, -1]
+ [9, -1, -6]
+ [6, 1, -4]
+ [3, -2]
+```
 """
 function weights_hn_type(hntype::HNType, theta::AbstractVector{Int}, denom::Function=sum)
   k_weights = map(h -> slope(h, theta, denom), hntype)
