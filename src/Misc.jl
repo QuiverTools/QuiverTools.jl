@@ -7,7 +7,7 @@
 
 Return the identity matrix of size `n`.
 """
-@memoize Dict identity_matrix(n::Int) = map(
+identity_matrix(n::Int) = map(
   ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n)
 )
 
@@ -51,7 +51,7 @@ julia> QuiverTools.zero_vector(3) == [0, 0, 0]
 true
 ```
 """
-@memoize Dict zero_vector(n::Int) = coerce_vector(zeros(Int, n))
+zero_vector(n::Int) = coerce_vector(zeros(Int, n))
 
 """
   zero_vector(Q::Quiver)
@@ -201,7 +201,7 @@ julia> QuiverTools.unit_vector(3, 2) == [0, 1, 0]
 true
 ```
 """
-@memoize Dict function unit_vector(n::Int, i::Int)
+function unit_vector(n::Int, i::Int)
   v = zeros(Int, n)
   v[i] = 1
   return coerce_vector(v)

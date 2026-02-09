@@ -679,6 +679,6 @@ Compute the vector of degrees for the variables of a Chow ring.
 
 For internal use only.
 """
-@memoize Dict function __chow_degrees(d::AbstractVector{Int})
+function __chow_degrees(d::AbstractVector{Int})
   return vcat([collect(1:di) for di in d if di > 0]...)
 end
