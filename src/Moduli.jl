@@ -650,6 +650,9 @@ julia> dimension(M)
 """
 function dimension(M::QuiverModuliSpace)
   # the zero representation is semistable, but not stable, for d = 0
+  !is_connected(M.Q) &&
+    raise(ArgumentError("Q is not connected, M has disjoint connected components."))
+
   if all(M.d .== 0)
     if M.condition == "semistable"
       return 0
