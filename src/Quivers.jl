@@ -242,12 +242,19 @@ julia> first_hochschild_cohomology(subspace_quiver(7))
 
 julia> first_hochschild_cohomology(three_vertex_quiver(2, 1, 3))
 18
+
+julia> first_hochschild_cohomology(Quiver([0;;]))
+0
 ```
 """
 function first_hochschild_cohomology(Q::Quiver)
   !is_acyclic(Q) && throw(ArgumentError("The quiver must be acyclic."))
-  return 1 - n_vertices(Q) + sum(
-    prod(Q.adjacency for i in 1:n)[i, j]
-    for n in 1:(n_vertices(Q) - 1), (i, j) in arrows(Q)
+  n = n_vertices(Q)
+  n == 1 && return 0
+  !is_connected(Q) && throw(ArgumentError("The quiver must be connected."))
+  return 1 - n + sum(
+    (Q.adjacency ^ k)[i, j] # paths of length k from i to j
+    for k in 1:(n - 1), (i, j) in arrows(Q);
+    init=0,
   )
 end
