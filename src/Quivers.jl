@@ -252,9 +252,11 @@ function first_hochschild_cohomology(Q::Quiver)
   n = n_vertices(Q)
   n == 1 && return 0
   !is_connected(Q) && throw(ArgumentError("The quiver must be connected."))
+
+  path_matrix = sum((Q.adjacency)^k for k in 1:(n - 1))
+
   return 1 - n + sum(
-    (Q.adjacency ^ k)[i, j] # paths of length k from i to j
-    for k in 1:(n - 1), (i, j) in arrows(Q);
-    init=0,
+    Q.adjacency[i, j] * path_matrix[i, j]
+    for i in axes(Q.adjacency, 1), j in axes(Q.adjacency, 2)
   )
 end
