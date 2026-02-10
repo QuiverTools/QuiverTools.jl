@@ -147,8 +147,12 @@ function chow_ring(
   # sign for the product of symmetric groups
   sign_product(w) = prod(sign(Oscar.perm(wi)) for wi in w)
 
+  permuted_vars = Dict(
+    sigma => [xi(i, sigma[i][j]) for i in support(d) for j in 1:d[i]] for sigma in W
+  )
+
   # Action of the symmetric group on R by permutation of the variables.
-  permute(f, sigma) = f([xi(i, sigma[i][j]) for i in support(d) for j in 1:d[i]]...)
+  permute(f, sigma) = f(permuted_vars[sigma]...)
 
   # The discriminant in the definition of the antisymmetrization.
   delta = 1
