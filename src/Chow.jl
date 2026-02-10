@@ -198,15 +198,31 @@ function chow_ring(
     return Avars[sum(d[1:(i - 1)]) + j]
   end
 
-  targets = [
-    [symmetric_polynomial([xi(i, j) for j in 1:d[i]], k) for k in 1:d[i]] for
-    i in support(d)
-  ]
-  targets = reduce(vcat, targets)
+  symm_polys = [symmetric_polynomial(k) for k in 1:maximum(d)]
+  targets = []
+  for i in support(d)
+    verbose && @info "computing the targets for vertex $(i) out of $(length(support(d)))"
+    for k in 1:d[i]
+      push!(targets, symm_polys[k]([xi(i, j) for j in 1:d[i]]))
+    end
+  end
+  verbose && @info "there are $(length(targets)) targets"
 
   inclusion = AlgebraHomomorphism(A, R, targets)
+  verbose && @info "the inclusion map is built"
 
-  anti = unique!([antisymmetrize(f * b) for f in forbidden_polynomials for b in base])
+  anti = []
+  verbose && @info "antisymmetrizing the forbidden polynomials, this may take a while..."
+
+  for i in eachindex(forbidden_polynomials)
+    verbose && @info "forbidden polynomial $(i) out of $(length(forbidden_polynomials))"
+    for b in base
+      a = antisymmetrize(forbidden_polynomials[i] * b)
+      a != 0 && push!(anti, a)
+    end
+    unique!(anti)
+  end
+
   verbose && @info "there are $(length(anti)) antisymmetrized forbidden polynomials"
 
   tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti if g != 0]
