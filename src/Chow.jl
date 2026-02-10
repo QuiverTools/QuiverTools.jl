@@ -108,6 +108,7 @@ function chow_ring(
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d);
   chi::AbstractVector{Int}=extended_gcd(d)[2],
+  verbose::Bool=false,
 )
   # safety checks
   if !is_coprime(d, theta)
@@ -136,6 +137,8 @@ function chow_ring(
     for i in support(d)
   )
   base = map(build_elem, Iterators.product(bounds...))
+
+  verbose && @info "base has $(length(base)) elements"
 
   # build the permutation group W
   W = Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
@@ -166,6 +169,9 @@ function chow_ring(
     minimal_forbidden,
   )
 
+  verbose &&
+    @info "there are $(length(minimal_forbidden)) minimal forbidden dimension vectors"
+
   # builds a new forbidden polynomial for the minimal forbidden dimension vector e.
   function new_forbidden(e::AbstractVector{Int})
     out = 1
@@ -195,8 +201,12 @@ function chow_ring(
 
   inclusion = AlgebraHomomorphism(A, R, targets)
 
-  anti = unique([antisymmetrize(f * b) for f in forbidden_polynomials for b in base])
+  anti = unique!([antisymmetrize(f * b) for f in forbidden_polynomials for b in base])
+  verbose && @info "there are $(length(anti)) antisymmetrized forbidden polynomials"
+
   tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti if g != 0]
+  verbose && @info "there are $(length(tautological)) tautological polynomials"
+
   linear = [sum(chi[i] * xs(i, 1) for i in support(d))]
 
   return (QuotientRing(A, std(Ideal(A, [tautological; linear]))), R, inclusion)
@@ -219,7 +229,8 @@ Compute the Chow ring of the moduli space `M` for the given linearization `chi`.
 - the Chow ring of the moduli space.
 """
 function chow_ring(
-  M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef
+  M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef,
+  verbose::Bool=false,
 )
   if !isdefined(M.chow, :chi)
     if (chi isa UndefInitializer)
@@ -227,7 +238,7 @@ function chow_ring(
     else
       setfield!(M.chow, :chi, chi)
     end
-    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=M.chow.chi)
+    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=M.chow.chi, verbose=verbose)
     setfield!(M.chow, :ring, CH[1])
     setfield!(M.chow, :_R, R)
     setfield!(M.chow, :_inclusion, inc)
@@ -237,7 +248,7 @@ function chow_ring(
   if !(chi isa UndefInitializer) && M.chow.chi != chi
     # reinitializing all the fields
     setfield!(M.chow, :chi, chi)
-    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=chi)
+    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=chi, verbose=verbose)
     setfield!(M.chow, :ring, CH[1])
     setfield!(M.chow, :_R, R)
     setfield!(M.chow, :_inclusion, inc)
