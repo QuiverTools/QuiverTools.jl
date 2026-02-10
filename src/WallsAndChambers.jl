@@ -152,7 +152,8 @@ julia> map(rays, vgit_walls(Q, d; inner=false, top_dimension=false))
   out = map(
     e -> reduce(intersect, [sst(Q, e), sst(Q, d - e), sst(Q, d)]), # definition of W_{e}
     all_subd)
-  top_dimension && filter!(w -> dim(w) == length(d) - 2, out)
+  top_dim = maximum(dim(w) for w in out) # max dimension of WALLS
+  top_dimension && filter!(w -> dim(w) == top_dim, out)
   inner && filter!(w -> !any(issubset(w, f) for f in facets(Polyhedron, sst(Q, d))), out)
   return unique!(__helper_accelerate, out)
 end
@@ -195,8 +196,12 @@ end
 Compute all VGIT chambers for the quiver `Q` with dimension vector `d`.
 
 VGIT chambers are the top-dimensional equivalence classes in the VGIT problem;
-they have dimension `length(d) - 1` and are defined by the walls `W_e` of dimension
-`length(d) - 2`.
+if stable representations exist,
+then the VGIT chambers have dimension equal to `dim(sst(Q, d))`
+and are defined by the walls `W_e` of codimension 1.
+
+If there exit no stable representations,
+`dim(sst(Q, d))` is strictly smaller than `length(d) - 1`.
 
 # Example
 
@@ -230,9 +235,12 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
 @memoize Dict function vgit_chambers(Q, d; verbose=false)
   sstd = __helper_accelerate(sst(Q, d))
 
+  sstd_dim = dim(sstd)
   # top-dimensional inner walls
   int_walls = vgit_walls(Q, d; top_dimension=true)
   int_walls = filter(w -> !any(issubset(w, f) for f in facets(Polyhedron, sstd)), int_walls)
+
+  # @warn "we must treat the case of a wall W_e of dimension = dim(sstd) here!"
 
   # we split the walls into two sets: the ones equal to the wall system hyperplane
   # they lay on, and the ones that are not.
@@ -279,7 +287,7 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
         deleteat!(top_chambers, 1:n)
 
         map!(__helper_accelerate, top_chambers, top_chambers)
-        filter!(c -> dim(c) == length(d) - 1, top_chambers)
+        filter!(c -> dim(c) == sstd_dim, top_chambers)
       end
     else
       # in-place
@@ -292,7 +300,7 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
       deleteat!(top_chambers, 1:n)
 
       map!(__helper_accelerate, top_chambers, top_chambers)
-      filter!(c -> dim(c) == length(d) - 1, top_chambers)
+      filter!(c -> dim(c) == sstd_dim, top_chambers)
     end
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
   end
@@ -328,7 +336,7 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
         )...,
       )
       map!(__helper_accelerate, top_chambers, top_chambers)
-      filter!(c -> dim(c) == length(d) - 1, top_chambers)
+      filter!(c -> dim(c) == sstd_dim, top_chambers)
     end
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
   end
@@ -342,7 +350,7 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
     for (ch1, ch2) in IterTools.subsets(top_chambers, 2)
       inters = intersect(ch1, ch2)
       # we are looking for common facets
-      dim(inters) != length(d) - 2 && continue
+      dim(inters) != sstd_dim - 1 && continue
       # if their intersection (the common facet) lays on a W_e, good.
       any(issubset(inters, w) for w in int_walls) && continue
       verbose && @info "Found a fake wall, removing it..."
