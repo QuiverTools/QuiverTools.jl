@@ -147,15 +147,31 @@ function chow_ring(
   # sign for the product of symmetric groups
   sign_product(w) = prod(sign(Oscar.perm(wi)) for wi in w)
 
-  permuted_vars = Dict(
-    sigma => [xi(i, sigma[i][j]) for i in support(d) for j in 1:d[i]] for sigma in W
-  )
+  # permuted_vars = Dict(
+  #   sigma => [xi(i, sigma[i][j]) for i in support(d) for j in 1:d[i]] for sigma in W
+  # )
 
+  # permute(f, sigma) = f(permuted_vars[sigma]...)
+
+  permuted_indices = Dict(
+    sigma =>
+      reduce(vcat, map(i -> [sum(d[1:(i - 1)]) + sigma[i][j] for j in 1:d[i]], support(d)))
+    for sigma in W
+  )
+  permute_vector(e, sigma) = [e[k] for k in permuted_indices[sigma]]
+
+  function permute(f, sigma)
+    context = Singular.MPolyBuildCtx(parent(f))
+    for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
+      Singular.push_term!(context, c, permute_vector(e, sigma))
+    end
+    return Singular.finish(context)
+  end
   # Action of the symmetric group on R by permutation of the variables.
-  permute(f, sigma) = f(permuted_vars[sigma]...)
+  # permute(f, sigma) = f(permuted_vars[sigma]...)
 
   # The discriminant in the definition of the antisymmetrization.
-  delta = 1
+  delta = R(1)
   for i in 1:n_vertices(Q)
     d[i] > 1 && (
       delta *= prod(
@@ -164,7 +180,12 @@ function chow_ring(
     )
   end
 
-  antisymmetrize(f) = div(sum(sign_product(w) * permute(f, w) for w in W), R(delta))
+  antisymmetrize(f) = begin
+    out = sum(
+      sign_product(sigma) * permute(f, sigma) for sigma in W
+    )
+    return div(out, delta)
+  end
 
   # All the destabilizing subdimension vectors of `d` with respect to the slope
   # `theta/denom` that are minimal with respect to the total order.
