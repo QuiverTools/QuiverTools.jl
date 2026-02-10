@@ -18,9 +18,10 @@ function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int}
 end
 
 """
-    symmetric_polynomial(vars, degree::Int)
+    symmetric_polynomial(degree::Int)
 
-Compute the symmetric polynomial of degree `degree` in the variables `vars`.
+Return the symmetric polynomial of degree `degree` in the variables `vars`
+as a Julia function.
 
 # Input
 
@@ -38,14 +39,14 @@ julia> using Singular;
 
 julia> R, vars = polynomial_ring(Singular.QQ, ["x", "y", "z"]);
 
-julia> QuiverTools.symmetric_polynomial(vars, 2)
+julia> f = QuiverTools.symmetric_polynomial(2); f(vars)
 x*y + x*z + y*z
 ```
 """
-function symmetric_polynomial(vars, degree::Int)
-  return sum(prod(e) for e in IterTools.subsets(vars, degree))
+function symmetric_polynomial(degree::Int)
+  f(vars) = sum(prod(e) for e in IterTools.subsets(vars, degree))
+  return f
 end
-
 """
     product_lists(L)
 
