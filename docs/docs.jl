@@ -37,5 +37,5 @@ deploydocs(;
   branch="docs",
   repo="github.com/QuiverTools/QuiverTools.jl.git",
   cname="julia.quiver.tools",
-  versions=["stable" => "v^", "v#.#.#", devurl => devurl],
+  versions=["stable" => "v^", "v#.#.#"],
 )
