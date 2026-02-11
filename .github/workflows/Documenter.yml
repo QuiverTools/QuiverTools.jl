@@ -1,6 +1,8 @@
 name: Documenter
 on:
   push:
+    branches:
+      - main
     paths:
       - 'docs/**'
       - '.github/workflows/Documenter.yml'
