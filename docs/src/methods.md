@@ -45,6 +45,5 @@ QuiverTools.is_subdimension_vector
 QuiverTools.zero_vector
 QuiverTools.__add_and_return_new
 QuiverTools.__add_and_return
-QuiverTools.__add_and_return
 QuiverTools.__projection_to_quotient_ring
 ```
