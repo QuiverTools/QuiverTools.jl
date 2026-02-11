@@ -15,7 +15,6 @@ QuiverTools.CardinalGd
 QuiverTools.weight_canonical_on_stratum
 QuiverTools.poincare_polynomial
 QuiverTools.all_destabilizing_subdimension_vectors
-QuiverTools.coerce_to_quotient
 QuiverTools.variety
 QuiverTools.weights_endomorphisms_universal_bundles_on_stratum
 QuiverTools.weights_endomorphism_universal_bundle_on_stratum
@@ -35,8 +34,6 @@ QuiverTools.teleman_bound_on_stratum
 QuiverTools._chern_characters_wedge
 QuiverTools.weights_universal_bundle_on_stratum
 QuiverTools.local_quiver_setting
-QuiverTools.truncate
-QuiverTools.pullback_from_quotient
 QuiverTools.thin_dimension_vector
 QuiverTools.solve
 QuiverTools.todd_Q
@@ -46,4 +43,8 @@ QuiverTools.all_subdimension_vectors
 QuiverTools.unit_vector
 QuiverTools.is_subdimension_vector
 QuiverTools.zero_vector
+QuiverTools.__add_and_return_new
+QuiverTools.__add_and_return
+QuiverTools.__add_and_return
+QuiverTools.__projection_to_quotient_ring
 ```
