@@ -44,7 +44,7 @@ x*y + x*z + y*z
 ```
 """
 function symmetric_polynomial(degree::Int)
-  f(vars) = sum(prod(e) for e in IterTools.subsets(vars, degree))
+  f(vars) = sum(prod(e; init=1) for e in IterTools.subsets(vars, degree))
   return f
 end
 """
@@ -125,17 +125,16 @@ function chow_ring(
   # Shorthand to address the variable `xi_{i,j}`.
   function xi(i, j)
     d[i] == 0 && throw(ArgumentError("i is not in the support of d."))
-    return vars[sum(d[1:(i - 1)]) + j]
+    return vars[sum(d[1:(i - 1)]; init=0) + j]
   end
 
-  base = []
-  bounds = [0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
-  build_elem(lambda) = prod(
+  bounds = UnitRange{Int64}[0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
+  build_elem(lambda::NTuple) = prod(
     prod(
-      xi(i, nu)^lambda[sum(d[1:(i - 1)]) + nu]
-      for nu in 1:d[i]
+      xi(i, nu)^lambda[sum(d[1:(i - 1)]; init=0) + nu]
+      for nu in 1:d[i]; init=R(1)
     )
-    for i in support(d)
+    for i in support(d); init=R(1)
   )
   base = map(build_elem, Iterators.product(bounds...))
 
@@ -145,22 +144,21 @@ function chow_ring(
   W = Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
 
   # sign for the product of symmetric groups
-  sign_product(w) = prod(sign(Oscar.perm(wi)) for wi in w)
+  sign_product(w) = prod(sign(Oscar.perm(wi)) for wi in w; init=1)
 
-  # permuted_vars = Dict(
-  #   sigma => [xi(i, sigma[i][j]) for i in support(d) for j in 1:d[i]] for sigma in W
-  # )
-
-  # permute(f, sigma) = f(permuted_vars[sigma]...)
-
-  permuted_indices = Dict(
+  permuted_indices = Dict{Tuple,Vector{Int64}}(
     sigma =>
-      reduce(vcat, map(i -> [sum(d[1:(i - 1)]) + sigma[i][j] for j in 1:d[i]], support(d)))
+      reduce(
+        vcat,
+        map(
+          i -> Int64[sum(d[1:(i - 1)]; init=0) + sigma[i][j] for j in 1:d[i]], support(d)
+        ),
+      )
     for sigma in W
   )
   permute_vector(e, sigma) = [e[k] for k in permuted_indices[sigma]]
 
-  function permute(f, sigma)
+  function permute(f::Singular.spoly{Singular.n_Q}, sigma::Tuple)
     context = Singular.MPolyBuildCtx(parent(f))
     for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
       Singular.push_term!(context, c, permute_vector(e, sigma))
@@ -171,18 +169,14 @@ function chow_ring(
   # permute(f, sigma) = f(permuted_vars[sigma]...)
 
   # The discriminant in the definition of the antisymmetrization.
-  delta = R(1)
-  for i in 1:n_vertices(Q)
-    d[i] > 1 && (
-      delta *= prod(
-        xi(i, l) - xi(i, k) for k in 1:(d[i] - 1) for l in (k + 1):d[i]
-      )
-    )
-  end
+  delta = prod(
+    xi(i, l) - xi(i, k) for i in 1:n_vertices(Q) for k in 1:(d[i] - 1) for l in (k + 1):d[i];
+    init=R(1),
+  )
 
-  antisymmetrize(f) = begin
+  function antisymmetrize(f::Singular.spoly{Singular.n_Q})
     out = sum(
-      sign_product(sigma) * permute(f, sigma) for sigma in W
+      sign_product(sigma) * permute(f, sigma) for sigma in W; init=R(0)
     )
     return div(out, delta)
   end
@@ -208,7 +202,9 @@ function chow_ring(
     end
     return out
   end
-  forbidden_polynomials = [new_forbidden(e) for e in minimal_forbidden]
+  forbidden_polynomials = Singular.spoly{Singular.n_Q}[
+    new_forbidden(e) for e in minimal_forbidden
+  ]
 
   varnames2 = ["x$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
   A, Avars = polynomial_ring(Singular.QQ, varnames2)
@@ -216,11 +212,11 @@ function chow_ring(
   # Shorthand to address the variables of A `x_{i,j}`.
   function xs(i, j)
     d[i] == 0 && throw(ArgumentError("i is not in the support of d."))
-    return Avars[sum(d[1:(i - 1)]) + j]
+    return Avars[sum(d[1:(i - 1)]; init=0) + j]
   end
 
   symm_polys = [symmetric_polynomial(k) for k in 1:maximum(d)]
-  targets = []
+  targets = Singular.spoly{Singular.n_Q}[]
   for i in support(d)
     verbose && @info "computing the targets for vertex $(i) out of $(length(support(d)))"
     for k in 1:d[i]
@@ -232,7 +228,7 @@ function chow_ring(
   inclusion = AlgebraHomomorphism(A, R, targets)
   verbose && @info "the inclusion map is built"
 
-  anti = []
+  anti = Singular.spoly{Singular.n_Q}[]
   verbose && @info "antisymmetrizing the forbidden polynomials, this may take a while..."
 
   for i in eachindex(forbidden_polynomials)
@@ -241,15 +237,17 @@ function chow_ring(
       a = antisymmetrize(forbidden_polynomials[i] * b)
       a != 0 && push!(anti, a)
     end
-    unique!(anti)
+    # unique!(anti)
   end
 
   verbose && @info "there are $(length(anti)) antisymmetrized forbidden polynomials"
 
-  tautological = [gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti if g != 0]
+  tautological = Singular.spoly{Singular.n_Q}[
+    gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti if g != 0
+  ]
   verbose && @info "there are $(length(tautological)) tautological polynomials"
 
-  linear = [sum(chi[i] * xs(i, 1) for i in support(d))]
+  linear = Singular.spoly{Singular.n_Q}[sum(chi[i] * xs(i, 1) for i in support(d))]
 
   return (QuotientRing(A, std(Ideal(A, [tautological; linear]))), R, inclusion)
 end
