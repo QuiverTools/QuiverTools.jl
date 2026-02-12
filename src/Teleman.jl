@@ -52,7 +52,7 @@ function weight_line_bundle_on_stratum(
   k_weights = weights_hn_type(hn_type, theta, denom)
   return [
     Int(
-      -eta' * sum(k_weights[m] .* hn_type[m] for m in 1:length(hn_type))
+      -eta' * sum(k_weights[m] .* hn_type[m] for m in 1:length(hn_type); init=0)
     ),
   ]
 end
@@ -113,7 +113,7 @@ function teleman_bound_on_stratum(
   k_weights = weights_hn_type(hn_type, theta, denom)
   return sum(
     (k_weights[t] - k_weights[s]) * euler_form(Q, hn_type[s], hn_type[t])
-    for s in 1:(ell - 1) for t in (s + 1):ell
+    for s in 1:(ell - 1) for t in (s + 1):ell; init=0
   )
 end
 
@@ -211,7 +211,7 @@ function weights_universal_bundle_on_stratum(
 )
   ell = length(hn_type)
   k_weights = weights_hn_type(hn_type, theta, denom)
-  constant_term = sum(k_weights[s] * (chi' * hn_type[s]) for s in 1:ell)
+  constant_term = sum(k_weights[s] * (chi' * hn_type[s]) for s in 1:ell; init=0)
 
   weights_mult = reduce(
     vcat, [k_weights[s] for _ in 1:hn_type[s][i]] for s in 1:ell

@@ -154,7 +154,7 @@ function all_subdimension_vectors(
 ) #TODO should this be memoized at all?
   subdims = reshape(
     collect.(collect(Iterators.product(map(di -> 0:di, d)...))),
-    prod(di + 1 for di in d),
+    prod(di + 1 for di in d; init=1),
   )
   all(di == 0 for di in d) && (nonzero || strict) && return deleteat!(subdims, 1)
   nonzero && deleteat!(subdims, 1)

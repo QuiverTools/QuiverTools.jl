@@ -26,7 +26,7 @@ true
 ```
 """
 function underlying_graph(Q::Quiver)
-  return Matrix{Int}(Q.adjacency + transpose(Q.adjacency) - diagonal(Q.adjacency))
+  return Q.adjacency + transpose(Q.adjacency) - diagonal(Q.adjacency)
 end
 
 """
@@ -59,7 +59,7 @@ julia> n_arrows(Q) == 4
 true
 ```
 """
-n_arrows(Q::Quiver) = sum(Q.adjacency)
+n_arrows(Q::Quiver) = sum(Q.adjacency; init=0)
 
 """
     is_acyclic(Q::Quiver)
@@ -123,7 +123,7 @@ julia> indegree(Q, 2)
 4
 ```
 """
-indegree(Q::Quiver, j::Int) = sum(Q.adjacency[:, j])
+indegree(Q::Quiver, j::Int) = sum(Q.adjacency[:, j]; init=0)
 
 """
     outdegree(Q::Quiver, i::Int)
@@ -142,7 +142,7 @@ julia> outdegree(Q, 2)
 0
 ```
 """
-outdegree(Q::Quiver, i::Int) = sum(Q.adjacency[i, :])
+outdegree(Q::Quiver, i::Int) = sum(Q.adjacency[i, :]; init=0)
 
 """
     is_source(Q::Quiver, i::Int)
@@ -253,10 +253,8 @@ function first_hochschild_cohomology(Q::Quiver)
   n == 1 && return 0
   !is_connected(Q) && throw(ArgumentError("The quiver must be connected."))
 
-  path_matrix = sum((Q.adjacency)^k for k in 1:(n - 1))
+  path_matrix = Q.adjacency
+  path_matrix += sum((Q.adjacency)^k for k in 2:(n - 1))
 
-  return 1 - n + sum(
-    Q.adjacency[i, j] * path_matrix[i, j]
-    for i in axes(Q.adjacency, 1), j in axes(Q.adjacency, 2)
-  )
+  return 1 - n + sum(Q.adjacency .* path_matrix; init=0)
 end

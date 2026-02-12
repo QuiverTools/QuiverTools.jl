@@ -671,7 +671,7 @@ function codimension_hn_stratum(Q::Quiver, stratum::HNType)
   return -sum(
     euler_form(Q, stratum[i], stratum[j])
     for i in 1:(length(stratum) - 1)
-    for j in (i + 1):length(stratum)
+    for j in (i + 1):length(stratum); init=0
   )
 end
 codimension_hn_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}}) = codimension_hn_stratum(
