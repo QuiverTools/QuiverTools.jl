@@ -43,7 +43,7 @@ julia> n_vertices(Q) == 2
 true
 ```
 """
-n_vertices(Q::Quiver) = size(Q.adjacency)[1]
+n_vertices(Q::Quiver) = size(Q.adjacency, 1)
 
 """
     n_arrows(Q::Quiver)

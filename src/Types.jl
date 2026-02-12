@@ -37,11 +37,9 @@ struct Quiver
   ```
   """
   function Quiver(adjacency::AbstractMatrix{Int}, name::String="")
-    if !(size(adjacency)[1] == size(adjacency)[2])
-      throw(DomainError(adjacency, "adjacency matrix must be square"))
-    else
-      new(adjacency, name)
-    end
+    size(adjacency, 1) != size(adjacency, 2) &&
+      throw(ArgumentError("adjacency matrix must be square"))
+    return new(adjacency, name)
   end
 
   """

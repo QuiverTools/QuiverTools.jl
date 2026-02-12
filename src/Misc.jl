@@ -17,7 +17,7 @@ identity_matrix(n::Int) = map(
 Return the diagonal matrix with the diagonal of `m` as its diagonal.
 """
 function diagonal(m::AbstractMatrix{Int})
-  n = size(m)[1]
+  n = size(m, 1)
   return map(ind -> ind[1] == ind[2] ? m[ind...] : 0, Iterators.product(1:n, 1:n))
 end
 

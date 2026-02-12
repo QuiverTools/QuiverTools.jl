@@ -168,7 +168,7 @@ function hodge_polynomial(
 
   T = Td(Q, d, theta, v)
 
-  one_at_the_end = unit_vector(size(T)[1], size(T)[1])
+  one_at_the_end = unit_vector(size(T, 1), size(T, 1))
 
   # @warn "result needs to be a polynomial, otherwise the moduli space is singular."
   solution = solve(T, one_at_the_end)[1] * (1 - v)
