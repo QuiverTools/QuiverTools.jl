@@ -262,12 +262,10 @@ function in_fundamental_domain(Q::Quiver, d::AbstractVector{Int}; interior::Bool
   # while https://arxiv.org/abs/2310.15927 uses a non-strict.
   # here we set it to non-strict by default.
 
-  simples = [unit_vector(n_vertices(Q), i) for i in 1:n_vertices(Q)]
-  if interior
-    return all(
-      simple -> euler_form(Q, d, simple) + euler_form(Q, simple, d) < 0,
-      simples,
-    )
-  end
-  return all(simple -> euler_form(Q, d, simple) + euler_form(Q, simple, d) <= 0, simples)
+  n = n_vertices(Q)
+  simples = [unit_vector(n, i) for i in 1:n]
+  bound = interior ? -1 : 0
+  return all(
+    simple -> euler_form(Q, d, simple) + euler_form(Q, simple, d) <= bound, simples
+  )
 end
