@@ -722,3 +722,14 @@ function is_amply_stable(
   hn_types = all_hn_types(Q, d, theta, denom; unstable=true, ordered=false)
   return all(stratum -> codimension_hn_stratum(Q, stratum) >= 2, hn_types)
 end
+
+"""
+    has_properly_semistables(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denom::Function=sum)
+
+"""
+function has_properly_semistables(
+  Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denom::Function=sum
+)
+  is_coprime(d, theta) && return false
+  return !isempty(all_luna_types(Q, d, theta, denom; stable==false))
+end
