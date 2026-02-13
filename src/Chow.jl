@@ -119,7 +119,7 @@ function chow_ring(
         "The quiver moduli problem has properly semistable representations, no description of the Chow ring is available."
       ),
     )
-  !is_amply_stable(Q, d, theta, denom) && throw(
+  !is_amply_stable(Q, d, theta) && throw(
     ArgumentError(
       "The quiver moduli problem is not amply stable, no description of the Chow ring is available."
     ),

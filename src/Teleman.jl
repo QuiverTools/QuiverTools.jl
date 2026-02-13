@@ -416,7 +416,7 @@ function weights_canonical_bundle(
         "The quiver moduli problem has properly semistables, no description of the canonical bundle is available."
       ),
     )
-  !is_amply_stable(Q, d, theta, denom) &&
+  !is_amply_stable(Q, d, theta) &&
     throw(
       ArgumentError(
         "The quiver moduli problem is not amply stable, no description of the canonical bundle is available."
