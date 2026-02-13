@@ -253,9 +253,10 @@ function weights_universal_bundle(
   denom::Function=sum;
   chi::AbstractVector{Int},
 )
-  !is_coprime(d, theta) &&
-    throw(ArgumentError("$(d) is not $(theta)-coprime, universal bundles do not exist."))
-
+  gcd(d) > 1 &&
+    throw(
+      ArgumentError("gcd($(M.d))  = $(gcd(d)) > 1, the universal bundles do not exist.")
+    )
   hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type => weights_universal_bundle_on_stratum(hn_type, i, theta, denom; chi=chi)
@@ -409,8 +410,18 @@ function weights_canonical_bundle(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  !(is_coprime(d, theta) && is_amply_stable(Q, d, theta)) &&
-    throw(ArgumentError("$(d) is not $(theta)-coprime and amply stable."))
+  has_properly_semistables(Q, d, theta, denom) &&
+    throw(
+      ArgumentError(
+        "The quiver moduli problem has properly semistables, no description of the canonical bundle is available."
+      ),
+    )
+  !is_amply_stable(Q, d, theta, denom) &&
+    throw(
+      ArgumentError(
+        "The quiver moduli problem is not amply stable, no description of the canonical bundle is available."
+      ),
+    )
   return weights_line_bundle(Q, d, -canonical_stability(Q, d), theta, denom)
 end
 
@@ -497,8 +508,10 @@ function all_weights_endomorphisms_universal_bundle(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  !is_coprime(d, theta) &&
-    throw(ArgumentError("$(d) is not $(theta)-coprime, universal bundles do not exist."))
+  gcd(d) > 1 && throw(
+    ArgumentError("gcd($(M.d))  = $(gcd(d)) > 1, the universal bundles do not exist.")
+  )
+
   hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type => weights_endomorphism_universal_bundle_on_stratum(hn_type, theta, denom) for

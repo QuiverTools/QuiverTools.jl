@@ -327,6 +327,7 @@ function picard_rank(M::QuiverModuliSpace)
   return betti_numbers(M)[3]
 end
 
+# TODO test the git_equivalence features
 """
     index(M::QuiverModuliSpace)
 
@@ -367,14 +368,17 @@ julia> index(M)
 ```
 """
 function index(M::QuiverModuliSpace)
-  !git_equivalent(M.Q, M.d, M.theta, canonical_stability(M.Q, M.d)) &&
-    throw(ArgumentError("Only implemented for canonical stability."))
-  if is_coprime(M.d, M.theta) && is_amply_stable(M)
-    return gcd(M.theta)
-  end
-  throw(
-    ArgumentError("Index computation requires ample stability and `theta`-coprimality.")
+  has_properly_semistables(M.Q, M.d, M.theta, M.denom) && throw(
+    ArgumentError(
+      "The quiver moduli problem has properly semistable representations, no description of the Mukai index is known."
+    ),
   )
+  !is_amply_stable(M) && throw(
+    ArgumentError(
+      "The quiver moduli problem is not amply stable, no description of the Mukai index is known."
+    ),
+  )
+  return gcd(canonical_stability(M.Q, M.d))
 end
 
 """

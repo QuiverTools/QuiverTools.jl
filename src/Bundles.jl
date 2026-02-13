@@ -551,8 +551,9 @@ end
 
 Compute the canonical bundle on the quiver moduli space `M`.
 
-If ``d`` is ``theta``-coprime and amply stable, the canonical bundle
-is described in [[Proposition 4.2, MR4352662](https://mathscinet.ams.org/mathscinet-getitem?mr=4352662)].
+If the moduli problem is amply stable and does not admit properly semistable representations,
+the canonical bundle is described in
+[[Proposition 4.2, MR4352662](https://mathscinet.ams.org/mathscinet-getitem?mr=4352662)].
 
 This function computes both the Chern character and the Teleman weights
 of the canonical bundle.
@@ -613,10 +614,16 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
 ```
 """
 function canonical_bundle(M::QuiverModuliSpace)
-  !(is_coprime(M) && is_amply_stable(M)) &&
+  has_properly_semistables(M.Q, M.d, M.theta, M.denom) &&
     throw(
-      NotImplementedError(
-        "not coprime and amply stable, cannot compute the canonical bundle."
+      ArgumentError(
+        "The quiver moduli problem has properly semistables, no description of the canonical bundle is available."
+      ),
+    )
+  !is_amply_stable(M) &&
+    throw(
+      ArgumentError(
+        "The quiver moduli problem is not amply stable, no description of the canonical bundle is available."
       ),
     )
   return line_bundle(M, -canonical_stability(M.Q, M.d))
@@ -703,10 +710,9 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
 ```
 """
 function universal_bundle(M::QuiverModuliSpace, i::Int)
-  !is_coprime(M) &&
-    throw(
-      ArgumentError("$(M.d) is not $(M.theta)-coprime, universal bundles do not exist.")
-    )
+  gcd(M.d) > 1 && throw(
+    ArgumentError("gcd($(M.d))  = $(gcd(d)) > 1, the universal bundles do not exist.")
+  )
   cl = total_chern_class_universal(M, i)
   new = Bundle(M, M.d[i], cl)
 

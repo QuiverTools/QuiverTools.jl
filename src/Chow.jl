@@ -112,11 +112,18 @@ function chow_ring(
   verbose::Bool=false,
 )
   # safety checks
-  if !is_coprime(d, theta)
-    throw(ArgumentError("d and theta are not coprime"))
-  elseif chi' * d != 1
-    throw(ArgumentError("``chi`` is not a linearization"))
-  end
+  chi' * d != 1 && throw(ArgumentError("``chi`` is not a linearization"))
+  has_properly_semistables(Q, d, theta) &&
+    throw(
+      ArgumentError(
+        "The quiver moduli problem has properly semistable representations, no description of the Chow ring is available."
+      ),
+    )
+  !is_amply_stable(Q, d, theta, denom) && throw(
+    ArgumentError(
+      "The quiver moduli problem is not amply stable, no description of the Chow ring is available."
+    ),
+  )
 
   # j varies first, then i
   varnames = ["xi$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]

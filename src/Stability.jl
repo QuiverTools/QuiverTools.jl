@@ -731,5 +731,5 @@ function has_properly_semistables(
   Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denom::Function=sum
 )
   is_coprime(d, theta) && return false
-  return !isempty(all_luna_types(Q, d, theta, denom; stable==false))
+  return !isempty(all_luna_types(Q, d, theta, denom; stable=false))
 end
