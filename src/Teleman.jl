@@ -52,7 +52,10 @@ function weight_line_bundle_on_stratum(
   k_weights = weights_hn_type(hn_type, theta, denom)
   return [
     Int(
-      -eta' * sum(k_weights[m] .* hn_type[m] for m in 1:length(hn_type); init=0)
+      -eta' * sum(
+        k_weights[m] .* hn_type[m] for m in 1:length(hn_type);
+        init=zeros(Int, length(hn_type[1])),
+      ),
     ),
   ]
 end

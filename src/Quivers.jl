@@ -254,7 +254,7 @@ function first_hochschild_cohomology(Q::Quiver)
   !is_connected(Q) && throw(ArgumentError("The quiver must be connected."))
 
   path_matrix = Q.adjacency
-  path_matrix += sum((Q.adjacency)^k for k in 2:(n - 1))
+  path_matrix += sum((Q.adjacency)^k for k in 2:(n - 1); init=zeros(Int, n, n))
 
   return 1 - n + sum(Q.adjacency .* path_matrix; init=0)
 end
