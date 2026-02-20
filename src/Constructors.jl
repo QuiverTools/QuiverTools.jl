@@ -243,13 +243,8 @@ The bipartite quiver with `m + n` vertices.
 # Examples
 
 ```jldoctest
-julia> bipartite_quiver(2, 3).adjacency
-5×5 Matrix{Int64}:
- 0  0  1  1  1
- 0  0  1  1  1
- 0  0  0  0  0
- 0  0  0  0  0
- 0  0  0  0  0
+julia> print(bipartite_quiver(2, 3).adjacency)
+[0 0 1 1 1; 0 0 1 1 1; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0]
 ```
 """
 function bipartite_quiver(m::Int, n::Int)
@@ -291,7 +286,7 @@ julia> opposite_quiver(Q)
 opposite of 2-Kronecker quiver
 ```
 """
-opposite_quiver(Q::Quiver{Int}) = Quiver(
+opposite_quiver(Q::Quiver) = Quiver(
   transpose(Q.adjacency), "opposite of " * Q.name
 )
 
@@ -314,7 +309,7 @@ julia> double_quiver(Q)
 double of 2-Kronecker quiver
 ```
 """
-double_quiver(Q::Quiver{Int}) = Quiver(
+double_quiver(Q::Quiver) = Quiver(
   Q.adjacency + transpose(Q.adjacency), "double of " * Q.name
 )
 

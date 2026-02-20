@@ -18,7 +18,7 @@ and ``a_{ij}`` is the number of arrows ``i \\to j``.
 `name      :: String`
 
 """
-struct Quiver{T} where {T<:Int64}
+struct Quiver{T}
   adjacency::AbstractMatrix{Int}
   name::String
 
