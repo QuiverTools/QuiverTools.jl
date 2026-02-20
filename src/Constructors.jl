@@ -73,7 +73,7 @@ julia> loop_quiver(4)
 ```
 """
 function loop_quiver(m::Int)
-  return Quiver(Matrix{Int}(reshape([m], 1, 1)), string(m) * "-loop quiver")
+  return Quiver(reshape([m], 1, 1), string(m) * "-loop quiver")
 end
 
 """
@@ -291,8 +291,8 @@ julia> opposite_quiver(Q)
 opposite of 2-Kronecker quiver
 ```
 """
-opposite_quiver(Q::Quiver) = Quiver(
-  Matrix{Int}(transpose(Q.adjacency)), "opposite of " * Q.name
+opposite_quiver(Q::Quiver{Int}) = Quiver(
+  transpose(Q.adjacency), "opposite of " * Q.name
 )
 
 """
@@ -314,8 +314,8 @@ julia> double_quiver(Q)
 double of 2-Kronecker quiver
 ```
 """
-double_quiver(Q::Quiver) = Quiver(
-  Q.adjacency + Matrix{Int}(transpose(Q.adjacency)), "double of " * Q.name
+double_quiver(Q::Quiver{Int}) = Quiver(
+  Q.adjacency + transpose(Q.adjacency), "double of " * Q.name
 )
 
 """
