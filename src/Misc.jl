@@ -7,9 +7,13 @@
 
 Return the identity matrix of size `n`.
 """
-identity_matrix(n::Int) = map(
-  ind -> ind[1] == ind[2] ? 1 : 0, Iterators.product(1:n, 1:n)
-)
+@memoize function identity_matrix(n::Int)
+  out = zeros(Int, n, n)
+  for i in 1:n
+    out[i, i] = 1
+  end
+  return coerce_matrix(out)
+end
 
 """
     diagonal(m::AbstractMatrix{Int})
