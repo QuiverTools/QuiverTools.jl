@@ -5,7 +5,7 @@
 """
 # Summary
 
-`struct Quiver`
+`struct Quiver{T}`
 
 A quiver is represented by its adjacency
 ``n \\times n`` matrix ``adjacency = (a_{ij})``,\\
@@ -18,7 +18,7 @@ and ``a_{ij}`` is the number of arrows ``i \\to j``.
 `name      :: String`
 
 """
-struct Quiver
+struct Quiver{T} where {T<:Int64}
   adjacency::AbstractMatrix{Int}
   name::String
 
@@ -39,7 +39,9 @@ struct Quiver
   function Quiver(adjacency::AbstractMatrix{Int}, name::String="")
     size(adjacency, 1) != size(adjacency, 2) &&
       throw(ArgumentError("adjacency matrix must be square"))
-    return new(adjacency, name)
+    adj = coerce_matrix(adjacency)
+    T = size(adjacency, 1)
+    return new{T}(adj, name)
   end
 
   """

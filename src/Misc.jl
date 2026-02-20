@@ -228,4 +228,4 @@ true
 unit_vector(Q::Quiver, i::Int) = unit_vector(n_vertices(Q), i)
 
 coerce_vector(v) = v
-coerce_matrix(m) = m
+coerce_matrix(m) = SMatrix{size(m, 1),size(m, 1)}(m)

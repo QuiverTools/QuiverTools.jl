@@ -7,6 +7,7 @@ using Memoization: Memoization
 using IterTools: IterTools
 using LinearAlgebraX: LinearAlgebraX
 using Combinatorics
+using StaticArrays
 
 using Singular: Singular
 using Oscar: Oscar
