@@ -201,10 +201,10 @@ function chow_ring(
 
   # builds a new forbidden polynomial for the minimal forbidden dimension vector e.
   function new_forbidden(e::AbstractVector{Int})
-    out = 1
+    out = R(1)
     for (i, j) in Iterators.product(1:n_vertices(Q), 1:n_vertices(Q))
       for r in 1:e[i], s in (e[j] + 1):d[j]
-        out *= (xi(j, s) - xi(i, r))^Q.adjacency[i, j]
+        Oscar.mul!(out, out, (xi(j, s) - xi(i, r))^Q.adjacency[i, j])
       end
     end
     return out
@@ -524,14 +524,15 @@ function point_class(
   end
 
   CH = chow_ring(M)
-  num = 1
-  den = 1
+  # A = base_ring(quotient_ideal(CH))
+  num = CH(1)
+  den = CH(1)
   N = dimension(M)
 
   for i in 1:n_vertices(M.Q)
     c = total_chern_class_universal(M, i)
-    num *= c^(M.d' * M.Q.adjacency[:, i])
-    den *= c^M.d[i]
+    Oscar.mul!(num, num, c^(M.d' * M.Q.adjacency[:, i]))
+    Oscar.mul!(den, den, c^M.d[i])
   end
 
   quot = div(num, den)
@@ -601,7 +602,7 @@ function todd_class(
     i, j = a
     for p in 1:M.d[i]
       for q in 1:M.d[j]
-        num *= todd_Q(xi(j, q) - xi(i, p), N)
+        Oscar.mul!(num, num, todd_Q(xi(j, q) - xi(i, p), N))
         num = Singular.jet(num, N)
       end
     end
@@ -610,7 +611,7 @@ function todd_class(
   for i in 1:n_vertices(M.Q)
     for p in 1:M.d[i]
       for q in 1:M.d[i]
-        den *= todd_Q(xi(i, q) - xi(i, p), N)
+        Oscar.mul!(den, den, todd_Q(xi(i, q) - xi(i, p), N))
         den = Singular.jet(den, N)
       end
     end
