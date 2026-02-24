@@ -462,7 +462,7 @@ A struct to encode Luna types.
 
 # Fields
 
- `data :: Dict{Vector{Int},Vector{Int}`\\
+ `data :: Dict{AbstractVector{Int},AbstractVector{Int}}`\\
 
 """
 struct LunaType{T}
