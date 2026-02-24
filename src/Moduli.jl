@@ -258,7 +258,7 @@ Luna types for a 3-Kronecker quiver:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
 
 julia> all_luna_types(M)
-5-element Vector{LunaType{2}}:
+5-element Vector{LunaType}:
  Dict([3, 3] => [1])
  Dict([1, 1] => [1], [2, 2] => [1])
  Dict([1, 1] => [3])
@@ -297,7 +297,7 @@ Keyword arguments:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
 
 julia> all_luna_types(M)
-5-element Vector{LunaType{2}}:
+5-element Vector{LunaType}:
  Dict([3, 3] => [1])
  Dict([1, 1] => [1], [2, 2] => [1])
  Dict([1, 1] => [3])
@@ -307,7 +307,7 @@ julia> all_luna_types(M)
 julia> X = QuiverModuliSpace(Q, [2, 3]);
 
 julia> all_luna_types(X)
-1-element Vector{LunaType{2}}:
+1-element Vector{LunaType}:
  Dict([2, 3] => [1])
 ```
 """
@@ -328,7 +328,7 @@ function all_luna_types(
   filter!(e -> slope(e, theta, denom) == μ, same_slope)
   filter!(e -> has_stables(Q, e, theta, denom), same_slope)
 
-  luna_types = LunaType{n_vertices(Q)}[]
+  luna_types = LunaType[]
   for e in same_slope
     for luna_type in all_luna_types(Q, d - e, theta, denom; stable=true)
       if haskey(luna_type, e)
@@ -476,7 +476,7 @@ moduli space.
 julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [2, 2], [1, -1]);
 
 julia> luna = all_luna_types(M)
-2-element Vector{LunaType{2}}:
+2-element Vector{LunaType}:
  Dict([1, 1] => [2])
  Dict([1, 1] => [1, 1])
 

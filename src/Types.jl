@@ -291,20 +291,19 @@ end
 """
 # Summary
 
-`struct HNType{T}`
+`struct HNType`
 
 A struct for a Harder-Narasimhan type.
 
 # Fields
 
- `hn :: Vector{SVector{T,Int}}`\\
+ `hn :: Vector{AbstractVector{Int}}`\\
 
 """
-struct HNType{T}
+struct HNType
   hn::Vector{Vector{Int}}
   function HNType(dstar::Vector{<:AbstractVector{Int}})
-    T = length(dstar[1])
-    return new{T}(coerce_vector.(dstar))
+    return new(coerce_vector.(dstar))
   end
 end
 
@@ -456,7 +455,7 @@ end
 """
 # Summary
 
-`struct LunaType{T}`
+`struct LunaType`
 
 A struct to encode Luna types.
 
@@ -465,13 +464,13 @@ A struct to encode Luna types.
  `data :: Dict{AbstractVector{Int},AbstractVector{Int}}`\\
 
 """
-struct LunaType{T}
+struct LunaType
   data::Dict{Vector{Int},Vector{Int}}
 
   function LunaType(new_luna::Dict{<:AbstractVector{Int},Vector{Int}})
-    T = length(collect(keys(new_luna))[1])
+    # T = length(collect(keys(new_luna))[1])
 
-    return new{T}(Dict(coerce_vector(tau) => new_luna[tau] for tau in keys(new_luna)))
+    return new(Dict(coerce_vector(tau) => new_luna[tau] for tau in keys(new_luna)))
   end
 end
 

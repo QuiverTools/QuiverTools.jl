@@ -530,7 +530,7 @@ julia> chern_class(H)
 -x21
 
 julia> teleman_weights(H)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [-10]
   [[2, 1], [0, 2]]         => [-20]
   [[1, 0], [1, 2], [0, 1]] => [-40]
@@ -584,7 +584,7 @@ julia> map(chern_class, omega)
  6*x11
 
 julia> map(teleman_weights, omega)
-5-element Vector{Dict{HNType{2}, Vector{Int64}}}:
+5-element Vector{Dict{HNType, Vector{Int64}}}:
  Dict([[1, 0], [0, 1]] => [4])
  Dict([[1, 0], [0, 1]] => [6])
  Dict([[1, 0], [0, 1]] => [8])
@@ -603,7 +603,7 @@ julia> chern_class(omega)
 3*x21
 
 julia> QuiverTools.teleman_weights(omega)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [30]
   [[2, 1], [0, 2]]         => [60]
   [[1, 0], [1, 2], [0, 1]] => [120]
@@ -667,7 +667,7 @@ julia> map(chern_class, [u1, u2])
  x21 + 1
 
 julia> map(teleman_weights, [u1, u2])
-2-element Vector{Dict{HNType{2}, Vector{Int64}}}:
+2-element Vector{Dict{HNType, Vector{Int64}}}:
  Dict([[1, 0], [0, 1]] => [0])
  Dict([[1, 0], [0, 1]] => [-2])
 ```
@@ -689,7 +689,7 @@ julia> map(chern_character, [u1, u2])
 julia> w = map(teleman_weights, [u1, u2]);
 
 julia> w[1]
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [5, 5]
   [[2, 1], [0, 2]]         => [10, 10]
   [[1, 0], [1, 2], [0, 1]] => [25, 15]

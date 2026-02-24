@@ -147,7 +147,7 @@ A dictionary with the weights of the 1-PS corresponding to each HN type.
 julia> Q = kronecker_quiver(3);
 
 julia> teleman_bounds(Q, [2, 3], [3, -2])
-Dict{HNType{2}, Int64} with 7 entries:
+Dict{HNType, Int64} with 7 entries:
   [[2, 2], [0, 1]]         => 20
   [[2, 1], [0, 2]]         => 50
   [[1, 0], [1, 2], [0, 1]] => 100
@@ -290,7 +290,7 @@ The weights of the universal bundles on our favourite 6-fold:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> weights_universal_bundle(M, 1; chi=[2, -1])
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [-5, -5]
   [[2, 1], [0, 2]]         => [-10, -10]
   [[1, 0], [1, 2], [0, 1]] => [-15, -25]
@@ -307,7 +307,7 @@ defaults to `extended_gcd(M.d)[2]` if not defined.
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> weights_universal_bundle(M, 1)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [5, 5]
   [[2, 1], [0, 2]]         => [10, 10]
   [[1, 0], [1, 2], [0, 1]] => [25, 15]
@@ -319,7 +319,7 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
 julia> QuiverTools.set_linearization!(M, [-4, 3]);
 
 julia> weights_universal_bundle(M, 1)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [15, 15]
   [[2, 1], [0, 2]]         => [30, 30]
   [[1, 0], [1, 2], [0, 1]] => [65, 55]
@@ -446,7 +446,7 @@ The canonical bundle of our favourite 6-fold:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> weights_canonical_bundle(M)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [30]
   [[2, 1], [0, 2]]         => [60]
   [[1, 0], [1, 2], [0, 1]] => [120]
@@ -533,7 +533,7 @@ The weights of the endomorphisms of the universal bundles on our favourite 6-fol
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> all_weights_endomorphisms_universal_bundle(M)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [0, 5, -5, 0]
   [[2, 1], [0, 2]]         => [0, 5, -5, 0]
   [[1, 0], [1, 2], [0, 1]] => [0, 10, 15, -10, 0, 5, -15, -5, 0]
