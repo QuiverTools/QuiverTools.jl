@@ -660,13 +660,13 @@ end
 #####################################################################################
 
 """
-    set_teleman_weights!(F::Bundle, weights::Dict{<:HNType,Vector{Int}})
+    set_teleman_weights!(F::Bundle, weights::Dict{HNType,Vector{Int}})
 
 Set the Teleman weights of the bundle `F` to the given dictionary.
 
 This is used to construct Bundle objects and assign them Teleman weights.
 """
-function set_teleman_weights!(F::Bundle, weights::Dict{<:HNType,Vector{Int}})
+function set_teleman_weights!(F::Bundle, weights::Dict{HNType,Vector{Int}})
   r = isdefined(F, :rank) ? F.rank : length(first(values(weights)))
   !all(length(v) == r for v in values(weights)) &&
     throw(ArgumentError("Weights are not consistent with rank."))
