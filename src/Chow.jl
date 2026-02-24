@@ -135,14 +135,17 @@ function chow_ring(
     return vars[sum(d[1:(i - 1)]; init=0) + j]
   end
 
+  # build a base of R as an A-module.
   bounds = UnitRange{Int64}[0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
-  build_elem(lambda::NTuple) = prod(
-    prod(
-      xi(i, nu)^lambda[sum(d[1:(i - 1)]; init=0) + nu]
-      for nu in 1:d[i]; init=R(1)
-    )
-    for i in support(d); init=R(1)
-  )
+  function build_elem(lambda::NTuple)
+    out = R(1)
+    for i in support(d)
+      for nu in 1:d[i]
+        Oscar.mul!(out, out, xi(i, nu)^lambda[sum(d[1:(i - 1)]; init=0) + nu])
+      end
+    end
+    return out
+  end
   base = map(build_elem, Iterators.product(bounds...))
 
   verbose && @info "base has $(length(base)) elements"
@@ -153,6 +156,7 @@ function chow_ring(
   # sign for the product of symmetric groups
   sign_product(w) = prod(sign(Oscar.perm(wi)) for wi in w; init=1)
 
+  # caching the indices of the variables after each permutation
   permuted_indices = Dict{Tuple,Vector{Int64}}(
     sigma =>
       reduce(
@@ -165,6 +169,7 @@ function chow_ring(
   )
   permute_vector(e, sigma) = [e[k] for k in permuted_indices[sigma]]
 
+  # constructor of the permuted polynomial. This is much faster than f(permuted_vars[sigma]...)
   function permute(f::Singular.spoly{Singular.n_Q}, sigma::Tuple)
     context = Singular.MPolyBuildCtx(parent(f))
     for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
@@ -172,8 +177,6 @@ function chow_ring(
     end
     return Singular.finish(context)
   end
-  # Action of the symmetric group on R by permutation of the variables.
-  # permute(f, sigma) = f(permuted_vars[sigma]...)
 
   # The discriminant in the definition of the antisymmetrization.
   delta = prod(
@@ -182,9 +185,10 @@ function chow_ring(
   )
 
   function antisymmetrize(f::Singular.spoly{Singular.n_Q})
-    out = sum(
-      sign_product(sigma) * permute(f, sigma) for sigma in W; init=R(0)
-    )
+    out = R(0)
+    for sigma in W
+      Oscar.add!(out, out, sign_product(sigma) * permute(f, sigma))
+    end
     return div(out, delta)
   end
 
@@ -244,7 +248,6 @@ function chow_ring(
       a = antisymmetrize(forbidden_polynomials[i] * b)
       a != 0 && push!(anti, a)
     end
-    # unique!(anti)
   end
 
   verbose && @info "there are $(length(anti)) antisymmetrized forbidden polynomials"
