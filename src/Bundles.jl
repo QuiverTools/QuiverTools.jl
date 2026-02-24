@@ -699,7 +699,7 @@ Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [15, 15]
 
 julia> w[2]
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [5, 5, 0]
   [[2, 1], [0, 2]]         => [10, 5, 5]
   [[1, 0], [1, 2], [0, 1]] => [15, 15, 10]
