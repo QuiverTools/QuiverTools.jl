@@ -774,5 +774,15 @@ julia> degree(F)
 function degree(F::Bundle)
   M = variety(F)
   n = dimension(M)
-  return div(homogeneous_components(M, chern_class(det(F))^n)[n + 1], point_class(M))
+
+  out = chern_class(det(F))
+  if n >= 2
+    class_det = deepcopy(out)
+    for _ in 1:(n - 1)
+      out *= class_det
+      out = Singular.jet(out, n)
+    end
+  end
+
+  return div(homogeneous_components(M, out)[n + 1], point_class(M))
 end
