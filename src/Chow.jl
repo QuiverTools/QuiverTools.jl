@@ -527,22 +527,26 @@ function point_class(
   end
 
   CH = chow_ring(M)
-  # A = base_ring(quotient_ideal(CH))
   num = CH(1)
-  den = CH(1)
   N = dimension(M)
 
   for i in 1:n_vertices(M.Q)
     c = total_chern_class_universal(M, i)
     Oscar.mul!(num, num, c^(M.d' * M.Q.adjacency[:, i]))
-    Oscar.mul!(den, den, c^M.d[i])
+    num = Singular.jet(num, N)
+  end
+  # dividing at once is very slow, iteratively is much faster.
+  for i in 1:n_vertices(M.Q)
+    c = total_chern_class_universal(M, i)
+    num = div(num, c^(M.d[i])) # doing this with div!() errors somehow
   end
 
-  quot = div(num, den)
-  pt = sum(
-    term for term in Singular.terms(quot) if __chow_ring_monomial_grading(M, term) == N;
-    init=CH(0),
-  )
+  pt = CH(0)
+  for term in Singular.terms(num)
+    if __chow_ring_monomial_grading(M, term) == N
+      Oscar.add!(pt, pt, term)
+    end
+  end
   setfield!(M.chow, :point, pt)
   return M.chow.point
 end
