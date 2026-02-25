@@ -457,7 +457,7 @@ function chern_character_line_bundle(
 end
 
 """
-    total_chern_class_universal(M::QuiverModuliSpace, i)
+    total_chern_class_universal(M::QuiverModuliSpace, i::Int; unsafe::Bool=false)
 
 Compute the total Chern class of the universal bundle `U_i`.
 
@@ -494,7 +494,7 @@ function total_chern_class_universal(
 end
 
 """
-    point_class(M::QuiverModuliSpace)
+    point_class(M::QuiverModuliSpace; unsafe::Bool=false)
 
 Compute the point class of the moduli space `M`.
 
@@ -541,13 +541,13 @@ function point_class(
   N = dimension(M)
 
   for i in 1:n_vertices(M.Q)
-    c = total_chern_class_universal(M, i)
+    c = total_chern_class_universal(M, i; unsafe=unsafe)
     Oscar.mul!(num, num, c^(M.d' * M.Q.adjacency[:, i]))
     num = Singular.jet(num, N)
   end
   # dividing at once is very slow, iteratively is much faster.
   for i in 1:n_vertices(M.Q)
-    c = total_chern_class_universal(M, i)
+    c = total_chern_class_universal(M, i; unsafe=unsafe)
     num = div(num, c^(M.d[i])) # doing this with div!() errors somehow
   end
 
@@ -595,7 +595,8 @@ julia> todd_class(M)
 ```
 """
 function todd_class(
-  M::QuiverModuliSpace
+  M::QuiverModuliSpace;
+  unsafe::Bool=false,
 )
   if isdefined(M.chow, :todd) && M.chow.todd != undef
     return M.chow.todd
@@ -603,7 +604,7 @@ function todd_class(
 
   N = dimension(M)
   # consider these constructors: https://nemocas.github.io/AbstractAlgebra.jl/latest/mpolynomial/#Polynomial-functions
-  A = chow_ring(M)
+  A = chow_ring(M; unsafe=unsafe)
   R, inclusion = M.chow._R, M.chow._inclusion
   Rvars = gens(R)
   proj = __projection_to_quotient_ring(A)

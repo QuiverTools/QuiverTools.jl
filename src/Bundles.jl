@@ -713,11 +713,11 @@ Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [10, 10, 10]
 ```
 """
-function universal_bundle(M::QuiverModuliSpace, i::Int)
+function universal_bundle(M::QuiverModuliSpace, i::Int; unsafe::Bool=false)
   gcd(M.d) > 1 && throw(
-    ArgumentError("gcd($(M.d))  = $(gcd(d)) > 1, the universal bundles do not exist.")
+    ArgumentError("gcd($(M.d))  = $(gcd(M.d)) > 1, the universal bundles do not exist.")
   )
-  cl = total_chern_class_universal(M, i)
+  cl = total_chern_class_universal(M, i; unsafe=unsafe)
   new = Bundle(M, M.d[i], cl)
 
   weights = weights_universal_bundle(M, i)
@@ -725,7 +725,7 @@ function universal_bundle(M::QuiverModuliSpace, i::Int)
 end
 
 """
-    degree(F::Bundle)
+    degree(F::Bundle; unsafe::Bool=false)
 
 Compute the degree of the bundle `F`.
 If `rank(F)` is larger than ``1``, returns the degree of the determinant of `F`.
@@ -775,7 +775,7 @@ julia> degree(F)
 56
 ```
 """
-function degree(F::Bundle)
+function degree(F::Bundle; unsafe::Bool=false)
   M = variety(F)
   n = dimension(M)
 
@@ -791,6 +791,6 @@ function degree(F::Bundle)
     end
   end
 
-  pt = point_class(M)
+  pt = point_class(M; unsafe=unsafe)
   return div(homogeneous_components(M, out)[n + 1], pt)
 end
