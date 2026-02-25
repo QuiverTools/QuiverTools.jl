@@ -502,7 +502,7 @@ function simplify!(f::Singular.spoly{Singular.n_Q})
 end
 
 """
-    line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
+    line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int}; teleman::Bool=true)
 
 Construct the descent of `L(eta)` on the quiver moduli space `M`.
 
@@ -540,14 +540,15 @@ Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [-30]
 ```
 """
-function line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
+function line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int}; teleman::Bool=true)
   eta' * M.d != 0 && throw(ArgumentError("$(eta) is not a linearization."))
   new = Bundle(M, 1, chern_class_line_bundle(M, eta))
-  return set_teleman_weights!(new, weights_line_bundle(M, eta))
+  teleman && set_teleman_weights!(new, weights_line_bundle(M, eta))
+  return new
 end
 
 """
-    canonical_bundle(M::QuiverModuliSpace)
+    canonical_bundle(M::QuiverModuliSpace; teleman::Bool=true, verbose::Bool=false, unsafe::Bool=false)
 
 Compute the canonical bundle on the quiver moduli space `M`.
 
