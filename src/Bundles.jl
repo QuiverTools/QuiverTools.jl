@@ -613,19 +613,23 @@ Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [90]
 ```
 """
-function canonical_bundle(M::QuiverModuliSpace)
-  has_properly_semistables(M.Q, M.d, M.theta, M.denom) &&
-    throw(
-      ArgumentError(
-        "The quiver moduli problem has properly semistables, no description of the canonical bundle is available."
-      ),
-    )
-  !is_amply_stable(M) &&
-    throw(
-      ArgumentError(
-        "The quiver moduli problem is not amply stable, no description of the canonical bundle is available."
-      ),
-    )
+function canonical_bundle(M::QuiverModuliSpace; verbose::Bool=false, unsafe::Bool=false)
+  if !unsafe
+    has_properly_semistables(M.Q, M.d, M.theta, M.denom) &&
+      throw(
+        ArgumentError(
+          "The quiver moduli problem has properly semistables, no description of the canonical bundle is available."
+        ),
+      )
+    !is_amply_stable(M) &&
+      throw(
+        ArgumentError(
+          "The quiver moduli problem is not amply stable, no description of the canonical bundle is available."
+        ),
+      )
+  else
+    verbose && @warn "Unsafe computation."
+  end
   return line_bundle(M, -canonical_stability(M.Q, M.d))
 end
 

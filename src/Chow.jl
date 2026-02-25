@@ -110,20 +110,24 @@ function chow_ring(
   theta::AbstractVector{Int}=canonical_stability(Q, d);
   chi::AbstractVector{Int}=extended_gcd(d)[2],
   verbose::Bool=false,
+  unsafe::Bool=false,
 )
-  # safety checks
   chi' * d != 1 && throw(ArgumentError("``chi`` is not a linearization"))
-  has_properly_semistables(Q, d, theta) &&
-    throw(
+  if !unsafe
+    has_properly_semistables(Q, d, theta) &&
+      throw(
+        ArgumentError(
+          "The quiver moduli problem has properly semistable representations, no description of the Chow ring is available."
+        ),
+      )
+    !is_amply_stable(Q, d, theta) && throw(
       ArgumentError(
-        "The quiver moduli problem has properly semistable representations, no description of the Chow ring is available."
+        "The quiver moduli problem is not amply stable, no description of the Chow ring is available."
       ),
     )
-  !is_amply_stable(Q, d, theta) && throw(
-    ArgumentError(
-      "The quiver moduli problem is not amply stable, no description of the Chow ring is available."
-    ),
-  )
+  else
+    verbose && @warn "Unsafe computation."
+  end
 
   # j varies first, then i
   varnames = ["xi$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
@@ -263,7 +267,7 @@ function chow_ring(
 end
 
 """
-    chow_ring(M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef)
+    chow_ring(M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef, verbose::Bool=false, unsafe::Bool=false)
 
 Compute the Chow ring of the moduli space `M` for the given linearization `chi`.
 
@@ -281,6 +285,7 @@ Compute the Chow ring of the moduli space `M` for the given linearization `chi`.
 function chow_ring(
   M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef,
   verbose::Bool=false,
+  unsafe::Bool=false,
 )
   if !isdefined(M.chow, :chi)
     if (chi isa UndefInitializer)
@@ -288,7 +293,9 @@ function chow_ring(
     else
       setfield!(M.chow, :chi, chi)
     end
-    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=M.chow.chi, verbose=verbose)
+    CH, R, inc = chow_ring(
+      M.Q, M.d, M.theta; chi=M.chow.chi, verbose=verbose, unsafe=unsafe
+    )
     setfield!(M.chow, :ring, CH[1])
     setfield!(M.chow, :_R, R)
     setfield!(M.chow, :_inclusion, inc)
@@ -298,7 +305,7 @@ function chow_ring(
   if !(chi isa UndefInitializer) && M.chow.chi != chi
     # reinitializing all the fields
     setfield!(M.chow, :chi, chi)
-    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=chi, verbose=verbose)
+    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=chi, verbose=verbose, unsafe=unsafe)
     setfield!(M.chow, :ring, CH[1])
     setfield!(M.chow, :_R, R)
     setfield!(M.chow, :_inclusion, inc)
@@ -395,9 +402,10 @@ julia> chern_class_line_bundle(M, [9, -6])
 """
 function chern_class_line_bundle(
   M::QuiverModuliSpace,
-  eta::AbstractVector{Int},
+  eta::AbstractVector{Int};
+  unsafe::Bool=false,
 )
-  A = chow_ring(M)
+  A = chow_ring(M; unsafe=unsafe)
   I = quotient_ideal(A)
   Rvars = gens(base_ring(I))
   proj = __projection_to_quotient_ring(A)
@@ -477,9 +485,10 @@ x21 + x22 + x23 + 1
 """
 function total_chern_class_universal(
   M::QuiverModuliSpace,
-  i::Int,
+  i::Int;
+  unsafe::Bool=false,
 )
-  CH = chow_ring(M)
+  CH = chow_ring(M; unsafe=unsafe)
   CHvars = gens(CH)
   return sum(CHvars[sum(M.d[1:(i - 1)]) + r] for r in 1:M.d[i]; init=CH(0)) + CH(1)
 end
@@ -520,13 +529,14 @@ x23^2
 ```
 """
 function point_class(
-  M::QuiverModuliSpace
+  M::QuiverModuliSpace;
+  unsafe::Bool=false,
 )
   if isdefined(M.chow, :point) && M.chow.point != undef
     return M.chow.point
   end
 
-  CH = chow_ring(M)
+  CH = chow_ring(M; unsafe=unsafe)
   num = CH(1)
   N = dimension(M)
 
