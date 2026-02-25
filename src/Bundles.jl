@@ -776,13 +776,17 @@ function degree(F::Bundle)
   n = dimension(M)
 
   out = chern_class(det(F))
+  out = Singular.jet(out, n)
+
   if n >= 2
     class_det = deepcopy(out)
     for _ in 1:(n - 1)
-      out *= class_det
+      # the multiplication here takes most of runtime
+      Oscar.mul!(out, out, class_det)
       out = Singular.jet(out, n)
     end
   end
 
-  return div(homogeneous_components(M, out)[n + 1], point_class(M))
+  pt = point_class(M)
+  return div(homogeneous_components(M, out)[n + 1], pt)
 end
