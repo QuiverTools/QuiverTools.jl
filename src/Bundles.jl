@@ -714,15 +714,17 @@ Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [10, 10, 10]
 ```
 """
-function universal_bundle(M::QuiverModuliSpace, i::Int; unsafe::Bool=false)
+function universal_bundle(
+  M::QuiverModuliSpace, i::Int; unsafe::Bool=false, teleman::Bool=true
+)
   gcd(M.d) > 1 && throw(
     ArgumentError("gcd($(M.d))  = $(gcd(M.d)) > 1, the universal bundles do not exist.")
   )
   cl = total_chern_class_universal(M, i; unsafe=unsafe)
   new = Bundle(M, M.d[i], cl)
 
-  weights = weights_universal_bundle(M, i)
-  return set_teleman_weights!(new, weights)
+  teleman && set_teleman_weights!(new, weights_universal_bundle(M, i))
+  return new
 end
 
 """
