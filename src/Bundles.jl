@@ -545,9 +545,11 @@ Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [-30]
 ```
 """
-function line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int}; teleman::Bool=true)
+function line_bundle(
+  M::QuiverModuliSpace, eta::AbstractVector{Int}; unsafe::Bool=false, teleman::Bool=true
+)
   eta' * M.d != 0 && throw(ArgumentError("$(eta) is not a linearization."))
-  new = Bundle(M, 1, chern_class_line_bundle(M, eta))
+  new = Bundle(M, 1, chern_class_line_bundle(M, eta; unsafe=unsafe))
   teleman && set_teleman_weights!(new, weights_line_bundle(M, eta))
   return new
 end
@@ -568,7 +570,6 @@ of the canonical bundle.
 
 - `M::QuiverModuliSpace`: a quiver moduli space.
 - `teleman::Bool`: Optional keyword argument to compute the Teleman weights of the canonical bundle. Default is `true`.
-- `verbose::Bool`: Optional keyword argument to print warnings. Default is `false`.
 - `unsafe::Bool`: Optional keyword argument to skip ample stability and properly semistable checks. Default is `false`.
 
 # Output
@@ -622,7 +623,7 @@ Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [90]
 ```
 """
-function canonical_bundle(M::QuiverModuliSpace; verbose::Bool=false, unsafe::Bool=false)
+function canonical_bundle(M::QuiverModuliSpace; teleman::Bool=true, unsafe::Bool=false)
   if !unsafe
     has_properly_semistables(M.Q, M.d, M.theta, M.denom) &&
       throw(
@@ -639,11 +640,11 @@ function canonical_bundle(M::QuiverModuliSpace; verbose::Bool=false, unsafe::Boo
   else
     verbose && @warn "Unsafe computation."
   end
-  return line_bundle(M, -canonical_stability(M.Q, M.d))
+  return line_bundle(M, -canonical_stability(M.Q, M.d); unsafe=unsafe, teleman=teleman)
 end
 
 """
-    universal_bundle(M:::QuiverModuliSpace, i::Int)
+    universal_bundle(M:::QuiverModuliSpace, i::Int; teleman::Bool=true, unsafe::Bool=false)
 
 Compute the `i`-th universal bundle of `M`.
 
@@ -794,7 +795,12 @@ function degree(F::Bundle; unsafe::Bool=false)
   CH = chow_ring(M; unsafe=unsafe)
   unsafe ? (n = 1 - euler_form(M.Q, M.d, M.d)) : (n = dimension(M))
 
-  rank(F) == 1 && (out = chern_class(F)):(out = chern_class(det(F)))
+  if rank(F) == 1
+    out = chern_class(F)
+  else
+    out = chern_class(det(F))
+  end
+
   out = Singular.jet(out, n)
   out = Oscar.div(out, CH(1))
 
