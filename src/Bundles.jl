@@ -372,9 +372,14 @@ function symmetric_power(F::Bundle, k::Int)
   return new
 end
 
-function homogeneous_components(M::QuiverModuliSpace, x)
-  n = dimension(M)
-  CH = chow_ring(M)
+function homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
+  if unsafe
+    n = 1 - euler_form(M.Q, M.d, M.d)
+  else
+    n = dimension(M)
+  end
+
+  CH = chow_ring(M; unsafe=unsafe)
   return [
     sum(
       t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) == i; init=CH(0)
@@ -562,6 +567,9 @@ of the canonical bundle.
 # Input
 
 - `M::QuiverModuliSpace`: a quiver moduli space.
+- `teleman::Bool`: Optional keyword argument to compute the Teleman weights of the canonical bundle. Default is `true`.
+- `verbose::Bool`: Optional keyword argument to print warnings. Default is `false`.
+- `unsafe::Bool`: Optional keyword argument to skip ample stability and properly semistable checks. Default is `false`.
 
 # Output
 
@@ -650,6 +658,8 @@ by calling `chow_ring(M)` and it will use the default linearization.
 
 - `M::QuiverModuliSpace`: a quiver moduli space.
 - `i::Int`: the universal bundle on the `i`-th vertex of the quiver.
+- `teleman::Bool`: Optional keyword argument to compute the Teleman weights of the universal bundle. Default is `true`.
+- `unsafe::Bool`: Optional keyword argument to skip ample stability checks. Default is `false`.
 
 # Output
 
@@ -736,6 +746,7 @@ If `rank(F)` is larger than ``1``, returns the degree of the determinant of `F`.
 # Input
 
 - `F::Bundle`: a bundle.
+- `unsafe::Bool=false`: whether to skip ample stability checks. Default is `false`.
 
 # Output
 

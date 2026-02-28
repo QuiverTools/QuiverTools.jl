@@ -366,7 +366,7 @@ function extended_gcd(x)
 end
 
 """
-    chern_class_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
+    chern_class_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int}; unsafe::Bool=false)
 
 Compute the first Chern class of the line bundle `L(eta)`.
 
@@ -376,6 +376,8 @@ This is given by ``L(eta) = \\bigoplus_{i \\in Q_0} \\det(U_i)^{-eta_i}``.
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 - `eta::AbstractVector{Int]`: a choice of linearization for the trivial line bundle.
+- `unsafe::Bool=false`: whether to skip the checks on ample stability and
+    existence of properly semistables. Default is `false`.
 
 # Output
 
@@ -538,21 +540,26 @@ function point_class(
 
   CH = chow_ring(M; unsafe=unsafe)
   num = CH(1)
-  N = dimension(M)
+  unsafe ? (N = 1 - euler_form(M.Q, M.d, M.d)) : (N = dimension(M))
 
   for i in 1:n_vertices(M.Q)
     c = total_chern_class_universal(M, i; unsafe=unsafe)
-    Oscar.mul!(num, num, c^(M.d' * M.Q.adjacency[:, i]))
-    num = Singular.jet(num, N)
+    for k in 1:(M.d' * M.Q.adjacency[:, i])
+      Oscar.mul!(num, num, c)
+      num = Oscar.div(num, CH(1))
+      num = Singular.jet(num, N)
+    end
   end
   # dividing at once is very slow, iteratively is much faster.
   for i in 1:n_vertices(M.Q)
     c = total_chern_class_universal(M, i; unsafe=unsafe)
-    num = div(num, c^(M.d[i])) # doing this with div!() errors somehow
+    for k in 1:M.d[i]
+      num = Oscar.Singular.div(num, c)
+    end
   end
 
   pt = CH(0)
-  for term in Singular.terms(num)
+  for term in Oscar.Singular.terms(num)
     if __chow_ring_monomial_grading(M, term) == N
       Oscar.add!(pt, pt, term)
     end
@@ -746,7 +753,10 @@ objects passed. Instead, it assumes that the Chow ring passed has variables
 ``x_{i, j}`` as in the Chow ring paper.
 """
 function __chow_ring_monomial_grading(M::QuiverModuliSpace, f)
-  return __chow_degrees(M.d)' * collect(Singular.exponent_vectors(f))[1]
+  deg = __chow_degrees(M.d)
+  exp = first(Oscar.AbstractAlgebra.exponent_vectors(f))
+  @assert size(deg) == size(exp)
+  return exp' * deg
 end
 
 """
