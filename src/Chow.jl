@@ -408,14 +408,16 @@ function chern_class_line_bundle(
   unsafe::Bool=false,
 )
   A = chow_ring(M; unsafe=unsafe)
-  I = quotient_ideal(A)
-  Rvars = gens(base_ring(I))
+  R = base_ring(quotient_ideal(A))
+  Rvars = gens(R)
   proj = __projection_to_quotient_ring(A)
 
-  chern_class =
-    -sum(eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])] for i in support(M.d))
+  chern_class = R(0)
+  for i in support(M.d)
+    Oscar.add!(chern_class, chern_class, eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])])
+  end
 
-  return A(div(proj(chern_class), A(1)))
+  return div(proj(chern_class), A(1))
 end
 
 """

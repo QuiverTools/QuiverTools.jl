@@ -791,9 +791,10 @@ julia> degree(F)
 """
 function degree(F::Bundle; unsafe::Bool=false)
   M = variety(F)
-  n = dimension(M)
+  CH = chow_ring(M; unsafe=unsafe)
+  unsafe ? (n = 1 - euler_form(M.Q, M.d, M.d)) : (n = dimension(M))
 
-  out = chern_class(det(F))
+  rank(F) == 1 && (out = chern_class(F)):(out = chern_class(det(F)))
   out = Singular.jet(out, n)
 
   if n >= 2
