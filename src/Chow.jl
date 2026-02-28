@@ -417,7 +417,7 @@ function chern_class_line_bundle(
     Oscar.add!(chern_class, chern_class, eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])])
   end
 
-  return div(proj(chern_class), A(1))
+  return div(proj(- chern_class), A(1))
 end
 
 """
