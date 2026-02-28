@@ -796,6 +796,7 @@ function degree(F::Bundle; unsafe::Bool=false)
 
   rank(F) == 1 && (out = chern_class(F)):(out = chern_class(det(F)))
   out = Singular.jet(out, n)
+  out = Oscar.div(out, CH(1))
 
   if n >= 2
     class_det = deepcopy(out)
@@ -803,6 +804,7 @@ function degree(F::Bundle; unsafe::Bool=false)
       # the multiplication here takes most of runtime
       Oscar.mul!(out, out, class_det)
       out = Singular.jet(out, n)
+      out = Oscar.div(out, CH(1))
     end
   end
 
