@@ -42,13 +42,9 @@ Decompose a Chow ring element `x` into its homogeneous components.
 For internal use only.
 """
 function __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
-  if unsafe
-    n = 1 - euler_form(M.Q, M.d, M.d)
-  else
-    n = dimension(M)
-  end
+  unsafe ? (n = 1 - euler_form(M.Q, M.d, M.d)) : (n = dimension(M))
 
-  CH = chow_ring(M; unsafe=unsafe)
+  CH = parent(x)
 
   return [
     sum(

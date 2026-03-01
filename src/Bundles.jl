@@ -790,7 +790,6 @@ julia> degree(K_dual; unsafe=true)
 """
 function degree(F::Bundle; unsafe::Bool=false)
   M = variety(F)
-  CH = chow_ring(M; unsafe=unsafe)
   unsafe ? (n = 1 - euler_form(M.Q, M.d, M.d)) : (n = dimension(M))
 
   if rank(F) == 1
