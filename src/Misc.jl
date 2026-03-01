@@ -155,15 +155,32 @@ function all_subdimension_vectors(
   d::AbstractVector{Int};
   nonzero::Bool=false,
   strict::Bool=false,
-) #TODO should this be memoized at all?
-  subdims = reshape(
-    collect.(collect(Iterators.product(map(di -> 0:di, d)...))),
-    prod(di + 1 for di in d; init=1),
-  )
-  all(di == 0 for di in d) && (nonzero || strict) && return deleteat!(subdims, 1)
-  nonzero && deleteat!(subdims, 1)
-  strict && pop!(subdims)
-  return subdims
+)
+  @assert length(d) > 0 "Input vector must have positive length."
+  if length(d) == 1
+    if d[1] == 0 && (nonzero || strict)
+      return Vector{Int}[]
+    elseif d[1] == 0 && !(nonzero || strict)
+      return [[0]]
+    else
+      out = map(i -> [i], 0:d[1])
+      nonzero && deleteat!(out, 1)
+      strict && pop!(out)
+      return out
+    end
+  else
+    subdims = all_subdimension_vectors(d[2:end]; nonzero=false, strict=false)
+    new_subdims = Vector{Vector{Int}}()
+    for subdim in subdims
+      for i in 0:d[1]
+        push!(new_subdims, vcat(subdim, i))
+      end
+    end
+    all(di == 0 for di in d) && (nonzero || strict) && return deleteat!(new_subdims, 1)
+    nonzero && deleteat!(new_subdims, 1)
+    strict && pop!(new_subdims)
+    return new_subdims
+  end
 end
 
 """
