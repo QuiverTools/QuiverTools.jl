@@ -370,7 +370,7 @@ function Bundle(parent::ChowRing, rank::Int, chern_class::Singular.spoly{Singula
   bundle = Bundle()
   setfield!(bundle, :parent, parent)
   setfield!(bundle, :rank, rank)
-  hom = homogeneous_components(parent.parent, chern_class)
+  hom = __homogeneous_components(parent.parent, chern_class)
   cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:n)
   setfield!(bundle, :chern_class, cl)
   return bundle
@@ -417,7 +417,7 @@ function Bundle(M::QuiverModuliSpace, rank::Int, x::Singular.spoly{Singular.n_Q}
   bundle = Bundle()
   setfield!(bundle, :parent, M.chow)
   setfield!(bundle, :rank, rank)
-  hom = homogeneous_components(M, x)
+  hom = __homogeneous_components(M, x)
   cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
   setfield!(bundle, :chern_class, cl)
   return bundle
@@ -435,7 +435,7 @@ function Bundle(M::QuiverModuliSpace, rank::Int, x::Vector{Singular.spoly{Singul
   bundle = Bundle()
   setfield!(bundle, :parent, M.chow)
   setfield!(bundle, :rank, rank)
-  hom = homogeneous_components(M, sum(x))
+  hom = __homogeneous_components(M, sum(x))
   cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
   setfield!(bundle, :chern_class, x)
   return bundle

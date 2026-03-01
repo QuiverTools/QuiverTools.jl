@@ -374,25 +374,8 @@ function symmetric_power(F::Bundle, k::Int)
   return new
 end
 
-function homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
-  if unsafe
-    n = 1 - euler_form(M.Q, M.d, M.d)
-  else
-    n = dimension(M)
-  end
-
-  CH = chow_ring(M; unsafe=unsafe)
-  return [
-    sum(
-      t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) == i; init=CH(0)
-    )
-    for
-    i in 0:n
-  ]
-end
-
 function truncate(M::QuiverModuliSpace, x, n)
-  comps = homogeneous_components(M, x)
+  comps = __homogeneous_components(M, x)
   # TODO this may be slow, try building new polynomial
   # also can I use the incorrect but faster Singular.degree?
   return sum(comps[i + 1] for i in 0:n)
@@ -470,14 +453,14 @@ function adams(F::Bundle, k)
   n = dimension(M)
   x = chern_character(F)
 
-  return [k^i for i in 0:n]' * homogeneous_components(M, x)
+  return [k^i for i in 0:n]' * __homogeneous_components(M, x)
 end
 
 function _chern_classes_from_character(F::Bundle)
   CH = chow_ring(F)
   M = variety(F)
   n = dimension(M)
-  comps = homogeneous_components(M, chern_character(F))
+  comps = __homogeneous_components(M, chern_character(F))
   p = [(CH(-1))^i * CH(factorial(i)) * comps[i + 1] for i in 0:n]
   e = [CH(0) for _ in 1:(n + 1)]
   e[1] = CH(1)
@@ -810,5 +793,5 @@ function degree(F::Bundle; unsafe::Bool=false)
   end
 
   pt = point_class(M; unsafe=unsafe)
-  return div(homogeneous_components(M, out)[n + 1], pt)
+  return div(__homogeneous_components(M, out)[n + 1], pt)
 end

@@ -30,12 +30,38 @@ __simplify(f::Singular.spoly{Singular.n_Q}) = div(f, f.parent(1))
 """
     __simplify!(f::Singular.spoly{Singular.n_Q})
 In-place version of `__simplify`.
+    __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
+
+# Input
+
+- `M::QuiverModuliSpace`: a quiver moduli space.
+- `x`: an element of the Chow ring of `M`.
+- `unsafe::Bool=false`: whether to compute the dimension of `M` using
+  the faster Euler form instead of `dimension()`. Default is `false`.
+
+Decompose a Chow ring element `x` into its homogeneous components.
 
 For internal use only.
 """
 function __simplify!(f::Singular.spoly{Singular.n_Q})
   f = div(f, f.parent(1))
   return f
+function __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
+  if unsafe
+    n = 1 - euler_form(M.Q, M.d, M.d)
+  else
+    n = dimension(M)
+  end
+
+  CH = chow_ring(M; unsafe=unsafe)
+
+  return [
+    sum(
+      t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) == i; init=CH(0)
+    )
+    for
+    i in 0:n
+  ]
 end
 
 """
@@ -752,7 +778,7 @@ julia> integral(U1)
 """
 function integral(M::QuiverModuliSpace, f)
   n = dimension(M)
-  integ = div(homogeneous_components(M, f * todd_class(M))[n + 1], point_class(M))
+  integ = div(__homogeneous_components(M, f * todd_class(M))[n + 1], point_class(M))
   return Singular.constant_coefficient(integ)
 end
 
