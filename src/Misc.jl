@@ -173,7 +173,7 @@ function all_subdimension_vectors(
     new_subdims = Vector{Vector{Int}}()
     for subdim in subdims
       for i in 0:d[1]
-        push!(new_subdims, vcat(subdim, i))
+        push!(new_subdims, vcat(i, subdim))
       end
     end
     all(di == 0 for di in d) && (nonzero || strict) && return deleteat!(new_subdims, 1)
