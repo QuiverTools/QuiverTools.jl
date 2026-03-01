@@ -25,7 +25,7 @@ by dividing it by 1.
 
 For internal use only.
 """
-__simplify(f::Singular.spoly{Singular.n_Q}) = div(f, one(parent(f)))
+__simplify(f) = div(f, one(parent(f)))
 
 """
     __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
