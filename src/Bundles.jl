@@ -615,8 +615,6 @@ function canonical_bundle(M::QuiverModuliSpace; teleman::Bool=true, unsafe::Bool
           "The quiver moduli problem is not amply stable, no description of the canonical bundle is available."
         ),
       )
-  else
-    verbose && @warn "Unsafe computation."
   end
   return line_bundle(M, -canonical_stability(M.Q, M.d); unsafe=unsafe, teleman=teleman)
 end
