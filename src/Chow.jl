@@ -18,18 +18,16 @@ function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int}
 end
 
 """
-    __simplify(f::Singular.spoly{Singular.n_Q})
+    __simplify(f)
 
 Force some Gröbner basis simplification of the polynomial `f`
 by dividing it by 1.
 
 For internal use only.
 """
-__simplify(f::Singular.spoly{Singular.n_Q}) = div(f, f.parent(1))
+__simplify(f::Singular.spoly{Singular.n_Q}) = div(f, one(parent(f)))
 
 """
-    __simplify!(f::Singular.spoly{Singular.n_Q})
-In-place version of `__simplify`.
     __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
 
 # Input
@@ -43,9 +41,6 @@ Decompose a Chow ring element `x` into its homogeneous components.
 
 For internal use only.
 """
-function __simplify!(f::Singular.spoly{Singular.n_Q})
-  f = div(f, f.parent(1))
-  return f
 function __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
   if unsafe
     n = 1 - euler_form(M.Q, M.d, M.d)
@@ -464,7 +459,7 @@ function chern_class_line_bundle(
     Oscar.add!(chern_class, chern_class, eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])])
   end
 
-  return __simplify!(proj(- chern_class))
+  return __simplify(proj(- chern_class))
 end
 
 """
@@ -599,7 +594,7 @@ function point_class(
     c = total_chern_class_universal(M, i; unsafe=unsafe)
     for k in 1:(M.d' * M.Q.adjacency[:, i])
       Oscar.mul!(num, num, c)
-      __simplify!(num)
+      num = __simplify(num)
       num = Singular.jet(num, N)
     end
   end
@@ -707,7 +702,7 @@ function todd_class(
   den /= constant_coefficient(den)
 
   quot = div(proj(num), proj(den))
-  __simplify!(quot)
+  quot = __simplify(quot)
   setfield!(M.chow, :todd, A(quot))
   return M.chow.todd
 end
