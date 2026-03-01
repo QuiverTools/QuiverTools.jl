@@ -485,7 +485,7 @@ function _chern_character_from_classes(F::Bundle)
 end
 
 """
-    line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int}; teleman::Bool=true)
+    line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int}; unsafe::Bool=false, teleman::Bool=true)
 
 Construct the descent of `L(eta)` on the quiver moduli space `M`.
 
@@ -493,6 +493,10 @@ Construct the descent of `L(eta)` on the quiver moduli space `M`.
 
 - `M::QuiverModuliSpace`: a quiver moduli space.
 - `eta::AbstractVector{Int}`: a dimension vector.
+- `unsafe::Bool`: Optional keyword argument to skip Chow ring computation checks.
+  Default is `false`.
+- `teleman::Bool`: Optional keyword argument to compute
+  the Teleman weights of the line bundle. Default is `true`.
 
 # Output
 
@@ -521,6 +525,14 @@ Dict{HNType, Vector{Int64}} with 7 entries:
   [[1, 0], [1, 1], [0, 2]] => [-35]
   [[1, 1], [1, 2]]         => [-5]
   [[2, 0], [0, 3]]         => [-30]
+```
+
+The 7-subspace quiver moduli space:
+```jldoctest
+julia> Q = subspace_quiver(7); d = push!(ones(Int, 7), 2); M = QuiverModuliSpace(Q, d);
+
+julia> K_dual = line_bundle(M, canonical_stability(Q, d); unsafe=true, teleman=false); K_dual.chern_class[1]
+-2*x11 - 2*x21 - 2*x31 - 2*x41 - 2*x51 - 2*x61 + 7*x81
 ```
 """
 function line_bundle(
@@ -764,6 +776,16 @@ julia> chern_class(F)
 
 julia> degree(F)
 56
+```
+
+The 7-subspace quiver:
+```jldoctest
+julia> Q = subspace_quiver(7); d = push!(ones(Int, 7), 2); M = QuiverModuliSpace(Q, d);
+
+julia> K_dual = line_bundle(M, canonical_stability(Q, d); unsafe=true);
+
+julia> degree(K_dual; unsafe=true)
+154
 ```
 """
 function degree(F::Bundle; unsafe::Bool=false)

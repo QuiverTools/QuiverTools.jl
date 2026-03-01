@@ -577,6 +577,12 @@ x23^2
 ```
 
 The 7-subspace quiver:
+```jldoctest
+julia> Q = subspace_quiver(7); d = push!(ones(Int, 7), 2); M = QuiverModuliSpace(Q, d);
+
+julia> point_class(M; unsafe=true)
+1//10*x81^4
+```
 """
 function point_class(
   M::QuiverModuliSpace;
