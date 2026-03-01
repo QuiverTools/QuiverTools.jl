@@ -292,7 +292,7 @@ function exterior_power(F::Bundle, k::Int)
   CH = chow_ring(F)
 
   _has_chern_data(F) &&
-    setfield!(new, :chern_character, simplify!(CH(_chern_characters_wedge(F, k)[end])))
+    setfield!(new, :chern_character, __simplify!(CH(_chern_characters_wedge(F, k)[end])))
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
       hn_type =>
@@ -360,7 +360,9 @@ function symmetric_power(F::Bundle, k::Int)
   CH = chow_ring(F)
 
   _has_chern_data(F) &&
-    setfield!(new, :chern_character, simplify!(CH(_chern_characters_symmetric(F, k)[end])))
+    setfield!(
+      new, :chern_character, __simplify!(CH(_chern_characters_symmetric(F, k)[end]))
+    )
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
       hn_type =>
@@ -421,7 +423,7 @@ function _chern_characters_wedge(F::Bundle, k)
           init=CH(0),
         ),
         n)
-    simplify!(wedges[j + 1])
+    __simplify!(wedges[j + 1])
   end
   return wedges
 end
@@ -452,7 +454,7 @@ function _chern_characters_symmetric(F::Bundle, k)
         init=CH(0),
       ),
       n)
-    simplify!(syms[j + 1])
+    __simplify!(syms[j + 1])
   end
   return syms
 end
@@ -481,7 +483,7 @@ function _chern_classes_from_character(F::Bundle)
   e[1] = CH(1)
   for i in 1:n
     e[i + 1] = CH(-1//i) * sum(p[j + 1] * e[i - j + 1] for j in 1:i)
-    simplify!(e[i + 1])
+    __simplify!(e[i + 1])
   end
   return Dict(i => e[i + 1] for i in 0:n)
 end
@@ -496,14 +498,7 @@ function _chern_character_from_classes(F::Bundle)
   for i in 1:(n - 1)
     p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i)
   end
-  return simplify(sum(CH((-1)^i//factorial(i)) * p[i] for i in 1:n) + rank(F))
-end
-
-simplify(f::Singular.spoly{Singular.n_Q}) = div(f, f.parent(1))
-
-function simplify!(f::Singular.spoly{Singular.n_Q})
-  f = div(f, f.parent(1))
-  return f
+  return __simplify(sum(CH((-1)^i//factorial(i)) * p[i] for i in 1:n) + rank(F))
 end
 
 """
@@ -802,7 +797,7 @@ function degree(F::Bundle; unsafe::Bool=false)
   end
 
   out = Singular.jet(out, n)
-  out = Oscar.div(out, CH(1))
+  __simplify!(out)
 
   if n >= 2
     class_det = deepcopy(out)
@@ -810,7 +805,7 @@ function degree(F::Bundle; unsafe::Bool=false)
       # the multiplication here takes most of runtime
       Oscar.mul!(out, out, class_det)
       out = Singular.jet(out, n)
-      out = Oscar.div(out, CH(1))
+      __simplify!(out)
     end
   end
 

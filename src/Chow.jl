@@ -18,6 +18,27 @@ function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int}
 end
 
 """
+    __simplify(f::Singular.spoly{Singular.n_Q})
+
+Force some Gröbner basis simplification of the polynomial `f`
+by dividing it by 1.
+
+For internal use only.
+"""
+__simplify(f::Singular.spoly{Singular.n_Q}) = div(f, f.parent(1))
+
+"""
+    __simplify!(f::Singular.spoly{Singular.n_Q})
+In-place version of `__simplify`.
+
+For internal use only.
+"""
+function __simplify!(f::Singular.spoly{Singular.n_Q})
+  f = div(f, f.parent(1))
+  return f
+end
+
+"""
     symmetric_polynomial(degree::Int)
 
 Return the symmetric polynomial of degree `degree` in the variables `vars`
@@ -417,7 +438,7 @@ function chern_class_line_bundle(
     Oscar.add!(chern_class, chern_class, eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])])
   end
 
-  return div(proj(- chern_class), A(1))
+  return __simplify!(proj(- chern_class))
 end
 
 """
@@ -505,6 +526,8 @@ Compute the point class of the moduli space `M`.
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+- `unsafe::Bool=false`: whether to skip the checks on ample stability and
+    existence of properly semistables. Default is `false`.
 
 # Output
 
@@ -531,6 +554,8 @@ julia> M = QuiverModuliSpace(Q, [2, 3]);
 julia> point_class(M)
 x23^2
 ```
+
+The 7-subspace quiver:
 """
 function point_class(
   M::QuiverModuliSpace;
@@ -548,14 +573,14 @@ function point_class(
     c = total_chern_class_universal(M, i; unsafe=unsafe)
     for k in 1:(M.d' * M.Q.adjacency[:, i])
       Oscar.mul!(num, num, c)
-      num = Oscar.div(num, CH(1))
+      __simplify!(num)
       num = Singular.jet(num, N)
     end
   end
   # dividing at once is very slow, iteratively is much faster.
   for i in 1:n_vertices(M.Q)
     c = total_chern_class_universal(M, i; unsafe=unsafe)
-    for k in 1:M.d[i]
+    for _ in 1:M.d[i]
       num = Oscar.Singular.div(num, c)
     end
   end
@@ -656,7 +681,7 @@ function todd_class(
   den /= constant_coefficient(den)
 
   quot = div(proj(num), proj(den))
-  quot = div(quot, A(1))
+  __simplify!(quot)
   setfield!(M.chow, :todd, A(quot))
   return M.chow.todd
 end
