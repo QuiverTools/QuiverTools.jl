@@ -229,7 +229,11 @@ function chow_ring(
   function antisymmetrize(f::Singular.spoly{Singular.n_Q})
     out = R(0)
     for sigma in W
-      Oscar.addmul!(out, sign_product(sigma), permute(f, sigma))
+      if sign_product(sigma) == 1
+        out += permute(f, sigma)
+      else # sign_product(sigma) == -1 # can be skipped since it is just a sign
+        out -= permute(f, sigma)
+      end
     end
     return div(out, delta)
   end
