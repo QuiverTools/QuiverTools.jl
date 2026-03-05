@@ -167,10 +167,8 @@ function all_destabilizing_subdimension_vectors(
   all(di == 0 for di in d) && return Vector{Int}[]
 
   b = slope(d, theta, denom)
-  return filter(
-    e -> slope(e, theta, denom) > b,
-    all_subdimension_vectors(d; nonzero=true, strict=true),
-  )
+  subs = all_subdimension_vectors(d; nonzero=true, strict=true)
+  return filter!(e -> slope(e, theta, denom) > b, subs)
 end
 
 """
