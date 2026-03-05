@@ -311,7 +311,7 @@ julia> all_luna_types(X)
  Dict([2, 3] => [1])
 ```
 """
-function all_luna_types(
+@memoize Dict function all_luna_types(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
