@@ -147,6 +147,19 @@ julia> theta = [3, -2];
 julia> hodge_polynomial(Q, d, theta)
 x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 ```
+
+Cases on a fake wall:
+```jldoctest
+julia> Q = Quiver([0 1 1 0; 0 0 1 0; 0 0 0 1; 0 0 0 0]); d = [3, 3, 4, 1];
+
+julia> hodge_polynomial(Q, d)
+x^3*y^3 + 3*x^2*y^2 + 3*x*y + 1
+
+julia> Q = Quiver([0 1 0 1 0; 0 0 1 0 2; 0 0 0 1 0; 0 0 0 0 0; 0 0 0 0 0]); d = [1, 2, 1, 1, 1];
+
+julia> hodge_polynomial(Q, d)
+x^3*y^3 + 4*x^2*y^2 + 4*x*y + 1
+
 """
 function hodge_polynomial(
   Q::Quiver,
