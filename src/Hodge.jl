@@ -155,11 +155,12 @@ function hodge_polynomial(
 )
 
   # safety checks
-  if theta' * d == 0 && !is_coprime(d)
-    throw(ArgumentError("d is not coprime"))
-  elseif !is_acyclic(Q)
-    throw(ArgumentError("Q is not acyclic."))
-  end
+  !is_acyclic(Q) && throw(ArgumentError("Q is not acyclic."))
+  has_properly_semistables(Q, d, theta) && throw(
+    ArgumentError(
+      "The quiver moduli problem has properly semistable representations, no description of the Hodge polynomial is known."
+    ),
+  )
 
   R, q = polynomial_ring(Singular.QQ, ["q"])
   F = fraction_field(R)
