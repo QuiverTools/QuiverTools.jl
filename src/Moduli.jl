@@ -258,7 +258,7 @@ Luna types for a 3-Kronecker quiver:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
 
 julia> all_luna_types(M)
-5-element Vector{LunaType{2}}:
+5-element Vector{LunaType}:
  Dict([3, 3] => [1])
  Dict([1, 1] => [1], [2, 2] => [1])
  Dict([1, 1] => [3])
@@ -297,7 +297,7 @@ Keyword arguments:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
 
 julia> all_luna_types(M)
-5-element Vector{LunaType{2}}:
+5-element Vector{LunaType}:
  Dict([3, 3] => [1])
  Dict([1, 1] => [1], [2, 2] => [1])
  Dict([1, 1] => [3])
@@ -307,11 +307,11 @@ julia> all_luna_types(M)
 julia> X = QuiverModuliSpace(Q, [2, 3]);
 
 julia> all_luna_types(X)
-1-element Vector{LunaType{2}}:
+1-element Vector{LunaType}:
  Dict([2, 3] => [1])
 ```
 """
-function all_luna_types(
+@memoize Dict function all_luna_types(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
@@ -328,14 +328,14 @@ function all_luna_types(
   filter!(e -> slope(e, theta, denom) == μ, same_slope)
   filter!(e -> has_stables(Q, e, theta, denom), same_slope)
 
-  luna_types = LunaType{n_vertices(Q)}[]
+  luna_types = LunaType[]
   for e in same_slope
     for luna_type in all_luna_types(Q, d - e, theta, denom; stable=true)
       if haskey(luna_type, e)
         for i in eachindex(luna_type[e])
           push!(luna_types, __add_and_return(luna_type, e, i))
         end
-        push!(luna_types, __add_and_return(luna_type, e))
+        push!(luna_types, __add_and_return_noniso(luna_type, e))
       else
         push!(luna_types, __add_and_return_new(luna_type, e))
       end
@@ -374,14 +374,14 @@ function __add_and_return(luna_type, e, i)
 end
 
 """
-    __add_and_return(luna_type, e)
+    __add_and_return_noniso(luna_type, e)
 
 Returns a new Luna type obtained by adding a new copy
 of the subdimension vector `e` in the given Luna type.
 
 Internal use only.
 """
-function __add_and_return(luna_type, e)
+function __add_and_return_noniso(luna_type, e)
   new_luna_type = deepcopy(luna_type)
   pushfirst!(new_luna_type[e], 1)
   return new_luna_type
@@ -476,7 +476,7 @@ moduli space.
 julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [2, 2], [1, -1]);
 
 julia> luna = all_luna_types(M)
-2-element Vector{LunaType{2}}:
+2-element Vector{LunaType}:
  Dict([1, 1] => [2])
  Dict([1, 1] => [1, 1])
 
@@ -708,9 +708,7 @@ true
 function is_smooth(M::QuiverModuliSpace)
   if M.condition == "stable"
     return true
-  elseif is_coprime(M.d, M.theta)
-    return true
-  elseif semistable_equals_stable(M)
+  elseif !has_properly_semistables(M.Q, M.d, M.theta, M.denom)
     return true
   end
 
@@ -771,13 +769,15 @@ true
 function is_projective(M::QuiverModuli)
   if is_acyclic(M.Q)
     M.condition == "semistable" && return true
-    M.condition == "stable" && return semistable_equals_stable(M)
+    M.condition == "stable" && return !has_properly_semistables(M.Q, M.d, M.theta, M.denom)
   end
 
   SSP = semisimple_moduli_space(M)
   M.condition == "semistable" && return dimension(SSP) in [0, -Inf]
   M.condition == "stable" &&
-    return (dimension(SSP) in [1, -Inf] && semistable_equals_stable(M))
+    return (
+      dimension(SSP) in [1, -Inf] && !has_properly_semistables(M.Q, M.d, M.theta, M.denom)
+    )
 end
 
 """

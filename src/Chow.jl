@@ -18,6 +18,44 @@ function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int}
 end
 
 """
+    __simplify(f)
+
+Force some Gröbner basis simplification of the polynomial `f`
+by dividing it by 1.
+
+For internal use only.
+"""
+__simplify(f) = div(f, one(parent(f)))
+
+"""
+    __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
+
+# Input
+
+- `M::QuiverModuliSpace`: a quiver moduli space.
+- `x`: an element of the Chow ring of `M`.
+- `unsafe::Bool=false`: whether to compute the dimension of `M` using
+  the faster Euler form instead of `dimension()`. Default is `false`.
+
+Decompose a Chow ring element `x` into its homogeneous components.
+
+For internal use only.
+"""
+function __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
+  unsafe ? (n = 1 - euler_form(M.Q, M.d, M.d)) : (n = dimension(M))
+
+  CH = parent(x)
+
+  return [
+    sum(
+      t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) == i; init=CH(0)
+    )
+    for
+    i in 0:n
+  ]
+end
+
+"""
     symmetric_polynomial(degree::Int)
 
 Return the symmetric polynomial of degree `degree` in the variables `vars`
@@ -110,12 +148,23 @@ function chow_ring(
   theta::AbstractVector{Int}=canonical_stability(Q, d);
   chi::AbstractVector{Int}=extended_gcd(d)[2],
   verbose::Bool=false,
+  unsafe::Bool=false,
 )
-  # safety checks
-  if !is_coprime(d, theta)
-    throw(ArgumentError("d and theta are not coprime"))
-  elseif chi' * d != 1
-    throw(ArgumentError("``chi`` is not a linearization"))
+  chi' * d != 1 && throw(ArgumentError("``chi`` is not a linearization"))
+  if !unsafe
+    has_properly_semistables(Q, d, theta) &&
+      throw(
+        ArgumentError(
+          "The quiver moduli problem has properly semistable representations, no description of the Chow ring is available."
+        ),
+      )
+    !is_amply_stable(Q, d, theta) && throw(
+      ArgumentError(
+        "The quiver moduli problem is not amply stable, no description of the Chow ring is available."
+      ),
+    )
+  else
+    verbose && @warn "Unsafe computation."
   end
 
   # j varies first, then i
@@ -128,14 +177,17 @@ function chow_ring(
     return vars[sum(d[1:(i - 1)]; init=0) + j]
   end
 
+  # build a base of R as an A-module.
   bounds = UnitRange{Int64}[0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
-  build_elem(lambda::NTuple) = prod(
-    prod(
-      xi(i, nu)^lambda[sum(d[1:(i - 1)]; init=0) + nu]
-      for nu in 1:d[i]; init=R(1)
-    )
-    for i in support(d); init=R(1)
-  )
+  function build_elem(lambda::NTuple)
+    out = R(1)
+    for i in support(d)
+      for nu in 1:d[i]
+        Oscar.mul!(out, out, xi(i, nu)^lambda[sum(d[1:(i - 1)]; init=0) + nu])
+      end
+    end
+    return out
+  end
   base = map(build_elem, Iterators.product(bounds...))
 
   verbose && @info "base has $(length(base)) elements"
@@ -146,6 +198,7 @@ function chow_ring(
   # sign for the product of symmetric groups
   sign_product(w) = prod(sign(Oscar.perm(wi)) for wi in w; init=1)
 
+  # caching the indices of the variables after each permutation
   permuted_indices = Dict{Tuple,Vector{Int64}}(
     sigma =>
       reduce(
@@ -158,6 +211,7 @@ function chow_ring(
   )
   permute_vector(e, sigma) = [e[k] for k in permuted_indices[sigma]]
 
+  # constructor of the permuted polynomial. This is much faster than f(permuted_vars[sigma]...)
   function permute(f::Singular.spoly{Singular.n_Q}, sigma::Tuple)
     context = Singular.MPolyBuildCtx(parent(f))
     for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
@@ -165,8 +219,6 @@ function chow_ring(
     end
     return Singular.finish(context)
   end
-  # Action of the symmetric group on R by permutation of the variables.
-  # permute(f, sigma) = f(permuted_vars[sigma]...)
 
   # The discriminant in the definition of the antisymmetrization.
   delta = prod(
@@ -175,9 +227,14 @@ function chow_ring(
   )
 
   function antisymmetrize(f::Singular.spoly{Singular.n_Q})
-    out = sum(
-      sign_product(sigma) * permute(f, sigma) for sigma in W; init=R(0)
-    )
+    out = R(0)
+    for sigma in W
+      if sign_product(sigma) == 1
+        out += permute(f, sigma)
+      else # sign_product(sigma) == -1 # can be skipped since it is just a sign
+        out -= permute(f, sigma)
+      end
+    end
     return div(out, delta)
   end
 
@@ -194,10 +251,10 @@ function chow_ring(
 
   # builds a new forbidden polynomial for the minimal forbidden dimension vector e.
   function new_forbidden(e::AbstractVector{Int})
-    out = 1
+    out = R(1)
     for (i, j) in Iterators.product(1:n_vertices(Q), 1:n_vertices(Q))
       for r in 1:e[i], s in (e[j] + 1):d[j]
-        out *= (xi(j, s) - xi(i, r))^Q.adjacency[i, j]
+        Oscar.mul!(out, out, (xi(j, s) - xi(i, r))^Q.adjacency[i, j])
       end
     end
     return out
@@ -237,7 +294,6 @@ function chow_ring(
       a = antisymmetrize(forbidden_polynomials[i] * b)
       a != 0 && push!(anti, a)
     end
-    # unique!(anti)
   end
 
   verbose && @info "there are $(length(anti)) antisymmetrized forbidden polynomials"
@@ -253,7 +309,7 @@ function chow_ring(
 end
 
 """
-    chow_ring(M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef)
+    chow_ring(M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef, verbose::Bool=false, unsafe::Bool=false)
 
 Compute the Chow ring of the moduli space `M` for the given linearization `chi`.
 
@@ -271,6 +327,7 @@ Compute the Chow ring of the moduli space `M` for the given linearization `chi`.
 function chow_ring(
   M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef,
   verbose::Bool=false,
+  unsafe::Bool=false,
 )
   if !isdefined(M.chow, :chi)
     if (chi isa UndefInitializer)
@@ -278,7 +335,9 @@ function chow_ring(
     else
       setfield!(M.chow, :chi, chi)
     end
-    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=M.chow.chi, verbose=verbose)
+    CH, R, inc = chow_ring(
+      M.Q, M.d, M.theta; chi=M.chow.chi, verbose=verbose, unsafe=unsafe
+    )
     setfield!(M.chow, :ring, CH[1])
     setfield!(M.chow, :_R, R)
     setfield!(M.chow, :_inclusion, inc)
@@ -288,7 +347,7 @@ function chow_ring(
   if !(chi isa UndefInitializer) && M.chow.chi != chi
     # reinitializing all the fields
     setfield!(M.chow, :chi, chi)
-    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=chi, verbose=verbose)
+    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=chi, verbose=verbose, unsafe=unsafe)
     setfield!(M.chow, :ring, CH[1])
     setfield!(M.chow, :_R, R)
     setfield!(M.chow, :_inclusion, inc)
@@ -349,7 +408,7 @@ function extended_gcd(x)
 end
 
 """
-    chern_class_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
+    chern_class_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int}; unsafe::Bool=false)
 
 Compute the first Chern class of the line bundle `L(eta)`.
 
@@ -359,6 +418,8 @@ This is given by ``L(eta) = \\bigoplus_{i \\in Q_0} \\det(U_i)^{-eta_i}``.
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 - `eta::AbstractVector{Int]`: a choice of linearization for the trivial line bundle.
+- `unsafe::Bool=false`: whether to skip the checks on ample stability and
+    existence of properly semistables. Default is `false`.
 
 # Output
 
@@ -385,17 +446,20 @@ julia> chern_class_line_bundle(M, [9, -6])
 """
 function chern_class_line_bundle(
   M::QuiverModuliSpace,
-  eta::AbstractVector{Int},
+  eta::AbstractVector{Int};
+  unsafe::Bool=false,
 )
-  A = chow_ring(M)
-  I = quotient_ideal(A)
-  Rvars = gens(base_ring(I))
+  A = chow_ring(M; unsafe=unsafe)
+  R = base_ring(quotient_ideal(A))
+  Rvars = gens(R)
   proj = __projection_to_quotient_ring(A)
 
-  chern_class =
-    -sum(eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])] for i in support(M.d))
+  chern_class = R(0)
+  for i in support(M.d)
+    Oscar.add!(chern_class, chern_class, eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])])
+  end
 
-  return A(div(proj(chern_class), A(1)))
+  return __simplify(proj(- chern_class))
 end
 
 """
@@ -439,7 +503,7 @@ function chern_character_line_bundle(
 end
 
 """
-    total_chern_class_universal(M::QuiverModuliSpace, i)
+    total_chern_class_universal(M::QuiverModuliSpace, i::Int; unsafe::Bool=false)
 
 Compute the total Chern class of the universal bundle `U_i`.
 
@@ -467,21 +531,24 @@ x21 + x22 + x23 + 1
 """
 function total_chern_class_universal(
   M::QuiverModuliSpace,
-  i::Int,
+  i::Int;
+  unsafe::Bool=false,
 )
-  CH = chow_ring(M)
+  CH = chow_ring(M; unsafe=unsafe)
   CHvars = gens(CH)
   return sum(CHvars[sum(M.d[1:(i - 1)]) + r] for r in 1:M.d[i]; init=CH(0)) + CH(1)
 end
 
 """
-    point_class(M::QuiverModuliSpace)
+    point_class(M::QuiverModuliSpace; unsafe::Bool=false)
 
 Compute the point class of the moduli space `M`.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+- `unsafe::Bool=false`: whether to skip the checks on ample stability and
+    existence of properly semistables. Default is `false`.
 
 # Output
 
@@ -508,30 +575,49 @@ julia> M = QuiverModuliSpace(Q, [2, 3]);
 julia> point_class(M)
 x23^2
 ```
+
+The 7-subspace quiver:
+```jldoctest
+julia> Q = subspace_quiver(7); d = push!(ones(Int, 7), 2); M = QuiverModuliSpace(Q, d);
+
+julia> point_class(M; unsafe=true)
+1//10*x81^4
+```
 """
 function point_class(
-  M::QuiverModuliSpace
+  M::QuiverModuliSpace;
+  unsafe::Bool=false,
 )
   if isdefined(M.chow, :point) && M.chow.point != undef
     return M.chow.point
   end
 
-  CH = chow_ring(M)
-  num = 1
-  den = 1
-  N = dimension(M)
+  CH = chow_ring(M; unsafe=unsafe)
+  num = CH(1)
+  unsafe ? (N = 1 - euler_form(M.Q, M.d, M.d)) : (N = dimension(M))
 
   for i in 1:n_vertices(M.Q)
-    c = total_chern_class_universal(M, i)
-    num *= c^(M.d' * M.Q.adjacency[:, i])
-    den *= c^M.d[i]
+    c = total_chern_class_universal(M, i; unsafe=unsafe)
+    for k in 1:(M.d' * M.Q.adjacency[:, i])
+      Oscar.mul!(num, num, c)
+      num = __simplify(num)
+      num = Singular.jet(num, N)
+    end
+  end
+  # dividing at once is very slow, iteratively is much faster.
+  for i in 1:n_vertices(M.Q)
+    c = total_chern_class_universal(M, i; unsafe=unsafe)
+    for _ in 1:M.d[i]
+      num = Oscar.Singular.div(num, c)
+    end
   end
 
-  quot = div(num, den)
-  pt = sum(
-    term for term in Singular.terms(quot) if __chow_ring_monomial_grading(M, term) == N;
-    init=CH(0),
-  )
+  pt = CH(0)
+  for term in Oscar.Singular.terms(num)
+    if __chow_ring_monomial_grading(M, term) == N
+      Oscar.add!(pt, pt, term)
+    end
+  end
   setfield!(M.chow, :point, pt)
   return M.chow.point
 end
@@ -570,7 +656,8 @@ julia> todd_class(M)
 ```
 """
 function todd_class(
-  M::QuiverModuliSpace
+  M::QuiverModuliSpace;
+  unsafe::Bool=false,
 )
   if isdefined(M.chow, :todd) && M.chow.todd != undef
     return M.chow.todd
@@ -578,7 +665,7 @@ function todd_class(
 
   N = dimension(M)
   # consider these constructors: https://nemocas.github.io/AbstractAlgebra.jl/latest/mpolynomial/#Polynomial-functions
-  A = chow_ring(M)
+  A = chow_ring(M; unsafe=unsafe)
   R, inclusion = M.chow._R, M.chow._inclusion
   Rvars = gens(R)
   proj = __projection_to_quotient_ring(A)
@@ -594,7 +681,7 @@ function todd_class(
     i, j = a
     for p in 1:M.d[i]
       for q in 1:M.d[j]
-        num *= todd_Q(xi(j, q) - xi(i, p), N)
+        Oscar.mul!(num, num, todd_Q(xi(j, q) - xi(i, p), N))
         num = Singular.jet(num, N)
       end
     end
@@ -603,7 +690,7 @@ function todd_class(
   for i in 1:n_vertices(M.Q)
     for p in 1:M.d[i]
       for q in 1:M.d[i]
-        den *= todd_Q(xi(i, q) - xi(i, p), N)
+        Oscar.mul!(den, den, todd_Q(xi(i, q) - xi(i, p), N))
         den = Singular.jet(den, N)
       end
     end
@@ -621,7 +708,7 @@ function todd_class(
   den /= constant_coefficient(den)
 
   quot = div(proj(num), proj(den))
-  quot = div(quot, A(1))
+  quot = __simplify(quot)
   setfield!(M.chow, :todd, A(quot))
   return M.chow.todd
 end
@@ -692,7 +779,7 @@ julia> integral(U1)
 """
 function integral(M::QuiverModuliSpace, f)
   n = dimension(M)
-  integ = div(homogeneous_components(M, f * todd_class(M))[n + 1], point_class(M))
+  integ = div(__homogeneous_components(M, f * todd_class(M))[n + 1], point_class(M))
   return Singular.constant_coefficient(integ)
 end
 
@@ -720,7 +807,10 @@ objects passed. Instead, it assumes that the Chow ring passed has variables
 ``x_{i, j}`` as in the Chow ring paper.
 """
 function __chow_ring_monomial_grading(M::QuiverModuliSpace, f)
-  return __chow_degrees(M.d)' * collect(Singular.exponent_vectors(f))[1]
+  deg = __chow_degrees(M.d)
+  exp = first(Oscar.AbstractAlgebra.exponent_vectors(f))
+  @assert size(deg) == size(exp)
+  return exp' * deg
 end
 
 """

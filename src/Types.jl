@@ -5,7 +5,7 @@
 """
 # Summary
 
-`struct Quiver`
+`struct Quiver{T}`
 
 A quiver is represented by its adjacency
 ``n \\times n`` matrix ``adjacency = (a_{ij})``,\\
@@ -18,7 +18,7 @@ and ``a_{ij}`` is the number of arrows ``i \\to j``.
 `name      :: String`
 
 """
-struct Quiver
+struct Quiver{T}
   adjacency::AbstractMatrix{Int}
   name::String
 
@@ -39,7 +39,9 @@ struct Quiver
   function Quiver(adjacency::AbstractMatrix{Int}, name::String="")
     size(adjacency, 1) != size(adjacency, 2) &&
       throw(ArgumentError("adjacency matrix must be square"))
-    return new(adjacency, name)
+    adj = coerce_matrix(adjacency)
+    T = size(adjacency, 1)
+    return new{T}(adj, name)
   end
 
   """
@@ -289,20 +291,19 @@ end
 """
 # Summary
 
-`struct HNType{T}`
+`struct HNType`
 
 A struct for a Harder-Narasimhan type.
 
 # Fields
 
- `hn :: Vector{SVector{T,Int}}`\\
+ `hn :: Vector{AbstractVector{Int}}`\\
 
 """
-struct HNType{T}
+struct HNType
   hn::Vector{Vector{Int}}
   function HNType(dstar::Vector{<:AbstractVector{Int}})
-    T = length(dstar[1])
-    return new{T}(coerce_vector.(dstar))
+    return new(coerce_vector.(dstar))
   end
 end
 
@@ -369,7 +370,7 @@ function Bundle(parent::ChowRing, rank::Int, chern_class::Singular.spoly{Singula
   bundle = Bundle()
   setfield!(bundle, :parent, parent)
   setfield!(bundle, :rank, rank)
-  hom = homogeneous_components(parent.parent, chern_class)
+  hom = __homogeneous_components(parent.parent, chern_class)
   cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:n)
   setfield!(bundle, :chern_class, cl)
   return bundle
@@ -416,7 +417,7 @@ function Bundle(M::QuiverModuliSpace, rank::Int, x::Singular.spoly{Singular.n_Q}
   bundle = Bundle()
   setfield!(bundle, :parent, M.chow)
   setfield!(bundle, :rank, rank)
-  hom = homogeneous_components(M, x)
+  hom = __homogeneous_components(M, x)
   cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
   setfield!(bundle, :chern_class, cl)
   return bundle
@@ -434,7 +435,7 @@ function Bundle(M::QuiverModuliSpace, rank::Int, x::Vector{Singular.spoly{Singul
   bundle = Bundle()
   setfield!(bundle, :parent, M.chow)
   setfield!(bundle, :rank, rank)
-  hom = homogeneous_components(M, sum(x))
+  hom = __homogeneous_components(M, sum(x))
   cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
   setfield!(bundle, :chern_class, x)
   return bundle
@@ -454,22 +455,22 @@ end
 """
 # Summary
 
-`struct LunaType{T}`
+`struct LunaType`
 
 A struct to encode Luna types.
 
 # Fields
 
- `data :: Dict{Vector{Int},Vector{Int}`\\
+ `data :: Dict{AbstractVector{Int},AbstractVector{Int}}`\\
 
 """
-struct LunaType{T}
+struct LunaType
   data::Dict{Vector{Int},Vector{Int}}
 
   function LunaType(new_luna::Dict{<:AbstractVector{Int},Vector{Int}})
-    T = length(collect(keys(new_luna))[1])
+    # T = length(collect(keys(new_luna))[1])
 
-    return new{T}(Dict(coerce_vector(tau) => new_luna[tau] for tau in keys(new_luna)))
+    return new(Dict(coerce_vector(tau) => new_luna[tau] for tau in keys(new_luna)))
   end
 end
 

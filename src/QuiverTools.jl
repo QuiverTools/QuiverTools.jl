@@ -7,6 +7,7 @@ using Memoization: Memoization
 using IterTools: IterTools
 using LinearAlgebraX: LinearAlgebraX
 using Combinatorics
+using StaticArrays
 
 using Singular: Singular
 using Oscar: Oscar
@@ -52,7 +53,8 @@ export kronecker_moduli, subspace_quiver_moduli
 # Stability
 export canonical_stability, is_coprime, slope
 export all_hn_types,
-  is_hn_type, has_semistables, has_stables, codimension_hn_stratum, is_amply_stable
+  is_hn_type, has_semistables, has_stables, has_properly_semistables,
+  codimension_hn_stratum, is_amply_stable
 export is_general_subdimension_vector, all_general_subdimension_vectors
 
 # Representation theory

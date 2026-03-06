@@ -58,7 +58,11 @@ Cardinality of general linear group ``\\mathrm{GL}_n(\\mathbb{F}_v)``.
   if n == 0
     return 1
   else
-    return prod(q^n - q^i for i in 0:(n - 1))
+    out = q^n - 1
+    for i in 1:(n - 1)
+      out *= q^n - q^i
+    end
+    return out
   end
 end
 
@@ -67,7 +71,7 @@ Cardinality of representation space ``\\mathrm{R}(Q,d), over \\mathbb{F}_q``.
 """
 function CardinalRd(Q::Quiver, d::AbstractVector{Int}, q)
   return q^sum(
-    d[i] * d[j] * Q.adjacency[i, j] for i in 1:n_vertices(Q), j in 1:n_vertices(Q)
+    d[i] * d[j] * Q.adjacency[i, j] for i in 1:n_vertices(Q), j in 1:n_vertices(Q); init=0
   )
 end
 
@@ -147,6 +151,19 @@ julia> theta = [3, -2];
 julia> hodge_polynomial(Q, d, theta)
 x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 ```
+
+Cases on a fake wall:
+```jldoctest
+julia> Q = Quiver([0 1 1 0; 0 0 1 0; 0 0 0 1; 0 0 0 0]); d = [3, 3, 4, 1];
+
+julia> hodge_polynomial(Q, d)
+x^3*y^3 + 3*x^2*y^2 + 3*x*y + 1
+
+julia> Q = Quiver([0 1 0 1 0; 0 0 1 0 2; 0 0 0 1 0; 0 0 0 0 0; 0 0 0 0 0]); d = [1, 2, 1, 1, 1];
+
+julia> hodge_polynomial(Q, d)
+x^3*y^3 + 4*x^2*y^2 + 4*x*y + 1
+
 """
 function hodge_polynomial(
   Q::Quiver,
@@ -155,11 +172,12 @@ function hodge_polynomial(
 )
 
   # safety checks
-  if theta' * d == 0 && !is_coprime(d)
-    throw(ArgumentError("d is not coprime"))
-  elseif !is_acyclic(Q)
-    throw(ArgumentError("Q is not acyclic."))
-  end
+  !is_acyclic(Q) && throw(ArgumentError("Q is not acyclic."))
+  has_properly_semistables(Q, d, theta) && throw(
+    ArgumentError(
+      "The quiver moduli problem has properly semistable representations, no description of the Hodge polynomial is known."
+    ),
+  )
 
   R, q = polynomial_ring(Singular.QQ, ["q"])
   F = fraction_field(R)
@@ -327,6 +345,7 @@ function picard_rank(M::QuiverModuliSpace)
   return betti_numbers(M)[3]
 end
 
+# TODO test the git_equivalence features
 """
     index(M::QuiverModuliSpace)
 
@@ -367,14 +386,17 @@ julia> index(M)
 ```
 """
 function index(M::QuiverModuliSpace)
-  !git_equivalent(M.Q, M.d, M.theta, canonical_stability(M.Q, M.d)) &&
-    throw(ArgumentError("Only implemented for canonical stability."))
-  if is_coprime(M.d, M.theta) && is_amply_stable(M)
-    return gcd(M.theta)
-  end
-  throw(
-    ArgumentError("Index computation requires ample stability and `theta`-coprimality.")
+  has_properly_semistables(M.Q, M.d, M.theta, M.denom) && throw(
+    ArgumentError(
+      "The quiver moduli problem has properly semistable representations, no description of the Mukai index is known."
+    ),
   )
+  !is_amply_stable(M) && throw(
+    ArgumentError(
+      "The quiver moduli problem is not amply stable, no description of the Mukai index is known."
+    ),
+  )
+  return gcd(canonical_stability(M.Q, M.d))
 end
 
 """

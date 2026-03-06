@@ -167,10 +167,8 @@ function all_destabilizing_subdimension_vectors(
   all(di == 0 for di in d) && return Vector{Int}[]
 
   b = slope(d, theta, denom)
-  return filter(
-    e -> slope(e, theta, denom) > b,
-    all_subdimension_vectors(d; nonzero=true, strict=true),
-  )
+  subs = all_subdimension_vectors(d; nonzero=true, strict=true)
+  return filter!(e -> slope(e, theta, denom) > b, subs)
 end
 
 """
@@ -717,8 +715,18 @@ function is_amply_stable(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int},
-  denom::Function=sum,
 )
-  hn_types = all_hn_types(Q, d, theta, denom; unstable=true, ordered=false)
+  hn_types = all_hn_types(Q, d, theta; unstable=true, ordered=false)
   return all(stratum -> codimension_hn_stratum(Q, stratum) >= 2, hn_types)
+end
+
+"""
+    has_properly_semistables(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denom::Function=sum)
+
+"""
+function has_properly_semistables(
+  Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum
+)
+  is_coprime(d, theta) && return false
+  return !isempty(all_luna_types(Q, d, theta, denom; stable=false))
 end

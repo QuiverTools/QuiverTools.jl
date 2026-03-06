@@ -147,7 +147,7 @@ A dictionary with the weights of the 1-PS corresponding to each HN type.
 julia> Q = kronecker_quiver(3);
 
 julia> teleman_bounds(Q, [2, 3], [3, -2])
-Dict{HNType{2}, Int64} with 7 entries:
+Dict{HNType, Int64} with 7 entries:
   [[2, 2], [0, 1]]         => 20
   [[2, 1], [0, 2]]         => 50
   [[1, 0], [1, 2], [0, 1]] => 100
@@ -253,9 +253,10 @@ function weights_universal_bundle(
   denom::Function=sum;
   chi::AbstractVector{Int},
 )
-  !is_coprime(d, theta) &&
-    throw(ArgumentError("$(d) is not $(theta)-coprime, universal bundles do not exist."))
-
+  gcd(d) > 1 &&
+    throw(
+      ArgumentError("gcd($(M.d))  = $(gcd(d)) > 1, the universal bundles do not exist.")
+    )
   hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type => weights_universal_bundle_on_stratum(hn_type, i, theta, denom; chi=chi)
@@ -289,7 +290,7 @@ The weights of the universal bundles on our favourite 6-fold:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> weights_universal_bundle(M, 1; chi=[2, -1])
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [-5, -5]
   [[2, 1], [0, 2]]         => [-10, -10]
   [[1, 0], [1, 2], [0, 1]] => [-15, -25]
@@ -306,7 +307,7 @@ defaults to `extended_gcd(M.d)[2]` if not defined.
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> weights_universal_bundle(M, 1)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [5, 5]
   [[2, 1], [0, 2]]         => [10, 10]
   [[1, 0], [1, 2], [0, 1]] => [25, 15]
@@ -318,7 +319,7 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
 julia> QuiverTools.set_linearization!(M, [-4, 3]);
 
 julia> weights_universal_bundle(M, 1)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [15, 15]
   [[2, 1], [0, 2]]         => [30, 30]
   [[1, 0], [1, 2], [0, 1]] => [65, 55]
@@ -409,8 +410,18 @@ function weights_canonical_bundle(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  !(is_coprime(d, theta) && is_amply_stable(Q, d, theta)) &&
-    throw(ArgumentError("$(d) is not $(theta)-coprime and amply stable."))
+  has_properly_semistables(Q, d, theta, denom) &&
+    throw(
+      ArgumentError(
+        "The quiver moduli problem has properly semistables, no description of the canonical bundle is available."
+      ),
+    )
+  !is_amply_stable(Q, d, theta) &&
+    throw(
+      ArgumentError(
+        "The quiver moduli problem is not amply stable, no description of the canonical bundle is available."
+      ),
+    )
   return weights_line_bundle(Q, d, -canonical_stability(Q, d), theta, denom)
 end
 
@@ -435,7 +446,7 @@ The canonical bundle of our favourite 6-fold:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> weights_canonical_bundle(M)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [30]
   [[2, 1], [0, 2]]         => [60]
   [[1, 0], [1, 2], [0, 1]] => [120]
@@ -497,8 +508,10 @@ function all_weights_endomorphisms_universal_bundle(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  !is_coprime(d, theta) &&
-    throw(ArgumentError("$(d) is not $(theta)-coprime, universal bundles do not exist."))
+  gcd(d) > 1 && throw(
+    ArgumentError("gcd($(M.d))  = $(gcd(d)) > 1, the universal bundles do not exist.")
+  )
+
   hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
     hn_type => weights_endomorphism_universal_bundle_on_stratum(hn_type, theta, denom) for
@@ -520,7 +533,7 @@ The weights of the endomorphisms of the universal bundles on our favourite 6-fol
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> all_weights_endomorphisms_universal_bundle(M)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [0, 5, -5, 0]
   [[2, 1], [0, 2]]         => [0, 5, -5, 0]
   [[1, 0], [1, 2], [0, 1]] => [0, 10, 15, -10, 0, 5, -15, -5, 0]
@@ -647,13 +660,13 @@ end
 #####################################################################################
 
 """
-    set_teleman_weights!(F::Bundle, weights::Dict{<:HNType,Vector{Int}})
+    set_teleman_weights!(F::Bundle, weights::Dict{HNType,Vector{Int}})
 
 Set the Teleman weights of the bundle `F` to the given dictionary.
 
 This is used to construct Bundle objects and assign them Teleman weights.
 """
-function set_teleman_weights!(F::Bundle, weights::Dict{<:HNType,Vector{Int}})
+function set_teleman_weights!(F::Bundle, weights::Dict{HNType,Vector{Int}})
   r = isdefined(F, :rank) ? F.rank : length(first(values(weights)))
   !all(length(v) == r for v in values(weights)) &&
     throw(ArgumentError("Weights are not consistent with rank."))

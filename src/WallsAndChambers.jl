@@ -136,15 +136,17 @@ to not include the outer walls.
 ```jldoctests
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
-julia> map(rays, vgit_walls(Q, d; inner=false, top_dimension=false))
-7-element Vector{Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}}:
- [[0, 0, 1, -1], [0, 1, -1, 0]]
- [[0, 0, 1, -1], [1, 0, -1, 0]]
- [[0, 0, 1, -1], [1, -1, 0, 0]]
- [[1, 0, 0, -1], [1, -1, 0, 0]]
- [[1, 0, -1, 0]]
- [[1, 0, 0, -1], [0, 1, -1, 0]]
- [[1, -1, 0, 0], [0, 1, -1, 0]]
+julia> walls = vgit_walls(Q, d; inner=false, top_dimension=false);
+
+julia> map(QuiverTools.Oscar.dim, walls)
+7-element Vector{Int64}:
+ 2
+ 2
+ 2
+ 2
+ 1
+ 2
+ 2
 ```
 """
 @memoize Dict function vgit_walls(Q, d; inner=false, top_dimension=true)

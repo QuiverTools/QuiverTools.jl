@@ -292,7 +292,7 @@ function exterior_power(F::Bundle, k::Int)
   CH = chow_ring(F)
 
   _has_chern_data(F) &&
-    setfield!(new, :chern_character, simplify!(CH(_chern_characters_wedge(F, k)[end])))
+    setfield!(new, :chern_character, __simplify(CH(_chern_characters_wedge(F, k)[end])))
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
       hn_type =>
@@ -360,7 +360,9 @@ function symmetric_power(F::Bundle, k::Int)
   CH = chow_ring(F)
 
   _has_chern_data(F) &&
-    setfield!(new, :chern_character, simplify!(CH(_chern_characters_symmetric(F, k)[end])))
+    setfield!(
+      new, :chern_character, __simplify(CH(_chern_characters_symmetric(F, k)[end]))
+    )
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
       hn_type =>
@@ -372,20 +374,8 @@ function symmetric_power(F::Bundle, k::Int)
   return new
 end
 
-function homogeneous_components(M::QuiverModuliSpace, x)
-  n = dimension(M)
-  CH = chow_ring(M)
-  return [
-    sum(
-      t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) == i; init=CH(0)
-    )
-    for
-    i in 0:n
-  ]
-end
-
 function truncate(M::QuiverModuliSpace, x, n)
-  comps = homogeneous_components(M, x)
+  comps = __homogeneous_components(M, x)
   # TODO this may be slow, try building new polynomial
   # also can I use the incorrect but faster Singular.degree?
   return sum(comps[i + 1] for i in 0:n)
@@ -416,7 +406,7 @@ function _chern_characters_wedge(F::Bundle, k)
           init=CH(0),
         ),
         n)
-    simplify!(wedges[j + 1])
+    wedges[j + 1] = __simplify(wedges[j + 1])
   end
   return wedges
 end
@@ -447,7 +437,7 @@ function _chern_characters_symmetric(F::Bundle, k)
         init=CH(0),
       ),
       n)
-    simplify!(syms[j + 1])
+    syms[j + 1] = __simplify(syms[j + 1])
   end
   return syms
 end
@@ -463,20 +453,20 @@ function adams(F::Bundle, k)
   n = dimension(M)
   x = chern_character(F)
 
-  return [k^i for i in 0:n]' * homogeneous_components(M, x)
+  return [k^i for i in 0:n]' * __homogeneous_components(M, x)
 end
 
 function _chern_classes_from_character(F::Bundle)
   CH = chow_ring(F)
   M = variety(F)
   n = dimension(M)
-  comps = homogeneous_components(M, chern_character(F))
+  comps = __homogeneous_components(M, chern_character(F))
   p = [(CH(-1))^i * CH(factorial(i)) * comps[i + 1] for i in 0:n]
   e = [CH(0) for _ in 1:(n + 1)]
   e[1] = CH(1)
   for i in 1:n
     e[i + 1] = CH(-1//i) * sum(p[j + 1] * e[i - j + 1] for j in 1:i)
-    simplify!(e[i + 1])
+    e[i + 1] = __simplify(e[i + 1])
   end
   return Dict(i => e[i + 1] for i in 0:n)
 end
@@ -491,18 +481,11 @@ function _chern_character_from_classes(F::Bundle)
   for i in 1:(n - 1)
     p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i)
   end
-  return simplify(sum(CH((-1)^i//factorial(i)) * p[i] for i in 1:n) + rank(F))
-end
-
-simplify(f::Singular.spoly{Singular.n_Q}) = div(f, f.parent(1))
-
-function simplify!(f::Singular.spoly{Singular.n_Q})
-  f = div(f, f.parent(1))
-  return f
+  return __simplify(sum(CH((-1)^i//factorial(i)) * p[i] for i in 1:n) + rank(F))
 end
 
 """
-    line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
+    line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int}; unsafe::Bool=false, teleman::Bool=true)
 
 Construct the descent of `L(eta)` on the quiver moduli space `M`.
 
@@ -510,6 +493,10 @@ Construct the descent of `L(eta)` on the quiver moduli space `M`.
 
 - `M::QuiverModuliSpace`: a quiver moduli space.
 - `eta::AbstractVector{Int}`: a dimension vector.
+- `unsafe::Bool`: Optional keyword argument to skip Chow ring computation checks.
+  Default is `false`.
+- `teleman::Bool`: Optional keyword argument to compute
+  the Teleman weights of the line bundle. Default is `true`.
 
 # Output
 
@@ -530,7 +517,7 @@ julia> chern_class(H)
 -x21
 
 julia> teleman_weights(H)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [-10]
   [[2, 1], [0, 2]]         => [-20]
   [[1, 0], [1, 2], [0, 1]] => [-40]
@@ -539,20 +526,32 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[1, 1], [1, 2]]         => [-5]
   [[2, 0], [0, 3]]         => [-30]
 ```
+
+The 7-subspace quiver moduli space:
+```jldoctest
+julia> Q = subspace_quiver(7); d = push!(ones(Int, 7), 2); M = QuiverModuliSpace(Q, d);
+
+julia> K_dual = line_bundle(M, canonical_stability(Q, d); unsafe=true, teleman=false); K_dual.chern_class[1]
+-2*x11 - 2*x21 - 2*x31 - 2*x41 - 2*x51 - 2*x61 + 7*x81
+```
 """
-function line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
+function line_bundle(
+  M::QuiverModuliSpace, eta::AbstractVector{Int}; unsafe::Bool=false, teleman::Bool=true
+)
   eta' * M.d != 0 && throw(ArgumentError("$(eta) is not a linearization."))
-  new = Bundle(M, 1, chern_class_line_bundle(M, eta))
-  return set_teleman_weights!(new, weights_line_bundle(M, eta))
+  new = Bundle(M, 1, chern_class_line_bundle(M, eta; unsafe=unsafe))
+  teleman && set_teleman_weights!(new, weights_line_bundle(M, eta))
+  return new
 end
 
 """
-    canonical_bundle(M::QuiverModuliSpace)
+    canonical_bundle(M::QuiverModuliSpace; teleman::Bool=true, verbose::Bool=false, unsafe::Bool=false)
 
 Compute the canonical bundle on the quiver moduli space `M`.
 
-If ``d`` is ``theta``-coprime and amply stable, the canonical bundle
-is described in [[Proposition 4.2, MR4352662](https://mathscinet.ams.org/mathscinet-getitem?mr=4352662)].
+If the moduli problem is amply stable and does not admit properly semistable representations,
+the canonical bundle is described in
+[[Proposition 4.2, MR4352662](https://mathscinet.ams.org/mathscinet-getitem?mr=4352662)].
 
 This function computes both the Chern character and the Teleman weights
 of the canonical bundle.
@@ -560,6 +559,8 @@ of the canonical bundle.
 # Input
 
 - `M::QuiverModuliSpace`: a quiver moduli space.
+- `teleman::Bool`: Optional keyword argument to compute the Teleman weights of the canonical bundle. Default is `true`.
+- `unsafe::Bool`: Optional keyword argument to skip ample stability and properly semistable checks. Default is `false`.
 
 # Output
 
@@ -583,7 +584,7 @@ julia> map(chern_class, omega)
  6*x11
 
 julia> map(teleman_weights, omega)
-5-element Vector{Dict{HNType{2}, Vector{Int64}}}:
+5-element Vector{Dict{HNType, Vector{Int64}}}:
  Dict([[1, 0], [0, 1]] => [4])
  Dict([[1, 0], [0, 1]] => [6])
  Dict([[1, 0], [0, 1]] => [8])
@@ -602,7 +603,7 @@ julia> chern_class(omega)
 3*x21
 
 julia> QuiverTools.teleman_weights(omega)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [30]
   [[2, 1], [0, 2]]         => [60]
   [[1, 0], [1, 2], [0, 1]] => [120]
@@ -612,18 +613,26 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [90]
 ```
 """
-function canonical_bundle(M::QuiverModuliSpace)
-  !(is_coprime(M) && is_amply_stable(M)) &&
-    throw(
-      NotImplementedError(
-        "not coprime and amply stable, cannot compute the canonical bundle."
-      ),
-    )
-  return line_bundle(M, -canonical_stability(M.Q, M.d))
+function canonical_bundle(M::QuiverModuliSpace; teleman::Bool=true, unsafe::Bool=false)
+  if !unsafe
+    has_properly_semistables(M.Q, M.d, M.theta, M.denom) &&
+      throw(
+        ArgumentError(
+          "The quiver moduli problem has properly semistables, no description of the canonical bundle is available."
+        ),
+      )
+    !is_amply_stable(M) &&
+      throw(
+        ArgumentError(
+          "The quiver moduli problem is not amply stable, no description of the canonical bundle is available."
+        ),
+      )
+  end
+  return line_bundle(M, -canonical_stability(M.Q, M.d); unsafe=unsafe, teleman=teleman)
 end
 
 """
-    universal_bundle(M:::QuiverModuliSpace, i::Int)
+    universal_bundle(M:::QuiverModuliSpace, i::Int; teleman::Bool=true, unsafe::Bool=false)
 
 Compute the `i`-th universal bundle of `M`.
 
@@ -638,6 +647,8 @@ by calling `chow_ring(M)` and it will use the default linearization.
 
 - `M::QuiverModuliSpace`: a quiver moduli space.
 - `i::Int`: the universal bundle on the `i`-th vertex of the quiver.
+- `teleman::Bool`: Optional keyword argument to compute the Teleman weights of the universal bundle. Default is `true`.
+- `unsafe::Bool`: Optional keyword argument to skip ample stability checks. Default is `false`.
 
 # Output
 
@@ -660,7 +671,7 @@ julia> map(chern_class, [u1, u2])
  x21 + 1
 
 julia> map(teleman_weights, [u1, u2])
-2-element Vector{Dict{HNType{2}, Vector{Int64}}}:
+2-element Vector{Dict{HNType, Vector{Int64}}}:
  Dict([[1, 0], [0, 1]] => [0])
  Dict([[1, 0], [0, 1]] => [-2])
 ```
@@ -682,7 +693,7 @@ julia> map(chern_character, [u1, u2])
 julia> w = map(teleman_weights, [u1, u2]);
 
 julia> w[1]
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [5, 5]
   [[2, 1], [0, 2]]         => [10, 10]
   [[1, 0], [1, 2], [0, 1]] => [25, 15]
@@ -692,7 +703,7 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [15, 15]
 
 julia> w[2]
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [5, 5, 0]
   [[2, 1], [0, 2]]         => [10, 5, 5]
   [[1, 0], [1, 2], [0, 1]] => [15, 15, 10]
@@ -702,20 +713,21 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[2, 0], [0, 3]]         => [10, 10, 10]
 ```
 """
-function universal_bundle(M::QuiverModuliSpace, i::Int)
-  !is_coprime(M) &&
-    throw(
-      ArgumentError("$(M.d) is not $(M.theta)-coprime, universal bundles do not exist.")
-    )
-  cl = total_chern_class_universal(M, i)
+function universal_bundle(
+  M::QuiverModuliSpace, i::Int; unsafe::Bool=false, teleman::Bool=true
+)
+  gcd(M.d) > 1 && throw(
+    ArgumentError("gcd($(M.d))  = $(gcd(M.d)) > 1, the universal bundles do not exist.")
+  )
+  cl = total_chern_class_universal(M, i; unsafe=unsafe)
   new = Bundle(M, M.d[i], cl)
 
-  weights = weights_universal_bundle(M, i)
-  return set_teleman_weights!(new, weights)
+  teleman && set_teleman_weights!(new, weights_universal_bundle(M, i))
+  return new
 end
 
 """
-    degree(F::Bundle)
+    degree(F::Bundle; unsafe::Bool=false)
 
 Compute the degree of the bundle `F`.
 If `rank(F)` is larger than ``1``, returns the degree of the determinant of `F`.
@@ -723,6 +735,7 @@ If `rank(F)` is larger than ``1``, returns the degree of the determinant of `F`.
 # Input
 
 - `F::Bundle`: a bundle.
+- `unsafe::Bool=false`: whether to skip ample stability checks. Default is `false`.
 
 # Output
 
@@ -764,9 +777,39 @@ julia> chern_class(F)
 julia> degree(F)
 56
 ```
+
+The 7-subspace quiver:
+```jldoctest
+julia> Q = subspace_quiver(7); d = push!(ones(Int, 7), 2); M = QuiverModuliSpace(Q, d);
+
+julia> K_dual = line_bundle(M, canonical_stability(Q, d); unsafe=true);
+
+julia> degree(K_dual; unsafe=true)
+154
+```
 """
-function degree(F::Bundle)
+function degree(F::Bundle; unsafe::Bool=false)
   M = variety(F)
-  n = dimension(M)
-  return div(homogeneous_components(M, chern_class(det(F))^n)[n + 1], point_class(M))
+  unsafe ? (n = 1 - euler_form(M.Q, M.d, M.d)) : (n = dimension(M))
+
+  if rank(F) == 1
+    out = chern_class(F)
+  else
+    out = chern_class(det(F))
+  end
+
+  out = Singular.jet(out, n)
+  out = __simplify(out)
+  if n >= 2
+    class_det = deepcopy(out)
+    for _ in 1:(n - 1)
+      # the multiplication here takes most of runtime
+      Oscar.mul!(out, out, class_det)
+      out = Singular.jet(out, n)
+      out = __simplify(out)
+    end
+  end
+
+  pt = point_class(M; unsafe=unsafe)
+  return div(__homogeneous_components(M, out)[n + 1], pt)
 end
