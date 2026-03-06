@@ -58,7 +58,11 @@ Cardinality of general linear group ``\\mathrm{GL}_n(\\mathbb{F}_v)``.
   if n == 0
     return 1
   else
-    return prod(q^n - q^i for i in 0:(n - 1))
+    out = q^n - 1
+    for i in 1:(n - 1)
+      out *= q^n - q^i
+    end
+    return out
   end
 end
 
@@ -67,7 +71,7 @@ Cardinality of representation space ``\\mathrm{R}(Q,d), over \\mathbb{F}_q``.
 """
 function CardinalRd(Q::Quiver, d::AbstractVector{Int}, q)
   return q^sum(
-    d[i] * d[j] * Q.adjacency[i, j] for i in 1:n_vertices(Q), j in 1:n_vertices(Q)
+    d[i] * d[j] * Q.adjacency[i, j] for i in 1:n_vertices(Q), j in 1:n_vertices(Q); init=0
   )
 end
 
