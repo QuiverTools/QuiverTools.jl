@@ -464,5 +464,6 @@ function git_equivalent(Q, d, theta1, theta2)
     if !Oscar.issubset(line, w) && Oscar.is_feasible(Oscar.intersect(line, w))
       return false
     end
+  end
   return true
 end
