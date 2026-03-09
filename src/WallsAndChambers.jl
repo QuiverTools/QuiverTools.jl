@@ -434,13 +434,35 @@ false
 julia> git_equivalent(Q, d, theta2, theta3)
 false
 ```
+
+An example where one stability parameter lies on a wall:
+```jldoctests
+julia>  Q = Quiver("1---------2,1-3,2---3"); d = [1, 2, 3];
+
+julia> x = [5, -1, -1]; y = [3, 0, -1];
+
+julia> git_equivalent(Q, d, x, y)
+false
+
+julia> # indeed,
+
+julia> W = vgit_walls(Q, d; top_dimension=false);
+
+julia> any(x in w for w in W)
+false
+
+julia> any(y in w for w in W)
+true
+```
 """
 function git_equivalent(Q, d, theta1, theta2)
   theta1 == theta2 && return true
-  line = convex_hull(theta1, theta2) # 1-dimensional iif theta1 != theta2
+  line = Oscar.convex_hull(theta1, theta2) # 1-dimensional iif theta1 != theta2
+
   # either the line lies in a wall or it intersects none of them
-  return all(
-    dim(intersect(w, line)) in [1, -1]
-    for w in vgit_walls(Q, d; top_dimension=false)
-  )
+  for w in vgit_walls(Q, d; top_dimension=false)
+    if !Oscar.issubset(line, w) && Oscar.is_feasible(Oscar.intersect(line, w))
+      return false
+    end
+  return true
 end
