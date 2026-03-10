@@ -457,7 +457,7 @@ true
 """
 function git_equivalent(Q, d, theta1, theta2)
   theta1 == theta2 && return true
-  line = Oscar.convex_hull(theta1, theta2) # 1-dimensional iif theta1 != theta2
+  line = Oscar.convex_hull([theta1, theta2]) # 1-dimensional iif theta1 != theta2
 
   # either the line lies in a wall or it intersects none of them
   for w in vgit_walls(Q, d; top_dimension=false)
