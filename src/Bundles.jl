@@ -811,5 +811,5 @@ function degree(F::Bundle; unsafe::Bool=false)
   end
 
   pt = point_class(M; unsafe=unsafe)
-  return div(__homogeneous_components(M, out)[n + 1], pt)
+  return div(__homogeneous_components(M, out; unsafe=unsafe)[n + 1], pt)
 end
