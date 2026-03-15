@@ -209,7 +209,7 @@ function chow_ring(
       )
     for sigma in W
   )
-  permute_vector(e, sigma) = [e[k] for k in permuted_indices[sigma]]
+  permute_vector(e, sigma) = e[permuted_indices[sigma]]
 
   # constructor of the permuted polynomial. This is much faster than f(permuted_vars[sigma]...)
   function permute(f::Singular.spoly{Singular.n_Q}, sigma::Tuple)
@@ -231,7 +231,7 @@ function chow_ring(
     for sigma in W
       if sign_product(sigma) == 1
         out += permute(f, sigma)
-      else # sign_product(sigma) == -1 # can be skipped since it is just a sign
+      else # sign_product(sigma) == -1 # this is the only possibility
         out -= permute(f, sigma)
       end
     end
@@ -299,7 +299,7 @@ function chow_ring(
   verbose && @info "there are $(length(anti)) antisymmetrized forbidden polynomials"
 
   tautological = Singular.spoly{Singular.n_Q}[
-    gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti if g != 0
+    gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti
   ]
   verbose && @info "there are $(length(tautological)) tautological polynomials"
 
