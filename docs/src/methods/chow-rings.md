@@ -1,65 +1,50 @@
 # Chow rings
 
-QuiverTools implements Chow rings computations for quivers and their representations.
-There also is an implementation of `Bundle` objects in the Chow ring, which enable
-tensor calculus in the Chow ring.
+QuiverTools now encodes quiver-moduli intersection theory directly in Oscar's
+experimental IntersectionTheory backend.
 
-`Bundle` objects can also carry Teleman weights, and these behave well with respect to
-tensor calculus.
+The quiver-specific work done by QuiverTools is:
 
-A `QuiverModuliSpace` comes with an intermediary structure, `ChowRing`, which is
-functionally just a container for various Chow ring data.
+- building the tautological Chow-ring presentation,
+- choosing and caching the linearization,
+- attaching the tautological bundles and tangent bundle,
+- attaching Teleman weights to the standard quiver bundles.
 
-```@docs
-QuiverTools.ChowRing
+The generic intersection-theory API comes from Oscar. In particular,
+`chow_ring(M)` returns an `Oscar.AbstractVariety`, and then one uses Oscar's
+`chow_ring`, `point_class`, `todd_class`, `integral`, `tautological_bundles`,
+and `tangent_bundle` functions on that object.
+
+```julia-repl
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> X = chow_ring(M; chi=[-1, 1])
+AbstractVariety of dim 6
+
+julia> Oscar.point_class(X)
+x23^2
 ```
 
-## Presentation of Chow rings
-
-Chow rings must be initialized manually, passing a choice of linearization to the constructor.
-If no linearization is passed, the default one is used.
+## Variety construction
 
 ```@docs
 chow_ring
-point_class
-todd_class
-chern_class_line_bundle
-chern_character_line_bundle
-integral
 ```
 
-## Bundle objects
-
-```@docs
-Bundle
-chern_character
-chern_class
-chern_classes
-QuiverTools.degree
-rank
-teleman_weights
-```
-
-A line bundle descending from a linearization above can be computed.
+## Quiver bundles
 
 ```@docs
 line_bundle
-```
-
-Some special bundles can be computed out of the box.
-
-```@docs
-QuiverTools.zero_sheaf
 structure_sheaf
 canonical_bundle
 universal_bundle
+chern_classes
+teleman_weights
+QuiverTools.degree
 ```
 
 ## Tensor calculus
 
-```@docs
-dual
-exterior_power
-symmetric_power
-det
-```
+For tensor operations such as `dual`, `det`, `exterior_power`, and
+`symmetric_power`, use Oscar's bundle algebra directly on the returned
+`AbstractBundle` objects.

@@ -255,7 +255,9 @@ function weights_universal_bundle(
 )
   gcd(d) > 1 &&
     throw(
-      ArgumentError("gcd($(M.d))  = $(gcd(d)) > 1, the universal bundles do not exist.")
+      ArgumentError(
+        "gcd($(collect(d))) = $(gcd(d)) > 1, the universal bundles do not exist."
+      ),
     )
   hn_types = all_hn_types(Q, d, theta, denom; unstable=true)
   return Dict(
@@ -276,7 +278,7 @@ for the linearization `chi` on all the non-dense Harder-Narasimhan strata.
 
 Keyword arguments:
 
-- `chi::AbstractVector{Int}`: the linearization of the universal bundle. Defaults to `M.chow.chi`.
+- `chi::AbstractVector{Int}`: the linearization of the universal bundle. Defaults to `linearization(M)`.
 
 # Output
 
@@ -334,13 +336,21 @@ function weights_universal_bundle(
   i::Int;
   chi::Union{AbstractVector{Int},UndefInitializer}=undef,
 )
-  # chi is provided => use it but DO NOT change the one in M.chow.
-  # chi is not provided => use M.chow.chi if defined, and a default one if not.
-  chi != undef &&
+  if !(chi isa UndefInitializer)
     return weights_universal_bundle(M.Q, M.d, i, M.theta, M.denom; chi=chi)
+  end
 
-  chi = isdefined(M.chow, :chi) ? linearization(M) : extended_gcd(M.d)[2]
-  return weights_universal_bundle(M.Q, M.d, i, M.theta, M.denom; chi=chi)
+  if M isa QuiverModuliSpace
+    return weights_universal_bundle(M.Q, M.d, i, M.theta, M.denom; chi=linearization(M))
+  end
+
+  gcd_value, default_chi = extended_gcd(M.d)
+  gcd_value != 1 && throw(
+    ArgumentError(
+      "No default linearization exists because gcd($(collect(M.d))) = $(gcd_value) != 1."
+    ),
+  )
+  return weights_universal_bundle(M.Q, M.d, i, M.theta, M.denom; chi=default_chi)
 end
 
 # TODO implement irreducible component as well.
@@ -660,17 +670,17 @@ end
 #####################################################################################
 
 """
-    set_teleman_weights!(F::Bundle, weights::Dict{HNType,Vector{Int}})
+    set_teleman_weights!(F::Oscar.AbstractBundle, weights::Dict{HNType,Vector{Int}})
 
 Set the Teleman weights of the bundle `F` to the given dictionary.
 
-This is used to construct Bundle objects and assign them Teleman weights.
+This is used to assign Teleman weights to IntersectionTheory bundles via Oscar's
+attribute system.
 """
-function set_teleman_weights!(F::Bundle, weights::Dict{HNType,Vector{Int}})
-  r = isdefined(F, :rank) ? F.rank : length(first(values(weights)))
+function set_teleman_weights!(F::Oscar.AbstractBundle, weights::Dict{HNType,Vector{Int}})
+  r = Int(Oscar.rank(F))
   !all(length(v) == r for v in values(weights)) &&
     throw(ArgumentError("Weights are not consistent with rank."))
-  !isdefined(F, :rank) && setfield!(F, :rank, r)
-  setfield!(F, :teleman_weights, weights)
+  Oscar.set_attribute!(F, :teleman_weights, weights)
   return F
 end

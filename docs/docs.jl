@@ -3,7 +3,7 @@ using Documenter, QuiverTools
 ```@meta
 CurrentModule = QuiverTools
 ```
-DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools))
+DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar))
 
 makedocs(;
   sitename="QuiverTools",

@@ -92,58 +92,6 @@ end
 """
 # Summary
 
-`struct ChowRing`
-
-A Type used to encode various Chow ring data.
-
-# Fields
-
-`parent :: Any`\\
-`ring   :: Singular.PolyRing{Singular.n_Q}`\\
-`chi    :: AbstractVector{Int}`\\
-`point  :: Union{Singular.spoly{Singular.n_Q},UndefInitializer}`\\
-`todd   :: Union{Singular.spoly{Singular.n_Q},UndefInitializer}`\\
-`_R     :: Singular.PolyRing{Singular.n_Q}`\\
-`_inclusion :: Singular.SAlgHom{Singular.Rationals}`
-"""
-mutable struct ChowRing
-  parent::Any
-  ring::Singular.PolyRing{Singular.n_Q}
-  chi::AbstractVector{Int}
-  point::Union{Singular.spoly{Singular.n_Q},UndefInitializer}
-  todd::Union{Singular.spoly{Singular.n_Q},UndefInitializer}
-  _R::Singular.PolyRing{Singular.n_Q}
-  _inclusion::Singular.SAlgHom{Singular.Rationals}
-
-  """   ChowRing()"""
-  ChowRing() = new()
-end
-
-function show(io::IO, chow::ChowRing)
-  ring = isdefined(chow, :ring) ? chow.ring : UndefInitializer()
-  chi = isdefined(chow, :chi) ? chow.chi : UndefInitializer()
-  point = isdefined(chow, :point) ? chow.point : UndefInitializer()
-  todd = isdefined(chow, :todd) ? chow.todd : UndefInitializer()
-  print(
-    io,
-    "Chow ring on
-  $(chow.parent)
-
-  Intersection theory data:
-
- - Chow ring: $(ring)
- - Linearization: $(chi)
- - Point class: $(point)
- - Todd class: $(todd)
-    ",
-  )
-end
-
-linearization(CH::ChowRing) = CH.chi
-
-"""
-# Summary
-
 `abstract type QuiverModuli`
 
 Abstract type for a moduli space or stack of quiver representations.
@@ -187,7 +135,8 @@ struct QuiverModuliSpace <: QuiverModuli
   theta::AbstractVector{Int}
   condition::String
   denom::Function
-  chow::ChowRing
+  linearization_cache::Base.RefValue{Any}
+  variety_cache::Base.RefValue{Any}
 end
 function QuiverModuliSpace(
   Q::Quiver,
@@ -201,20 +150,38 @@ function QuiverModuliSpace(
     length(theta) == n_vertices(Q)
     d = coerce_vector(d)
     theta = coerce_vector(theta)
-    M = QuiverModuliSpace(Q, d, theta, condition, denom, ChowRing())
-    setfield!(M.chow, :parent, M)
-    return M
+    return QuiverModuliSpace(
+      Q,
+      d,
+      theta,
+      condition,
+      denom,
+      Ref{Any}(nothing),
+      Ref{Any}(nothing),
+    )
   end
   throw(DomainError("Invalid input"))
 end
 
 function set_linearization!(M::QuiverModuliSpace, chi::AbstractVector{Int})
   chi' * M.d != 1 && throw(DomainError("Invalid linearization"))
-  setfield!(M.chow, :chi, chi)
+  M.linearization_cache[] = coerce_vector(chi)
+  M.variety_cache[] = nothing
   return nothing
 end
 
-linearization(M::QuiverModuliSpace) = linearization(M.chow)
+function linearization(M::QuiverModuliSpace)
+  if isnothing(M.linearization_cache[])
+    gcd_value, chi = extended_gcd(M.d)
+    gcd_value != 1 && throw(
+      ArgumentError(
+        "No default linearization exists because gcd($(collect(M.d))) = $(gcd_value) != 1."
+      ),
+    )
+    M.linearization_cache[] = coerce_vector(chi)
+  end
+  return M.linearization_cache[]
+end
 
 """
 # Summary
@@ -275,6 +242,7 @@ function show(io::IO, M::QuiverModuliSpace)
     ",
   )
 end
+
 function show(io::IO, M::QuiverModuliStack)
   print(
     io,
@@ -287,7 +255,6 @@ function show(io::IO, M::QuiverModuliStack)
   )
 end
 
-# TODO this needs to be explained better
 """
 # Summary
 
@@ -302,13 +269,14 @@ A struct for a Harder-Narasimhan type.
 """
 struct HNType
   hn::Vector{Vector{Int}}
+
   function HNType(dstar::Vector{<:AbstractVector{Int}})
     return new(coerce_vector.(dstar))
   end
 end
 
 function show(io::IO, H::HNType)
-  print(io, "$(Vector.(H.hn))") # coercion back to vector is slow, but it's just for printing
+  print(io, "$(Vector.(H.hn))")
 end
 
 ==(H1::HNType, H2::HNType) = H1.hn == H2.hn
@@ -320,137 +288,6 @@ Base.iterate(H::HNType) = iterate(H.hn)
 Base.iterate(H::HNType, i) = iterate(H.hn, i)
 Base.getindex(H::HNType, i::Int) = getindex(H.hn, i)
 Base.convert(::Type{<:HNType}, x::Vector{<:AbstractVector{Int}}) = HNType(x)
-
-"""
-# Summary
-
-`mutable struct Bundle`
-
-An abstract bundle on a quiver moduli. It is represented in practice by
-its Chern character.
-
-# Fields
-
-`parent :: ChowRing`\\
-`rank   :: Int`\\
-`chern_character  :: Singular.spoly{Singular.n_Q}`\\
-`chern_class :: Dict{Int,Singular.spoly{Singular.n_Q}}`\\
-`teleman_weights :: Dict{<:HNTypes,Vector{Int}}`
-"""
-mutable struct Bundle
-  parent::ChowRing
-  rank::Int
-  chern_character::Singular.spoly{Singular.n_Q}
-  chern_class::Dict{Int,Singular.spoly{Singular.n_Q}}
-  teleman_weights::Dict{<:HNType,Vector{Int}}
-  Bundle() = new()
-end
-
-function show(io::IO, F::Bundle)
-  print(
-    io,
-    "Bundle of rank $(rank(F))",
-  )
-end
-
-function Bundle(
-  parent::ChowRing, rank::Int, chern_classes::Vector{Singular.spoly{Singular.n_Q}}
-)
-  n = dimension(parent.parent)
-  bundle = Bundle()
-  setfield!(bundle, :parent, parent)
-  setfield!(bundle, :rank, rank)
-  cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => chern_classes[i + 1] for i in 0:n)
-  setfield!(bundle, :chern_class, cl)
-  return bundle
-end
-
-function Bundle(parent::ChowRing, rank::Int, chern_class::Singular.spoly{Singular.n_Q})
-  n = dimension(parent.parent)
-  bundle = Bundle()
-  setfield!(bundle, :parent, parent)
-  setfield!(bundle, :rank, rank)
-  hom = __homogeneous_components(parent.parent, chern_class)
-  cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:n)
-  setfield!(bundle, :chern_class, cl)
-  return bundle
-end
-
-function Bundle(parent::ChowRing, chern_character::Singular.spoly{Singular.n_Q})
-  r = constant_coefficient(chern_character)
-  denominator(r) != 1 && throw(DomainError("Incorrect Chern character."))
-  bundle = Bundle()
-  setfield!(bundle, :parent, parent)
-  setfield!(bundle, :rank, Int(Singular.numerator(r)))
-  setfield!(bundle, :chern_character, chern_character)
-  return bundle
-end
-
-function Bundle(parent::ChowRing, chern_character::Int)
-  CH = parent.ring
-  bundle = Bundle()
-  setfield!(bundle, :parent, parent)
-  setfield!(bundle, :rank, chern_character)
-  setfield!(bundle, :chern_character, CH(chern_character))
-  return bundle
-end
-
-function Bundle(M::QuiverModuliSpace, chern_character::Int)
-  bundle = Bundle()
-  setfield!(bundle, :parent, M.chow)
-  setfield!(bundle, :rank, chern_character)
-  setfield!(bundle, :chern_character, M.chow.ring(chern_character))
-  return bundle
-end
-
-function Bundle(M::QuiverModuliSpace, chern_character::Singular.spoly{Singular.n_Q})
-  bundle = Bundle()
-  setfield!(bundle, :parent, M.chow)
-  r = constant_coefficient(chern_character)
-  denominator(r) != 1 && throw(DomainError("Incorrect Chern character."))
-  setfield!(bundle, :rank, Int(Singular.numerator(r)))
-  setfield!(bundle, :chern_character, chern_character)
-  return bundle
-end
-
-function Bundle(M::QuiverModuliSpace, rank::Int, x::Singular.spoly{Singular.n_Q})
-  bundle = Bundle()
-  setfield!(bundle, :parent, M.chow)
-  setfield!(bundle, :rank, rank)
-  hom = __homogeneous_components(M, x)
-  cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
-  setfield!(bundle, :chern_class, cl)
-  return bundle
-end
-
-function Bundle(M::QuiverModuliSpace, rank::Int, x::Dict{Int,Singular.spoly{Singular.n_Q}})
-  bundle = Bundle()
-  setfield!(bundle, :parent, M.chow)
-  setfield!(bundle, :rank, rank)
-  setfield!(bundle, :chern_class, x)
-  return bundle
-end
-
-function Bundle(M::QuiverModuliSpace, rank::Int, x::Vector{Singular.spoly{Singular.n_Q}})
-  bundle = Bundle()
-  setfield!(bundle, :parent, M.chow)
-  setfield!(bundle, :rank, rank)
-  hom = __homogeneous_components(M, sum(x))
-  cl = Dict{Int,Singular.spoly{Singular.n_Q}}(i => hom[i + 1] for i in 0:dimension(M))
-  setfield!(bundle, :chern_class, x)
-  return bundle
-end
-
-function Bundle(M::QuiverModuliSpace, weights::Dict{HNType,Vector{Int}})
-  r = length(first(values(weights)))
-  !all(length(v) == r for v in values(weights)) &&
-    throw(ArgumentError("Incorrect weights."))
-  bundle = Bundle()
-  setfield!(bundle, :parent, M.chow)
-  setfield!(bundle, :rank, r)
-  setfield!(bundle, :teleman_weights, weights)
-  return bundle
-end
 
 """
 # Summary

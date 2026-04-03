@@ -173,7 +173,6 @@ Quiver moduli space defined as follows:
  - condition: semistable
 ```
 
-
 Several functionalities of QuiverTools are accessible either directly,
 by passing a quiver, dimension vector, stability parameter etc,
 or directly via these objects.
@@ -414,29 +413,43 @@ julia> picard_rank(M)
 
 ## Chow rings
 
-QuiverTools allows to compute the Chow ring for a given quiver moduli space, as well as
-the point class, the Todd class and the Euler characteristic of a vector bundle, given
-its Chern character or its Chern class.
+QuiverTools builds the quiver-moduli intersection theory directly as an
+`Oscar.AbstractVariety`. The quiver-specific part is handled in QuiverTools,
+while generic intersection-theory operations are then delegated to Oscar.
 
 ```julia-repl
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> CH = chow_ring(M; chi=[2, -1])
-Singular polynomial quotient ring (QQ),(x11,x12,x21,x22,x23),(dp(5),C)
+julia> X = chow_ring(M; chi=[2, -1])
+AbstractVariety of dim 6
 
-julia> QuiverTools.quotient_ideal(CH)
-Singular ideal over Singular polynomial ring (QQ),(x11,x12,x21,x22,x23),(dp(5),C) with generators (2*x11 - x21, 33*x12*x23 - 7*x22*x23, 3*x12*x22 - x22^2 + x21*x23, x23^3, x22*x23^2, x21*x23^2, 9082*x22^2*x23 - 26539*x21*x23^2, 3*x21*x22*x23 - 22*x23^2, 3*x21^2*x23 - 8*x22*x23, 110*x22^3 - 153*x21*x22*x23 - 1188*x23^2, 5*x21*x22^2 - 5*x21^2*x23 - 144*x12*x23 + 6*x22*x23, x21^2*x22 - 48*x12^2 + 80*x12*x22 - 24*x22^2 + 18*x21*x23, x21^3 + 8*x12*x21 - 6*x21*x22 + 12*x23, x12*x21^2 - 12*x12^2 + 12*x12*x22 - 4*x22^2 + 4*x21*x23, 6*x12^2*x21 - 4*x12*x21*x22 + x21*x22^2 - x21^2*x23 - 12*x12*x23 + 2*x22*x23, 4*x12^3 - 4*x12*x21*x23 + x21*x22*x23 - 2*x23^2)
+julia> Oscar.chow_ring(X)
+Quotient
+  of multivariate polynomial ring in 5 variables over QQ graded by
+    x11 -> [1]
+    x12 -> [2]
+    x21 -> [1]
+    x22 -> [2]
+    x23 -> [3]
+  by ideal with 16 generators
 
+julia> Oscar.point_class(X)
+x23^2
+
+julia> Oscar.todd_class(X)
+-17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
+```
+
+The tautological bundles are exposed as `AbstractBundle` objects.
+
+```julia-repl
 julia> u1, u2 = universal_bundle(M, 1), universal_bundle(M, 2)
-(Bundle of rank 2, Bundle of rank 3)
+(AbstractBundle of rank 2 on AbstractVariety of dim 6, AbstractBundle of rank 3 on AbstractVariety of dim 6)
 
-julia> endom = dual(u1) * u2
-Bundle of rank 6
-
-julia> chern_class(u1)
+julia> Oscar.total_chern_class(u1)
 x11 + x12 + 1
 
-julia> chern_class(u2)
+julia> Oscar.total_chern_class(u2)
 x21 + x22 + x23 + 1
 
 julia> degree(u1)
@@ -444,71 +457,55 @@ julia> degree(u1)
 
 julia> degree(u2)
 3648
+```
 
+QuiverTools still provides the quiver-specific standard bundles.
+
+```julia-repl
 julia> ω = canonical_bundle(M)
-Bundle of rank 1
+AbstractBundle of rank 1 on AbstractVariety of dim 6
 
-julia> chern_class(ω)
--3//2*x21
+julia> Oscar.chern_class(ω, 1)
+3*x21
 
 julia> degree(ω)
 41553
 
-julia> integral(ω)
+julia> Oscar.euler_characteristic(ω)
 1
 
 julia> OO = structure_sheaf(M)
-Bundle of rank 1
+AbstractBundle of rank 1 on AbstractVariety of dim 6
 
-julia> integral(OO)
+julia> Oscar.euler_characteristic(OO)
 1
 ```
 
-As seen in `dual(u1) * u2` in the example above,
-tensor calculus is implemented to some extent:
+Bundle algebra is then Oscar's bundle algebra.
 
 ```julia-repl
 julia> Λ = map(n -> exterior_power(u2, n), 0:4)
-5-element Vector{Bundle}:
- Bundle of rank 1
- Bundle of rank 3
- Bundle of rank 3
- Bundle of rank 1
- Bundle of rank 0
+5-element Vector{AbstractBundle}:
+ AbstractBundle of rank 1 on AbstractVariety of dim 6
+ AbstractBundle of rank 3 on AbstractVariety of dim 6
+ AbstractBundle of rank 3 on AbstractVariety of dim 6
+ AbstractBundle of rank 1 on AbstractVariety of dim 6
+ AbstractBundle of rank 0 on AbstractVariety of dim 6
 
 julia> map(chern_character, Λ)
-5-element Vector{Singular.spoly{Singular.n_Q}}:
+5-element Vector:
  1
  -4//3*x12*x21 + 1//2*x21^2 + 1//2*x21*x22 - 5//36*x22^2 + 7//18*x21*x23 - 1//360*x22*x23 - 1//2160*x23^2 + x21 - x22 - 3//2*x23 + 3
  8*x12^2 - 8//3*x12*x21 + x21^2 + 3//2*x21*x22 - 29//36*x22^2 + 14//9*x21*x23 + 383//3960*x22*x23 + 23//432*x23^2 + 2*x21 - x22 - 9//2*x23 + 3
  8*x12^2 - 4//3*x12*x21 + 1//2*x21^2 + x21*x22 - 2//3*x22^2 + 5//3*x21*x23 + 76//165*x22*x23 + 76//135*x23^2 + x21 - 2*x23 + 1
  0
-
-julia> ⨂ = map(n -> symmetric_power(u2, n), 0:3)
-6-element Vector{Bundle}:
- Bundle of rank 1
- Bundle of rank 3
- Bundle of rank 6
- Bundle of rank 10
- Bundle of rank 15
- Bundle of rank 21
-
-julia> map(chern_character, ⨂)
-4-element Vector{Singular.spoly{Singular.n_Q}}:
- 1
- 1//12*x12^2 - 5//12*x12*x21 + 1//8*x21^2 + 1//8*x21*x22 - 1//24*x22^2 + 5//48*x21*x23 - 1//1320*x22*x23 - 1//6480*x23^2 - x12 + 1//2*x21 - 1//4*x23 + 2
- 11//6*x12^2 - 7//2*x12*x21 + 5//8*x21^2 + 9//8*x21*x22 - 17//24*x22^2 + 85//48*x21*x23 - 13//1320*x22*x23 - 7//6480*x23^2 - 4*x12 + 3//2*x21 - 9//4*x23 + 3
- 71//6*x12^2 - 27//2*x12*x21 + 7//4*x21^2 + 9//2*x21*x22 - 49//12*x22^2 + 245//24*x21*x23 - 3//110*x22*x23 + 19//3240*x23^2 - 10*x12 + 3*x21 - 9*x23 + 4
 ```
 
-In fact, `Bundle` objects can also store the Teleman weights.
-These are implemented for known bundles, behave well with respect to all
-tensor calculus operations, and streamline the application of the Teleman quantization
-theorem.
+Teleman weights are attached to the standard quiver bundles themselves.
 
 ```julia-repl
 julia> teleman_weights(u1)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [-15, -15]
   [[2, 1], [0, 2]]         => [-20, -20]
   [[1, 0], [1, 2], [0, 1]] => [-15, -25]
@@ -517,18 +514,8 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[1, 1], [1, 2]]         => [0, -5]
   [[2, 0], [0, 3]]         => [-45, -45]
 
-julia> teleman_weights(u2)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [-15, -15, -30]
-  [[2, 1], [0, 2]]         => [-20, -30, -30]
-  [[1, 0], [1, 2], [0, 1]] => [-25, -25, -30]
-  [[1, 0], [1, 3]]         => [-90, -90, -90]
-  [[1, 0], [1, 1], [0, 2]] => [-60, -75, -75]
-  [[1, 1], [1, 2]]         => [0, -5, -5]
-  [[2, 0], [0, 3]]         => [-60, -60, -60]
-
 julia> teleman_weights(ω)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
+Dict{HNType, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [90]
   [[2, 1], [0, 2]]         => [120]
   [[1, 0], [1, 2], [0, 1]] => [120]
@@ -536,25 +523,16 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[1, 0], [1, 1], [0, 2]] => [315]
   [[1, 1], [1, 2]]         => [15]
   [[2, 0], [0, 3]]         => [270]
-
-julia> teleman_weights(endom)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [0, 0, -15, 0, 0, -15]
-  [[2, 1], [0, 2]]         => [0, -10, -10, 0, -10, -10]
-  [[1, 0], [1, 2], [0, 1]] => [-10, -10, -15, 0, 0, -5]
-  [[1, 0], [1, 3]]         => [-45, -45, -45, 0, 0, 0]
-  [[1, 0], [1, 1], [0, 2]] => [-15, -30, -30, 0, -15, -15]
-  [[1, 1], [1, 2]]         => [0, -5, -5, 5, 0, 0]
-  [[2, 0], [0, 3]]         => [-15, -15, -15, -15, -15, -15]
 ```
 
+For Hilbert-series style computations one can work directly with Oscar's Euler characteristic.
 
-The ample generator of the Picard group of `M`.
 ```julia-repl
-julia> L = Bundle(M, chern_character_line_bundle(M, [3, -2]));
+julia> H = line_bundle(M, [3, -2]; teleman=false)
+AbstractBundle of rank 1 on AbstractVariety of dim 6
 
-julia> map(i -> integral(L^i), 0:5)
-6-element Vector{Singular.n_Q}:
+julia> map(i -> Oscar.euler_characteristic(H^i), 0:5)
+6-element Vector{Nemo.QQFieldElem}:
  1
  20
  148

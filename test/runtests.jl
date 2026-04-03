@@ -1,10 +1,11 @@
 using Test, QuiverTools, Documenter
+import Oscar
 using Pkg;
 Pkg.activate(@__DIR__)
 
 @info "Almost all the tests are in the documentation."
 
-DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools))
+DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar))
 doctest(QuiverTools; manual=false, testset="Doctests")
 
 @testset "strict sst" begin
@@ -22,6 +23,45 @@ doctest(QuiverTools; manual=false, testset="Doctests")
   @test has_stables(Q, [0, 3], [1, 0]) == false
   @test has_semistables(Q, [3, 0], [0, -1]) == true
   @test has_semistables(Q, [0, 3], [1, 0]) == true
+end;
+
+@testset "intersection theory" begin
+  Q = kronecker_quiver(2)
+  M = QuiverModuliSpace(Q, [1, 1])
+  X = chow_ring(M; chi=[1, 0])
+  h = Oscar.gens(Oscar.chow_ring(X))[2]
+
+  @test Oscar.point_class(X) == h
+  @test Oscar.todd_class(X) == h + Oscar.chow_ring(X)(1)
+  @test Oscar.euler_characteristic(line_bundle(M, [1, -1]; teleman=false)) == 2
+
+  Q = kronecker_quiver(4)
+  M = QuiverModuliSpace(Q, [2, 3])
+  X = chow_ring(M; chi=[-1, 1])
+  H = line_bundle(M, [3, -2]; teleman=false)
+  hilbert = [Oscar.euler_characteristic(H^i) for i in 0:11]
+
+  @test dimension(M) == 12
+  @test picard_rank(M) == 1
+  @test index(M) == 4
+  @test length(Oscar.tautological_bundles(X)) == 2
+  @test Oscar.rank(Oscar.tangent_bundle(X)) == dimension(M)
+  @test map(x -> parse(Int, string(x)), hilbert) == [
+    1,
+    126,
+    4032,
+    59268,
+    531839,
+    3395882,
+    16907632,
+    69626910,
+    246885947,
+    775675824,
+    2205490144,
+    5766791394,
+  ]
+  @test parse(Int, string(degree(dual(canonical_bundle(M; teleman=false))))) ==
+    1996824248320
 end;
 
 @testset "HN types" begin

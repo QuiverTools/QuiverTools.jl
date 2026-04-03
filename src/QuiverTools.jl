@@ -9,20 +9,21 @@ using LinearAlgebraX: LinearAlgebraX
 using Combinatorics
 using StaticArrays
 
-using Singular: Singular
-using Oscar: Oscar
+import AbstractAlgebra
+
+AbstractAlgebra.@attributes Oscar.AbstractBundle
 
 import Oscar:
+  canonical_bundle, chern_character, chern_class, degree, det, dual, exterior_power,
+  line_bundle, rank, symmetric_power,
   Polyhedron, polyhedron, polyhedral_fan, positive_hull, affine_hull, convex_hull,
   minkowski_sum, rays, facets, dim
 import Base:
-  show, ==, hash, convert, getindex, setindex!, length, iterate, keys, haskey, *, +, -, ^
+  show, ==, hash, convert, getindex, setindex!, length, iterate, keys, haskey
 import Memoization: @memoize, empty_all_caches!, empty_cache!
 import IterTools: subsets
 import LinearAlgebraX: rankx
-import Combinatorics: combinations, with_replacement_combinations, partitions, permutations
-import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHomomorphism,
-  preimage, Ideal, quotient_ideal, QuotientRing, fraction_field, std, gens, base_ring
+import Combinatorics: permutations
 
 # optional dependencies
 
@@ -38,7 +39,7 @@ import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHo
 # end
 
 # Types
-export Quiver, HNType, LunaType, QuiverModuli, QuiverModuliSpace, QuiverModuliStack, Bundle
+export Quiver, HNType, LunaType, QuiverModuli, QuiverModuliSpace, QuiverModuliStack
 
 # Quivers
 export n_vertices,
@@ -73,8 +74,7 @@ export hodge_diamond, hodge_polynomial, picard_rank, index, betti_numbers
 # Chow
 export chow_ring, motive, index, betti_numbers, poincare_polynomial, is_smooth,
   is_projective,
-  semisimple_moduli_space, point_class, todd_class, chern_class_line_bundle,
-  chern_character_line_bundle, total_chern_class_universal, integral
+  semisimple_moduli_space
 
 # Teleman
 export teleman_bounds, weights_hn_type, weights_universal_bundle, weights_canonical_bundle,

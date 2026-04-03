@@ -17,384 +17,388 @@ function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int}
   return true
 end
 
-"""
-    __simplify(f)
-
-Force some Gröbner basis simplification of the polynomial `f`
-by dividing it by 1.
-
-For internal use only.
-"""
-__simplify(f) = div(f, one(parent(f)))
-
-"""
-    __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
-
-# Input
-
-- `M::QuiverModuliSpace`: a quiver moduli space.
-- `x`: an element of the Chow ring of `M`.
-- `unsafe::Bool=false`: whether to compute the dimension of `M` using
-  the faster Euler form instead of `dimension()`. Default is `false`.
-
-Decompose a Chow ring element `x` into its homogeneous components.
-
-For internal use only.
-"""
-function __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
-  unsafe ? (n = 1 - euler_form(M.Q, M.d, M.d)) : (n = dimension(M))
-
-  CH = parent(x)
-
-  return [
-    sum(
-      t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) == i; init=CH(0)
-    )
-    for
-    i in 0:n
-  ]
-end
-
-"""
-    symmetric_polynomial(degree::Int)
-
-Return the symmetric polynomial of degree `degree` in the variables `vars`
-as a Julia function.
-
-# Input
-
-- `vars`: a list of variables.
-- `degree`: the degree of the wanted symmetric polynomial.
-
-# Output
-
-- The symmetric polynomial of degree `degree` in the variables `vars`.
-
-# Examples
-
-```julia-repl
-julia> using Singular;
-
-julia> R, vars = polynomial_ring(Singular.QQ, ["x", "y", "z"]);
-
-julia> f = QuiverTools.symmetric_polynomial(2); f(vars)
-x*y + x*z + y*z
-```
-"""
 function symmetric_polynomial(degree::Int)
-  f(vars) = sum(prod(e; init=1) for e in IterTools.subsets(vars, degree))
+  function f(vars)
+    R = parent(first(vars))
+    return sum(
+      (prod(subset; init=R(1)) for subset in IterTools.subsets(vars, degree));
+      init=R(0),
+    )
+  end
+
   return f
 end
-"""
-    product_lists(L)
 
-For internal use only.
-"""
-function product_lists(L)
-  length(L) == 1 && return L[1]
-  return [p * l for p in product_lists(L[1:(end - 1)]) for l in L[end]]
+function __permutation_sign(sigma)
+  inversions = 0
+  for i in 1:(length(sigma) - 1), j in (i + 1):length(sigma)
+    inversions += sigma[i] > sigma[j]
+  end
+  return iseven(inversions) ? 1 : -1
 end
 
-"""
-    chow_ring(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d); chi::AbstractVector{Int}=extended_gcd(d)[2])
+function __permutation_sign_product(sigma::Tuple)
+  return prod(__permutation_sign(s) for s in sigma; init=1)
+end
 
-Compute the Chow ring of the moduli space of `theta`-semistable representations of
-`Q` with dimension vector `d`, for a choice of linearization `a`.
+function __chow_dimension(M::QuiverModuliSpace; unsafe::Bool=false)
+  return unsafe ? 1 - euler_form(M.Q, M.d, M.d) : dimension(M)
+end
 
-This method of the function `chow_ring` also returns the ambient ring ``R``
-and the inclusion morphism.
+function __truncate_by_degree(x, n::Int)
+  R = parent(x)
+  return Oscar.simplify(sum((x[i] for i in 0:n); init=R(0)))
+end
 
-# Input
+function __chow_degrees(d::AbstractVector{Int})
+  return vcat([collect(1:di) for di in d if di > 0]...)
+end
 
-- `Q::Quiver`: a quiver.
-- `d::AbstractVector{Int}`: a dimension vector.
-- `theta::AbstractVector{Int}`: a stability parameter. Default is `canonical_stability(Q, d)`.
-- `chi`: a linearization. Default is the extended gcd of `extended_gcd(d)[2]`.
+function __resolve_linearization!(M::QuiverModuliSpace, chi)
+  if chi isa UndefInitializer
+    return linearization(M)
+  end
 
-# Output
+  chi = coerce_vector(chi)
+  chi' * M.d != 1 && throw(ArgumentError("$(collect(chi)) is not a linearization."))
 
-A tuple containing:
-- the Chow ring of the moduli space,
-- the polynomial ring above it,
-- the inclusion map ``\\iota : A \\to R``.
+  cached = M.linearization_cache[]
+  if isnothing(cached) || cached != chi
+    M.linearization_cache[] = chi
+    M.variety_cache[] = nothing
+  end
 
-# Examples
+  return M.linearization_cache[]
+end
 
-The Chow ring for the projective line has two generators:
-```jldoctest
-julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
-
-julia> CH = chow_ring(M);
-
-julia> QuiverTools.gens(QuiverTools.quotient_ideal(CH))
-2-element Vector{Singular.spoly{Singular.n_Q}}:
- x21
- x11^2
-```
-
-The Chow ring for our favourite 6-fold has, in this implementation, 16 generators:
-```jldoctest
-julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> CH = chow_ring(M); I = QuiverTools.quotient_ideal(CH);
-
-julia> length(QuiverTools.gens(I))
-16
-```
-"""
-function chow_ring(
+function __validate_chow_inputs(
   Q::Quiver,
   d::AbstractVector{Int},
-  theta::AbstractVector{Int}=canonical_stability(Q, d);
-  chi::AbstractVector{Int}=extended_gcd(d)[2],
+  theta::AbstractVector{Int};
+  unsafe::Bool=false,
+  verbose::Bool=false,
+)
+  if unsafe
+    verbose && @warn "Unsafe computation."
+    return nothing
+  end
+
+  has_properly_semistables(Q, d, theta) && throw(
+    ArgumentError(
+      "The quiver moduli problem has properly semistable representations, no description of the Chow ring is available."
+    ),
+  )
+  !is_amply_stable(Q, d, theta) && throw(
+    ArgumentError(
+      "The quiver moduli problem is not amply stable, no description of the Chow ring is available."
+    ),
+  )
+
+  return nothing
+end
+
+function __presentation_ring(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector{Int};
+  chi::AbstractVector{Int},
   verbose::Bool=false,
   unsafe::Bool=false,
 )
-  chi' * d != 1 && throw(ArgumentError("``chi`` is not a linearization"))
-  if !unsafe
-    has_properly_semistables(Q, d, theta) &&
-      throw(
-        ArgumentError(
-          "The quiver moduli problem has properly semistable representations, no description of the Chow ring is available."
-        ),
-      )
-    !is_amply_stable(Q, d, theta) && throw(
-      ArgumentError(
-        "The quiver moduli problem is not amply stable, no description of the Chow ring is available."
-      ),
-    )
-  else
-    verbose && @warn "Unsafe computation."
-  end
+  chi' * d != 1 && throw(ArgumentError("$(collect(chi)) is not a linearization."))
+  __validate_chow_inputs(Q, d, theta; unsafe=unsafe, verbose=verbose)
 
-  # j varies first, then i
-  varnames = ["xi$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
-  R, vars = Singular.polynomial_ring(Singular.QQ, varnames)
+  root_names = ["xi$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
+  R, root_vars = Oscar.polynomial_ring(Oscar.QQ, root_names)
 
-  # Shorthand to address the variable `xi_{i,j}`.
-  function xi(i, j)
-    d[i] == 0 && throw(ArgumentError("i is not in the support of d."))
-    return vars[sum(d[1:(i - 1)]; init=0) + j]
-  end
+  root_offset(i) = sum(d[1:(i - 1)]; init=0)
+  xi(i, j) = root_vars[root_offset(i) + j]
 
-  # build a base of R as an A-module.
-  bounds = UnitRange{Int64}[0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
-  function build_elem(lambda::NTuple)
+  bounds = [0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
+  function build_module_element(lambda)
     out = R(1)
     for i in support(d)
+      offset = root_offset(i)
       for nu in 1:d[i]
-        Oscar.mul!(out, out, xi(i, nu)^lambda[sum(d[1:(i - 1)]; init=0) + nu])
+        out *= xi(i, nu)^lambda[offset + nu]
       end
     end
     return out
   end
-  base = map(build_elem, Iterators.product(bounds...))
+  module_basis = map(build_module_element, Iterators.product(bounds...))
+  verbose && @info "base has $(length(module_basis)) elements"
 
-  verbose && @info "base has $(length(base)) elements"
-
-  # build the permutation group W
-  W = Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
-
-  # sign for the product of symmetric groups
-  sign_product(w) = prod(sign(Oscar.perm(wi)) for wi in w; init=1)
-
-  # caching the indices of the variables after each permutation
-  permuted_indices = Dict{Tuple,Vector{Int64}}(
-    sigma =>
-      reduce(
-        vcat,
-        map(
-          i -> Int64[sum(d[1:(i - 1)]; init=0) + sigma[i][j] for j in 1:d[i]], support(d)
-        ),
-      )
-    for sigma in W
+  permutation_blocks = [Tuple.(collect(permutations(1:d[i]))) for i in 1:n_vertices(Q)]
+  W = collect(Iterators.product(permutation_blocks...))
+  permuted_indices = Dict{Tuple,Vector{Int}}(
+    sigma => reduce(
+      vcat,
+      [Int[root_offset(i) + sigma[i][j] for j in 1:d[i]] for i in support(d)],
+    ) for sigma in W
   )
-  permute_vector(e, sigma) = e[permuted_indices[sigma]]
+  permute_vector(exponents, sigma) = exponents[permuted_indices[sigma]]
 
-  # constructor of the permuted polynomial. This is much faster than f(permuted_vars[sigma]...)
-  function permute(f::Singular.spoly{Singular.n_Q}, sigma::Tuple)
-    context = Singular.MPolyBuildCtx(parent(f))
-    for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
-      Singular.push_term!(context, c, permute_vector(e, sigma))
+  function permute_polynomial(f, sigma)
+    context = AbstractAlgebra.MPolyBuildCtx(parent(f))
+    for (coeff, exponent) in zip(
+      AbstractAlgebra.coefficients(f),
+      AbstractAlgebra.exponent_vectors(f),
+    )
+      AbstractAlgebra.push_term!(context, coeff, permute_vector(exponent, sigma))
     end
-    return Singular.finish(context)
+    return AbstractAlgebra.finish(context)
   end
 
-  # The discriminant in the definition of the antisymmetrization.
   delta = prod(
-    xi(i, l) - xi(i, k) for i in 1:n_vertices(Q) for k in 1:(d[i] - 1) for l in (k + 1):d[i];
+    (
+      xi(i, l) - xi(i, k) for i in 1:n_vertices(Q) for k in 1:(d[i] - 1) for
+      l in (k + 1):d[i]
+    );
     init=R(1),
   )
 
-  function antisymmetrize(f::Singular.spoly{Singular.n_Q})
+  function antisymmetrize(f)
     out = R(0)
     for sigma in W
-      if sign_product(sigma) == 1
-        out += permute(f, sigma)
-      else # sign_product(sigma) == -1 # this is the only possibility
-        out -= permute(f, sigma)
-      end
+      out += __permutation_sign_product(sigma) * permute_polynomial(f, sigma)
     end
-    return div(out, delta)
+    return AbstractAlgebra.divexact(out, delta)
   end
 
-  # All the destabilizing subdimension vectors of `d` with respect to the slope
-  # `theta/denom` that are minimal with respect to the total order.
   minimal_forbidden = all_destabilizing_subdimension_vectors(d, theta)
   filter!(
     e -> !any(partial_order(Q, f, e) for f in minimal_forbidden if f != e),
     minimal_forbidden,
   )
-
   verbose &&
     @info "there are $(length(minimal_forbidden)) minimal forbidden dimension vectors"
 
-  # builds a new forbidden polynomial for the minimal forbidden dimension vector e.
-  function new_forbidden(e::AbstractVector{Int})
+  function forbidden_polynomial(e::AbstractVector{Int})
     out = R(1)
-    for (i, j) in Iterators.product(1:n_vertices(Q), 1:n_vertices(Q))
+    for i in 1:n_vertices(Q), j in 1:n_vertices(Q)
       for r in 1:e[i], s in (e[j] + 1):d[j]
-        Oscar.mul!(out, out, (xi(j, s) - xi(i, r))^Q.adjacency[i, j])
+        out *= (xi(j, s) - xi(i, r))^Q.adjacency[i, j]
       end
     end
     return out
   end
-  forbidden_polynomials = Singular.spoly{Singular.n_Q}[
-    new_forbidden(e) for e in minimal_forbidden
-  ]
+  forbidden = [forbidden_polynomial(e) for e in minimal_forbidden]
 
-  varnames2 = ["x$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
-  A, Avars = polynomial_ring(Singular.QQ, varnames2)
+  chow_names = ["x$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
+  A, chow_vars = Oscar.graded_polynomial_ring(Oscar.QQ, chow_names, __chow_degrees(d))
+  xs(i, j) = chow_vars[root_offset(i) + j]
 
-  # Shorthand to address the variables of A `x_{i,j}`.
-  function xs(i, j)
-    d[i] == 0 && throw(ArgumentError("i is not in the support of d."))
-    return Avars[sum(d[1:(i - 1)]; init=0) + j]
-  end
-
-  symm_polys = [symmetric_polynomial(k) for k in 1:maximum(d)]
-  targets = Singular.spoly{Singular.n_Q}[]
+  symmetric_generators = [symmetric_polynomial(k) for k in 1:maximum(d)]
+  targets = typeof(R(0))[]
   for i in support(d)
     verbose && @info "computing the targets for vertex $(i) out of $(length(support(d)))"
+    roots = [xi(i, j) for j in 1:d[i]]
     for k in 1:d[i]
-      push!(targets, symm_polys[k]([xi(i, j) for j in 1:d[i]]))
+      push!(targets, symmetric_generators[k](roots))
     end
   end
   verbose && @info "there are $(length(targets)) targets"
 
-  inclusion = AlgebraHomomorphism(A, R, targets)
+  inclusion = Oscar.hom(A, R, targets; check=true)
   verbose && @info "the inclusion map is built"
 
-  anti = Singular.spoly{Singular.n_Q}[]
+  antisymmetrized = typeof(R(0))[]
   verbose && @info "antisymmetrizing the forbidden polynomials, this may take a while..."
+  for (index, polynomial) in enumerate(forbidden)
+    verbose && @info "forbidden polynomial $(index) out of $(length(forbidden))"
+    for basis_element in module_basis
+      candidate = antisymmetrize(polynomial * basis_element)
+      candidate != 0 && push!(antisymmetrized, candidate)
+    end
+  end
+  verbose &&
+    @info "there are $(length(antisymmetrized)) antisymmetrized forbidden polynomials"
 
-  for i in eachindex(forbidden_polynomials)
-    verbose && @info "forbidden polynomial $(i) out of $(length(forbidden_polynomials))"
-    for b in base
-      a = antisymmetrize(forbidden_polynomials[i] * b)
-      a != 0 && push!(anti, a)
+  tautological_relations = typeof(A(0))[]
+  for relation in antisymmetrized
+    preimage_ideal = Oscar.preimage(inclusion, Oscar.ideal(R, [relation]))
+    push!(tautological_relations, Oscar.gens(preimage_ideal)[1])
+  end
+  verbose && @info "there are $(length(tautological_relations)) tautological polynomials"
+
+  linear_relation = sum((chi[i] * xs(i, 1) for i in support(d)); init=A(0))
+  AQ = Oscar.quo(A, Oscar.ideal(A, vcat(tautological_relations, [linear_relation])))[1]
+  return AQ
+end
+
+function __total_chern_class_universal(ring, d::AbstractVector{Int}, i::Int)
+  vars = Oscar.gens(ring)
+  offset = sum(d[1:(i - 1)]; init=0)
+  return Oscar.simplify(ring(1) + sum((vars[offset + r] for r in 1:d[i]); init=ring(0)))
+end
+
+function __point_class(M::QuiverModuliSpace, X; unsafe::Bool=false)
+  A = Oscar.chow_ring(X)
+  N = __chow_dimension(M; unsafe=unsafe)
+  total_chern_classes = [
+    __total_chern_class_universal(A, M.d, i) for i in 1:n_vertices(M.Q)
+  ]
+
+  num = A(1)
+  for i in 1:n_vertices(M.Q)
+    c = total_chern_classes[i]
+    exponent = sum(M.d[j] * M.Q.adjacency[j, i] for j in 1:n_vertices(M.Q))
+    for _ in 1:exponent
+      num = __truncate_by_degree(num * c, N)
     end
   end
 
-  verbose && @info "there are $(length(anti)) antisymmetrized forbidden polynomials"
+  for i in 1:n_vertices(M.Q)
+    inverse_chern = __truncate_by_degree(inv(total_chern_classes[i]), N)
+    for _ in 1:M.d[i]
+      num = __truncate_by_degree(num * inverse_chern, N)
+    end
+  end
 
-  tautological = Singular.spoly{Singular.n_Q}[
-    gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti
-  ]
-  verbose && @info "there are $(length(tautological)) tautological polynomials"
+  return Oscar.simplify(num[N])
+end
 
-  linear = Singular.spoly{Singular.n_Q}[sum(chi[i] * xs(i, 1) for i in support(d))]
+function __copy_bundle(F)
+  X = parent(F)
+  if isdefined(F, :chern)
+    return Oscar.abstract_bundle(X, Oscar.rank(F), Oscar.total_chern_class(F))
+  end
+  return Oscar.abstract_bundle(X, Oscar.chern_character(F))
+end
 
-  return (QuotientRing(A, std(Ideal(A, [tautological; linear]))), R, inclusion)
+function __attach_universal_weights!(M::QuiverModuliSpace, i::Int, F)
+  return set_teleman_weights!(F, weights_universal_bundle(M, i; chi=linearization(M)))
+end
+
+function __attach_structure_sheaf_weights!(M::QuiverModuliSpace, F)
+  weights = Dict(
+    hn_type => [0] for hn_type in all_hn_types(M; unstable=true, ordered=false)
+  )
+  return set_teleman_weights!(F, weights)
+end
+
+function __attach_line_bundle_weights!(M::QuiverModuliSpace, eta::AbstractVector{Int}, F)
+  return set_teleman_weights!(F, weights_line_bundle(M, eta))
+end
+
+function __attach_canonical_weights!(M::QuiverModuliSpace, F)
+  return set_teleman_weights!(F, weights_canonical_bundle(M))
+end
+
+function __tautological_bundles(M::QuiverModuliSpace, X)
+  bundles = Oscar.AbstractBundle{typeof(X)}[]
+  for i in 1:n_vertices(M.Q)
+    bundle = Oscar.abstract_bundle(
+      X,
+      M.d[i],
+      __total_chern_class_universal(Oscar.chow_ring(X), M.d, i),
+    )
+    __attach_universal_weights!(M, i, bundle)
+    push!(bundles, bundle)
+  end
+  return bundles
+end
+
+function __tangent_bundle(M::QuiverModuliSpace, bundles)
+  X = parent(first(bundles))
+  tangent = Oscar.trivial_line_bundle(X)
+
+  for (i, j) in arrows(M.Q)
+    tangent += Oscar.dual(bundles[i]) * bundles[j]
+  end
+
+  for i in 1:n_vertices(M.Q)
+    tangent -= Oscar.dual(bundles[i]) * bundles[i]
+  end
+
+  return tangent
+end
+
+"""
+    chow_ring(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d); chi::Union{AbstractVector{Int},UndefInitializer}=undef, verbose::Bool=false, unsafe::Bool=false)
+
+Construct the quiver moduli space as an `Oscar.AbstractVariety` with its Chow ring,
+point class, tangent bundle, and tautological bundles encoded in Oscar's
+IntersectionTheory backend.
+"""
+function chow_ring(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector{Int}=canonical_stability(Q, d);
+  chi::Union{AbstractVector{Int},UndefInitializer}=undef,
+  verbose::Bool=false,
+  unsafe::Bool=false,
+)
+  return chow_ring(
+    QuiverModuliSpace(Q, d, theta, "semistable");
+    chi=chi,
+    verbose=verbose,
+    unsafe=unsafe,
+  )
 end
 
 """
     chow_ring(M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef, verbose::Bool=false, unsafe::Bool=false)
 
-Compute the Chow ring of the moduli space `M` for the given linearization `chi`.
+Construct the quiver moduli space `M` as an `Oscar.AbstractVariety`.
 
-# Input
-
-- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `chi::AbstractVector{Int}`: a choice of linearization for the trivial line bundle.
-  Default is `extended_gcd(M.d)[2]`.
-
-
-# Output
-
-- the Chow ring of the moduli space.
-"""
-function chow_ring(
-  M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef,
-  verbose::Bool=false,
-  unsafe::Bool=false,
-)
-  if !isdefined(M.chow, :chi)
-    if (chi isa UndefInitializer)
-      setfield!(M.chow, :chi, extended_gcd(M.d)[2])
-    else
-      setfield!(M.chow, :chi, chi)
-    end
-    CH, R, inc = chow_ring(
-      M.Q, M.d, M.theta; chi=M.chow.chi, verbose=verbose, unsafe=unsafe
-    )
-    setfield!(M.chow, :ring, CH[1])
-    setfield!(M.chow, :_R, R)
-    setfield!(M.chow, :_inclusion, inc)
-  end
-
-  # M.chow.chi was set
-  if !(chi isa UndefInitializer) && M.chow.chi != chi
-    # reinitializing all the fields
-    setfield!(M.chow, :chi, chi)
-    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=chi, verbose=verbose, unsafe=unsafe)
-    setfield!(M.chow, :ring, CH[1])
-    setfield!(M.chow, :_R, R)
-    setfield!(M.chow, :_inclusion, inc)
-    # linearization changed, so these must be reset
-    if isdefined(M.chow, :point)
-      setfield!(M.chow, :point, undef)
-    end
-    if isdefined(M.chow, :todd)
-      setfield!(M.chow, :todd, undef)
-    end
-  end
-  return M.chow.ring
-end
-
-"""
-    extended_gcd(x)
-
-Compute the gcd and the Bezout coefficients of a list of integers.
-
-# Input
-
-- `x`: a list of integers.
-
-# Output
-
-A tuple containing:
-- the gcd of the integers,
-- a choice of Bezout coefficients.
+The resulting abstract variety carries the tautological Chow presentation,
+its point class, tautological bundles, and tangent bundle, so further
+intersection-theory computations should use Oscar's API directly.
 
 # Examples
 
 ```jldoctest
-julia> QuiverTools.extended_gcd([2, 3, 4])
-2-element Vector{Any}:
- 1
-  [-1, 1, 0]
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> QuiverTools.extended_gcd([2, 3])
-2-element Vector{Any}:
- 1
-  [-1, 1]
+julia> X = chow_ring(M; chi=[-1, 1])
+AbstractVariety of dim 6
+
+julia> Oscar.point_class(X)
+x23^2
 ```
+"""
+function chow_ring(
+  M::QuiverModuliSpace;
+  chi::Union{AbstractVector{Int},UndefInitializer}=undef,
+  verbose::Bool=false,
+  unsafe::Bool=false,
+)
+  __validate_chow_inputs(M.Q, M.d, M.theta; unsafe=unsafe, verbose=verbose)
+  actual_chi = __resolve_linearization!(M, chi)
+
+  if !isnothing(M.variety_cache[])
+    return M.variety_cache[]
+  end
+
+  A = __presentation_ring(M.Q, M.d, M.theta; chi=actual_chi, verbose=verbose, unsafe=unsafe)
+  X = Oscar.abstract_variety(__chow_dimension(M; unsafe=unsafe), A)
+
+  bundles = __tautological_bundles(M, X)
+  Oscar.set_point_class(X, __point_class(M, X; unsafe=unsafe))
+  Oscar.set_tautological_bundles(X, bundles)
+  Oscar.set_tangent_bundle(X, __tangent_bundle(M, bundles))
+
+  M.variety_cache[] = X
+  return X
+end
+
+Oscar.abstract_variety(
+M::QuiverModuliSpace;
+chi::Union{AbstractVector{Int},UndefInitializer}=undef,
+verbose::Bool=false,
+unsafe::Bool=false
+) = chow_ring(M; chi=chi, verbose=verbose, unsafe=unsafe)
+
+"""
+    extended_gcd(x)
+
+Compute the gcd and Bezout coefficients of a list of integers.
 """
 function extended_gcd(x)
   n = length(x)
   if n == 1
-    return [x, [1]]
+    return [x[1], [1]]
   elseif n == 2
     g, a, b = gcdx(x[1], x[2])
     return [g, [a, b]]
@@ -405,421 +409,4 @@ function extended_gcd(x)
     m = vcat([c[1] * a, c[1] * b], [c[i] for i in 2:(n - 1)])
     return [d, m]
   end
-end
-
-"""
-    chern_class_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int}; unsafe::Bool=false)
-
-Compute the first Chern class of the line bundle `L(eta)`.
-
-This is given by ``L(eta) = \\bigoplus_{i \\in Q_0} \\det(U_i)^{-eta_i}``.
-
-# Input
-
-- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `eta::AbstractVector{Int]`: a choice of linearization for the trivial line bundle.
-- `unsafe::Bool=false`: whether to skip the checks on ample stability and
-    existence of properly semistables. Default is `false`.
-
-# Output
-
-- the first Chern class of the line bundle L(eta) as a polynomial.
-
-# Examples
-
-The line bundles ``\\mathcal{O}(i)`` on the projective line:
-```jldoctest
-julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
-
-julia> l = chern_class_line_bundle(M, [1, -1])
--x11
-```
-
-The line bundle corresponding to the canonical stability condition on our favourite
-6-fold:
-```jldoctest
-julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> chern_class_line_bundle(M, [9, -6])
--3*x21
-```
-"""
-function chern_class_line_bundle(
-  M::QuiverModuliSpace,
-  eta::AbstractVector{Int};
-  unsafe::Bool=false,
-)
-  A = chow_ring(M; unsafe=unsafe)
-  R = base_ring(quotient_ideal(A))
-  Rvars = gens(R)
-  proj = __projection_to_quotient_ring(A)
-
-  chern_class = R(0)
-  for i in support(M.d)
-    Oscar.add!(chern_class, chern_class, eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])])
-  end
-
-  return __simplify(proj(- chern_class))
-end
-
-"""
-    chern_character_line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int})
-
-Compute the Chern character of the line bundle `L(eta)`.
-
-# Input
-
-- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `eta::AbstractVector{Int}`: a choice of linearization for the trivial line bundle.
-
-# Output
-
-- the Chern character of the line bundle `L(eta)`.
-
-# Examples
-
-Some line bundles on the projective line:
-```jldoctest
-julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
-
-julia> chern_character_line_bundle(M, [1, -1])
--x11 + 1
-```
-
-Some Chern characters for our favourite 6-fold:
-```jldoctest
-julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> chern_character_line_bundle(M, [3, -2])
-1//720*x21^6 - 1//120*x21^5 + 1//24*x21^4 - 1//6*x21^3 + 1//2*x21^2 - x21 + 1
-```
-"""
-function chern_character_line_bundle(
-  M::QuiverModuliSpace,
-  eta::AbstractVector{Int},
-)
-  x = chern_class_line_bundle(M, eta)
-  return sum(x^i / factorial(big(i)) for i in 0:dimension(M))
-end
-
-"""
-    total_chern_class_universal(M::QuiverModuliSpace, i::Int; unsafe::Bool=false)
-
-Compute the total Chern class of the universal bundle `U_i`.
-
-# Input
-
-- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `i`: the universal bundle we want the Chern class of.
-
-# Output
-
-- the total Chern class of the universal bundle ``U_i(\\chi)``.
-
-# Examples
-
-The universal Chern classes on both vertices of our favourite 3-Kronecker quiver:
-```jldoctest
-julia> Q  = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> total_chern_class_universal(M, 1)
-x11 + x12 + 1
-
-julia> total_chern_class_universal(M, 2)
-x21 + x22 + x23 + 1
-```
-"""
-function total_chern_class_universal(
-  M::QuiverModuliSpace,
-  i::Int;
-  unsafe::Bool=false,
-)
-  CH = chow_ring(M; unsafe=unsafe)
-  CHvars = gens(CH)
-  return sum(CHvars[sum(M.d[1:(i - 1)]) + r] for r in 1:M.d[i]; init=CH(0)) + CH(1)
-end
-
-"""
-    point_class(M::QuiverModuliSpace; unsafe::Bool=false)
-
-Compute the point class of the moduli space `M`.
-
-# Input
-
-- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `unsafe::Bool=false`: whether to skip the checks on ample stability and
-    existence of properly semistables. Default is `false`.
-
-# Output
-
-- the point class of the moduli space, as a polynomial in its Chow ring.
-
-# Examples
-
-A projective 7-fold:
-```jldoctest
-julia> Q = kronecker_quiver(8);
-
-julia> M = QuiverModuliSpace(Q, [1, 1]);
-
-julia> chow_ring(M; chi=[1, 0]); point_class(M)
-x21^7
-```
-
-Our favourite 6-fold:
-```jldoctest
-julia> Q = kronecker_quiver(3);
-
-julia> M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> point_class(M)
-x23^2
-```
-
-The 7-subspace quiver:
-```jldoctest
-julia> Q = subspace_quiver(7); d = push!(ones(Int, 7), 2); M = QuiverModuliSpace(Q, d);
-
-julia> point_class(M; unsafe=true)
-1//10*x81^4
-```
-"""
-function point_class(
-  M::QuiverModuliSpace;
-  unsafe::Bool=false,
-)
-  if isdefined(M.chow, :point) && M.chow.point != undef
-    return M.chow.point
-  end
-
-  CH = chow_ring(M; unsafe=unsafe)
-  num = CH(1)
-  unsafe ? (N = 1 - euler_form(M.Q, M.d, M.d)) : (N = dimension(M))
-
-  for i in 1:n_vertices(M.Q)
-    c = total_chern_class_universal(M, i; unsafe=unsafe)
-    for k in 1:(M.d' * M.Q.adjacency[:, i])
-      Oscar.mul!(num, num, c)
-      num = __simplify(num)
-      num = Singular.jet(num, N)
-    end
-  end
-  # dividing at once is very slow, iteratively is much faster.
-  for i in 1:n_vertices(M.Q)
-    c = total_chern_class_universal(M, i; unsafe=unsafe)
-    for _ in 1:M.d[i]
-      num = Oscar.Singular.div(num, c)
-    end
-  end
-
-  pt = CH(0)
-  for term in Oscar.Singular.terms(num)
-    if __chow_ring_monomial_grading(M, term) == N
-      Oscar.add!(pt, pt, term)
-    end
-  end
-  setfield!(M.chow, :point, pt)
-  return M.chow.point
-end
-
-"""
-We call the series ``Q(t) = t/(1-e^{-t})`` the Todd generating series.
-The function computes the terms of this series up to degree n.
-We use this instead of the more conventional notation `Q` to avoid a
-clash with the notation for the quiver.
-"""
-function todd_Q(t, n)
-  return sum((-1)^i * (Oscar.bernoulli(i) * t^i) / factorial(big(i)) for i in 0:n)
-end
-
-"""
-    todd_class(M::QuiverModuliSpace)
-
-Compute the Todd class of the moduli space `M`.
-
-# Input
-
-- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-
-# Output
-
-- the Todd class of the moduli space, as a polynomial in its Chow ring.
-
-# Examples
-
-The Todd class of our favourite 3-Kronecker quiver moduli:
-```jldoctest
-julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> todd_class(M)
--17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
-```
-"""
-function todd_class(
-  M::QuiverModuliSpace;
-  unsafe::Bool=false,
-)
-  if isdefined(M.chow, :todd) && M.chow.todd != undef
-    return M.chow.todd
-  end
-
-  N = dimension(M)
-  # consider these constructors: https://nemocas.github.io/AbstractAlgebra.jl/latest/mpolynomial/#Polynomial-functions
-  A = chow_ring(M; unsafe=unsafe)
-  R, inclusion = M.chow._R, M.chow._inclusion
-  Rvars = gens(R)
-  proj = __projection_to_quotient_ring(A)
-
-  function xi(i, p)
-    return Rvars[sum(M.d[1:(i - 1)]) + p]
-  end
-
-  num = R(1)
-  den = R(1)
-
-  for a in arrows(M.Q)
-    i, j = a
-    for p in 1:M.d[i]
-      for q in 1:M.d[j]
-        Oscar.mul!(num, num, todd_Q(xi(j, q) - xi(i, p), N))
-        num = Singular.jet(num, N)
-      end
-    end
-  end
-
-  for i in 1:n_vertices(M.Q)
-    for p in 1:M.d[i]
-      for q in 1:M.d[i]
-        Oscar.mul!(den, den, todd_Q(xi(i, q) - xi(i, p), N))
-        den = Singular.jet(den, N)
-      end
-    end
-  end
-
-  # this is because Singular does not have a method to get the preimage
-  # of a given element, only ideals.
-  # In Singular's implementation this does not result in a loss of time anyways...
-  num = gens(preimage(inclusion, Ideal(R, num)))[1]
-  den = gens(preimage(inclusion, Ideal(R, den)))[1]
-
-  # renormalizing the constant term because it should be 1,
-  #  but Singular does not keep it fixed.
-  num /= constant_coefficient(num)
-  den /= constant_coefficient(den)
-
-  quot = div(proj(num), proj(den))
-  quot = __simplify(quot)
-  setfield!(M.chow, :todd, A(quot))
-  return M.chow.todd
-end
-
-"""
-    integral(M::QuiverModuliSpace, f)
-
-Computes the integral of `f` according to the Hirzebruch-Riemann-Roch theorem.
-
-In other words, it computes the Euler characteristic of the vector bundle
-whose Chern character is `f`.
-
-# Input
-
-- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `f`: the Chern character in to integrate.
-
-# Output
-
-- the integral of `f`.
-
-# Examples
-
-The integral of ``\\mathcal{O}(i)`` on the projective line for some `i`s.
-
-```jldoctest
-julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
-
-julia> L = chern_character_line_bundle(M, [1, -1]);
-
-julia> [integral(M, L^i) for i in 0:5]
-6-element Vector{Singular.n_Q}:
- 1
- 2
- 3
- 4
- 5
- 6
-```
-
-Hilbert series for the 3-Kronecker quiver as in our favourite 6-fold:
-
-```jldoctest
-julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> L = chern_character_line_bundle(M, [3, -2]);
-
-julia> [integral(M, L^i) for i in 0:5]
-6-element Vector{Singular.n_Q}:
- 1
- 20
- 148
- 664
- 2206
- 5999
-```
-
-This method can be used to compute the Euler characteristic of any bundle `F`:
-
-```jldoctest
-julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> U1 = universal_bundle(M, 1);
-
-julia> integral(U1)
-0
-```
-"""
-function integral(M::QuiverModuliSpace, f)
-  n = dimension(M)
-  integ = div(__homogeneous_components(M, f * todd_class(M))[n + 1], point_class(M))
-  return Singular.constant_coefficient(integ)
-end
-
-integral(F::Bundle) = integral(variety(F), chern_character(F))
-chi(F::Bundle) = integral(F::Bundle)
-
-"""
-Takes a quotient ring R/I and returns the projection map from R to R/I.
-For internal use only.
-"""
-function __projection_to_quotient_ring(A)
-  I = quotient_ideal(A)
-  R = base_ring(I)
-  return AlgebraHomomorphism(R, A, gens(A))
-end
-
-"""
-    __chow_ring__monomial_grading(M::QuiverModuliSpace, f)
-
-Compute the "pseudodegree" of the monomial `f` in the Chow ring of the moduli
-space `M` passed.
-
-This method is unsafe, as it does not consider the actual degree of the MPolyRingElem
-objects passed. Instead, it assumes that the Chow ring passed has variables
-``x_{i, j}`` as in the Chow ring paper.
-"""
-function __chow_ring_monomial_grading(M::QuiverModuliSpace, f)
-  deg = __chow_degrees(M.d)
-  exp = first(Oscar.AbstractAlgebra.exponent_vectors(f))
-  @assert size(deg) == size(exp)
-  return exp' * deg
-end
-
-"""
-    __chow_degrees(d)
-
-Compute the vector of degrees for the variables of a Chow ring.
-
-For internal use only.
-"""
-function __chow_degrees(d::AbstractVector{Int})
-  return vcat([collect(1:di) for di in d if di > 0]...)
 end

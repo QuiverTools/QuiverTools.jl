@@ -179,10 +179,10 @@ function hodge_polynomial(
     ),
   )
 
-  R, q = polynomial_ring(Singular.QQ, ["q"])
-  F = fraction_field(R)
+  R, q_vars = Oscar.polynomial_ring(Oscar.QQ, ["q"])
+  F = Oscar.fraction_field(R)
 
-  v = F(q[1]) # worsens performance by ~8%. Necessary?
+  v = F(q_vars[1])
 
   T = Td(Q, d, theta, v)
 
@@ -193,7 +193,8 @@ function hodge_polynomial(
   denominator(solution) != 1 && throw(DomainError("Moduli space is singular!"))
   result = numerator(solution)
 
-  S, (x, y) = polynomial_ring(Singular.QQ, ["x", "y"])
+  S, vars = Oscar.polynomial_ring(Oscar.QQ, ["x", "y"])
+  x, y = vars
   return S(result(x * y))
 end
 
@@ -276,7 +277,9 @@ function hodge_diamond(
 
   # collects the coefficients of the polynomial, converts them to integers
   # and returns them in the diagonal of a matrix.
-  return Matrix{Int}(diagonal(Int.(numerator.(collect(Singular.coefficients(g))))))
+  return Matrix{Int}(
+    diagonal(Int.(numerator.(collect(AbstractAlgebra.coefficients(g)))))
+  )
 end
 """
     hodge_diamond(M::QuiverModuliSpace)
@@ -454,7 +457,7 @@ function betti_numbers(M::QuiverModuliSpace)
 
   N = dimension(M)
   P = poincare_polynomial(M)
-  coeff = Int.(numerator.(Singular.coefficients(P)))
+  coeff = Int.(numerator.(collect(AbstractAlgebra.coefficients(P))))
   betti = reduce(vcat, [c, 0] for c in coeff[1:(end - 1)])
   push!(betti, coeff[end])
 
@@ -505,12 +508,11 @@ function poincare_polynomial(M::QuiverModuliSpace)
   !is_coprime(M.d, M.theta) && throw(ArgumentError("d and theta are not coprime"))
 
   m = motive(M.Q, M.d, M.theta, M.denom)
-  v = Singular.transcendence_basis(Singular.parent(m))[1]
+  v = Oscar.gens(Oscar.base_ring(parent(m)))[1]
   P = (1 - v) * m
 
   denominator(P) != 1 && throw(DomainError("must be a polynomial"))
-  # returns a polynomial object instead of a FunctionField element.
-  return Singular.n_transExt_to_spoly(numerator(P))
+  return numerator(P)
 end
 
 function power(x, n::Int)
@@ -557,8 +559,8 @@ function motive(
   theta::AbstractVector{Int}=canonical_stability(Q, d),
   denom::Function=sum,
 )
-  K, L = Singular.FunctionField(Singular.QQ, ["L"])
-  L = L[1]
+  K, L_vars = Oscar.polynomial_ring(Oscar.QQ, ["L"])
+  L = Oscar.fraction_field(K)(L_vars[1])
 
   if all(ti == 0 for ti in theta)
     out = power(L, -euler_form(Q, d, d))
