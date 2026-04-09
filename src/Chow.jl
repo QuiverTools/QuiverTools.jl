@@ -214,7 +214,9 @@ function chow_ring(
   # constructor of the permuted polynomial. This is much faster than f(permuted_vars[sigma]...)
   function permute(f::Singular.spoly{Singular.n_Q}, sigma::Tuple)
     context = Singular.MPolyBuildCtx(parent(f))
+    zz = zero(parent(f))
     for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
+      c == zz && continue
       Singular.push_term!(context, c, permute_vector(e, sigma))
     end
     return Singular.finish(context)
@@ -227,7 +229,7 @@ function chow_ring(
   )
 
   function antisymmetrize(f::Singular.spoly{Singular.n_Q})
-    out = R(0)
+    out = zero(parent(f))
     for sigma in W
       if sign_product(sigma) == 1
         out += permute(f, sigma)
