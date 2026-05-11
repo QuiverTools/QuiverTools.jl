@@ -461,7 +461,7 @@ function _chern_classes_from_character(F::Bundle)
   M = variety(F)
   n = dimension(M)
   comps = __homogeneous_components(M, chern_character(F))
-  p = [(CH(-1))^i * CH(factorial(i)) * comps[i + 1] for i in 0:n]
+  p = [(CH(-1))^i * CH(factorial(big(i))) * comps[i + 1] for i in 0:n]
   e = [CH(0) for _ in 1:(n + 1)]
   e[1] = CH(1)
   for i in 1:n
@@ -481,7 +481,7 @@ function _chern_character_from_classes(F::Bundle)
   for i in 1:(n - 1)
     p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i)
   end
-  return __simplify(sum(CH((-1)^i//factorial(i)) * p[i] for i in 1:n) + rank(F))
+  return __simplify(sum(CH((-1)^i//factorial(big(i))) * p[i] for i in 1:n) + rank(F))
 end
 
 """
