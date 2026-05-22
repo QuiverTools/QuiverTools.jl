@@ -62,6 +62,10 @@ export euler_form, euler_matrix, is_root, is_schur_root, is_real_root, is_imagin
   is_isotropic_root,
   general_ext, general_hom, canonical_decomposition, in_fundamental_domain
 
+# Covering quiver
+export CoveringDimVector, shift_beta, covering_euler_form, extract_finite_subquiver,
+  compatible_dimension_vectors, weight_space_dimension, nonzero_weights
+
 # Moduli
 export all_luna_types, is_luna_type, dimension_of_luna_stratum
 export is_nonempty, codimension_unstable_locus, dimension, is_smooth,
@@ -139,6 +143,7 @@ include("Stability.jl")
 include("RepresentationTheory.jl")
 include("Misc.jl")
 include("Constructors.jl")
+include("CoveringQuiver.jl")
 include("Moduli.jl")
 include("Hodge.jl")
 include("Chow.jl")
