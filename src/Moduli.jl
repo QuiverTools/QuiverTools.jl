@@ -190,10 +190,9 @@ julia> codimension_hn_stratum(M, [[1, 1], [1, 2]])
 codimension_hn_stratum(M::QuiverModuli, hn_type::HNType) = codimension_hn_stratum(
   M.Q, hn_type
 )
-codimension_hn_stratum(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}}) =
-  codimension_hn_stratum(
-    M, HNType(hn_type)
-  )
+codimension_hn_stratum(M::QuiverModuli, hn_type::Vector{<:AbstractVector{Int}}) = codimension_hn_stratum(
+  M, HNType(hn_type)
+)
 
 """
     codimension_unstable_locus(M::QuiverModuli)
