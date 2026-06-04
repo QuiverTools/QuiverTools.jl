@@ -60,6 +60,55 @@ end;
   )
 end;
 
+@testset "Universal Chern numbers: P^3 = M(kronecker_quiver(4), (1, 1))" begin
+  M = QuiverModuliSpace(kronecker_quiver(4), [1, 1])
+  chow_ring(M)
+  cn = chern_numbers(M; universal=true)
+
+  # the tangent-bundle Chern numbers are unchanged
+  @test all(cn[k] == v for (k, v) in chern_numbers(M))
+
+  # c_1(U_2) is linearly dependent on c_1(U_1) and is dropped; with the default
+  # linearization c_1(U_1) = -h, so c_1(U_1)^3 = -1
+  @test cn == Dict(
+    "c_1^3" => 64,
+    "c_2 c_1" => 24,
+    "c_3" => 4,
+    "c_1(U_1)^3" => -1,
+  )
+end;
+
+@testset "Universal Chern numbers: 3-Kronecker, d = (2, 3)" begin
+  M = QuiverModuliSpace(kronecker_quiver(3), [2, 3])
+  chow_ring(M)
+  cn = chern_numbers(M; universal=true)
+
+  # the tangent-bundle Chern numbers are unchanged
+  @test all(cn[k] == v for (k, v) in chern_numbers(M))
+
+  # all intersection numbers in the universal Chern classes (the Chow ring
+  # generators), with the default linearization chi = [-1, 1]. c_1(U_2) is
+  # linearly dependent on c_1(U_1) and is dropped; these 14 match Meng's
+  # Proposition 3.3.1.
+  universal = Dict(k => v for (k, v) in cn if occursin("(U_", k))
+  @test universal == Dict(
+    "c_1(U_1) c_2(U_1) c_3(U_2)" => 2,
+    "c_1(U_1) c_2(U_2) c_3(U_2)" => 3,
+    "c_1(U_1)^2 c_2(U_1) c_2(U_2)" => 9,
+    "c_1(U_1)^2 c_2(U_1)^2" => 6,
+    "c_1(U_1)^2 c_2(U_2)^2" => 14,
+    "c_1(U_1)^3 c_3(U_2)" => 5,
+    "c_1(U_1)^4 c_2(U_1)" => 18,
+    "c_1(U_1)^4 c_2(U_2)" => 27,
+    "c_1(U_1)^6" => 57,
+    "c_2(U_1) c_2(U_2)^2" => 5,
+    "c_2(U_1)^2 c_2(U_2)" => 3,
+    "c_2(U_1)^3" => 2,
+    "c_2(U_2)^3" => 9,
+    "c_3(U_2)^2" => 1,
+  )
+end;
+
 @testset "HN types" begin
   # all_HN_types()
 

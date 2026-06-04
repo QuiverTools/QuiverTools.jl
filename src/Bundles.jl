@@ -855,8 +855,121 @@ function _format_chern_monomial(partition::AbstractVector{Int})
   return join(pieces, " ")
 end
 
+function _format_universal_monomial(
+  generator_labels::AbstractVector{Tuple{Int,Int}}, exponents::AbstractVector{Int}
+)
+  # the empty monomial is the fundamental class
+  all(iszero, exponents) && return "1"
+  factors = String[]
+  for g in eachindex(exponents)
+    exponents[g] == 0 && continue
+    vertex, chern_degree = generator_labels[g]
+    symbol = "c_$(chern_degree)(U_$(vertex))"
+    push!(factors, exponents[g] == 1 ? symbol : "$(symbol)^$(exponents[g])")
+  end
+  return join(factors, " ")
+end
+
 """
-    chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false)
+    _weighted_monomials(weights::AbstractVector{Int}, n::Int)
+
+Enumerate the exponent vectors of all monomials of weighted degree `n` in
+generators whose individual degrees are given by `weights`. Used to list every
+monomial of a fixed codimension in a graded ring. For internal use only.
+"""
+function _weighted_monomials(degrees::AbstractVector{Int}, total_degree::Int)
+  n_generators = length(degrees)
+  monomials = Vector{Int}[]
+  exponents = zeros(Int, n_generators)
+  # assign an exponent to generator `gen`, then recurse on the remaining
+  # generators, spending `remaining_degree` of the total budget across them
+  function extend(gen::Int, remaining_degree::Int)
+    if gen > n_generators
+      # all exponents assigned; keep this monomial iff the budget is exactly spent
+      remaining_degree == 0 && push!(monomials, copy(exponents))
+      return nothing
+    end
+    for exponent in 0:(remaining_degree ÷ degrees[gen])
+      exponents[gen] = exponent
+      extend(gen + 1, remaining_degree - exponent * degrees[gen])
+    end
+    exponents[gen] = 0  # reset before unwinding to the caller
+    return nothing
+  end
+  extend(1, total_degree)
+  return monomials
+end
+
+"""
+    _degree1_vector(nf, L::Int)
+
+Read the coordinate vector (over the degree-1 variables of the Chow ring) of a
+homogeneous codimension-1 class from its Gröbner normal form `nf`. For internal
+use only.
+"""
+function _degree1_vector(normal_form, n_variables::Int)
+  coordinates = zeros(Rational{BigInt}, n_variables)
+  # a linear form is a sum of terms `coefficient * x_k`; record each coefficient
+  # at the index of the single variable appearing in its term
+  for (coefficient, exponent_vector) in
+      zip(Singular.coefficients(normal_form), Singular.exponent_vectors(normal_form))
+    var_index = findfirst(==(1), exponent_vector)
+    var_index === nothing && continue  # skip any constant/non-linear term defensively
+    coordinates[var_index] = Rational{BigInt}(
+      BigInt(Singular.numerator(coefficient)), BigInt(Singular.denominator(coefficient))
+    )
+  end
+  return coordinates
+end
+
+"""
+    _universal_chern_generators(M::QuiverModuliSpace, CH)
+
+Return the universal Chern classes ``c_j(U_i)`` that minimally generate the Chow
+ring `CH`, as triples `(vertex, chern_degree, var_index)` where `var_index` is the
+index of the generator in `gens(CH)`.
+
+The first Chern classes ``c_1(U_i)`` satisfy linear relations (from the choice of
+linearization), so only a maximal linearly independent subset of them is kept;
+they are processed in vertex order, so that ``c_1(U_1)`` is favored. All higher
+Chern classes are always kept. For internal use only.
+"""
+function _universal_chern_generators(M::QuiverModuliSpace, CH)
+  generators = gens(CH)
+  n_variables = length(generators)
+  # row-echelon basis of the kept first Chern classes, used to test the linear
+  # independence of each new c_1(U_i) against those already kept
+  echelon_rows = Vector{Vector{Rational{BigInt}}}()
+  kept = Tuple{Int,Int,Int}[]
+  var_index = 0
+  # walk the generators c_j(U_i) in the (vertex-major) order of gens(CH), so the
+  # lowest vertices -- in particular c_1(U_1) -- are considered first
+  for vertex in 1:n_vertices(M.Q), chern_degree in 1:M.d[vertex]
+    var_index += 1
+    # higher Chern classes are independent generators of the Chow ring: always keep
+    if chern_degree > 1
+      push!(kept, (vertex, chern_degree, var_index))
+      continue
+    end
+    # a first Chern class may be linearly dependent on the kept ones; reduce its
+    # coordinate vector against the echelon basis by Gaussian elimination
+    coords = _degree1_vector(__simplify(generators[var_index]), n_variables)
+    for row in echelon_rows
+      pivot = findfirst(!iszero, row)
+      iszero(coords[pivot]) || (coords .-= (coords[pivot] / row[pivot]) .* row)
+    end
+    # a nonzero residual means this c_1 is independent, so keep it as a new pivot
+    if any(!iszero, coords)
+      push!(echelon_rows, coords)
+      sort!(echelon_rows; by=row -> findfirst(!iszero, row))
+      push!(kept, (vertex, chern_degree, var_index))
+    end
+  end
+  return kept
+end
+
+"""
+    chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false, universal::Bool=false)
 
 Compute the Chern numbers of the tangent bundle of the quiver moduli space `M`,
 i.e. all top intersection products
@@ -865,6 +978,16 @@ indexed by partitions of `dimension(M)`.
 
 Returns a `Dict{String,Int}` whose keys describe each monomial in the Chern
 classes and whose values are the corresponding Chern numbers.
+
+If `universal` is set to `true`, the result additionally contains all top
+intersection products of the Chern classes ``c_j(U_i)`` of the universal
+bundles, which generate the Chow ring (cf. Franzen's description). These keys
+are of the form `c_j(U_i)`, e.g. `c_2(U_1)` or `c_2(U_1) c_3(U_2)`.
+
+The first Chern classes ``c_1(U_i)`` are linearly dependent (through the chosen
+linearization), so only a minimal generating set is used: a maximal linearly
+independent subset of them is kept, favoring ``c_1(U_1)``. All higher Chern
+classes are kept.
 
 # Example
 
@@ -879,13 +1002,30 @@ julia> cn = chern_numbers(M);
 julia> cn["c_1^3"], cn["c_2 c_1"], cn["c_3"]
 (64, 24, 4)
 ```
+
+The same moduli space, now also computing the intersection numbers in the
+universal Chern classes (the generators of the Chow ring):
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(4), [1, 1]); chow_ring(M);
+
+julia> cn = chern_numbers(M; universal=true);
+
+julia> cn["c_1^3"], cn["c_2 c_1"], cn["c_3"]
+(64, 24, 4)
+
+julia> cn["c_1(U_1)^3"]
+-1
+```
 """
-function chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false)
+function chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false, universal::Bool=false)
   T = tangent_bundle(M; unsafe=unsafe)
   c = chern_classes(T)
   n = dimension(M)
   CH = chow_ring(M)
-  return Dict{String,Int}(
+  # tangent-bundle Chern numbers: one top intersection product c_{i_1} ... c_{i_k}
+  # per partition (i_1, ..., i_k) of the dimension n
+  out = Dict{String,Int}(
     _format_chern_monomial(partition) => Int(
       Singular.numerator(
         integral(M, prod(c[k] for k in partition; init=CH(1)); unsafe=unsafe)
@@ -893,4 +1033,32 @@ function chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false)
     )
     for partition in partitions(n)
   )
+
+  if universal
+    # the universal Chern classes c_j(U_i) that minimally generate the Chow ring
+    kept_generators = _universal_chern_generators(M, CH)
+    generators = gens(CH)
+    # (vertex, Chern degree) labels and codimensions of the kept generators, and
+    # their indices into gens(CH); all three are aligned with the exponent vectors
+    generator_labels = Tuple{Int,Int}[
+      (vertex, chern_degree) for (vertex, chern_degree, _) in kept_generators
+    ]
+    generator_indices = Int[var_index for (_, _, var_index) in kept_generators]
+    generator_degrees = Int[chern_degree for (_, chern_degree) in generator_labels]
+    # every monomial of codimension n = dim(M) in the kept generators is a top
+    # intersection product; its integral is the corresponding universal Chern number
+    for exponents in _weighted_monomials(generator_degrees, n)
+      monomial = prod(
+        (
+          generators[generator_indices[g]]^exponents[g] for
+          g in eachindex(exponents) if exponents[g] > 0
+        );
+        init=CH(1),
+      )
+      out[_format_universal_monomial(generator_labels, exponents)] = Int(
+        Singular.numerator(integral(M, monomial; unsafe=unsafe))
+      )
+    end
+  end
+  return out
 end
