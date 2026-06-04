@@ -81,6 +81,41 @@ function zero_sheaf(M::QuiverModuliSpace)
   return new
 end
 
+"""
+    tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
+
+Compute the tangent bundle of the quiver moduli space `M`.
+
+Uses the identity
+``[\\mathrm{T}_M] = \\sum_{a: i \\to j} [U_i^\\vee \\otimes U_j] - \\sum_i [U_i^\\vee \\otimes U_i] + [\\mathcal{O}_M]``
+in the Grothendieck group of `M`.
+
+# Example
+
+The tangent bundle of `P^3`, realized as the moduli space of the
+generalized Kronecker quiver with 4 arrows and dimension vector `(1, 1)`:
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(4), [1, 1]); chow_ring(M);
+
+julia> T = tangent_bundle(M)
+Bundle of rank 3
+
+julia> chern_class(T, 1)
+-4*x11
+```
+"""
+function tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
+  U = [universal_bundle(M, i; teleman=false, unsafe=unsafe) for i in 1:n_vertices(M.Q)]
+  ch = [chern_character(F) for F in U]
+  ch_dual = [adams(F, -1) for F in U]
+  CH = chow_ring(M)
+  chT = CH(1)
+  chT += sum(ch_dual[i] * ch[j] for (i, j) in arrows(M.Q); init=CH(0))
+  chT -= sum(ch_dual[i] * ch[i] for i in 1:n_vertices(M.Q); init=CH(0))
+  return Bundle(M, chT)
+end
+
 ##############################
 # Operations on Bundle objects
 ##############################
