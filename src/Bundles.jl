@@ -845,6 +845,54 @@ function degree(F::Bundle; unsafe::Bool=false)
     end
   end
 
-  pt = point_class(M; unsafe=unsafe)
-  return div(__homogeneous_components(M, out; unsafe=unsafe)[n + 1], pt)
+  return integral(M, out; unsafe=unsafe)
+end
+
+function _format_chern_monomial(partition::AbstractVector{Int})
+  isempty(partition) && return "1"
+  pieces = map(unique(partition)) do k
+    m = count(==(k), partition)
+    m == 1 ? "c_$k" : "c_$k^$m"
+  end
+  return join(pieces, " ")
+end
+
+"""
+    chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false)
+
+Compute the Chern numbers of the tangent bundle of the quiver moduli space `M`,
+i.e. all top intersection products
+``\\int_M c_{i_1}(T_M) \\cdots c_{i_k}(T_M)``,
+indexed by partitions of `dimension(M)`.
+
+Returns a `Dict{String,Int}` whose keys describe each monomial in the Chern
+classes and whose values are the corresponding Chern numbers.
+
+# Example
+
+The Chern numbers of `P^3`, realized as the moduli space of the
+generalized Kronecker quiver with 4 arrows and dimension vector `(1, 1)`:
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(4), [1, 1]); chow_ring(M);
+
+julia> cn = chern_numbers(M);
+
+julia> cn["c_1^3"], cn["c_2 c_1"], cn["c_3"]
+(64, 24, 4)
+```
+"""
+function chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false)
+  T = tangent_bundle(M; unsafe=unsafe)
+  c = chern_classes(T)
+  n = dimension(M)
+  CH = chow_ring(M)
+  return Dict{String,Int}(
+    _format_chern_monomial(partition) => Int(
+      Singular.numerator(
+        integral(M, prod(c[k] for k in partition; init=CH(1)); unsafe=unsafe)
+      ),
+    )
+    for partition in partitions(n)
+  )
 end

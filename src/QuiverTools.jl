@@ -83,8 +83,8 @@ export teleman_bounds, weights_hn_type, weights_universal_bundle, weights_canoni
 
 # Bundles
 export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
-  det, line_bundle, canonical_bundle, universal_bundle, degree, rank, teleman_weights,
-  structure_sheaf
+  det, line_bundle, canonical_bundle, universal_bundle, tangent_bundle, chern_numbers,
+  degree, rank, teleman_weights, structure_sheaf
 
 # Walls and Chambers
 export rays, is_special_subdimension_vector, all_special_subdimension_vectors, sst,
