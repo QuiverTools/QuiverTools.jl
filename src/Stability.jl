@@ -624,10 +624,10 @@ function is_hn_type(
   return true
 end
 is_hn_type(Q::Quiver,
-d::AbstractVector{Int},
-dstar::Vector{<:AbstractVector{Int}};
-theta::AbstractVector{Int}=canonical_stability(Q, d),
-denom::Function=sum
+  d::AbstractVector{Int},
+  dstar::Vector{<:AbstractVector{Int}};
+  theta::AbstractVector{Int}=canonical_stability(Q, d),
+  denom::Function=sum,
 ) = is_hn_type(Q, d, HNType(dstar), theta, denom)
 
 """
@@ -672,9 +672,10 @@ function codimension_hn_stratum(Q::Quiver, stratum::HNType)
     for j in (i + 1):length(stratum); init=0
   )
 end
-codimension_hn_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}}) = codimension_hn_stratum(
-  Q, HNType(stratum)
-)
+codimension_hn_stratum(Q::Quiver, stratum::Vector{<:AbstractVector{Int}}) =
+  codimension_hn_stratum(
+    Q, HNType(stratum)
+  )
 
 """
     is_amply_stable(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum)
