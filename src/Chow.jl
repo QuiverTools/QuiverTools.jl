@@ -709,7 +709,7 @@ function todd_class(
 
   quot = div(proj(num), proj(den))
   quot = __simplify(quot)
-  setfield!(M.chow, :todd, A(quot))
+  setfield!(M.chow, :todd, quot)
   return M.chow.todd
 end
 

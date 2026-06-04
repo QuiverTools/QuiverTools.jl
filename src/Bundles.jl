@@ -324,10 +324,9 @@ function exterior_power(F::Bundle, k::Int)
   new = Bundle()
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, binomial(rank(F), k))
-  CH = chow_ring(F)
 
   _has_chern_data(F) &&
-    setfield!(new, :chern_character, __simplify(CH(_chern_characters_wedge(F, k)[end])))
+    setfield!(new, :chern_character, __simplify(_chern_characters_wedge(F, k)[end]))
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
       hn_type =>
@@ -392,11 +391,10 @@ function symmetric_power(F::Bundle, k::Int)
   new = Bundle()
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, binomial(rank(F) + k - 1, rank(F) - 1))
-  CH = chow_ring(F)
 
   _has_chern_data(F) &&
     setfield!(
-      new, :chern_character, __simplify(CH(_chern_characters_symmetric(F, k)[end]))
+      new, :chern_character, __simplify(_chern_characters_symmetric(F, k)[end])
     )
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
@@ -423,10 +421,10 @@ Compute the exterior powers of `F` up to degree `k`.
 For internal use only.
 """
 function _chern_characters_wedge(F::Bundle, k)
-  k == 0 && return [1]
+  CH = chow_ring(F)
+  k == 0 && return [CH(1)]
   x = chern_character(F)
   M = variety(F)
-  CH = chow_ring(F)
   n = dimension(M)
 
   # init as CH(0) for type stability
@@ -453,11 +451,11 @@ Compute the symmetric powers of `F` up to degree `k`.
 For internal use only.
 """
 function _chern_characters_symmetric(F::Bundle, k)
-  k == 0 && return [1]
+  CH = chow_ring(F)
+  k == 0 && return [CH(1)]
   x = chern_character(F)
   M = variety(F)
   n = dimension(M)
-  CH = chow_ring(F)
   r = rank(F)
 
   wedges = _chern_characters_wedge(F, r)
@@ -788,7 +786,7 @@ julia> omega = map(canonical_bundle, Pn);
 julia> omega = map(dual, omega);
 
 julia> map(degree, omega)
-5-element Vector{Singular.spoly{Singular.n_Q}}:
+5-element Vector{Singular.n_Q}:
  2
  9
  64
