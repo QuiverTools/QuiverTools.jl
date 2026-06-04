@@ -69,7 +69,7 @@ end;
 
   # 3vertexquiver-3-5-7-canonical.txt
   expected = "" #has to be initialised outside of the open file
-  open("3vertexquiver-3-5-7-canonical.txt", "r") do file
+  open(joinpath(@__DIR__, "3vertexquiver-3-5-7-canonical.txt"), "r") do file
     expected = readline(file)
   end
 
