@@ -10,19 +10,15 @@ using Combinatorics
 using StaticArrays
 
 using Singular: Singular
-using Oscar: Oscar
 
-import Oscar:
-  Polyhedron, polyhedron, polyhedral_fan, positive_hull, affine_hull, convex_hull,
-  minkowski_sum, rays, facets, dim
 import Base:
   show, ==, hash, convert, getindex, setindex!, length, iterate, keys, haskey, *, +, -, ^
 import Memoization: @memoize, empty_all_caches!, empty_cache!
 import IterTools: subsets
 import LinearAlgebraX: rankx
 import Combinatorics: combinations, with_replacement_combinations, partitions, permutations
-import Singular: polynomial_ring, degree, coeff, constant_coefficient, AlgebraHomomorphism,
-  preimage, Ideal, quotient_ideal, QuotientRing, fraction_field, std, gens, base_ring
+import Singular: polynomial_ring, degree, coeff, constant_coefficient,
+  preimage, quotient_ideal, fraction_field, std, gens, base_ring
 
 # optional dependencies
 
