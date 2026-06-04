@@ -26,6 +26,7 @@ todd_class
 chern_class_line_bundle
 chern_character_line_bundle
 integral
+euler_characteristic
 ```
 
 ## Bundle objects

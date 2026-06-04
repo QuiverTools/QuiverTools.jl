@@ -70,7 +70,8 @@ export hodge_diamond, hodge_polynomial, picard_rank, index, betti_numbers
 export chow_ring, motive, index, betti_numbers, poincare_polynomial, is_smooth,
   is_projective,
   semisimple_moduli_space, point_class, todd_class, chern_class_line_bundle,
-  chern_character_line_bundle, total_chern_class_universal, integral
+  chern_character_line_bundle, total_chern_class_universal,
+  integral, euler_characteristic
 
 # Teleman
 export teleman_bounds, weights_hn_type, weights_universal_bundle, weights_canonical_bundle,
@@ -79,8 +80,8 @@ export teleman_bounds, weights_hn_type, weights_universal_bundle, weights_canoni
 
 # Bundles
 export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
-  det, line_bundle, canonical_bundle, universal_bundle, degree, rank, teleman_weights,
-  structure_sheaf
+  det, line_bundle, canonical_bundle, universal_bundle, tangent_bundle, chern_numbers,
+  degree, rank, teleman_weights, structure_sheaf
 
 # Walls and Chambers
 export rays, is_special_subdimension_vector, all_special_subdimension_vectors, sst,
@@ -128,6 +129,11 @@ end
 #######################################################
 # Include all the submodules
 #######################################################
+
+# Disambiguate between Singular's and Oscar's overloads of
+# `(::PolyRing)(::spoly)`, which collide once both packages are loaded.
+(R::Singular.PolyRing)(f::Singular.spoly) =
+  invoke(R, Tuple{Union{Singular.spoly,Oscar.AbstractAlgebra.MPolyRingElem}}, f)
 
 include("Types.jl")
 include("Quivers.jl")

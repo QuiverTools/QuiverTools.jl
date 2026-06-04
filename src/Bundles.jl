@@ -81,6 +81,41 @@ function zero_sheaf(M::QuiverModuliSpace)
   return new
 end
 
+"""
+    tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
+
+Compute the tangent bundle of the quiver moduli space `M`.
+
+Uses the identity
+``[\\mathrm{T}_M] = \\sum_{a: i \\to j} [U_i^\\vee \\otimes U_j] - \\sum_i [U_i^\\vee \\otimes U_i] + [\\mathcal{O}_M]``
+in the Grothendieck group of `M`.
+
+# Example
+
+The tangent bundle of `P^3`, realized as the moduli space of the
+generalized Kronecker quiver with 4 arrows and dimension vector `(1, 1)`:
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(4), [1, 1]); chow_ring(M);
+
+julia> T = tangent_bundle(M)
+Bundle of rank 3
+
+julia> chern_class(T, 1)
+-4*x11
+```
+"""
+function tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
+  U = [universal_bundle(M, i; teleman=false, unsafe=unsafe) for i in 1:n_vertices(M.Q)]
+  ch = [chern_character(F) for F in U]
+  ch_dual = [adams(F, -1) for F in U]
+  CH = chow_ring(M)
+  chT = CH(1)
+  chT += sum(ch_dual[i] * ch[j] for (i, j) in arrows(M.Q); init=CH(0))
+  chT -= sum(ch_dual[i] * ch[i] for i in 1:n_vertices(M.Q); init=CH(0))
+  return Bundle(M, chT)
+end
+
 ##############################
 # Operations on Bundle objects
 ##############################
@@ -289,10 +324,9 @@ function exterior_power(F::Bundle, k::Int)
   new = Bundle()
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, binomial(rank(F), k))
-  CH = chow_ring(F)
 
   _has_chern_data(F) &&
-    setfield!(new, :chern_character, __simplify(CH(_chern_characters_wedge(F, k)[end])))
+    setfield!(new, :chern_character, __simplify(_chern_characters_wedge(F, k)[end]))
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
       hn_type =>
@@ -357,11 +391,10 @@ function symmetric_power(F::Bundle, k::Int)
   new = Bundle()
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, binomial(rank(F) + k - 1, rank(F) - 1))
-  CH = chow_ring(F)
 
   _has_chern_data(F) &&
     setfield!(
-      new, :chern_character, __simplify(CH(_chern_characters_symmetric(F, k)[end]))
+      new, :chern_character, __simplify(_chern_characters_symmetric(F, k)[end])
     )
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
@@ -388,10 +421,10 @@ Compute the exterior powers of `F` up to degree `k`.
 For internal use only.
 """
 function _chern_characters_wedge(F::Bundle, k)
-  k == 0 && return [1]
+  CH = chow_ring(F)
+  k == 0 && return [CH(1)]
   x = chern_character(F)
   M = variety(F)
-  CH = chow_ring(F)
   n = dimension(M)
 
   # init as CH(0) for type stability
@@ -418,11 +451,11 @@ Compute the symmetric powers of `F` up to degree `k`.
 For internal use only.
 """
 function _chern_characters_symmetric(F::Bundle, k)
-  k == 0 && return [1]
+  CH = chow_ring(F)
+  k == 0 && return [CH(1)]
   x = chern_character(F)
   M = variety(F)
   n = dimension(M)
-  CH = chow_ring(F)
   r = rank(F)
 
   wedges = _chern_characters_wedge(F, r)
@@ -753,7 +786,7 @@ julia> omega = map(canonical_bundle, Pn);
 julia> omega = map(dual, omega);
 
 julia> map(degree, omega)
-5-element Vector{Singular.spoly{Singular.n_Q}}:
+5-element Vector{Singular.n_Q}:
  2
  9
  64
@@ -810,6 +843,54 @@ function degree(F::Bundle; unsafe::Bool=false)
     end
   end
 
-  pt = point_class(M; unsafe=unsafe)
-  return div(__homogeneous_components(M, out; unsafe=unsafe)[n + 1], pt)
+  return integral(M, out; unsafe=unsafe)
+end
+
+function _format_chern_monomial(partition::AbstractVector{Int})
+  isempty(partition) && return "1"
+  pieces = map(unique(partition)) do k
+    m = count(==(k), partition)
+    m == 1 ? "c_$k" : "c_$k^$m"
+  end
+  return join(pieces, " ")
+end
+
+"""
+    chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false)
+
+Compute the Chern numbers of the tangent bundle of the quiver moduli space `M`,
+i.e. all top intersection products
+``\\int_M c_{i_1}(T_M) \\cdots c_{i_k}(T_M)``,
+indexed by partitions of `dimension(M)`.
+
+Returns a `Dict{String,Int}` whose keys describe each monomial in the Chern
+classes and whose values are the corresponding Chern numbers.
+
+# Example
+
+The Chern numbers of `P^3`, realized as the moduli space of the
+generalized Kronecker quiver with 4 arrows and dimension vector `(1, 1)`:
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(4), [1, 1]); chow_ring(M);
+
+julia> cn = chern_numbers(M);
+
+julia> cn["c_1^3"], cn["c_2 c_1"], cn["c_3"]
+(64, 24, 4)
+```
+"""
+function chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false)
+  T = tangent_bundle(M; unsafe=unsafe)
+  c = chern_classes(T)
+  n = dimension(M)
+  CH = chow_ring(M)
+  return Dict{String,Int}(
+    _format_chern_monomial(partition) => Int(
+      Singular.numerator(
+        integral(M, prod(c[k] for k in partition; init=CH(1)); unsafe=unsafe)
+      ),
+    )
+    for partition in partitions(n)
+  )
 end

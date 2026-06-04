@@ -711,37 +711,55 @@ function todd_class(
 
   quot = div(proj(num), proj(den))
   quot = __simplify(quot)
-  setfield!(M.chow, :todd, A(quot))
+  setfield!(M.chow, :todd, quot)
   return M.chow.todd
 end
 
 """
-    integral(M::QuiverModuliSpace, f)
+    integral(M::QuiverModuliSpace, x; unsafe::Bool=false)
 
-Computes the integral of `f` according to the Hirzebruch-Riemann-Roch theorem.
-
-In other words, it computes the Euler characteristic of the vector bundle
-whose Chern character is `f`.
-
-# Input
-
-- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `f`: the Chern character in to integrate.
-
-# Output
-
-- the integral of `f`.
+Integrate a Chow class `x` over the fundamental class of `M`,
+i.e. return the coefficient of the point class in the top-degree component
+of `x`.
 
 # Examples
 
-The integral of ``\\mathcal{O}(i)`` on the projective line for some `i`s.
+The class of a hyperplane in `P^3` integrates to its degree:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(4), [1, 1]); chow_ring(M);
+
+julia> H = chern_class_line_bundle(M, [1, -1]);
+
+julia> integral(M, H^3)
+1
+```
+"""
+function integral(M::QuiverModuliSpace, x; unsafe::Bool=false)
+  n = dimension(M)
+  top = Singular.div(
+    __homogeneous_components(M, x; unsafe=unsafe)[n + 1],
+    point_class(M; unsafe=unsafe),
+  )
+  return Singular.constant_coefficient(top)
+end
+
+"""
+    euler_characteristic(M::QuiverModuliSpace, f)
+    euler_characteristic(F::Bundle)
+
+Compute the Euler characteristic of the vector bundle whose Chern character is `f`
+(resp. of the bundle `F`), via the Hirzebruch-Riemann-Roch theorem.
+
+# Examples
+
+The Euler characteristic of ``\\mathcal{O}(i)`` on the projective line:
 
 ```jldoctest
 julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
 julia> L = chern_character_line_bundle(M, [1, -1]);
 
-julia> [integral(M, L^i) for i in 0:5]
+julia> [euler_characteristic(M, L^i) for i in 0:5]
 6-element Vector{Singular.n_Q}:
  1
  2
@@ -758,7 +776,7 @@ julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> L = chern_character_line_bundle(M, [3, -2]);
 
-julia> [integral(M, L^i) for i in 0:5]
+julia> [euler_characteristic(M, L^i) for i in 0:5]
 6-element Vector{Singular.n_Q}:
  1
  20
@@ -775,18 +793,13 @@ julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> U1 = universal_bundle(M, 1);
 
-julia> integral(U1)
+julia> euler_characteristic(U1)
 0
 ```
 """
-function integral(M::QuiverModuliSpace, f)
-  n = dimension(M)
-  integ = div(__homogeneous_components(M, f * todd_class(M))[n + 1], point_class(M))
-  return Singular.constant_coefficient(integ)
-end
-
-integral(F::Bundle) = integral(variety(F), chern_character(F))
-chi(F::Bundle) = integral(F::Bundle)
+euler_characteristic(M::QuiverModuliSpace, f) = integral(M, f * todd_class(M))
+euler_characteristic(F::Bundle) = euler_characteristic(variety(F), chern_character(F))
+chi(F::Bundle) = euler_characteristic(F)
 
 """
 Takes a quotient ring R/I and returns the projection map from R to R/I.

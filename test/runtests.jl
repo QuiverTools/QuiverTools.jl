@@ -24,6 +24,42 @@ doctest(QuiverTools; manual=false, testset="Doctests")
   @test has_semistables(Q, [0, 3], [1, 0]) == true
 end;
 
+@testset "Chern numbers: 3-Kronecker, d = (2, 3)" begin
+  M = QuiverModuliSpace(kronecker_quiver(3), [2, 3])
+  chow_ring(M)
+  cn = chern_numbers(M)
+
+  @test cn == Dict(
+    "c_1^6" => 41553,
+    "c_2 c_1^4" => 21141,
+    "c_2^2 c_1^2" => 10827,
+    "c_2^3" => 5569,
+    "c_3 c_1^3" => 6561,
+    "c_3 c_2 c_1" => 3357,
+    "c_3^2" => 1041,
+    "c_4 c_1^2" => 1269,
+    "c_4 c_2" => 643,
+    "c_5 c_1" => 153,
+    "c_6" => 13,
+  )
+end;
+
+@testset "Chern numbers: 7-subspace quiver, d = (1,1,1,1,1,1,1,2)" begin
+  Q = subspace_quiver(7)
+  d = [1, 1, 1, 1, 1, 1, 1, 2]
+  M = QuiverModuliSpace(Q, d)
+  chow_ring(M)
+  cn = chern_numbers(M; unsafe=true)
+
+  @test cn == Dict(
+    "c_1^4" => 154,
+    "c_2 c_1^2" => 112,
+    "c_2^2" => 136,
+    "c_3 c_1" => 56,
+    "c_4" => 38,
+  )
+end;
+
 @testset "HN types" begin
   # all_HN_types()
 
@@ -33,7 +69,7 @@ end;
 
   # 3vertexquiver-3-5-7-canonical.txt
   expected = "" #has to be initialised outside of the open file
-  open("3vertexquiver-3-5-7-canonical.txt", "r") do file
+  open(joinpath(@__DIR__, "3vertexquiver-3-5-7-canonical.txt"), "r") do file
     expected = readline(file)
   end
 
