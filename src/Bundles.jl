@@ -494,7 +494,7 @@ function _chern_classes_from_character(F::Bundle)
   M = variety(F)
   n = dimension(M)
   comps = __homogeneous_components(M, chern_character(F))
-  p = [(CH(-1))^i * CH(factorial(i)) * comps[i + 1] for i in 0:n]
+  p = [(CH(-1))^i * CH(factorial(big(i))) * comps[i + 1] for i in 0:n]
   e = [CH(0) for _ in 1:(n + 1)]
   e[1] = CH(1)
   for i in 1:n
@@ -514,7 +514,7 @@ function _chern_character_from_classes(F::Bundle)
   for i in 1:(n - 1)
     p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i)
   end
-  return __simplify(sum(CH((-1)^i//factorial(i)) * p[i] for i in 1:n) + rank(F))
+  return __simplify(sum(CH((-1)^i//factorial(big(i))) * p[i] for i in 1:n) + rank(F))
 end
 
 """
@@ -1016,6 +1016,50 @@ julia> cn["c_1^3"], cn["c_2 c_1"], cn["c_3"]
 
 julia> cn["c_1(U_1)^3"]
 -1
+```
+
+The Chern numbers of our favourite 6-fold:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
+
+julia> cn = chern_numbers(M);
+
+julia> @assert cn == Dict(
+        "c_1^6" => 41553,
+        "c_2 c_1^4" => 21141,
+        "c_2^2 c_1^2" => 10827,
+        "c_2^3" => 5569,
+        "c_3 c_1^3" => 6561,
+        "c_3 c_2 c_1" => 3357,
+        "c_3^2" => 1041,
+        "c_4 c_1^2" => 1269,
+        "c_4 c_2" => 643,
+        "c_5 c_1" => 153,
+        "c_6" => 13,
+       )
+
+```
+
+The `unsafe` keyword argument speeds up computations,
+skipping checks for ample stability and existence
+of properly semistable representations.
+We showcase its use in the Chern numbers
+of the 7-subspace quiver moduli space:
+
+```jldoctest
+julia> Q = subspace_quiver(7); d = push!(ones(Int, 7), 2);
+
+julia> M = QuiverModuliSpace(Q, d);
+
+julia> cn = chern_numbers(M; unsafe=true);
+
+julia> @assert cn == Dict("c_1^4" => 154,
+         "c_2 c_1^2" => 112,
+         "c_2^2" => 136,
+         "c_3 c_1" => 56,
+         "c_4" => 38,
+       )
+
 ```
 """
 function chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false, universal::Bool=false)

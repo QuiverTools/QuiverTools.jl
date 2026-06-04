@@ -282,7 +282,7 @@ function chow_ring(
   end
   verbose && @info "there are $(length(targets)) targets"
 
-  inclusion = AlgebraHomomorphism(A, R, targets)
+  inclusion = Singular.AlgebraHomomorphism(A, R, targets)
   verbose && @info "the inclusion map is built"
 
   anti = Singular.spoly{Singular.n_Q}[]
@@ -299,13 +299,15 @@ function chow_ring(
   verbose && @info "there are $(length(anti)) antisymmetrized forbidden polynomials"
 
   tautological = Singular.spoly{Singular.n_Q}[
-    gens(preimage(inclusion, Ideal(R, g)))[1] for g in anti
+    gens(preimage(inclusion, Singular.Ideal(R, g)))[1] for g in anti
   ]
   verbose && @info "there are $(length(tautological)) tautological polynomials"
 
   linear = Singular.spoly{Singular.n_Q}[sum(chi[i] * xs(i, 1) for i in support(d))]
 
-  return (QuotientRing(A, std(Ideal(A, [tautological; linear]))), R, inclusion)
+  return (
+    Singular.QuotientRing(A, std(Singular.Ideal(A, [tautological; linear]))), R, inclusion
+  )
 end
 
 """
@@ -608,12 +610,12 @@ function point_class(
   for i in 1:n_vertices(M.Q)
     c = total_chern_class_universal(M, i; unsafe=unsafe)
     for _ in 1:M.d[i]
-      num = Oscar.Singular.div(num, c)
+      num = Singular.div(num, c)
     end
   end
 
   pt = CH(0)
-  for term in Oscar.Singular.terms(num)
+  for term in Singular.terms(num)
     if __chow_ring_monomial_grading(M, term) == N
       Oscar.add!(pt, pt, term)
     end
@@ -699,8 +701,8 @@ function todd_class(
   # this is because Singular does not have a method to get the preimage
   # of a given element, only ideals.
   # In Singular's implementation this does not result in a loss of time anyways...
-  num = gens(preimage(inclusion, Ideal(R, num)))[1]
-  den = gens(preimage(inclusion, Ideal(R, den)))[1]
+  num = gens(preimage(inclusion, Singular.Ideal(R, num)))[1]
+  den = gens(preimage(inclusion, Singular.Ideal(R, den)))[1]
 
   # renormalizing the constant term because it should be 1,
   #  but Singular does not keep it fixed.
@@ -806,7 +808,7 @@ For internal use only.
 function __projection_to_quotient_ring(A)
   I = quotient_ideal(A)
   R = base_ring(I)
-  return AlgebraHomomorphism(R, A, gens(A))
+  return Singular.AlgebraHomomorphism(R, A, gens(A))
 end
 
 """

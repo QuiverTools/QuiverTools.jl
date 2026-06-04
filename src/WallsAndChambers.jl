@@ -37,18 +37,18 @@ function is_special_subdimension_vector(
     all_general_subdimension_vectors(Q, d - e),
   )
 
-  cone = polyhedron(
+  cone = Oscar.polyhedron(
     vcat(eprimes, [e + f for f in fprimes]),
     zeros(Int, length(eprimes) + length(fprimes)),
   )
   cone = intersect(cone, sst(Q, d))
 
   return !any(
-    issubset(cone, polyhedron([eprime, -eprime], [0, 0]))
+    issubset(cone, Oscar.polyhedron([eprime, -eprime], [0, 0]))
     for eprime in eprimes
   ) &&
          !any(
-    issubset(cone, polyhedron([e + f, - (e + f)], [0, 0]))
+    issubset(cone, Oscar.polyhedron([e + f, - (e + f)], [0, 0]))
     for f in fprimes if f != d - e # this would check if cone ⋐ d^⟂, which is true of course
   )
 end
@@ -79,15 +79,15 @@ julia> length(all_special_subdimension_vectors(Q, d))
 end
 
 """
-    __helper_accelerate(P::Polyhedron)
+    __helper_accelerate(P::Oscar.Polyhedron)
 
 Internal method.
 
 Convert the polyhedron `P` to be spanned by its rays.
 Only works for strongly convex polyhedra.
 """
-function __helper_accelerate(P::Polyhedron)
-  newP = polyhedron(positive_hull(rays(P)))
+function __helper_accelerate(P::Oscar.Polyhedron)
+  newP = Oscar.polyhedron(Oscar.positive_hull(Oscar.rays(P)))
   newP != P && return P
   return newP
 end
@@ -105,7 +105,7 @@ of the quiver `Q` with dimension vector `e` exist.
 ```jldoctests
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
-julia> collect(rays(sst(Q, d)))
+julia> collect(QuiverTools.Oscar.rays(sst(Q, d)))
 3-element Vector{Oscar.RayVector{Nemo.QQFieldElem}}:
  [0, 0, 1, -1]
  [0, 1, -1, 0]
@@ -113,13 +113,13 @@ julia> collect(rays(sst(Q, d)))
 ```
 """
 @memoize Dict function sst(Q, e)
-  e_perp = polyhedron([e, -e], [0, 0]) #e^{\perp}
+  e_perp = Oscar.polyhedron([e, -e], [0, 0]) #e^{\perp}
   all_gen = filter(
     eprime -> !all(ei == 0 for ei in eprime) && eprime != e,
     all_general_subdimension_vectors(Q, e),
   )
   isempty(all_gen) && return e_perp
-  return intersect(e_perp, polyhedron(all_gen, zeros(Int, length(all_gen))))
+  return intersect(e_perp, Oscar.polyhedron(all_gen, zeros(Int, length(all_gen))))
 end
 
 """
@@ -154,9 +154,11 @@ julia> map(QuiverTools.Oscar.dim, walls)
   out = map(
     e -> reduce(intersect, [sst(Q, e), sst(Q, d - e), sst(Q, d)]), # definition of W_{e}
     all_subd)
-  top_dim = maximum(dim(w) for w in out) # max dimension of WALLS
-  top_dimension && filter!(w -> dim(w) == top_dim, out)
-  inner && filter!(w -> !any(issubset(w, f) for f in facets(Polyhedron, sst(Q, d))), out)
+  top_dim = maximum(Oscar.dim(w) for w in out) # max dimension of WALLS
+  top_dimension && filter!(w -> Oscar.dim(w) == top_dim, out)
+  inner && filter!(
+    w -> !any(issubset(w, f) for f in Oscar.facets(Oscar.Polyhedron, sst(Q, d))), out
+  )
   return unique!(__helper_accelerate, out)
 end
 
@@ -176,13 +178,13 @@ function wall_system(Q, d; inner=false, as_cones=true)
   all_walls = vgit_walls(Q, d; top_dimension=true)
   if inner
     all_walls = filter(
-      w -> !any(issubset(w, f) for f in facets(Polyhedron, sstd)), all_walls
+      w -> !any(issubset(w, f) for f in Oscar.facets(Oscar.Polyhedron, sstd)), all_walls
     )
   end
   # each affine hull contains the defining hyperplanes that cut it out.
-  all_walls = map(w -> affine_hull(w), all_walls)
+  all_walls = map(w -> Oscar.affine_hull(w), all_walls)
   all_walls = map(
-    AH -> polyhedron(
+    AH -> Oscar.polyhedron(
       vcat([hyp.a[1, :] for hyp in AH], [-hyp.a[1, :] for hyp in AH]),
       zeros(Int, 2 * length(AH)),
     ),
@@ -199,11 +201,11 @@ Compute all VGIT chambers for the quiver `Q` with dimension vector `d`.
 
 VGIT chambers are the top-dimensional equivalence classes in the VGIT problem;
 if stable representations exist,
-then the VGIT chambers have dimension equal to `dim(sst(Q, d))`
+then the VGIT chambers have dimension equal to `Oscar.dim(sst(Q, d))`
 and are defined by the walls `W_e` of codimension 1.
 
 If there exit no stable representations,
-`dim(sst(Q, d))` is strictly smaller than `length(d) - 1`.
+`Oscar.dim(sst(Q, d))` is strictly smaller than `length(d) - 1`.
 
 # Example
 
@@ -213,7 +215,7 @@ than the corresponding `H_e \\cap sst(d)` in the wall system.
 ```jldoctests
 julia> Q = Quiver("1-2,2-3,3-4,1-4"); d = [1, 1, 1, 1];
 
-julia> map(rays, vgit_chambers(Q, d; verbose=false))
+julia> map(QuiverTools.Oscar.rays, vgit_chambers(Q, d; verbose=false))
 3-element Vector{Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}}:
  [[1, -1, 0, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
  [[0, 1, -1, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
@@ -226,7 +228,7 @@ hyperplane and the two others are not.
 ```jldoctests
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
-julia> map(rays, vgit_chambers(Q, d; verbose=false))
+julia> map(QuiverTools.Oscar.rays, vgit_chambers(Q, d; verbose=false))
 4-element Vector{Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}}:
  [[1, -1, 0, 0], [1, 0, 0, -1], [1, 0, -1, 0]]
  [[1, -1, 0, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
@@ -237,12 +239,14 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
 @memoize Dict function vgit_chambers(Q, d; verbose=false)
   sstd = __helper_accelerate(sst(Q, d))
 
-  sstd_dim = dim(sstd)
+  sstd_dim = Oscar.dim(sstd)
   # top-dimensional inner walls
   int_walls = vgit_walls(Q, d; top_dimension=true)
-  int_walls = filter(w -> !any(issubset(w, f) for f in facets(Polyhedron, sstd)), int_walls)
+  int_walls = filter(
+    w -> !any(issubset(w, f) for f in Oscar.facets(Oscar.Polyhedron, sstd)), int_walls
+  )
 
-  # @warn "we must treat the case of a wall W_e of dimension = dim(sstd) here!"
+  # @warn "we must treat the case of a wall W_e of dimension = Oscar.dim(sstd) here!"
 
   # we split the walls into two sets: the ones equal to the wall system hyperplane
   # they lay on, and the ones that are not.
@@ -251,8 +255,8 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
   full_walls = filter(w -> w in wallsyst, int_walls)
   smaller_walls = filter(w -> !(w in wallsyst), int_walls)
 
-  full_walls = map(w -> affine_hull(w), full_walls)
-  smaller_walls_ah = map(w -> affine_hull(w), smaller_walls)
+  full_walls = map(w -> Oscar.affine_hull(w), full_walls)
+  smaller_walls_ah = map(w -> Oscar.affine_hull(w), smaller_walls)
 
   # find a vector not equal to d that cuts out the wall
   full_walls = map(AH -> AH[findfirst(hyp -> (hyp.a[1, :] != d), AH)].a[1, :], full_walls)
@@ -268,8 +272,8 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
   # helper function
   function helper_split(wall, chamber)
     return [
-      intersect(chamber, polyhedron([wall], [0])),
-      intersect(chamber, polyhedron([-wall], [0])),
+      intersect(chamber, Oscar.polyhedron([wall], [0])),
+      intersect(chamber, Oscar.polyhedron([-wall], [0])),
     ]
   end
   verbose &&
@@ -289,7 +293,7 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
         deleteat!(top_chambers, 1:n)
 
         map!(__helper_accelerate, top_chambers, top_chambers)
-        filter!(c -> dim(c) == sstd_dim, top_chambers)
+        filter!(c -> Oscar.dim(c) == sstd_dim, top_chambers)
       end
     else
       # in-place
@@ -302,7 +306,7 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
       deleteat!(top_chambers, 1:n)
 
       map!(__helper_accelerate, top_chambers, top_chambers)
-      filter!(c -> dim(c) == sstd_dim, top_chambers)
+      filter!(c -> Oscar.dim(c) == sstd_dim, top_chambers)
     end
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
   end
@@ -324,7 +328,7 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
           )...,
         )
         map!(__helper_accelerate, top_chambers, top_chambers)
-        filter!(c -> dim(c) == length(d) - 1, top_chambers)
+        filter!(c -> Oscar.dim(c) == length(d) - 1, top_chambers)
       end
     else
       top_chambers = vcat(
@@ -338,7 +342,7 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
         )...,
       )
       map!(__helper_accelerate, top_chambers, top_chambers)
-      filter!(c -> dim(c) == sstd_dim, top_chambers)
+      filter!(c -> Oscar.dim(c) == sstd_dim, top_chambers)
     end
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
   end
@@ -352,13 +356,13 @@ julia> map(rays, vgit_chambers(Q, d; verbose=false))
     for (ch1, ch2) in IterTools.subsets(top_chambers, 2)
       inters = intersect(ch1, ch2)
       # we are looking for common facets
-      dim(inters) != sstd_dim - 1 && continue
+      Oscar.dim(inters) != sstd_dim - 1 && continue
       # if their intersection (the common facet) lays on a W_e, good.
       any(issubset(inters, w) for w in int_walls) && continue
       verbose && @info "Found a fake wall, removing it..."
       incomplete = true
       # otherwise, we replace the two chambers in top_chambers by their union
-      push!(top_chambers, minkowski_sum(ch1, ch2))
+      push!(top_chambers, Oscar.minkowski_sum(ch1, ch2))
       top_chambers = filter(ch -> (ch != ch1 && ch != ch2), top_chambers)
     end
   end
@@ -377,7 +381,7 @@ Compute the VGIT fan for the quiver `Q` with dimension vector `d`.
 ```jldoctests
 julia> Q = three_vertex_quiver(2, 3, 4); d = [2, 3, 4];
 
-julia> F = vgit_fan(Q, d); rays(F)
+julia> F = vgit_fan(Q, d); QuiverTools.Oscar.rays(F)
 9-element Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}:
  [1, -2//3, 0]
  [1, -1//2, -1//8]
@@ -391,8 +395,8 @@ julia> F = vgit_fan(Q, d); rays(F)
 ```
 """
 function vgit_fan(Q, d; verbose=false)
-  return polyhedral_fan(
-    map(ch -> positive_hull(rays(ch)),
+  return Oscar.polyhedral_fan(
+    map(ch -> Oscar.positive_hull(Oscar.rays(ch)),
       vgit_chambers(Q, d; verbose=verbose),
     ),
   )
@@ -412,7 +416,7 @@ either lying in a wall or not intersecting any of them.
 ```jldoctests
 julia> Q = three_vertex_quiver(2, 3, 4); d = [1, 2, 2];
 
-julia> F = vgit_fan(Q, d); rays(F)
+julia> F = vgit_fan(Q, d); QuiverTools.Oscar.rays(F)
 4-element Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}:
  [1, -1//2, 0]
  [1, 0, -1//2]

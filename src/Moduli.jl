@@ -336,6 +336,8 @@ julia> all_luna_types(X)
         for i in eachindex(luna_type[e])
           push!(luna_types, __add_and_return(luna_type, e, i))
         end
+        #TODO only run the next line if the support of e is not of finite type, or
+        # it is but there are enough representations still.
         push!(luna_types, __add_and_return_noniso(luna_type, e))
       else
         push!(luna_types, __add_and_return_new(luna_type, e))
@@ -379,6 +381,8 @@ end
 
 Returns a new Luna type obtained by adding a new copy
 of the subdimension vector `e` in the given Luna type.
+This assumes that there exists at least one more representation
+that is not isomorphic to the present one.
 
 Internal use only.
 """
