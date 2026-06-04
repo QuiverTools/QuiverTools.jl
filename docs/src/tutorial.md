@@ -454,13 +454,13 @@ julia> chern_class(ω)
 julia> degree(ω)
 41553
 
-julia> integral(ω)
+julia> euler_characteristic(ω)
 1
 
 julia> OO = structure_sheaf(M)
 Bundle of rank 1
 
-julia> integral(OO)
+julia> euler_characteristic(OO)
 1
 ```
 
@@ -553,7 +553,7 @@ The ample generator of the Picard group of `M`.
 ```julia-repl
 julia> L = Bundle(M, chern_character_line_bundle(M, [3, -2]));
 
-julia> map(i -> integral(L^i), 0:5)
+julia> map(i -> euler_characteristic(L^i), 0:5)
 6-element Vector{Singular.n_Q}:
  1
  20
