@@ -158,6 +158,18 @@ function dynkin_quiver(type::String, n::Int)
     if n == 6
       return Quiver(
         [
+          0 1 0 0 0 0
+          0 0 1 0 0 0
+          0 0 0 1 1 0
+          0 0 0 0 0 0
+          0 0 0 0 0 1
+          0 0 0 0 0 0
+        ],
+        "Dynkin quiver of type E6",
+      )
+    elseif n == 7
+      return Quiver(
+        [
           0 1 0 0 0 0 0
           0 0 1 0 0 0 0
           0 0 0 1 1 0 0
@@ -166,9 +178,9 @@ function dynkin_quiver(type::String, n::Int)
           0 0 0 0 0 0 1
           0 0 0 0 0 0 0
         ],
-        "Dynkin quiver of type E6",
+        "Dynkin quiver of type E7",
       )
-    elseif n == 7
+    elseif n == 8
       return Quiver(
         [
           0 1 0 0 0 0 0 0
@@ -180,7 +192,14 @@ function dynkin_quiver(type::String, n::Int)
           0 0 0 0 0 0 0 1
           0 0 0 0 0 0 0 0
         ],
-        "Dynkin quiver of type E7",
+        "Dynkin quiver of type E8",
+      )
+    end
+  else
+    throw(ArgumentError("$type is not a valid ADE Dynkin type."))
+  end
+end
+
       )
     elseif n == 8
       return Quiver(
