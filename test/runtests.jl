@@ -2,6 +2,9 @@ using Test, QuiverTools, Documenter
 using Pkg;
 Pkg.activate(@__DIR__)
 
+# Tests that have mathematical significance
+# should be in the documentation doctests.
+
 @info "Almost all the tests are in the documentation."
 
 DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools))
@@ -88,53 +91,3 @@ end;
 
   @test string(all_hn_types(Q, d, theta; ordered=true)) == expected
 end;
-
-# @testset "Testing weight handling" begin
-
-#     U = Bundle([1,2],2)
-#     V = Bundle([3,3,3],3)
-
-#     @test U ⊕ V == Bundle([1, 2, 3, 3, 3], 5)
-#     @test U ⊗ V == Bundle([4, 4, 4, 5, 5, 5], 6)
-#     @test U ⊠ V == Bundle([ [1, 3], [1, 3], [1, 3],
-#                             [2, 3], [2, 3], [2, 3]], 6)
-
-#     @test U - V == Bundle([1, 2, -3, -3, -3], 5)
-
-#     @test wedge(U,0) == Bundle([0], 1)
-#     @test wedge(U,1) == Bundle([1, 2], 2)
-#     @test wedge(U,2) == Bundle([3], 1)
-#     @test wedge(U,3) == Bundle(Int64[], 0)
-#     @test wedge(U ⊠ V,2) == Bundle([[2, 6], [2, 6], [3, 6],
-#                                     [3, 6], [3, 6], [2, 6],
-#                                     [3, 6], [3, 6], [3, 6],
-#                                     [3, 6], [3, 6], [3, 6],
-#                                     [4, 6], [4, 6], [4, 6]], 15)
-
-#     @test wedge(U ⊠ V,3) == Bundle([[3, 9], [4, 9], [4, 9],
-#                                     [4, 9], [4, 9], [4, 9],
-#                                     [4, 9], [5, 9], [5, 9],
-#                                     [5, 9], [4, 9], [4, 9],
-#                                     [4, 9], [5, 9], [5, 9],
-#                                     [5, 9], [5, 9], [5, 9],
-#                                     [5, 9], [6, 9]], 20)
-
-#     @test wedge(U ⊠ V,4) == Bundle([[5, 12], [5, 12], [5, 12],
-#                                     [6, 12], [6, 12], [6, 12],
-#                                     [6, 12], [6, 12], [6, 12],
-#                                     [7, 12], [6, 12], [6, 12],
-#                                     [6, 12], [7, 12], [7, 12]], 15)
-
-#     @test wedge(U ⊠ V,5) == Bundle([[7, 15], [7, 15], [7, 15],
-#                                     [8, 15], [8, 15], [8, 15]], 6)
-
-#     @test wedge(U ⊠ V,6) == Bundle([[9, 18]], 1)
-
-#     W = Bundle([1, 2, 3], 3);
-
-#     @test symm(W,0) == Bundle([0], 1)
-#     @test symm(W,1) == Bundle([1, 2, 3], 3)
-#     @test symm(W,2) == Bundle([2, 3, 4, 4, 5, 6], 6)
-#     @test symm(W,3) == Bundle([3, 4, 5, 5, 6, 7, 6, 7, 8, 9], 10)
-#     @test symm(W,4) == Bundle([4, 5, 6, 6, 7, 8, 7, 8, 9, 10, 8, 9, 10, 11, 12], 15)
-# end;
