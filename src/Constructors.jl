@@ -107,9 +107,31 @@ function subspace_quiver(m::Int)
   return Quiver(A, string(m) * "-subspace quiver")
 end
 
+# Split a Dynkin label like "A3" or "D10" into its letter type and integer rank.
+function _parse_dynkin_label(Tn::String)
+  m = match(r"^([A-Za-z]+)([0-9]+)$", Tn)
+  if isnothing(m)
+    throw(ArgumentError("$Tn is not a valid Dynkin label, e.g. \"A3\" or \"D10\"."))
+  end
+  return String(m.captures[1]), parse(Int, m.captures[2])
+end
+
+"""
+    dynkin_quiver(Tn::String)
+
+Construct the Dynkin quiver from a type string such as `"A3"` or `"D10"`.
+
+See `dynkin_quiver(type, n)` for details.
+
+# Examples
+
+```jldoctest
+julia> dynkin_quiver("D10")
+Dynkin quiver of type D10
+```
+"""
 function dynkin_quiver(Tn::String)
-  type = Tn[1:(end - 1)]
-  n = parse(Int, Tn[end])
+  type, n = _parse_dynkin_label(Tn)
   return dynkin_quiver(type, n)
 end
 
@@ -124,6 +146,12 @@ Construct the Dynkin quiver, with arbitrary orientation of the arrows.
 ```jldoctest
 julia> dynkin_quiver("D", 4)
 Dynkin quiver of type D4
+
+julia> dynkin_quiver("A", 1)
+Dynkin quiver of type A1
+
+julia> n_vertices(dynkin_quiver("E", 6))
+6
 ```
 """
 function dynkin_quiver(type::String, n::Int)
