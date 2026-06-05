@@ -77,6 +77,37 @@ function loop_quiver(m::Int)
 end
 
 """
+    jordan_quiver(m::Int=1)
+
+Construct the Jordan quiver, i.e. the quiver with one vertex and `m` loops.
+
+This is a synonym of `loop_quiver`: for `m = 1` it is the Jordan quiver,
+otherwise the generalized Jordan quiver with `m` loops.
+
+# Input
+
+- `m`: (Default = 1) The number of loops.
+
+# Output
+
+The quiver with one vertex and `m` loops.
+
+# Examples
+
+```jldoctest
+julia> jordan_quiver()
+Jordan quiver
+
+julia> jordan_quiver(3)
+generalized Jordan quiver with 3 loops
+```
+"""
+function jordan_quiver(m::Int=1)
+  name = m == 1 ? "Jordan quiver" : "generalized Jordan quiver with $m loops"
+  return Quiver(reshape([m], 1, 1), name)
+end
+
+"""
     subspace_quiver(m::Int)
 
 Construct the subspace quiver with `m + 1` vertices.
@@ -107,9 +138,89 @@ function subspace_quiver(m::Int)
   return Quiver(A, string(m) * "-subspace quiver")
 end
 
+"""
+    generalized_subspace_quiver(m::Int, K::AbstractVector{Int})
+
+Construct the generalized subspace quiver with `m + 1` vertices and `K[i]` arrows
+from the `i`-th source to the sink.
+
+# Input
+
+- `m`: The number of subspace-vertices (sources).
+- `K`: A vector of length `m`; `K[i]` is the number of arrows from source `i` to the sink.
+
+# Output
+
+The generalized subspace quiver with `m` sources and multiplicities `K`.
+
+# Examples
+
+```jldoctest
+julia> generalized_subspace_quiver(3, [1, 2, 3])
+a generalized 3-subspace quiver
+```
+"""
+function generalized_subspace_quiver(m::Int, K::AbstractVector{Int})
+  length(K) == m || throw(ArgumentError("K must have length m = $m"))
+  A = zeros(Int, m + 1, m + 1)
+  for i in 1:m
+    A[i, m + 1] = K[i]
+  end
+  return Quiver(A, "a generalized $m-subspace quiver")
+end
+
+"""
+    thickened_subspace_quiver(m::Int, k::Int)
+
+Construct the thickened subspace quiver with `m + 1` vertices and `k` arrows
+from each of the `m` sources to the sink.
+
+# Input
+
+- `m`: The number of subspace-vertices (sources).
+- `k`: The number of arrows from each source to the sink.
+
+# Output
+
+The thickened subspace quiver with `m` sources, each with `k` arrows to the sink.
+
+# Examples
+
+```jldoctest
+julia> thickened_subspace_quiver(3, 2)
+thickened subspace quiver with 3 sources and multiplicity 2
+```
+"""
+function thickened_subspace_quiver(m::Int, k::Int)
+  A = generalized_subspace_quiver(m, fill(k, m)).adjacency
+  return Quiver(A, "thickened subspace quiver with $m sources and multiplicity $k")
+end
+
+# Split a Dynkin label like "A3" or "D10" into its letter type and integer rank.
+function _parse_dynkin_label(Tn::String)
+  m = match(r"^([A-Za-z]+)([0-9]+)$", Tn)
+  if isnothing(m)
+    throw(ArgumentError("$Tn is not a valid Dynkin label, e.g. \"A3\" or \"D10\"."))
+  end
+  return String(m.captures[1]), parse(Int, m.captures[2])
+end
+
+"""
+    dynkin_quiver(Tn::String)
+
+Construct the Dynkin quiver from a type string such as `"A3"` or `"D10"`.
+
+See `dynkin_quiver(type, n)` for details.
+
+# Examples
+
+```jldoctest
+julia> dynkin_quiver("D10")
+Dynkin quiver of type D10
+```
+"""
 function dynkin_quiver(Tn::String)
-  type = Tn[1:(end - 1)]
-  n = parse(Int, Tn[end])
+  type, n = _parse_dynkin_label(Tn)
   return dynkin_quiver(type, n)
 end
 
@@ -124,6 +235,12 @@ Construct the Dynkin quiver, with arbitrary orientation of the arrows.
 ```jldoctest
 julia> dynkin_quiver("D", 4)
 Dynkin quiver of type D4
+
+julia> dynkin_quiver("A", 1)
+Dynkin quiver of type A1
+
+julia> n_vertices(dynkin_quiver("E", 6))
+6
 ```
 """
 function dynkin_quiver(type::String, n::Int)
@@ -131,15 +248,11 @@ function dynkin_quiver(type::String, n::Int)
     if !(n >= 1)
       throw(ArgumentError("$n is out of bounds for type $type."))
     end
-    if n == 1
-      return Quiver([[1]], "Dynkin quiver of type A1")
-    else
-      M = zeros(Int, n, n)
-      for i in 1:(n - 1)
-        M[i, i + 1] = 1
-      end
-      return Quiver(M, "Dynkin quiver of type A$n")
+    M = zeros(Int, n, n)
+    for i in 1:(n - 1)
+      M[i, i + 1] = 1
     end
+    return Quiver(M, "Dynkin quiver of type A$n")
   elseif type == "D"
     if !(n >= 3)
       throw(ArgumentError("$n is out of bounds for type $type."))
@@ -158,6 +271,18 @@ function dynkin_quiver(type::String, n::Int)
     if n == 6
       return Quiver(
         [
+          0 1 0 0 0 0
+          0 0 1 0 0 0
+          0 0 0 1 1 0
+          0 0 0 0 0 0
+          0 0 0 0 0 1
+          0 0 0 0 0 0
+        ],
+        "Dynkin quiver of type E6",
+      )
+    elseif n == 7
+      return Quiver(
+        [
           0 1 0 0 0 0 0
           0 0 1 0 0 0 0
           0 0 0 1 1 0 0
@@ -166,9 +291,9 @@ function dynkin_quiver(type::String, n::Int)
           0 0 0 0 0 0 1
           0 0 0 0 0 0 0
         ],
-        "Dynkin quiver of type E6",
+        "Dynkin quiver of type E7",
       )
-    elseif n == 7
+    elseif n == 8
       return Quiver(
         [
           0 1 0 0 0 0 0 0
@@ -180,21 +305,6 @@ function dynkin_quiver(type::String, n::Int)
           0 0 0 0 0 0 0 1
           0 0 0 0 0 0 0 0
         ],
-        "Dynkin quiver of type E7",
-      )
-    elseif n == 8
-      return Quiver(
-        [
-          0 1 0 0 0 0 0 0 0
-          0 0 1 0 0 0 0 0 0
-          0 0 0 1 1 0 0 0 0
-          0 0 0 0 0 0 0 0 0
-          0 0 0 0 0 1 0 0 0
-          0 0 0 0 0 0 1 0 0
-          0 0 0 0 0 0 0 1 0
-          0 0 0 0 0 0 0 0 1
-          0 0 0 0 0 0 0 0 0
-        ],
         "Dynkin quiver of type E8",
       )
     end
@@ -202,6 +312,124 @@ function dynkin_quiver(type::String, n::Int)
     throw(ArgumentError("$type is not a valid ADE Dynkin type."))
   end
 end
+
+"""
+    extended_dynkin_quiver(Tn::String)
+
+Construct the extended (affine) Dynkin quiver from a type string such as `"A3"` or `"D10"`.
+
+See `extended_dynkin_quiver(type, n)` for details.
+
+# Examples
+
+```jldoctest
+julia> extended_dynkin_quiver("D10")
+Extended Dynkin quiver of type D10
+```
+"""
+function extended_dynkin_quiver(Tn::String)
+  type, n = _parse_dynkin_label(Tn)
+  return extended_dynkin_quiver(type, n)
+end
+
+"""
+    extended_dynkin_quiver(type, n)
+
+Construct the extended (affine) Dynkin quiver of type `type` with `n + 1` vertices,
+oriented lexicographically (arrows go from lower- to higher-numbered vertices).
+
+Supported types are `"A"` (`n ≥ 1`), `"D"` (`n ≥ 4`) and `"E"` (`n ∈ {6, 7, 8}`).
+
+# Examples
+
+```jldoctest
+julia> extended_dynkin_quiver("A", 1) == kronecker_quiver()
+true
+
+julia> extended_dynkin_quiver("A", 2) == three_vertex_quiver(1, 1, 1)
+true
+
+julia> extended_dynkin_quiver("D", 4)
+Extended Dynkin quiver of type D4
+
+julia> n_vertices(extended_dynkin_quiver("E", 6))
+7
+```
+"""
+function extended_dynkin_quiver(type::String, n::Int)
+  if type == "A"
+    n >= 1 || throw(ArgumentError("$n is out of bounds for type $type."))
+    if n == 1
+      return Quiver([0 2; 0 0], "Extended Dynkin quiver of type A1")
+    end
+    M = zeros(Int, n + 1, n + 1)
+    for i in 1:n
+      M[i, i + 1] = 1
+    end
+    M[1, n + 1] = 1
+    return Quiver(M, "Extended Dynkin quiver of type A$n")
+  elseif type == "D"
+    n >= 4 || throw(ArgumentError("$n is out of bounds for type $type."))
+    M = zeros(Int, n + 1, n + 1)
+    M[1, 3] = 1
+    M[2, 3] = 1
+    for i in 3:(n - 2)
+      M[i, i + 1] = 1
+    end
+    M[n - 1, n] = 1
+    M[n - 1, n + 1] = 1
+    return Quiver(M, "Extended Dynkin quiver of type D$n")
+  elseif type == "E"
+    if n == 6
+      return Quiver(
+        [
+          0 1 0 0 0 0 0
+          0 0 1 0 0 0 0
+          0 0 0 1 0 1 0
+          0 0 0 0 1 0 0
+          0 0 0 0 0 0 0
+          0 0 0 0 0 0 1
+          0 0 0 0 0 0 0
+        ],
+        "Extended Dynkin quiver of type E6",
+      )
+    elseif n == 7
+      return Quiver(
+        [
+          0 1 0 0 0 0 0 0
+          0 0 1 0 0 0 0 0
+          0 0 0 1 0 0 0 0
+          0 0 0 0 1 0 0 1
+          0 0 0 0 0 1 0 0
+          0 0 0 0 0 0 1 0
+          0 0 0 0 0 0 0 0
+          0 0 0 0 0 0 0 0
+        ],
+        "Extended Dynkin quiver of type E7",
+      )
+    elseif n == 8
+      return Quiver(
+        [
+          0 1 0 0 0 0 0 0 0
+          0 0 1 0 0 0 0 0 0
+          0 0 0 1 0 0 0 0 1
+          0 0 0 0 1 0 0 0 0
+          0 0 0 0 0 1 0 0 0
+          0 0 0 0 0 0 1 0 0
+          0 0 0 0 0 0 0 1 0
+          0 0 0 0 0 0 0 0 0
+          0 0 0 0 0 0 0 0 0
+        ],
+        "Extended Dynkin quiver of type E8",
+      )
+    else
+      throw(ArgumentError("$n is out of bounds for type $type."))
+    end
+  else
+    throw(ArgumentError("$type is not a valid ADE Dynkin type."))
+  end
+end
+
 """
     cyclic_quiver(n)
 
@@ -260,7 +488,7 @@ function bipartite_quiver(m::Int, n::Int)
   return Quiver(A, "bipartite quiver on $m and $n vertices")
 end
 
-""""
+"""
     opposite_quiver(Q::Quiver)
 
 Construct the opposite quiver.
@@ -312,6 +540,34 @@ double of 2-Kronecker quiver
 double_quiver(Q::Quiver) = Quiver(
   Q.adjacency + transpose(Q.adjacency), "double of " * Q.name
 )
+
+"""
+    disjoint_union(Q1::Quiver, Q2::Quiver)
+
+Construct the disjoint union of two quivers.
+
+The disjoint union has the vertices and arrows of both quivers and no arrows between
+them; its adjacency matrix is the block diagonal of the two adjacency matrices.
+
+# Examples
+
+```jldoctest
+julia> disjoint_union(kronecker_quiver(3), loop_quiver(2))
+disjoint union of 3-Kronecker quiver and 2-loop quiver
+```
+"""
+function disjoint_union(Q1::Quiver, Q2::Quiver)
+  n1, n2 = n_vertices(Q1), n_vertices(Q2)
+  A = zeros(Int, n1 + n2, n1 + n2)
+  A[1:n1, 1:n1] = Q1.adjacency
+  A[(n1 + 1):(n1 + n2), (n1 + 1):(n1 + n2)] = Q2.adjacency
+  name = if (!isempty(Q1.name) && !isempty(Q2.name))
+    "disjoint union of $(Q1.name) and $(Q2.name)"
+  else
+    ""
+  end
+  return Quiver(A, name)
+end
 
 """
     kronecker_moduli(m::Int, d::Int, e::Int)

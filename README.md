@@ -17,6 +17,22 @@ julia> using Pkg; Pkg.add("QuiverTools");
 
 ```
 
+## Quick start
+
+You can build a quiver from an adjacency matrix, from a compact string, or with one
+of the many built-in named constructors:
+
+```julia
+using QuiverTools
+
+Quiver([0 3; 0 0])        # from an adjacency matrix
+Quiver("1--2-3")          # from a string: a hyphen run is the number of arrows
+kronecker_quiver(3)       # one of many built-in named quivers
+```
+
+See the [documentation](https://julia.quiver.tools)
+for the full catalogue of quiver constructors.
+
 ## Documentation
 
 The documentation for QuiverTools is available
