@@ -43,7 +43,7 @@ export n_vertices,
 
 # Constructors
 export kronecker_quiver, loop_quiver, subspace_quiver, three_vertex_quiver, cyclic_quiver,
-  bipartite_quiver, opposite_quiver, double_quiver, dynkin_quiver
+  bipartite_quiver, opposite_quiver, double_quiver, dynkin_quiver, extended_dynkin_quiver
 export kronecker_moduli, subspace_quiver_moduli
 
 # Stability

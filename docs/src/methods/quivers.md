@@ -21,6 +21,7 @@ bipartite_quiver
 opposite_quiver
 double_quiver
 dynkin_quiver
+extended_dynkin_quiver
 ```
 
 ## Properties

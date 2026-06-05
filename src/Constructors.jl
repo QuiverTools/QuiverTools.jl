@@ -224,27 +224,123 @@ function dynkin_quiver(type::String, n::Int)
   end
 end
 
+"""
+    extended_dynkin_quiver(Tn::String)
+
+Construct the extended (affine) Dynkin quiver from a type string such as `"A3"` or `"D10"`.
+
+See `extended_dynkin_quiver(type, n)` for details.
+
+# Examples
+
+```jldoctest
+julia> extended_dynkin_quiver("D10")
+Extended Dynkin quiver of type D10
+```
+"""
+function extended_dynkin_quiver(Tn::String)
+  type, n = _parse_dynkin_label(Tn)
+  return extended_dynkin_quiver(type, n)
+end
+
+"""
+    extended_dynkin_quiver(type, n)
+
+Construct the extended (affine) Dynkin quiver of type `type` with `n + 1` vertices,
+oriented lexicographically (arrows go from lower- to higher-numbered vertices).
+
+Supported types are `"A"` (`n ≥ 1`), `"D"` (`n ≥ 4`) and `"E"` (`n ∈ {6, 7, 8}`).
+
+# Examples
+
+```jldoctest
+julia> extended_dynkin_quiver("A", 1) == kronecker_quiver()
+true
+
+julia> extended_dynkin_quiver("A", 2) == three_vertex_quiver(1, 1, 1)
+true
+
+julia> extended_dynkin_quiver("D", 4)
+Extended Dynkin quiver of type D4
+
+julia> n_vertices(extended_dynkin_quiver("E", 6))
+7
+```
+"""
+function extended_dynkin_quiver(type::String, n::Int)
+  if type == "A"
+    n >= 1 || throw(ArgumentError("$n is out of bounds for type $type."))
+    if n == 1
+      return Quiver([0 2; 0 0], "Extended Dynkin quiver of type A1")
+    end
+    M = zeros(Int, n + 1, n + 1)
+    for i in 1:n
+      M[i, i + 1] = 1
+    end
+    M[1, n + 1] = 1
+    return Quiver(M, "Extended Dynkin quiver of type A$n")
+  elseif type == "D"
+    n >= 4 || throw(ArgumentError("$n is out of bounds for type $type."))
+    M = zeros(Int, n + 1, n + 1)
+    M[1, 3] = 1
+    M[2, 3] = 1
+    for i in 3:(n - 2)
+      M[i, i + 1] = 1
+    end
+    M[n - 1, n] = 1
+    M[n - 1, n + 1] = 1
+    return Quiver(M, "Extended Dynkin quiver of type D$n")
+  elseif type == "E"
+    if n == 6
+      return Quiver(
+        [
+          0 1 0 0 0 0 0
+          0 0 1 0 0 0 0
+          0 0 0 1 0 1 0
+          0 0 0 0 1 0 0
+          0 0 0 0 0 0 0
+          0 0 0 0 0 0 1
+          0 0 0 0 0 0 0
+        ],
+        "Extended Dynkin quiver of type E6",
+      )
+    elseif n == 7
+      return Quiver(
+        [
+          0 1 0 0 0 0 0 0
+          0 0 1 0 0 0 0 0
+          0 0 0 1 0 0 0 0
+          0 0 0 0 1 0 0 1
+          0 0 0 0 0 1 0 0
+          0 0 0 0 0 0 1 0
+          0 0 0 0 0 0 0 0
+          0 0 0 0 0 0 0 0
+        ],
+        "Extended Dynkin quiver of type E7",
       )
     elseif n == 8
       return Quiver(
         [
           0 1 0 0 0 0 0 0 0
           0 0 1 0 0 0 0 0 0
-          0 0 0 1 1 0 0 0 0
-          0 0 0 0 0 0 0 0 0
+          0 0 0 1 0 0 0 0 1
+          0 0 0 0 1 0 0 0 0
           0 0 0 0 0 1 0 0 0
           0 0 0 0 0 0 1 0 0
           0 0 0 0 0 0 0 1 0
-          0 0 0 0 0 0 0 0 1
+          0 0 0 0 0 0 0 0 0
           0 0 0 0 0 0 0 0 0
         ],
-        "Dynkin quiver of type E8",
+        "Extended Dynkin quiver of type E8",
       )
+    else
+      throw(ArgumentError("$n is out of bounds for type $type."))
     end
   else
     throw(ArgumentError("$type is not a valid ADE Dynkin type."))
   end
 end
+
 """
     cyclic_quiver(n)
 
