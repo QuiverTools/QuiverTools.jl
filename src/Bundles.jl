@@ -837,6 +837,7 @@ function degree(F::Bundle; unsafe::Bool=false)
     class_det = deepcopy(out)
     for _ in 1:(n - 1)
       # the multiplication here takes most of runtime
+      # what about out *= class_det?
       Oscar.mul!(out, out, class_det)
       out = Singular.jet(out, n)
       out = __simplify(out)
@@ -914,7 +915,7 @@ function _degree1_vector(normal_form, n_variables::Int)
   for (coefficient, exponent_vector) in
       zip(Singular.coefficients(normal_form), Singular.exponent_vectors(normal_form))
     var_index = findfirst(==(1), exponent_vector)
-    var_index === nothing && continue  # skip any constant/non-linear term defensively
+    var_index === nothing && continue  # skip any constant/non-linear term
     coordinates[var_index] = Rational{BigInt}(
       BigInt(Singular.numerator(coefficient)), BigInt(Singular.denominator(coefficient))
     )
@@ -1053,7 +1054,8 @@ julia> M = QuiverModuliSpace(Q, d);
 
 julia> cn = chern_numbers(M; unsafe=true);
 
-julia> @assert cn == Dict("c_1^4" => 154,
+julia> @assert cn == Dict(
+         "c_1^4" => 154,
          "c_2 c_1^2" => 112,
          "c_2^2" => 136,
          "c_3 c_1" => 56,
