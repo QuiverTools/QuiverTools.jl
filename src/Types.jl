@@ -89,6 +89,8 @@ function show(io::IO, Q::Quiver)
   end
 end
 
+# TODO ChowRing.parent should be of type QuiverModuliSpace,
+# but this creates a circular dependency.
 """
 # Summary
 
