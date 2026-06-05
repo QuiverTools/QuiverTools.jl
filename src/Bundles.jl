@@ -109,7 +109,7 @@ function tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
   U = [universal_bundle(M, i; teleman=false, unsafe=unsafe) for i in 1:n_vertices(M.Q)]
   ch = [chern_character(F) for F in U]
   ch_dual = [adams(F, -1) for F in U]
-  CH = chow_ring(M)
+  CH = chow_ring(M; unsafe=unsafe)
   chT = CH(1)
   chT += sum(ch_dual[i] * ch[j] for (i, j) in arrows(M.Q); init=CH(0))
   chT -= sum(ch_dual[i] * ch[i] for i in 1:n_vertices(M.Q); init=CH(0))
@@ -1066,7 +1066,7 @@ function chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false, universal::Bool
   T = tangent_bundle(M; unsafe=unsafe)
   c = chern_classes(T)
   n = dimension(M)
-  CH = chow_ring(M)
+  CH = chow_ring(M; unsafe=unsafe)
   # tangent-bundle Chern numbers: one top intersection product c_{i_1} ... c_{i_k}
   # per partition (i_1, ..., i_k) of the dimension n
   out = Dict{String,Int}(
