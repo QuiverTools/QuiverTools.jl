@@ -982,8 +982,9 @@ classes and whose values are the corresponding Chern numbers.
 
 If `universal` is set to `true`, the result additionally contains all top
 intersection products of the Chern classes ``c_j(U_i)`` of the universal
-bundles, which generate the Chow ring (cf. Franzen's description). These keys
-are of the form `c_j(U_i)`, e.g. `c_2(U_1)` or `c_2(U_1) c_3(U_2)`.
+bundles, which generate the Chow ring (cf [[Theorem 14, doi:10.1007/s00209-015-1409-8](https://doi.org/10.1007/s00209-015-1409-8)].
+These keys are of the form `c_j(U_i)`,
+e.g. `c_2(U_1)` or `c_2(U_1) c_3(U_2)`.
 
 The first Chern classes ``c_1(U_i)`` are linearly dependent (through the chosen
 linearization), so only a minimal generating set is used: a maximal linearly
