@@ -33,7 +33,7 @@ struct Quiver{T}
   julia> m = [0 1; 2 0];
 
   julia> Quiver(m, "my quiver")
-  my quiver, with adjacency matrix [0 1; 2 0]
+  my quiver
   ```
   """
   function Quiver(adjacency::AbstractMatrix{Int}, name::String="")
@@ -45,33 +45,55 @@ struct Quiver{T}
   end
 
   """
-      Quiver(arrows)
+      Quiver(arrows::String)
 
   Construct a quiver from its arrows encoded in a string.
 
-  the string `arrows` must be of the form
-
-  ```i---j,k-...-s```
-
-  where `i`, `j` and all the vertices are positive integers.
-  The amount of characters between `i` and  `j` is then the number of arrows i -> j.
+  The string is a comma-separated list of chains `i-j-k-...`. Within a chain, a run of
+  `r` hyphens between two vertices encodes `r` arrows from the first to the second, and a
+  chain `i-j-k` is read left to right, giving arrows `i → j` and `j → k`. Vertex labels
+  may be arbitrary tokens; they are numbered `1, …, n` in order of first appearance.
 
   # Examples
 
   ```jldoctest
-  julia> Q = Quiver("1--2,1---3,2----3")
+  julia> Quiver("1--2-3")
+  Quiver with adjacency matrix [0 2 0; 0 0 1; 0 0 0]
+
+  julia> Quiver("a---b")
+  Quiver with adjacency matrix [0 3; 0 0]
+
+  julia> Quiver("1--2,1---3,2----3")
   Quiver with adjacency matrix [0 2 3; 0 0 4; 0 0 0]
   ```
   """
   function Quiver(arrows::String)
-    pairs = split(arrows, ",")
-    pairs = map(p -> split(p, "-"), pairs)
-    pairs = map(p -> [parse(Int, p[1]), parse(Int, p[end]), length(p) - 1], pairs)
+    arrows = replace(arrows, r"\s" => "")
+    chains = split(arrows, ",")
 
-    n = maximum(maximum(pair[1:2]) for pair in pairs)
-    A = zeros(Int, n, n)
-    for pair in pairs
-      A[pair[1], pair[2]] = pair[3]
+    # distinct vertex labels, numbered in order of first appearance
+    vertices = String[]
+    for chain in chains, token in split(chain, "-")
+      tok = String(token)
+      isempty(tok) || tok in vertices || push!(vertices, tok)
+    end
+    index = Dict(v => i for (i, v) in enumerate(vertices))
+
+    A = zeros(Int, length(vertices), length(vertices))
+    for chain in chains
+      pieces = split(chain, "-")
+      source = index[String(pieces[1])]
+      number = 1
+      for piece in pieces[2:end]
+        if isempty(piece)
+          number += 1                  # another hyphen ⇒ one more arrow
+        else
+          target = index[String(piece)]
+          A[source, target] += number   # accumulate parallel arrows
+          number = 1
+          source = target               # continue the chain from here
+        end
+      end
     end
     return Quiver(A, "")
   end
