@@ -89,6 +89,27 @@ end;
   @test string(all_hn_types(Q, d, theta; ordered=true)) == expected
 end;
 
+@testset "Constructors" begin
+  # equivalences from the Sage docstrings; == compares adjacency matrices only
+  @test thickened_subspace_quiver(2, 6) == three_vertex_quiver(0, 6, 6)
+  @test generalized_subspace_quiver(2, [2, 3]) == three_vertex_quiver(0, 2, 3)
+  @test generalized_subspace_quiver(3, [1, 1, 1]) == subspace_quiver(3)
+  @test jordan_quiver() == loop_quiver(1)
+
+  U = disjoint_union(kronecker_quiver(3), kronecker_quiver(4))
+  @test n_vertices(U) == 4
+  @test n_arrows(U) == 7
+end;
+
+@testset "string constructor" begin
+  # chain semantics: a run of r hyphens is r arrows, chains are read left to right,
+  # vertices are numbered in order of first appearance (parity with Sage's from_string)
+  @test Quiver("a---b") == kronecker_quiver(3)
+  @test Quiver("1--2-3") == Quiver([0 2 0; 0 0 1; 0 0 0])
+  @test Quiver("a--b-3,a---3,3-a") == Quiver([0 2 3; 0 0 1; 1 0 0])
+  @test Quiver("1--2,1---3,2----3") == Quiver([0 2 3; 0 0 4; 0 0 0])
+end;
+
 # @testset "Testing weight handling" begin
 
 #     U = Bundle([1,2],2)

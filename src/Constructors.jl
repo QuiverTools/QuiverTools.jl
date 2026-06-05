@@ -77,6 +77,37 @@ function loop_quiver(m::Int)
 end
 
 """
+    jordan_quiver(m::Int=1)
+
+Construct the Jordan quiver, i.e. the quiver with one vertex and `m` loops.
+
+This is a synonym of `loop_quiver`: for `m = 1` it is the Jordan quiver,
+otherwise the generalized Jordan quiver with `m` loops.
+
+# Input
+
+- `m`: (Default = 1) The number of loops.
+
+# Output
+
+The quiver with one vertex and `m` loops.
+
+# Examples
+
+```jldoctest
+julia> jordan_quiver()
+Jordan quiver
+
+julia> jordan_quiver(3)
+generalized Jordan quiver with 3 loops
+```
+"""
+function jordan_quiver(m::Int=1)
+  name = m == 1 ? "Jordan quiver" : "generalized Jordan quiver with $m loops"
+  return Quiver(reshape([m], 1, 1), name)
+end
+
+"""
     subspace_quiver(m::Int)
 
 Construct the subspace quiver with `m + 1` vertices.
@@ -105,6 +136,64 @@ function subspace_quiver(m::Int)
     A[i, m + 1] = 1
   end
   return Quiver(A, string(m) * "-subspace quiver")
+end
+
+"""
+    generalized_subspace_quiver(m::Int, K::AbstractVector{Int})
+
+Construct the generalized subspace quiver with `m + 1` vertices and `K[i]` arrows
+from the `i`-th source to the sink.
+
+# Input
+
+- `m`: The number of subspace-vertices (sources).
+- `K`: A vector of length `m`; `K[i]` is the number of arrows from source `i` to the sink.
+
+# Output
+
+The generalized subspace quiver with `m` sources and multiplicities `K`.
+
+# Examples
+
+```jldoctest
+julia> generalized_subspace_quiver(3, [1, 2, 3])
+a generalized 3-subspace quiver
+```
+"""
+function generalized_subspace_quiver(m::Int, K::AbstractVector{Int})
+  length(K) == m || throw(ArgumentError("K must have length m = $m"))
+  A = zeros(Int, m + 1, m + 1)
+  for i in 1:m
+    A[i, m + 1] = K[i]
+  end
+  return Quiver(A, "a generalized $m-subspace quiver")
+end
+
+"""
+    thickened_subspace_quiver(m::Int, k::Int)
+
+Construct the thickened subspace quiver with `m + 1` vertices and `k` arrows
+from each of the `m` sources to the sink.
+
+# Input
+
+- `m`: The number of subspace-vertices (sources).
+- `k`: The number of arrows from each source to the sink.
+
+# Output
+
+The thickened subspace quiver with `m` sources, each with `k` arrows to the sink.
+
+# Examples
+
+```jldoctest
+julia> thickened_subspace_quiver(3, 2)
+thickened subspace quiver with 3 sources and multiplicity 2
+```
+"""
+function thickened_subspace_quiver(m::Int, k::Int)
+  A = generalized_subspace_quiver(m, fill(k, m)).adjacency
+  return Quiver(A, "thickened subspace quiver with $m sources and multiplicity $k")
 end
 
 # Split a Dynkin label like "A3" or "D10" into its letter type and integer rank.
@@ -399,7 +488,7 @@ function bipartite_quiver(m::Int, n::Int)
   return Quiver(A, "bipartite quiver on $m and $n vertices")
 end
 
-""""
+"""
     opposite_quiver(Q::Quiver)
 
 Construct the opposite quiver.
@@ -451,6 +540,34 @@ double of 2-Kronecker quiver
 double_quiver(Q::Quiver) = Quiver(
   Q.adjacency + transpose(Q.adjacency), "double of " * Q.name
 )
+
+"""
+    disjoint_union(Q1::Quiver, Q2::Quiver)
+
+Construct the disjoint union of two quivers.
+
+The disjoint union has the vertices and arrows of both quivers and no arrows between
+them; its adjacency matrix is the block diagonal of the two adjacency matrices.
+
+# Examples
+
+```jldoctest
+julia> disjoint_union(kronecker_quiver(3), loop_quiver(2))
+disjoint union of 3-Kronecker quiver and 2-loop quiver
+```
+"""
+function disjoint_union(Q1::Quiver, Q2::Quiver)
+  n1, n2 = n_vertices(Q1), n_vertices(Q2)
+  A = zeros(Int, n1 + n2, n1 + n2)
+  A[1:n1, 1:n1] = Q1.adjacency
+  A[(n1 + 1):(n1 + n2), (n1 + 1):(n1 + n2)] = Q2.adjacency
+  name = if (!isempty(Q1.name) && !isempty(Q2.name))
+    "disjoint union of $(Q1.name) and $(Q2.name)"
+  else
+    ""
+  end
+  return Quiver(A, name)
+end
 
 """
     kronecker_moduli(m::Int, d::Int, e::Int)
