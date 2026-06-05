@@ -131,15 +131,11 @@ function dynkin_quiver(type::String, n::Int)
     if !(n >= 1)
       throw(ArgumentError("$n is out of bounds for type $type."))
     end
-    if n == 1
-      return Quiver([[1]], "Dynkin quiver of type A1")
-    else
-      M = zeros(Int, n, n)
-      for i in 1:(n - 1)
-        M[i, i + 1] = 1
-      end
-      return Quiver(M, "Dynkin quiver of type A$n")
+    M = zeros(Int, n, n)
+    for i in 1:(n - 1)
+      M[i, i + 1] = 1
     end
+    return Quiver(M, "Dynkin quiver of type A$n")
   elseif type == "D"
     if !(n >= 3)
       throw(ArgumentError("$n is out of bounds for type $type."))
