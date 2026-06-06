@@ -677,6 +677,7 @@ end
 
 """
     does_teleman_inequality_hold(F::Bundle)
+
 Check if the Teleman quantization criterion of
 [[Theorem 3.6, doi:10.5802/jep.312](https://doi.org/10.5802/jep.312)]
 holds for the bundle `F`.
