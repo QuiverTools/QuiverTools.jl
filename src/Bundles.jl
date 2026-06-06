@@ -943,23 +943,26 @@ function _universal_chern_generators(M::QuiverModuliSpace)
   echelon_rows = Vector{Vector{Rational{BigInt}}}()
   kept = Tuple{Int,Int,Int}[]
   var_index = 0
-  # walk the generators c_j(U_i) in the (vertex-major) order of gens(CH), so the
-  # lowest vertices -- in particular c_1(U_1) -- are considered first
+
+  # Iterate over each generator of the Chow ring,
+  # compute its coordinates,
+  # perform row reduction with the previously kept first Chern classes
+  # and if it is linearly independent add it to the echelon basis.
   for vertex in 1:n_vertices(M.Q), chern_degree in 1:M.d[vertex]
     var_index += 1
-    # higher Chern classes are independent generators of the Chow ring: always keep
+    # higher Chern classes are independent generators of the Chow ring
     if chern_degree > 1
       push!(kept, (vertex, chern_degree, var_index))
       continue
     end
-    # a first Chern class may be linearly dependent on the kept ones; reduce its
-    # coordinate vector against the echelon basis by Gaussian elimination
+
     coords = _degree1_vector(__simplify(generators[var_index]), n_variables)
+
     for row in echelon_rows
       pivot = findfirst(!iszero, row)
       iszero(coords[pivot]) || (coords .-= (coords[pivot] / row[pivot]) .* row)
     end
-    # a nonzero residual means this c_1 is independent, so keep it as a new pivot
+    # if linearly independent, we keep this generator.
     if any(!iszero, coords)
       push!(echelon_rows, coords)
       sort!(echelon_rows; by=row -> findfirst(!iszero, row))
