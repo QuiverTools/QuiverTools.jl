@@ -974,6 +974,30 @@ function _universal_chern_generators(M::QuiverModuliSpace)
 end
 
 """
+    chern_numbers(F::Bundle)
+
+Compute the Chern numbers of a bundle `F`, i.e. all top intersection products
+``\\int_M c_{i_1}(F) \\cdots c_{i_k}(F)``, indexed by partitions `[i_1, ..., i_k]` of `dimension(M)`.
+"""
+function chern_numbers(F::Bundle; unsafe::Bool=false)
+  M = variety(F)
+  CH = chow_ring(M; unsafe=unsafe)
+  classes = chern_classes(F)
+
+  # the Chern numbers of an element in the Chow ring
+  # are the top intersection product c_{i_1} ... c_{i_k}
+  # per every partition (i_1, ..., i_k) of the dimension of the underlying variety.
+  return Dict{String,Int}(
+    _format_chern_monomial(partition) => Int(
+      Singular.numerator(
+        integral(M, prod(classes[k] for k in partition; init=CH(1)); unsafe=unsafe)
+      ),
+    )
+    for partition in partitions(dimension(M))
+  )
+end
+
+"""
     chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false, universal::Bool=false)
 
 Compute the Chern numbers of the tangent bundle of the quiver moduli space `M`,
