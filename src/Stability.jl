@@ -722,6 +722,32 @@ function is_amply_stable(
 end
 
 """
+    is_strongly_amply_stable(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int})
+
+Checks whether the quiver moduli setup `Q, d` is strongly amply `theta`-stable,
+see [[Definition 4.1, doi:10.5802/jep.312](https://doi.org/10.5802/jep.312)].
+
+
+# Examples
+
+Our favorite example of a strongly amply stable setup:
+```jldoctest
+julia> Q = kronecker_quiver(3); d = [2, 3]; theta = [3, -2];
+
+julia> is_strongly_amply_stable(Q, d, theta)
+true
+```
+"""
+function is_strongly_amply_stable(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector{Int},
+)
+  subdims = all_destabilizing_subdimension_vectors(d, theta)
+  return all(e -> euler_form(Q, e, d - e) <= -2, subdims)
+end
+
+"""
     has_properly_semistables(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denom::Function=sum)
 
 """

@@ -598,6 +598,38 @@ function is_amply_stable(M::QuiverModuli)
 end
 
 """
+    is_strongly_amply_stable(M::QuiverModuli)
+
+Checks whether the quiver moduli setup `M.Q, M.d` is strongly amply `M.theta`-stable,
+see [[Definition 4.1, doi:10.5802/jep.312](https://doi.org/10.5802/jep.312)].
+
+
+# Examples
+
+Example 4.8 from [[doi:10.5802/jep.312](https://doi.org/10.5802/jep.312)]:
+```jldoctest
+julia> Q = Quiver("1-----2-3,1-3"); M = QuiverModuliSpace(Q, [4, 1, 4]);
+
+julia> is_strongly_amply_stable(M)
+false
+
+julia> is_amply_stable(M)
+true
+```
+
+Our favorite example of a strongly amply stable setup:
+```jldoctest
+julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
+
+julia> is_strongly_amply_stable(M)
+true
+```
+"""
+function is_strongly_amply_stable(M::QuiverModuli)
+  return is_strongly_amply_stable(M.Q, M.d, M.theta)
+end
+
+"""
     dimension(M::QuiverModuliStack)
 
 Returns the dimension of the moduli stack.
