@@ -1,6 +1,6 @@
 name = "QuiverTools"
 uuid = "dc2e10be-62a3-4315-9c95-46bb97ac152d"
-version = "1.1.1"
+version = "1.2.0"
 authors = ["Gianni Petrella <gianni.petrella99@gmail.com>", "Pieter Belmans <p.belmans@uu.nl>", "Hans Franzen <hans.franzen.math@gmail.com>"]
 
 [deps]
