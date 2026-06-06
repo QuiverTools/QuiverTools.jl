@@ -1069,7 +1069,6 @@ julia> @assert cn == Dict(
 We compute the Chern numbers of the top intersection products of the Chern classes
 of the universal bundles as well, replicating the result of [[Proposition 3.8, arXiv:2412.15390](https://arxiv.org/pdf/2412.15390)].
 ```jldoctest
-
 julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
 
 julia> cn = chern_numbers(M; universal=true);
@@ -1077,21 +1076,21 @@ julia> cn = chern_numbers(M; universal=true);
 julia> universal = Dict(k => v for (k, v) in cn if occursin("(U_", k));
 
 julia> @assert universal == Dict(
-      "c_1(U_1) c_2(U_1) c_3(U_2)" => 2,
-      "c_1(U_1) c_2(U_2) c_3(U_2)" => 3,
-      "c_1(U_1)^2 c_2(U_1) c_2(U_2)" => 9,
-      "c_1(U_1)^2 c_2(U_1)^2" => 6,
-      "c_1(U_1)^2 c_2(U_2)^2" => 14,
-      "c_1(U_1)^3 c_3(U_2)" => 5,
-      "c_1(U_1)^4 c_2(U_1)" => 18,
-      "c_1(U_1)^4 c_2(U_2)" => 27,
-      "c_1(U_1)^6" => 57,
-      "c_2(U_1) c_2(U_2)^2" => 5,
-      "c_2(U_1)^2 c_2(U_2)" => 3,
-      "c_2(U_1)^3" => 2,
-      "c_2(U_2)^3" => 9,
-      "c_3(U_2)^2" => 1,
-)
+             "c_1(U_1) c_2(U_1) c_3(U_2)" => 2,
+             "c_1(U_1) c_2(U_2) c_3(U_2)" => 3,
+             "c_1(U_1)^2 c_2(U_1) c_2(U_2)" => 9,
+             "c_1(U_1)^2 c_2(U_1)^2" => 6,
+             "c_1(U_1)^2 c_2(U_2)^2" => 14,
+             "c_1(U_1)^3 c_3(U_2)" => 5,
+             "c_1(U_1)^4 c_2(U_1)" => 18,
+             "c_1(U_1)^4 c_2(U_2)" => 27,
+             "c_1(U_1)^6" => 57,
+             "c_2(U_1) c_2(U_2)^2" => 5,
+             "c_2(U_1)^2 c_2(U_2)" => 3,
+             "c_2(U_1)^3" => 2,
+             "c_2(U_2)^3" => 9,
+             "c_3(U_2)^2" => 1,
+            )
 
 ```
 
