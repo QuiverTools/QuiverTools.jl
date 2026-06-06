@@ -23,6 +23,7 @@ makedocs(;
     "Tutorial" => "tutorial.md",
     "All methods" => [
       "Quivers" => "methods/quivers.md",
+      "Constructors" => "methods/constructors.md",
       "Quiver moduli" => "methods/quiver-moduli.md",
       "Representation theory" => "methods/representation-theory.md",
       "Teleman quantization" => "methods/teleman-quantization.md",
