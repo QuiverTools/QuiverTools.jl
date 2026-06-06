@@ -122,7 +122,7 @@ A tuple containing:
 
 The Chow ring for the projective line has two generators:
 ```jldoctest
-julia> CH = chow_ring(kronecker_quiver(2), [1, 1]);
+julia> CH = chow_ring(kronecker_quiver(2), [1, 1])[1][1];
 
 julia> QuiverTools.gens(QuiverTools.quotient_ideal(CH))
 2-element Vector{Singular.spoly{Singular.n_Q}}:
@@ -132,7 +132,7 @@ julia> QuiverTools.gens(QuiverTools.quotient_ideal(CH))
 
 The Chow ring for our favourite 6-fold has, in this implementation, 16 generators:
 ```jldoctest
-julia> CH = chow_ring(kronecker_quiver(3), [2, 3]); I = QuiverTools.quotient_ideal(CH);
+julia> CH = chow_ring(kronecker_quiver(3), [2, 3])[1][1]; I = QuiverTools.quotient_ideal(CH);
 
 julia> length(QuiverTools.gens(I))
 16
