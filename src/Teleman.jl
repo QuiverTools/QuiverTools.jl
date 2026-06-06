@@ -674,3 +674,53 @@ function set_teleman_weights!(F::Bundle, weights::Dict{HNType,Vector{Int}})
   setfield!(F, :teleman_weights, weights)
   return F
 end
+
+"""
+    does_teleman_inequality_hold(F::Bundle)
+Check if the Teleman quantization criterion of
+[[Theorem 3.6, doi:10.5802/jep.312](https://doi.org/10.5802/jep.312)]
+holds for the bundle `F`.
+
+This ensures that higher cohomology of `F` vanishes.
+
+# Input
+- `F::Bundle`: a bundle with Teleman weights.
+
+# Output
+- `true` if the Teleman inequality holds, `false` otherwise.
+
+# Examples
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]); CH = chow_ring(M);
+
+julia> OO = structure_sheaf(M)
+Bundle of rank 1
+
+julia> does_teleman_inequality_hold(OO)
+true
+
+julia> U_1, U_2 = universal_bundle(M, 1), universal_bundle(M, 2)
+(Bundle of rank 2, Bundle of rank 3)
+
+julia> does_teleman_inequality_hold(U_1)
+true
+
+julia> does_teleman_inequality_hold(U_2)
+true
+
+julia> does_teleman_inequality_hold(U_1^5) # tensor product
+false
+```
+"""
+function does_teleman_inequality_hold(F::Bundle)
+  !isdefined(F, :teleman_weights) &&
+    throw(ArgumentError("The bundle does not have Teleman weights defined."))
+
+  M = variety(F)
+  HN = all_hn_types(M; unstable=true, ordered=false)
+  bounds = teleman_bounds(M)
+  return all(
+    maximum(F.teleman_weights[hn_type]) < bounds[hn_type] for hn_type in HN
+  )
+end

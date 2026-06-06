@@ -79,7 +79,7 @@ export chow_ring, motive, index, betti_numbers, poincare_polynomial, is_smooth,
 # Teleman
 export teleman_bounds, weights_hn_type, weights_universal_bundle, weights_canonical_bundle,
   all_weights_endomorphisms_universal_bundle, weights_endomorphisms_universal_bundles,
-  does_rigidity_inequality_hold, set_teleman_weights!
+  does_rigidity_inequality_hold, does_teleman_inequality_hold, set_teleman_weights!
 
 # Bundles
 export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
