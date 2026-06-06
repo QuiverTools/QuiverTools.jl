@@ -1031,22 +1031,17 @@ julia> cn = chern_numbers(M);
 
 julia> cn["c_1^3"], cn["c_2 c_1"], cn["c_3"]
 (64, 24, 4)
-```
-
-The same moduli space, now also computing the intersection numbers in the
-universal Chern classes (the generators of the Chow ring):
-
-```jldoctest
-julia> M = QuiverModuliSpace(kronecker_quiver(4), [1, 1]); chow_ring(M);
 
 julia> cn = chern_numbers(M; universal=true);
 
-julia> cn["c_1^3"], cn["c_2 c_1"], cn["c_3"]
-(64, 24, 4)
-
-julia> cn["c_1(U_1)^3"]
--1
+julia> @assert cn == Dict(
+      "c_1^3" => 64,
+      "c_2 c_1" => 24,
+      "c_3" => 4,
+      "c_1(U_1)^3" => -1,
+)
 ```
+
 
 The Chern numbers of our favourite 6-fold:
 ```jldoctest
@@ -1067,8 +1062,38 @@ julia> @assert cn == Dict(
         "c_5 c_1" => 153,
         "c_6" => 13,
        )
+```
+
+We compute the Chern numbers of the top intersection products of the Chern classes
+of the universal bundles as well, replicating the result of [[Proposition 3.8, arXiv:2412.15390](https://arxiv.org/pdf/2412.15390)].
+```jldoctest
+
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
+
+julia> cn = chern_numbers(M; universal=true);
+
+julia> universal = Dict(k => v for (k, v) in cn if occursin("(U_", k));
+
+julia> @assert universal == Dict(
+      "c_1(U_1) c_2(U_1) c_3(U_2)" => 2,
+      "c_1(U_1) c_2(U_2) c_3(U_2)" => 3,
+      "c_1(U_1)^2 c_2(U_1) c_2(U_2)" => 9,
+      "c_1(U_1)^2 c_2(U_1)^2" => 6,
+      "c_1(U_1)^2 c_2(U_2)^2" => 14,
+      "c_1(U_1)^3 c_3(U_2)" => 5,
+      "c_1(U_1)^4 c_2(U_1)" => 18,
+      "c_1(U_1)^4 c_2(U_2)" => 27,
+      "c_1(U_1)^6" => 57,
+      "c_2(U_1) c_2(U_2)^2" => 5,
+      "c_2(U_1)^2 c_2(U_2)" => 3,
+      "c_2(U_1)^3" => 2,
+      "c_2(U_2)^3" => 9,
+      "c_3(U_2)^2" => 1,
+)
 
 ```
+
+
 
 The `unsafe` keyword argument speeds up computations,
 skipping checks for ample stability and existence
