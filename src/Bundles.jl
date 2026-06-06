@@ -924,10 +924,10 @@ function _degree1_vector(normal_form, n_variables::Int)
 end
 
 """
-    _universal_chern_generators(M::QuiverModuliSpace, CH)
+    _universal_chern_generators(M::QuiverModuliSpace)
 
 Return the universal Chern classes ``c_j(U_i)`` that minimally generate the Chow
-ring `CH`, as triples `(vertex, chern_degree, var_index)` where `var_index` is the
+ring `chow_ring(M)`, as triples `(vertex, chern_degree, var_index)` where `var_index` is the
 index of the generator in `gens(CH)`.
 
 The first Chern classes ``c_1(U_i)`` satisfy linear relations (from the choice of
@@ -935,8 +935,8 @@ linearization), so only a maximal linearly independent subset of them is kept;
 they are processed in vertex order, so that ``c_1(U_1)`` is favored. All higher
 Chern classes are always kept. For internal use only.
 """
-function _universal_chern_generators(M::QuiverModuliSpace, CH)
-  generators = gens(CH)
+function _universal_chern_generators(M::QuiverModuliSpace)
+  generators = gens(chow_ring(M))
   n_variables = length(generators)
   # row-echelon basis of the kept first Chern classes, used to test the linear
   # independence of each new c_1(U_i) against those already kept
@@ -1083,7 +1083,7 @@ function chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false, universal::Bool
 
   if universal
     # the universal Chern classes c_j(U_i) that minimally generate the Chow ring
-    kept_generators = _universal_chern_generators(M, CH)
+    kept_generators = _universal_chern_generators(M)
     generators = gens(CH)
     # (vertex, Chern degree) labels and codimensions of the kept generators, and
     # their indices into gens(CH); all three are aligned with the exponent vectors
