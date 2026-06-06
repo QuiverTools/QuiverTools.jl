@@ -975,7 +975,7 @@ end
 Compute the Chern numbers of the tangent bundle of the quiver moduli space `M`,
 i.e. all top intersection products
 ``\\int_M c_{i_1}(T_M) \\cdots c_{i_k}(T_M)``,
-indexed by partitions of `dimension(M)`.
+indexed by partitions `[i_1, ..., i_k]` of `dimension(M)`.
 
 Returns a `Dict{String,Int}` whose keys describe each monomial in the Chern
 classes and whose values are the corresponding Chern numbers.
