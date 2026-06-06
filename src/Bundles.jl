@@ -926,14 +926,15 @@ end
 """
     _universal_chern_generators(M::QuiverModuliSpace)
 
-Return the universal Chern classes ``c_j(U_i)`` that minimally generate the Chow
-ring `chow_ring(M)`, as triples `(vertex, chern_degree, var_index)` where `var_index` is the
+Compute the universal Chern classes ``c_j(U_i)`` that minimally generate the Chow
+ring `chow_ring(M)`.
+Return triples `(vertex, chern_degree, var_index)` where `var_index` is the
 index of the generator in `gens(CH)`.
 
 The first Chern classes ``c_1(U_i)`` satisfy linear relations (from the choice of
 linearization), so only a maximal linearly independent subset of them is kept;
-they are processed in vertex order, so that ``c_1(U_1)`` is favored. All higher
-Chern classes are always kept. For internal use only.
+they are processed in vertex order, so that ``c_1(U_1)`` is the first.
+All higher Chern classes are always kept. For internal use only.
 """
 function _universal_chern_generators(M::QuiverModuliSpace)
   generators = gens(chow_ring(M))
