@@ -1094,46 +1094,39 @@ julia> @assert cn == Dict(
 ```
 """
 function chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false, universal::Bool=false)
-  T = tangent_bundle(M; unsafe=unsafe)
-  c = chern_classes(T)
-  n = dimension(M)
   CH = chow_ring(M; unsafe=unsafe)
-  # tangent-bundle Chern numbers: one top intersection product c_{i_1} ... c_{i_k}
-  # per partition (i_1, ..., i_k) of the dimension n
-  out = Dict{String,Int}(
-    _format_chern_monomial(partition) => Int(
-      Singular.numerator(
-        integral(M, prod(c[k] for k in partition; init=CH(1)); unsafe=unsafe)
-      ),
-    )
-    for partition in partitions(n)
-  )
+  T = tangent_bundle(M; unsafe=unsafe)
 
-  if universal
-    # the universal Chern classes c_j(U_i) that minimally generate the Chow ring
-    kept_generators = _universal_chern_generators(M)
-    generators = gens(CH)
-    # (vertex, Chern degree) labels and codimensions of the kept generators, and
-    # their indices into gens(CH); all three are aligned with the exponent vectors
-    generator_labels = Tuple{Int,Int}[
-      (vertex, chern_degree) for (vertex, chern_degree, _) in kept_generators
-    ]
-    generator_indices = Int[var_index for (_, _, var_index) in kept_generators]
-    generator_degrees = Int[chern_degree for (_, chern_degree) in generator_labels]
-    # every monomial of codimension n = dim(M) in the kept generators is a top
-    # intersection product; its integral is the corresponding universal Chern number
-    for exponents in _weighted_monomials(generator_degrees, n)
-      monomial = prod(
-        (
-          generators[generator_indices[g]]^exponents[g] for
-          g in eachindex(exponents) if exponents[g] > 0
-        );
-        init=CH(1),
-      )
-      out[_format_universal_monomial(generator_labels, exponents)] = Int(
-        Singular.numerator(integral(M, monomial; unsafe=unsafe))
-      )
-    end
+  out = chern_numbers(T; unsafe=unsafe)
+  !universal && return out
+
+  # the `universal` keyword for now is a convenient way to compute
+  # top intersection products of Chern classes of the universal bundles specifically.
+  generators = gens(CH)
+
+  kept_generators_indices = _universal_chern_generators(M)
+  # the actual indices of the variables we need
+  generator_indices = Int[var_index for (_, _, var_index) in kept_generators_indices]
+  # to label the output, we keep track of vertices and degrees.
+  generator_labels = Tuple{Int,Int}[
+    (vertex, chern_degree) for (vertex, chern_degree, _) in kept_generators_indices
+  ]
+  # to enumerate all the top degree monomials.
+  generator_degrees = Int[chern_degree for (_, chern_degree) in generator_labels]
+
+  for exponents in _weighted_monomials(generator_degrees, dimension(M))
+    monomial = prod(
+      (
+        generators[generator_indices[g]]^exponents[g] for
+        g in eachindex(exponents) if exponents[g] > 0
+      );
+      init=CH(1),
+    )
+
+    out[_format_universal_monomial(generator_labels, exponents)] = Int(
+      Singular.numerator(integral(M, monomial; unsafe=unsafe))
+    )
   end
+
   return out
 end
