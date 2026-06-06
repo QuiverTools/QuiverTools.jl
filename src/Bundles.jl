@@ -1039,7 +1039,8 @@ julia> @assert cn == Dict(
       "c_2 c_1" => 24,
       "c_3" => 4,
       "c_1(U_1)^3" => -1,
-)
+      )
+
 ```
 
 
@@ -1062,6 +1063,7 @@ julia> @assert cn == Dict(
         "c_5 c_1" => 153,
         "c_6" => 13,
        )
+
 ```
 
 We compute the Chern numbers of the top intersection products of the Chern classes
