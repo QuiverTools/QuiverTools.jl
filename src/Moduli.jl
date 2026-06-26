@@ -250,7 +250,12 @@ Keyword arguments:
 
 # Output
 
-- a list of Luna types for the dimension vector and slope of `M`.
+- a list of Luna types for the dimension vector and slope of `M`. Each entry is a
+  [`LunaType`](@ref): a dictionary whose keys are the distinct dimension vectors
+  ``\\mathbf{d}^k`` occurring in the type and whose values are lists of the
+  multiplicities with which they occur. For example `Dict([1, 1] => [2, 1])` means the
+  dimension vector `[1, 1]` appears twice, once with multiplicity `2` and once with
+  multiplicity `1`. See [`LunaType`](@ref) for the full description.
 
 # Examples
 
@@ -289,7 +294,12 @@ Keyword arguments:
 
 # Output
 
-- a list of Luna types.
+- a list of Luna types. Each entry is a [`LunaType`](@ref): a dictionary whose keys are
+  the distinct dimension vectors ``\\mathbf{d}^k`` occurring in the type and whose values
+  are lists of the multiplicities with which they occur. For example
+  `Dict([1, 1] => [2, 1])` means the dimension vector `[1, 1]` appears twice, once with
+  multiplicity `2` and once with multiplicity `1`. See [`LunaType`](@ref) for the full
+  description.
 
 
 # Examples
@@ -414,7 +424,8 @@ Checks if the given tau is a valid Luna type for `M`.
 # Input
 
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
-- `tau::Dict{AbstractVector{Int}, Vector{Int}}`: a Luna type for `M`.
+- `tau::Dict{AbstractVector{Int}, Vector{Int}}`: a candidate Luna type for `M`, encoded
+  as a dictionary of dimension vectors to lists of multiplicities; see [`LunaType`](@ref).
 
 # Output
 
@@ -446,7 +457,8 @@ function is_luna_type(M::QuiverModuli, tau)
   end
 
   ks = collect(keys(tau))
-  if sum(ks) != M.d
+  # each key `e` contributes `sum(tau[e])` copies of `e` (one per multiplicity in its list)
+  if sum(sum(tau[e]) * e for e in ks) != M.d
     return false
   end
   if !all(slope(e, M.theta, M.denom) == slope(M.d, M.theta, M.denom) for e in ks)
@@ -469,7 +481,8 @@ moduli space.
 # Input
 
 - `M::QuiverModuli`: a moduli space or stack of representations of a quiver.
-- `tau::Dict{AbstractVector{Int}, Vector{Int}}`: a Luna type for `M`.
+- `tau::Dict{AbstractVector{Int}, Vector{Int}}`: a Luna type for `M`, encoded as a
+  dictionary of dimension vectors to lists of multiplicities; see [`LunaType`](@ref).
 
 # Output
 
@@ -514,11 +527,14 @@ function local_quiver_setting(M::QuiverModuli, tau)
     throw(DomainError("Not a Luna type"))
   end
 
-  ks = collect(keys(tau))
-  A = coerce_matrix([
-    [general_ext(M.Q, e, eprime) for eprime in ks for n in tau[eprime]] for e in ks
-    for m in tau[e]
-  ])
+  # one local vertex per distinct stable summand, i.e. per entry of each multiplicity list;
+  # `summands` and `dloc` iterate the keys in the same order, so vertex `k` carries `dloc[k]`.
+  summands = [e for e in keys(tau) for _m in tau[e]]
+  s = length(summands)
+  # the number of arrows from vertex k to vertex l is δ_{k,l} - ⟨d_k, d_l⟩, see MR1972892
+  A = [
+    (k == l ? 1 : 0) - euler_form(M.Q, summands[k], summands[l]) for k in 1:s, l in 1:s
+  ]
 
   Qloc = Quiver(A)
   dloc = [m for e in keys(tau) for m in tau[e]]

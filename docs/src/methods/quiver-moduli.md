@@ -62,6 +62,23 @@ is_amply_stable
 
 ### Luna types
 
+A Luna type of a dimension vector ``\mathbf{d}`` for a stability parameter ``\theta`` is
+an unordered sequence ``(\mathbf{d}^1, m_1), \dots, (\mathbf{d}^s, m_s)`` of dimension
+vectors ``\mathbf{d}^k`` and positive multiplicities ``m_k`` with
+``\sum_k m_k \mathbf{d}^k = \mathbf{d}``, all of the same ``\theta``-slope as
+``\mathbf{d}``, and each ``\mathbf{d}^k`` admitting a ``\theta``-stable representation.
+Luna types index the strata of the Luna stratification of the whole moduli space
+``M^{ss}_\theta(Q, \mathbf{d})``: the open stratum is the stable locus (the trivial type
+`Dict(d => [1])`), and the non-trivial types stratify the properly semistable locus. Each
+stratum is described étale-locally by a local quiver built from the stable summands.
+
+In QuiverTools a Luna type is represented by a [`LunaType`](@ref), which wraps a
+dictionary whose keys are the distinct dimension vectors ``\mathbf{d}^k`` and whose values
+are lists of the multiplicities with which they occur. For instance,
+`Dict([1, 1] => [2, 1])` is the Luna type in which `[1, 1]` appears twice, once with
+multiplicity `2` and once with multiplicity `1`. See [`LunaType`](@ref) for the precise
+encoding.
+
 ```@docs
 LunaType
 all_luna_types

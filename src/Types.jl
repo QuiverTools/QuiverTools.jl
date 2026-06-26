@@ -481,11 +481,54 @@ end
 
 `struct LunaType`
 
-A struct to encode Luna types.
+A struct encoding a Luna type of a dimension vector `d` for a stability parameter `theta`.
+
+# Description
+
+A Luna type of `d` for `theta` is an unordered sequence
+``(\\mathbf{d}^1, m_1), \\dots, (\\mathbf{d}^s, m_s)`` of pairs of dimension vectors
+``\\mathbf{d}^k`` and positive integers ``m_k`` such that
+
+- ``m_1 \\mathbf{d}^1 + \\dots + m_s \\mathbf{d}^s = \\mathbf{d}``,
+- ``\\mu_\\theta(\\mathbf{d}^k) = \\mu_\\theta(\\mathbf{d})`` for all ``k``, and
+- each ``\\mathbf{d}^k`` admits a ``\\theta``-stable representation.
+
+Luna types (also called *semistable representation types* in the reference below, or
+*polystable types* / *decomposition types* elsewhere) index the strata of the Luna
+stratification of the moduli space ``M^{ss}_\\theta(Q, \\mathbf{d})``:
+the open stratum is the stable locus, given by the trivial type `Dict(d => [1])`, and the
+remaining (non-trivial) types stratify the properly semistable locus. Each stratum is
+described étale-locally by a *local quiver* assembled from the stable summands; see
+[`local_quiver_setting`](@ref) and
+[Adriaenssens--Le Bruyn](https://mathscinet.ams.org/mathscinet/relay-station?mr=1972892).
+
+# Encoding
+
+A `LunaType` wraps a dictionary `data` whose keys are the (distinct) dimension vectors
+``\\mathbf{d}^k`` and whose values are non-empty lists of positive integers
+``[p_{k, 1}, \\dots, p_{k, t_k}]``. Such an entry encodes that ``\\mathbf{d}^k`` occurs
+``t_k`` times in the sequence, coupled with the multiplicities
+``p_{k, 1}, \\dots, p_{k, t_k}``, so that
+
+```math
+\\sum_k (p_{k, 1} + \\dots + p_{k, t_k})\\, \\mathbf{d}^k = \\mathbf{d}.
+```
+
+For example, `Dict([1, 1] => [2, 1])` represents the Luna type in which the dimension
+vector `[1, 1]` appears twice: once with multiplicity `2` and once with multiplicity `1`
+(so it contributes `(2 + 1) * [1, 1] = [3, 3]` to `d`).
+
+The list ``[p_{k, 1}, \\dots, p_{k, t_k}]`` records ``t_k`` *distinct* stable summands of
+dimension vector ``\\mathbf{d}^k``, so its length is bounded by the number of
+non-isomorphic ``\\theta``-stable representations of ``\\mathbf{d}^k``: a ``\\mathbf{d}^k``
+with a unique stable representation (e.g. a real Schur root) can appear only once, with a
+length-one list. The three conditions above are therefore necessary but not sufficient for
+a dictionary to be realized by an actual representation.
 
 # Fields
 
- `data :: Dict{AbstractVector{Int},AbstractVector{Int}}`\\
+ `data :: Dict{Vector{Int},Vector{Int}}`: dimension vectors mapped to their lists of
+ multiplicities, as described above.
 
 """
 struct LunaType
