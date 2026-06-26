@@ -51,8 +51,15 @@ struct Quiver{T}
 
   The string is a comma-separated list of chains `i-j-k-...`. Within a chain, a run of
   `r` hyphens between two vertices encodes `r` arrows from the first to the second, and a
-  chain `i-j-k` is read left to right, giving arrows `i → j` and `j → k`. Vertex labels
-  may be arbitrary tokens; they are numbered `1, …, n` in order of first appearance.
+  chain `i-j-k` is read left to right, giving arrows `i → j` and `j → k`.
+
+  Vertices are indexed as follows. If every vertex token is a positive integer, the
+  integers fix the vertex indices: they are sorted and, if they are not already `1, …, n`,
+  relabeled to `1, …, n` (the `k`-th smallest integer becomes vertex `k`) with a warning.
+  So `"1-6,2-6,3-6,4-6,5-6,7--1"` (which uses all of `1` to `7`) keeps those indices, while
+  both `"2--3"` and `"1--3"` are relabeled to `"1--2"`. Otherwise (any non-integer token)
+  the tokens are merely labels, numbered `1, …, n` in order of first appearance.
+  QuiverTools has no notion of vertex labels beyond this index.
 
   # Examples
 
@@ -66,20 +73,46 @@ struct Quiver{T}
   julia> Quiver("1--2,1---3,2----3")
   Quiver with adjacency matrix [0 2 3; 0 0 4; 0 0 0]
   ```
+
+  Integer tokens index the vertices directly, so the order in the string does not matter:
+
+  ```jldoctest
+  julia> Quiver("2-1")
+  Quiver with adjacency matrix [0 0; 1 0]
+  ```
   """
   function Quiver(arrows::String)
     arrows = replace(arrows, r"\s" => "")
     chains = split(arrows, ",")
 
-    # distinct vertex labels, numbered in order of first appearance
-    vertices = String[]
+    # distinct vertex tokens, in order of first appearance
+    tokens = String[]
     for chain in chains, token in split(chain, "-")
       tok = String(token)
-      isempty(tok) || tok in vertices || push!(vertices, tok)
+      isempty(tok) || tok in tokens || push!(tokens, tok)
     end
-    index = Dict(v => i for (i, v) in enumerate(vertices))
 
-    A = zeros(Int, length(vertices), length(vertices))
+    # if every token is a positive integer, the integers fix the vertex order; they are
+    # sorted and, when not already 1, …, n, relabeled to 1, …, n (with a warning).
+    # otherwise the tokens are labels, numbered 1, …, n in order of first appearance.
+    ints = tryparse.(Int, tokens)
+    if !isempty(tokens) && all(!isnothing, ints)
+      all(>(0), ints) ||
+        throw(ArgumentError("integer vertex labels must be positive"))
+      labels = sort(unique(ints))
+      n = length(labels)
+      if labels != 1:n
+        @warn "Quiver: integer vertex labels $labels are not 1:$n; " *
+          "relabeling to 1:$n (the kth smallest label becomes vertex k)"
+      end
+      rank = Dict(v => i for (i, v) in enumerate(labels))
+      index = Dict(tokens[k] => rank[ints[k]] for k in eachindex(tokens))
+    else
+      n = length(tokens)
+      index = Dict(tok => i for (i, tok) in enumerate(tokens))
+    end
+
+    A = zeros(Int, n, n)
     for chain in chains
       pieces = split(chain, "-")
       source = index[String(pieces[1])]

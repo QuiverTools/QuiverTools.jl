@@ -56,12 +56,33 @@ end;
 end;
 
 @testset "string constructor" begin
-  # chain semantics: a run of r hyphens is r arrows, chains are read left to right,
-  # vertices are numbered in order of first appearance (parity with Sage's from_string)
+  # chain semantics: a run of r hyphens is r arrows, chains are read left to right.
+  # integer tokens index vertices directly (so "1-6" is an arrow 1 -> 6); non-integer
+  # tokens are labels numbered 1, ..., n in order of first appearance.
   @test Quiver("a---b") == kronecker_quiver(3)
   @test Quiver("1--2-3") == Quiver([0 2 0; 0 0 1; 0 0 0])
   @test Quiver("a--b-3,a---3,3-a") == Quiver([0 2 3; 0 0 1; 1 0 0])
   @test Quiver("1--2,1---3,2----3") == Quiver([0 2 3; 0 0 4; 0 0 0])
+
+  # integer tokens fix the vertex indices; when they are exactly 1..n (in any order)
+  # they are used as-is, with no warning (issue #28)
+  @test (@test_nowarn Quiver("2-1")) == Quiver([0 0; 1 0])
+  @test (@test_nowarn Quiver("1-6,2-6,3-6,4-6,5-6,7--1")) == Quiver(
+    [
+      0 0 0 0 0 1 0
+      0 0 0 0 0 1 0
+      0 0 0 0 0 1 0
+      0 0 0 0 0 1 0
+      0 0 0 0 0 1 0
+      0 0 0 0 0 0 0
+      2 0 0 0 0 0 0
+    ],
+  )
+  # integer labels that are not 1..n are relabeled to 1..n (kth smallest -> vertex k),
+  # with a warning: "2--3" and "1--3" both become "1--2"
+  @test (@test_logs (:warn,) Quiver("2--3")) == Quiver([0 2; 0 0])
+  @test (@test_logs (:warn,) Quiver("1--3")) == Quiver([0 2; 0 0])
+  @test_throws ArgumentError Quiver("0-1")
 end;
 
 @testset "Luna types and local quivers" begin
