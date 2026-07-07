@@ -471,3 +471,42 @@ function git_equivalent(Q, d, theta1, theta2)
   end
   return true
 end
+
+"""
+    __sst_cone(Q::Quiver, e::AbstractVector{Int})
+
+Return the exact same polyhedral cone as `sst(Q, e)`
+but seen as an Oscar `Cone` object.
+
+For internal use only for now.
+"""
+function __sst_cone(Q::Quiver, e::AbstractVector{Int})
+  all_gen = filter(
+    eprime -> !all(ei == 0 for ei in eprime) && eprime != e,
+    all_general_subdimension_vectors(Q, e),
+  )
+  isempty(all_gen) && return Oscar.cone_from_inequalities([e, -e])
+  return Oscar.cone_from_inequalities(all_gen, [e])
+end
+
+"""
+    __lower_fan(Q::Quiver, d::AbstractVector{Int})
+
+Compute the polyhedral fan from the definition
+using the fan construction via cones.
+
+Does not contain the top dimensional chambers,
+so it cannot be used to iterate over chambers.
+
+It is way faster and more likely to be correct in G.P. opinion.
+
+For internal use only for now.
+"""
+function __lower_fan(Q::Quiver, d::AbstractVector{Int})
+  walls = map(
+    e -> Oscar.intersect(__sst_cone(Q, e), sst_cone(Q, d - e)),
+    QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
+  )
+  isempty(walls) && return Oscar.polyhedral_fan(__sst_cone(Q, d)) # I guess
+  return Oscar.polyhedral_fan(walls)
+end
