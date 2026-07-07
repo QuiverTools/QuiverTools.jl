@@ -504,7 +504,7 @@ For internal use only for now.
 """
 function __lower_fan(Q::Quiver, d::AbstractVector{Int})
   walls = map(
-    e -> Oscar.intersect(__sst_cone(Q, e), sst_cone(Q, d - e)),
+    e -> Oscar.intersect(__sst_cone(Q, e), __sst_cone(Q, d - e)),
     QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
   )
   isempty(walls) && return Oscar.polyhedral_fan(__sst_cone(Q, d)) # I guess
