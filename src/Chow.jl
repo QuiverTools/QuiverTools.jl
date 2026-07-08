@@ -179,7 +179,7 @@ function chow_ring(
     out = R(1)
     for i in support(d)
       for nu in 1:d[i]
-        Oscar.mul!(out, out, xi(i, nu)^lambda[sum(d[1:(i - 1)]; init=0) + nu])
+        Singular.mul!(out, out, xi(i, nu)^lambda[sum(d[1:(i - 1)]; init=0) + nu])
       end
     end
     return out
@@ -192,7 +192,7 @@ function chow_ring(
   W = Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
 
   # sign for the product of symmetric groups
-  sign_product(w) = prod(sign(Oscar.perm(wi)) for wi in w; init=1)
+  sign_product(w) = prod(sign(Singular.perm(wi)) for wi in w; init=1)
 
   # caching the indices of the variables after each permutation
   permuted_indices = Dict{Tuple,Vector{Int64}}(
@@ -250,7 +250,7 @@ function chow_ring(
     out = R(1)
     for (i, j) in Iterators.product(1:n_vertices(Q), 1:n_vertices(Q))
       for r in 1:e[i], s in (e[j] + 1):d[j]
-        Oscar.mul!(out, out, (xi(j, s) - xi(i, r))^Q.adjacency[i, j])
+        Singular.mul!(out, out, (xi(j, s) - xi(i, r))^Q.adjacency[i, j])
       end
     end
     return out
@@ -454,7 +454,7 @@ function chern_class_line_bundle(
 
   chern_class = R(0)
   for i in support(M.d)
-    Oscar.add!(chern_class, chern_class, eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])])
+    Singular.add!(chern_class, chern_class, eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])])
   end
 
   return __simplify(proj(- chern_class))
@@ -597,7 +597,7 @@ function point_class(
   for i in 1:n_vertices(M.Q)
     c = total_chern_class_universal(M, i; unsafe=unsafe)
     for k in 1:(M.d' * M.Q.adjacency[:, i])
-      Oscar.mul!(num, num, c)
+      Singular.mul!(num, num, c)
       num = __simplify(num)
       num = Singular.jet(num, N)
     end
@@ -613,7 +613,7 @@ function point_class(
   pt = CH(0)
   for term in Singular.terms(num)
     if __chow_ring_monomial_grading(M, term) == N
-      Oscar.add!(pt, pt, term)
+      Singular.add!(pt, pt, term)
     end
   end
   setfield!(M.chow, :point, pt)
@@ -627,7 +627,7 @@ We use this instead of the more conventional notation `Q` to avoid a
 clash with the notation for the quiver.
 """
 function todd_Q(t, n)
-  return sum((-1)^i * (Oscar.bernoulli(i) * t^i) / factorial(big(i)) for i in 0:n)
+  return sum((-1)^i * (Singular.bernoulli(i) * t^i) / factorial(big(i)) for i in 0:n)
 end
 
 """
@@ -679,7 +679,7 @@ function todd_class(
     i, j = a
     for p in 1:M.d[i]
       for q in 1:M.d[j]
-        Oscar.mul!(num, num, todd_Q(xi(j, q) - xi(i, p), N))
+        Singular.mul!(num, num, todd_Q(xi(j, q) - xi(i, p), N))
         num = Singular.jet(num, N)
       end
     end
@@ -688,7 +688,7 @@ function todd_class(
   for i in 1:n_vertices(M.Q)
     for p in 1:M.d[i]
       for q in 1:M.d[i]
-        Oscar.mul!(den, den, todd_Q(xi(i, q) - xi(i, p), N))
+        Singular.mul!(den, den, todd_Q(xi(i, q) - xi(i, p), N))
         den = Singular.jet(den, N)
       end
     end
@@ -819,7 +819,7 @@ objects passed. Instead, it assumes that the Chow ring passed has variables
 """
 function __chow_ring_monomial_grading(M::QuiverModuliSpace, f)
   deg = __chow_degrees(M.d)
-  exp = first(Oscar.AbstractAlgebra.exponent_vectors(f))
+  exp = first(Singular.AbstractAlgebra.exponent_vectors(f))
   @assert size(deg) == size(exp)
   return exp' * deg
 end

@@ -838,7 +838,7 @@ function degree(F::Bundle; unsafe::Bool=false)
     for _ in 1:(n - 1)
       # the multiplication here takes most of runtime
       # what about out *= class_det?
-      Oscar.mul!(out, out, class_det)
+      Singular.mul!(out, out, class_det)
       out = Singular.jet(out, n)
       out = __simplify(out)
     end
