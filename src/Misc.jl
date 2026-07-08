@@ -157,30 +157,29 @@ function all_subdimension_vectors(
   strict::Bool=false,
 )
   @assert length(d) > 0 "Input vector must have positive length."
-  if length(d) == 1
-    if d[1] == 0 && (nonzero || strict)
-      return Vector{Int}[]
-    elseif d[1] == 0 && !(nonzero || strict)
-      return [[0]]
-    else
-      out = map(i -> [i], 0:d[1])
-      nonzero && deleteat!(out, 1)
-      strict && pop!(out)
-      return out
-    end
-  else
-    subdims = all_subdimension_vectors(d[2:end]; nonzero=false, strict=false)
-    new_subdims = Vector{Vector{Int}}()
-    for subdim in subdims
-      for i in 0:d[1]
-        push!(new_subdims, vcat(i, subdim))
+  n = length(d)
+  if all(di == 0 for di in d)
+    return (nonzero || strict) ? Vector{Int}[] : [zeros(Int, n)]
+  end
+  total = prod(di + 1 for di in d)
+  out = Vector{Vector{Int}}(undef, total)
+  digits = zeros(Int, n)
+  for idx in 1:total
+    out[idx] = copy(digits)
+    # increment as a mixed-radix counter, coordinate 1 varying fastest, which
+    # reproduces the order of the previous recursive `vcat` builder
+    for k in 1:n
+      digits[k] += 1
+      if digits[k] <= d[k]
+        break
+      else
+        digits[k] = 0
       end
     end
-    all(di == 0 for di in d) && (nonzero || strict) && return deleteat!(new_subdims, 1)
-    nonzero && deleteat!(new_subdims, 1)
-    strict && pop!(new_subdims)
-    return new_subdims
   end
+  nonzero && popfirst!(out)  # drop the zero vector (first element)
+  strict && pop!(out)        # drop d itself (last element)
+  return out
 end
 
 """
