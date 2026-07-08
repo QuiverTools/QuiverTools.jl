@@ -259,7 +259,9 @@ function git_equivalent end
 # and `todd_class`; the extension triggers on either.
 function _load_oscar()
   Base.get_extension(@__MODULE__, :QuiverToolsOscarExt) === nothing || return nothing
-  @eval Main import Oscar
+  redirect_stdout(devnull) do
+    @eval Main import Oscar
+  end
   return nothing
 end
 
