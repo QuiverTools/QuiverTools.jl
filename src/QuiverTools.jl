@@ -2,7 +2,6 @@ module QuiverTools
 
 using Pkg
 
-using Oscar: Oscar
 using Memoization: Memoization
 using IterTools: IterTools
 using LinearAlgebraX: LinearAlgebraX
@@ -134,12 +133,6 @@ end
 #######################################################
 # Include all the submodules
 #######################################################
-
-# Disambiguate between Singular's and Oscar's overloads of
-# `(::PolyRing)(::spoly)`, which collide once both packages are loaded.
-(R::Singular.PolyRing)(f::Singular.spoly) = invoke(
-  R, Tuple{Union{Singular.spoly,Oscar.AbstractAlgebra.MPolyRingElem}}, f
-)
 
 include("Types.jl")
 include("Quivers.jl")
