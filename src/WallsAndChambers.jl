@@ -253,17 +253,43 @@ true
 """
 function git_equivalent end
 
-# When Oscar is not loaded, every entry point above resolves to this catch-all,
-# which explains how to enable it. The extension adds concrete methods that take
-# precedence once Oscar has been loaded.
+# Load Oscar on demand. This pulls in QuiverToolsOscarExt, which defines the
+# concrete methods that shadow the catch-all stubs below. We `import` rather than
+# `using` Oscar so its exports do not clash with QuiverTools names such as `index`
+# and `todd_class`; the extension triggers on either.
+function _load_oscar()
+  Base.get_extension(@__MODULE__, :QuiverToolsOscarExt) === nothing || return nothing
+  @eval Main import Oscar
+  return nothing
+end
+
+"""
+    @oscar_stub f
+
+Mark `f` as an Oscar-backed entry point. Until Oscar is loaded, calling `f` loads
+it on demand and re-dispatches to the concrete method the extension defines. Once
+loaded, that method (being more specific than this varargs catch-all) is hit
+directly, so the trigger only fires once. If Oscar is already loaded and still
+nothing matches, this errors instead of looping.
+"""
+macro oscar_stub(f)
+  quote
+    function $(esc(f))(args...; kwargs...)
+      if Base.get_extension(@__MODULE__, :QuiverToolsOscarExt) !== nothing
+        throw(MethodError($(esc(f)), args))
+      end
+      _load_oscar()
+      return Base.invokelatest($(esc(f)), args...; kwargs...)
+    end
+  end
+end
+
+# When Oscar is not loaded, every entry point above resolves to its catch-all,
+# which loads Oscar and re-dispatches. The extension adds concrete methods that
+# take precedence once Oscar has been loaded.
 for f in (
   :is_special_subdimension_vector, :all_special_subdimension_vectors, :sst,
   :vgit_walls, :wall_system, :vgit_chambers, :vgit_fan, :git_equivalent,
 )
-  @eval $f(args...; kwargs...) = throw(
-    ArgumentError(
-      "`" * $(string(f)) * "` needs Oscar's polyhedral geometry; run `import Oscar` " *
-      "to enable the walls-and-chambers / VGIT functions.",
-    ),
-  )
+  @eval @oscar_stub $f
 end
