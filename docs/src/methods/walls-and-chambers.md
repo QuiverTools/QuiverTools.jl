@@ -5,13 +5,11 @@ of the GIT problem of quiver moduli using the polyhedral geometry
 interface of `Oscar.jl`.
 
 This functionality lives in a package extension and is only available once Oscar
-is loaded. Load it with `import Oscar` (rather than `using Oscar`, which would pull
-Oscar's exports into scope and clash with QuiverTools names such as `index` and
-`todd_class`):
+is loaded. This happens automatically, provided that Oscar is available in the
+same environment. Oscar can be installed in said environment by running
 
 ```julia
-using QuiverTools
-import Oscar
+using Pkg; Pkg.add("Oscar")
 ```
 
 Without Oscar loaded, the functions below raise an error explaining this.

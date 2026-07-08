@@ -584,3 +584,13 @@ of the space of stability parameters in a quiver moduli problem,
 as described in [[doi:10.1016/j.jpaa.2025.108153](https://doi.org/10.1016/j.jpaa.2025.108153)].
 
 The provided methods are described in [Walls and Chambers decomposition](@ref).
+
+### Technical note
+
+The walls and chambers functionality is contained in a *package extension*,
+which automatically loads the optional dependency `Oscar.jl`
+the first time one of the methods requiring it is called.
+
+Using these features requires `Oscar` to be present in the same environment.
+If not yet present, it can be installed by running `using Pkg; Pkg.add("Oscar")`
+in the same Julia session.
