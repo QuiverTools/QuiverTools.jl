@@ -43,7 +43,7 @@ export n_vertices,
   underlying_graph, first_hochschild_cohomology
 
 # Constructors
-export kronecker_quiver, loop_quiver, jordan_quiver, subspace_quiver,
+export kronecker_quiver, loop_quiver, jordan_quiver, subspace_quiver, star_quiver,
   generalized_subspace_quiver, thickened_subspace_quiver, three_vertex_quiver,
   cyclic_quiver,
   bipartite_quiver, opposite_quiver, double_quiver, disjoint_union, dynkin_quiver,
