@@ -1,6 +1,5 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
-Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 QuiverTools = "dc2e10be-62a3-4315-9c95-46bb97ac152d"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

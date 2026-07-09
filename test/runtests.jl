@@ -1,6 +1,4 @@
 using Test, QuiverTools, Documenter
-using Pkg;
-Pkg.activate(@__DIR__)
 
 # Tests that have mathematical significance
 # should be in the documentation doctests.
