@@ -475,7 +475,6 @@ function is_luna_type(M::QuiverModuli, tau)
   return true
 end
 
-# TODO this should return 0 for the type Dict([0, 0] => [1])??
 """
     dimension_of_luna_stratum(M::QuiverModuli, tau)
 
@@ -506,9 +505,16 @@ julia> [dimension_of_luna_stratum(M, tau) for tau in luna]
 2-element Vector{Int64}:
  1
  2
+
+julia> M = QuiverModuliSpace(Q, [0, 0]);
+
+julia> dimension_of_luna_stratum(M, Dict([0, 0] => [1]))
+0
 ```
 """
 function dimension_of_luna_stratum(M::QuiverModuli, tau)
+  # the formula below would give 1 for the zero dimension vector
+  sum(M.d) == 0 && return 0
   return sum(length(tau[e]) * (1 - euler_form(M.Q, e, e)) for e in collect(keys(tau)))
 end
 
