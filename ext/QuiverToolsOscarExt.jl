@@ -449,7 +449,6 @@ function all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bo
   else
     cones = vcat([collect(Oscar.cones(F, i)) for i in 1:Oscar.dim(F)]...)
   end
-  # unique!(cones)
   return map(general_stability, cones) #do we add the semisimple condition?
 end
 
