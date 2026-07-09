@@ -231,11 +231,13 @@ function dynkin_quiver(Tn::String)
   return dynkin_quiver(type, n)
 end
 
-# TODO is it arbitrary? is it not the Bourbaki orientation?
 """
     dynkin_quiver(type, n)
 
-Construct the Dynkin quiver, with arbitrary orientation of the arrows.
+Construct the Dynkin quiver on the Bourbaki-numbered vertices,
+oriented lexicographically (arrows go from lower- to higher-numbered vertices).
+
+Supported types are `"A"` (`n ≥ 1`), `"D"` (`n ≥ 3`) and `"E"` (`n ∈ {6, 7, 8}`).
 
 # Examples
 
@@ -275,13 +277,14 @@ function dynkin_quiver(type::String, n::Int)
     if !(n in [6, 7, 8])
       throw(ArgumentError("$n is out of bounds for type $type."))
     end
+    # Bourbaki numbering: the chain is 1—3—4—⋯—n, with vertex 2 attached to vertex 4
     if n == 6
       return Quiver(
         [
-          0 1 0 0 0 0
           0 0 1 0 0 0
-          0 0 0 1 1 0
-          0 0 0 0 0 0
+          0 0 0 1 0 0
+          0 0 0 1 0 0
+          0 0 0 0 1 0
           0 0 0 0 0 1
           0 0 0 0 0 0
         ],
@@ -290,10 +293,10 @@ function dynkin_quiver(type::String, n::Int)
     elseif n == 7
       return Quiver(
         [
-          0 1 0 0 0 0 0
           0 0 1 0 0 0 0
-          0 0 0 1 1 0 0
-          0 0 0 0 0 0 0
+          0 0 0 1 0 0 0
+          0 0 0 1 0 0 0
+          0 0 0 0 1 0 0
           0 0 0 0 0 1 0
           0 0 0 0 0 0 1
           0 0 0 0 0 0 0
@@ -303,10 +306,10 @@ function dynkin_quiver(type::String, n::Int)
     elseif n == 8
       return Quiver(
         [
-          0 1 0 0 0 0 0 0
           0 0 1 0 0 0 0 0
-          0 0 0 1 1 0 0 0
-          0 0 0 0 0 0 0 0
+          0 0 0 1 0 0 0 0
+          0 0 0 1 0 0 0 0
+          0 0 0 0 1 0 0 0
           0 0 0 0 0 1 0 0
           0 0 0 0 0 0 1 0
           0 0 0 0 0 0 0 1
