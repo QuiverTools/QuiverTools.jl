@@ -39,6 +39,25 @@ function support(d::AbstractVector{Int})
   return findall(x -> x != 0, d)
 end
 
+"""
+    support_subquiver(Q::Quiver, d::AbstractVector{Int})
+
+Restrict `(Q, d)` to the support of `d`: the full subquiver on the vertices where `d` is
+nonzero, together with `d` restricted to those vertices.
+
+The moduli space `M(Q, d)` is isomorphic to `M(support_subquiver(Q, d)...)`, since a zero
+entry `dᵢ = 0` forces `Vᵢ = 0` in every representation. Results that only hold for a
+full-support dimension vector (e.g. the Mukai index, see
+[[MR4352662](https://mathscinet.ams.org/mathscinet-getitem?mr=4352662)]) must therefore be
+computed on this restriction rather than on `(Q, d)` directly.
+
+For internal use only.
+"""
+function support_subquiver(Q::Quiver, d::AbstractVector{Int})
+  supp = support(d)
+  return Quiver(Matrix(Q.adjacency[supp, supp])), d[supp]
+end
+
 ########################################################################################
 # Technical tools
 ########################################################################################

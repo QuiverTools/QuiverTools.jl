@@ -169,11 +169,21 @@ mutable struct ChowRing
   chi::AbstractVector{Int}
   point::Union{Singular.spoly{Singular.n_Q},UndefInitializer}
   todd::Union{Singular.spoly{Singular.n_Q},UndefInitializer}
+  # `nothing` until computed; caches dimension() and lets unsafe pre-seed 1 - <d,d> (#20).
+  # Only finite dimensions are cached; the empty-moduli case (`-Inf`) is left uncached, so
+  # the value is a plain `Int`.
+  _dimension::Union{Int,Nothing}
   _R::Singular.PolyRing{Singular.n_Q}
   _inclusion::Singular.SAlgHom{Singular.Rationals}
 
   """   ChowRing()"""
-  ChowRing() = new()
+  function ChowRing()
+    # `new()` leaves the reference fields genuinely undefined (checked via `isdefined`),
+    # but a bits-union field reads as defined-with-garbage, so seed the sentinel explicitly.
+    chow = new()
+    chow._dimension = nothing
+    return chow
+  end
 end
 
 function show(io::IO, chow::ChowRing)

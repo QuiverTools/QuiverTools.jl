@@ -346,9 +346,13 @@ julia> all_luna_types(X)
         for i in eachindex(luna_type[e])
           push!(luna_types, __add_and_return(luna_type, e, i))
         end
-        #TODO only run the next line if the support of e is not of finite type, or
-        # it is but there are enough representations still.
-        push!(luna_types, __add_and_return_noniso(luna_type, e))
+        # A second distinct stable summand of dimension `e` only exists if `e` admits
+        # more than one isomorphism class of stable representation, i.e. its stable
+        # locus is positive-dimensional (`euler_form(Q, e, e) <= 0`). A rigid `e`
+        # (`euler_form(Q, e, e) == 1`) has a unique stable representation, so repeating
+        # it would produce a Luna type that no representation realizes (issue #24).
+        euler_form(Q, e, e) <= 0 &&
+          push!(luna_types, __add_and_return_noniso(luna_type, e))
       else
         push!(luna_types, __add_and_return_new(luna_type, e))
       end
@@ -702,6 +706,18 @@ julia> dimension(M)
 ```
 """
 function dimension(M::QuiverModuliSpace)
+  # dimension is independent of the linearization, so cache it on `M.chow`. In `unsafe`
+  # mode this cache is pre-seeded with `1 - <d, d>`, so we never run the expensive
+  # `has_stables` check (issue #20). Only a finite dimension is cached; the empty case
+  # returns the `-Inf` sentinel, which is cheap to recompute and stays uncached.
+  cached = M.chow._dimension
+  cached !== nothing && return cached
+  n = _dimension(M)
+  n isa Int && setfield!(M.chow, :_dimension, n)
+  return n
+end
+
+function _dimension(M::QuiverModuliSpace)
   # the zero representation is semistable, but not stable, for d = 0
   !is_connected(M.Q) &&
     raise(ArgumentError("Q is not connected, M has disjoint connected components."))

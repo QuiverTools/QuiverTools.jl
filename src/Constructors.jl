@@ -139,6 +139,13 @@ function subspace_quiver(m::Int)
 end
 
 """
+    star_quiver(m::Int)
+
+Synonym for [`subspace_quiver`](@ref).
+"""
+star_quiver(m::Int) = subspace_quiver(m)
+
+"""
     generalized_subspace_quiver(m::Int, K::AbstractVector{Int})
 
 Construct the generalized subspace quiver with `m + 1` vertices and `K[i]` arrows
