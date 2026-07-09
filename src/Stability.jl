@@ -313,14 +313,12 @@ false
   )
 end
 
-# TODO the cited paper is published
-# The published version is not open access.
 """
     is_schur_root(Q::Quiver, d::AbstractVector{Int})
 
 Check if `d` is a Schur root for `Q`.
 
-By [[Lemma 4.2, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)],
+By [[Lemma 4.2, MR2484736](https://mathscinet.ams.org/mathscinet-getitem?mr=2484736)],
 this is equivalent to the existence of a stable representation of dimension vector ``d``
 for the canonical stability parameter.
 
@@ -383,7 +381,7 @@ A dimension vector ``e`` is called a general subdimension vector of ``d``
 if a general representation of dimension vector ``d`` possesses a subrepresentation
 of dimension vector ``e``.
 
-By [[Theorem 5.3, arXiv:0802.2147](https://doi.org/10.48550/arXiv.0802.2147)],
+By [[Theorem 5.3, MR2484736](https://mathscinet.ams.org/mathscinet-getitem?mr=2484736)],
 ``e`` is a general subdimension vector of ``d`` if and only if
 ```math
 <e',d-e> \\geq 0
