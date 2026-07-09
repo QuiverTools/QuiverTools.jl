@@ -301,6 +301,21 @@ function __sst_cone(Q::Quiver, e::AbstractVector{Int})
 end
 
 """
+    __walls_cones(Q::Quiver, d::AbstractVector{Int})
+
+Compute the polyhedral cones of the walls `W_e` of the quiver `Q` with dimension vector `d`.
+
+For internal use only for now.
+"""
+function __walls_cones(Q::Quiver, d::AbstractVector{Int})
+  out = map(
+    e -> Oscar.intersect(__sst_cone(Q, e), __sst_cone(Q, d - e)),
+    QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
+  )
+  return unique!(out)
+end
+
+"""
     __lower_fan(Q::Quiver, d::AbstractVector{Int})
 
 Compute the polyhedral fan from the definition
