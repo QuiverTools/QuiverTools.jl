@@ -496,18 +496,14 @@ end
 # source of at most d[w] arrows.
 
 # The number of quasiprimitive cycles through v, counted with arrow multiplicities and
-# capped at cap + 1 to bound the enumeration; only used when every such cycle passes
-# through v exactly once (it also passes through a vertex of dimension 1), so that
-# counting closed walks anchored at v is correct.
+# capped to bound the enumeration; only used when every such cycle passes through v
+# exactly once, so that counting closed walks anchored at v is correct.
 function __n_quasiprimitive_cycles(A::Matrix{Int}, d::Vector{Int}, v::Int, cap::Int)
-  n = length(d)
-  budget = copy(d)
-  total = Ref(0)
+  total, budget = Ref(0), copy(d)
   function walk(x::Int, mult::Int)
     (total[] > cap || budget[x] == 0) && return nothing
     budget[x] -= 1
-    for y in 1:n
-      A[x, y] == 0 && continue
+    for y in findall(>(0), A[x, :])
       y == v ? (total[] += mult * A[x, y]) : walk(y, mult * A[x, y])
     end
     budget[x] += 1
@@ -518,22 +514,19 @@ function __n_quasiprimitive_cycles(A::Matrix{Int}, d::Vector{Int}, v::Int, cap::
 end
 
 # One application of the wedging step W of [doi:10.1016/j.jalgebra.2007.08.019] to a
-# vertex of dimension at least 2: a vertex whose unique outgoing (resp. incoming)
-# arrow ends (resp. starts) at a vertex of dimension 1 is removed, redirecting its
-# other arrows to that vertex, provided its dimension is at least the number of
-# quasiprimitive cycles through it. Returns the new setting, or `nothing`.
-# Wedging preserves cofreeness in both directions [Lemma 3].
+# vertex v of dimension at least 2 whose unique outgoing (resp. incoming) arrow ends
+# (resp. starts) at a vertex of dimension 1: v is removed and its other arrows are
+# redirected to that vertex, provided d[v] is at least the number of quasiprimitive
+# cycles through v. Wedging preserves cofreeness in both directions [Lemma 3].
 function __wedge_step(A::Matrix{Int}, d::Vector{Int})
   n = length(d)
-  for v in 1:n
-    (d[v] >= 2 && A[v, v] == 0) || continue
+  for v in findall(v -> d[v] >= 2 && A[v, v] == 0, 1:n)
     outs, ins = findall(>(0), A[v, :]), findall(>(0), A[:, v])
-    wedge_out = length(outs) == 1 && A[v, outs[1]] == 1 && d[outs[1]] == 1
-    wedge_in = length(ins) == 1 && A[ins[1], v] == 1 && d[ins[1]] == 1
-    (wedge_out || wedge_in) || continue
-    __n_quasiprimitive_cycles(A, d, v, d[v]) <= d[v] || continue
+    out = length(outs) == 1 && A[v, outs[1]] == 1 && d[outs[1]] == 1
+    into = length(ins) == 1 && A[ins[1], v] == 1 && d[ins[1]] == 1
+    ((out || into) && __n_quasiprimitive_cycles(A, d, v, d[v]) <= d[v]) || continue
     B = copy(A)
-    wedge_out ? (B[:, outs[1]] .+= A[:, v]) : (B[ins[1], :] .+= A[v, :])
+    out ? (B[:, outs[1]] .+= A[:, v]) : (B[ins[1], :] .+= A[v, :])
     keep = setdiff(1:n, v)
     return B[keep, keep], d[keep]
   end
@@ -545,88 +538,65 @@ end
 # dimension 1; a setting is cofree iff its prime components are [Lemma 3].
 function __prime_components(A::Matrix{Int}, d::Vector{Int})
   n = length(d)
-  for v in 1:n
-    (d[v] == 1 && n + A[v, v] >= 2) || continue
-    # weakly connected components of the quiver minus v; each one, together with v and
-    # the arrows between them, is a summand, as is every loop at v
+  for v in findall(==(1), d)
+    # the summands at v are the weakly connected components of the quiver minus v,
+    # each taken together with v and the arrows between them, and every loop at v
     others = setdiff(1:n, v)
-    reachable = [
-      i == j || A[others[i], others[j]] + A[others[j], others[i]] > 0
-      for i in eachindex(others), j in eachindex(others)
-    ]
-    for k in eachindex(others), i in eachindex(others), j in eachindex(others)
-      reachable[i, j] |= reachable[i, k] && reachable[k, j]
-    end
-    pieces = unique([findall(reachable[i, :]) for i in eachindex(others)])
+    U = A[others, others]
+    pieces = strongly_connected_components(Quiver(U + U'))
     length(pieces) + A[v, v] >= 2 || continue
-    out = Vector{Tuple{Matrix{Int},Vector{Int}}}()
+    out = [(fill(1, 1, 1), [1]) for _ in 1:A[v, v]]
     for piece in pieces
-      keep = sort(vcat(others[piece], v))
+      keep = sort!(vcat(others[piece], v))
       B = A[keep, keep]
-      B[findfirst(==(v), keep), findfirst(==(v), keep)] = 0
+      w = findfirst(==(v), keep)
+      B[w, w] = 0
       append!(out, __prime_components(B, d[keep]))
     end
-    append!(out, (fill(1, 1, 1), [1]) for _ in 1:A[v, v])
     return out
   end
   return [(A, d)]
-end
-
-# [Theorem 6]: a strongly connected setting with a vertex v of dimension 1 through
-# which all cycles run is cofree iff every other vertex w satisfies
-# d[w] >= #{quasiprimitive paths v -> w} + #{quasiprimitive paths w -> v} - 1.
-# The quiver minus v is acyclic here, so these paths are counted by powers of the
-# adjacency matrix with v deleted, and quasiprimitivity is automatic.
-function __is_cofree_through_vertex(A::Matrix{Int}, d::Vector{Int}, v::Int)
-  n = length(d)
-  B = copy(A)
-  B[v, :] .= 0
-  B[:, v] .= 0
-  S = sum(B^k for k in 0:(n - 1))
-  return all(
-    d[w] >=
-    sum(A[v, x] * S[x, w] for x in 1:n) + sum(S[w, x] * A[x, v] for x in 1:n) - 1 for
-    w in 1:n if w != v
-  )
 end
 
 # Decide cofreeness of a prime strongly connected setting by recognizing the members
 # of the list of [Theorem 1, doi:10.1016/j.jalgebra.2007.08.019].
 function __is_cofree_prime(A::Matrix{Int}, d::Vector{Int})
   n = length(d)
-  ins, outs = [sum(A[:, i]) for i in 1:n], [sum(A[i, :]) for i in 1:n]
-
   # a single vertex: no arrows, a cyclic quiver (one loop), any number of loops on a
   # vertex of dimension 1, or the setting Q_2 (two loops on a vertex of dimension 2)
   n == 1 && return A[1, 1] <= 1 || d[1] == 1 || (A[1, 1], d[1]) == (2, 2)
 
   # (iii) cyclic quiver settings are always cofree [Theorem 5]
-  all(ins[i] == 1 && outs[i] == 1 for i in 1:n) && return true
+  ins, outs = vec(sum(A; dims=1)), vec(sum(A; dims=2))
+  all(ins .== 1) && all(outs .== 1) && return true
 
-  # (i) all cycles run through a vertex of dimension 1 [Theorem 6]
-  for v in filter(v -> d[v] == 1, 1:n)
+  # (i) all cycles run through a vertex v of dimension 1 [Theorem 6]: cofree iff
+  # d[w] >= #{quasiprimitive paths v -> w} + #{quasiprimitive paths w -> v} - 1 for
+  # all other w; the quiver minus v is acyclic, so its adjacency powers count paths
+  for v in findall(==(1), d)
     B = copy(A)
     B[v, :] .= 0
     B[:, v] .= 0
-    all(==(0), B^n) && return __is_cofree_through_vertex(A, d, v)
+    any(!=(0), B^n) && continue
+    S = sum(B^k for k in 0:(n - 1))
+    return all(
+      d[w] >= A[v, :]' * S[:, w] + S[w, :]' * A[:, v] - 1 for w in 1:n if w != v
+    )
   end
 
-  # the remaining members of the list, (ii) and (iv), consist of two cycles sharing a
-  # path of s >= 1 vertices: n + 1 arrows in total, a unique vertex x of out-degree 2
-  # and a unique vertex y of in-degree 2 (possibly equal), all other degrees 1
+  # (ii) and (iv) are two cycles sharing a path of s >= 1 vertices: n + 1 arrows, a
+  # unique vertex x of out-degree 2, a unique y of in-degree 2, all other degrees 1;
+  # the shared path runs from y to x, the two branches lead from x back to y
   sum(outs) == n + 1 || return false
   x, y = findfirst(==(2), outs), findfirst(==(2), ins)
   (isnothing(x) || isnothing(y)) && return false
-
-  # the shared path runs from y to x; the two branches lead from x back to y
   shared = [y]
   while shared[end] != x
     length(shared) > n && return false
     push!(shared, findfirst(>(0), A[shared[end], :]))
   end
-  function branch(start::Int)
+  function branch(cur::Int)
     b = Int[]
-    cur = start
     while cur != y
       (cur == x || cur in shared || cur in b || length(b) > n) && return nothing
       push!(b, cur)
@@ -635,30 +605,26 @@ function __is_cofree_prime(A::Matrix{Int}, d::Vector{Int})
     return b
   end
   targets = findall(>(0), A[x, :])
-  b1 = branch(targets[1])
-  b2 = A[x, targets[1]] == 2 ? b1 : branch(targets[end])
-  (isnothing(b1) || isnothing(b2)) && return false
-  length(shared) + length(b1) + length(b2) == n || return false
+  b1, b2 = branch(targets[1]), branch(targets[end])
+  (isnothing(b1) || isnothing(b2) || length(shared) + length(b1) + length(b2) != n) &&
+    return false
 
-  # (ii) one branch is a single vertex of dimension 1: cofree iff the minimal
-  # dimension along the other cycle is attained exactly once in the shared path, or
-  # not there but exactly once in the other branch [Theorem 8]
+  # (ii) a branch is a single vertex of dimension 1: cofree iff the minimal dimension
+  # along the other cycle is attained exactly once in the shared path, or not there
+  # but exactly once in the other branch [Theorem 8]
   for (c, rest) in ((b1, b2), (b2, b1))
     if length(c) == 1 && d[c[1]] == 1
-      m = minimum(d[w] for w in vcat(shared, rest))
-      count(w -> d[w] == m, shared) == 1 && return true
-      count(w -> d[w] == m, shared) == 0 &&
-        count(w -> d[w] == m, rest) == 1 &&
-        return true
+      m = minimum(d[vcat(shared, rest)])
+      return count(==(m), d[shared]) == 1 ||
+             (count(==(m), d[shared]) == 0 && count(==(m), d[rest]) == 1)
     end
   end
-  any(length(b) == 1 && d[b[1]] == 1 for b in (b1, b2)) && return false
 
-  # (iv) two cycles sharing a path, all branch dimensions at least 2, exactly one
-  # shared dimension equal to 2 and the others at least 4 [Theorem 9]
-  all(d[w] >= 2 for w in vcat(b1, b2)) || return false
-  return count(w -> d[w] == 2, shared) == 1 &&
-         all(d[w] == 2 || d[w] >= 4 for w in shared)
+  # (iv) all branch dimensions at least 2, exactly one shared dimension equal to 2,
+  # and the other shared dimensions at least 4 [Theorem 9]
+  return all(d[vcat(b1, b2)] .>= 2) &&
+         count(==(2), d[shared]) == 1 &&
+         all(w -> w == 2 || w >= 4, d[shared])
 end
 
 """
