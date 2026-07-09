@@ -345,7 +345,6 @@ function picard_rank(M::QuiverModuliSpace)
   return betti_numbers(M)[3]
 end
 
-# TODO test the git_equivalence features
 """
     index(M::QuiverModuliSpace)
 

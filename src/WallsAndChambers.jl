@@ -22,7 +22,7 @@ Requires Oscar: run `import Oscar` to enable this function.
 
 # Example
 
-```jldoctests
+```jldoctest
 julia> Q = Quiver("1-2,2-3,3-4,1-4"); d = [1, 1, 1, 1];
 
 julia> is_special_subdimension_vector(Q, [1, 1, 1, 1], d)
@@ -43,7 +43,7 @@ Requires Oscar: run `import Oscar` to enable this function.
 
 # Example
 
-```jldoctests
+```jldoctest
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
 julia> length(all_special_subdimension_vectors(Q, d))
@@ -63,7 +63,7 @@ Requires Oscar: run `import Oscar` to enable this function.
 
 # Example
 
-```jldoctests
+```jldoctest
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
 julia> collect(Oscar.rays(sst(Q, d)))
@@ -88,7 +88,7 @@ Requires Oscar: run `import Oscar` to enable this function.
 
 # Example
 
-```jldoctests
+```jldoctest
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
 julia> walls = vgit_walls(Q, d; inner=false, top_dimension=false);
@@ -139,7 +139,7 @@ Requires Oscar: run `import Oscar` to enable this function.
 The following example has three inner walls `W_e`, and all of them are strictly smaller
 than the corresponding `H_e \\cap sst(d)` in the wall system.
 
-```jldoctests
+```jldoctest
 julia> Q = Quiver("1-2,2-3,3-4,1-4"); d = [1, 1, 1, 1];
 
 julia> map(Oscar.rays, vgit_chambers(Q, d; verbose=false))
@@ -152,7 +152,7 @@ julia> map(Oscar.rays, vgit_chambers(Q, d; verbose=false))
 The following example has three inner walls as well, but one is equal to its wall system
 hyperplane and the two others are not.
 
-```jldoctests
+```jldoctest
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
 julia> map(Oscar.rays, vgit_chambers(Q, d; verbose=false))
@@ -174,7 +174,7 @@ Requires Oscar: run `import Oscar` to enable this function.
 
 # Example
 
-```jldoctests
+```jldoctest
 julia> Q = three_vertex_quiver(2, 3, 4); d = [2, 3, 4];
 
 julia> F = vgit_fan(Q, d); Oscar.rays(F)
@@ -205,7 +205,7 @@ Requires Oscar: run `import Oscar` to enable this function.
 
 # Example
 
-```jldoctests
+```jldoctest
 julia> Q = three_vertex_quiver(2, 3, 4); d = [1, 2, 2];
 
 julia> F = vgit_fan(Q, d); Oscar.rays(F)
@@ -232,7 +232,7 @@ false
 ```
 
 An example where one stability parameter lies on a wall:
-```jldoctests
+```jldoctest
 julia>  Q = Quiver("1---------2,1-3,2---3"); d = [1, 2, 3];
 
 julia> x = [5, -1, -1]; y = [3, 0, -1];
