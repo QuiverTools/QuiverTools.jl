@@ -224,4 +224,16 @@ end;
   @test is_smooth(QuiverModuliSpace(kronecker_quiver(3), [2, 2]))
   @test is_smooth(QuiverModuliSpace(kronecker_quiver(3), [2, 4]))
   @test !is_smooth(QuiverModuliSpace(kronecker_quiver(3), [3, 3]))
+
+  # the 6-subspace quiver with d = (1^5, 2; 3) and stability parameters on a wall:
+  # for theta = (1^5, 2; -3) the moduli space is accidentally isomorphic to Gr(2, 4),
+  # hence smooth despite the eleven Luna strata, whereas for theta = (2^5, 1; -4)
+  # there are ten isolated singular points, one for each two-element subset of the
+  # five thin subspace vertices
+  S = subspace_quiver(6)
+  d = [1, 1, 1, 1, 1, 2, 3]
+  @test is_smooth(QuiverModuliSpace(S, d, [1, 1, 1, 1, 1, 2, -3]))
+  @test !is_smooth(QuiverModuliSpace(S, d, [2, 2, 2, 2, 2, 1, -4]))
+  # for d = (1^4, 2^2; 3) the analogous first wall crossing has smooth target too
+  @test is_smooth(QuiverModuliSpace(S, [1, 1, 1, 1, 2, 2, 3], [2, 2, 2, 2, 1, 1, -4]))
 end;
