@@ -762,6 +762,15 @@ end
 
 Checks if the moduli space is smooth.
 
+In the presence of properly semistable representations, the moduli space is
+étale-locally isomorphic, around a polystable representation, to the affine quotient of
+the corresponding local quiver setting near the zero representation, by
+[[MR1972892](https://mathscinet.ams.org/mathscinet/relay-station?mr=1972892)].
+Following the strategy of
+[[Theorem 4.2, MR1929191](https://mathscinet.ams.org/mathscinet/relay-station?mr=1929191)],
+the moduli space is thus smooth if and only if the local quiver setting of every Luna
+type is coregular, which is checked using [`is_coregular`](@ref).
+
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
@@ -779,6 +788,26 @@ julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 julia> is_smooth(M)
 true
 ```
+
+For the 3-Kronecker quiver and `d = (3, 3)` the moduli space is singular, whereas for
+`d = (2, 2)` and `d = (2, 4)` one gets ``\\mathbb{P}^5``, despite the presence of
+properly semistable representations:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [3, 3]);
+
+julia> is_smooth(M)
+false
+
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
+
+julia> is_smooth(M)
+true
+
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 4]);
+
+julia> is_smooth(M)
+true
+```
 """
 function is_smooth(M::QuiverModuliSpace)
   if M.condition == "stable"
@@ -787,7 +816,14 @@ function is_smooth(M::QuiverModuliSpace)
     return true
   end
 
-  throw(NotImplementedError("Not implemented for properly semistable cases."))
+  # smoothness at the polystable points of a Luna stratum is equivalent to
+  # coregularity of its local quiver setting, by combining the étale-local description
+  # of [MR1972892] with [Theorem 2.1, MR1929191]; this is the globalization of
+  # [Theorem 4.2, MR1929191] to arbitrary stability parameters
+  return all(all_luna_types(M)) do tau
+    setting = local_quiver_setting(M, tau)
+    is_coregular(setting["Q"], setting["d"])
+  end
 end
 
 """

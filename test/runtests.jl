@@ -214,4 +214,14 @@ end;
   @test bocklandt_reduction(kronecker_quiver(3), [2, 0])["d"] == [2]
   @test is_coregular(Quiver("1-1, 1-2, 2-2"), [2, 2])
   @test is_coregular(kronecker_quiver(3), [0, 0])
+
+  # smoothness of moduli spaces with properly semistable representations: for the
+  # 2-Kronecker quiver and d = (2, 2) one gets P^2, and for the 3-Kronecker quiver
+  # both d = (2, 2) and d = (2, 4) give P^5: the deepest local quiver setting is two
+  # loops on a vertex of dimension 2, the reduced coregular setting C1 of [MR1929191];
+  # for d = (3, 3) that setting has dimension 3 instead, so the space is singular
+  @test is_smooth(QuiverModuliSpace(kronecker_quiver(2), [2, 2]))
+  @test is_smooth(QuiverModuliSpace(kronecker_quiver(3), [2, 2]))
+  @test is_smooth(QuiverModuliSpace(kronecker_quiver(3), [2, 4]))
+  @test !is_smooth(QuiverModuliSpace(kronecker_quiver(3), [3, 3]))
 end;
