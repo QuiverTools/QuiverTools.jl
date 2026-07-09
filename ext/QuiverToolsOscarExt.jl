@@ -329,12 +329,128 @@ It is way faster and more likely to be correct in G.P. opinion.
 For internal use only for now.
 """
 function __lower_fan(Q::Quiver, d::AbstractVector{Int})
-  walls = map(
-    e -> Oscar.intersect(__sst_cone(Q, e), __sst_cone(Q, d - e)),
-    QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
-  )
+  walls = __walls_cones(Q, d)
   isempty(walls) && return Oscar.polyhedral_fan(__sst_cone(Q, d)) # I guess
   return Oscar.polyhedral_fan(walls)
+end
+
+
+"""
+    general_stability(cone)
+
+Given a polyhedral cone of the VGIT fan,
+return a stability parameter in its relative interior.
+
+In practice this is a rescaled sum of the rays of the polyhedral cone input.
+
+# Example
+
+```jldoctests
+julia> Q = Quiver("1-2---3,1--3"); d = [1, 1, 1];
+
+julia> ch = vgit_chambers(Q, d); map(general_stability, ch)
+2-element Vector{Vector{Int64}}:
+ [2, -1, -1]
+ [1, 1, -2]
+```
+
+This function allows to sample stability parameters from every equivalence class:
+
+```jldoctests
+julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
+
+julia> walls = vgit_walls(Q, d; top_dimension=false); map(general_stability, walls)
+7-element Vector{Vector{Int64}}:
+ [0, 1, 0, -1]
+ [1, 0, 0, -1]
+ [1, -1, 1, -1]
+ [2, -1, 0, -1]
+ [1, 0, -1, 0]
+ [1, 1, -1, -1]
+ [1, 0, -1, 0]
+```
+"""
+function general_stability(cone)
+  out = sum(Oscar.rays(cone))
+
+  c = lcm(denominator.(out)...)
+  out .*= c
+
+  l = gcd(out...)
+  return Int.(out ./ l)
+end
+
+"""
+    all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false)
+
+Compute a list of stability parameters, one for each equivalence class of
+stability parameters for the quiver `Q` and dimension vector `d`.
+
+For now this excludes the semisimple condition,
+which corresponds to the stability parameter `zeros(Int, length(d))`.
+
+The `generic` keyword argument only returns stability parameters
+from the top-dimensional chambers of the VGIT fan.
+
+```jldoctests
+julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
+
+julia> all_stability_parameters(Q, d)
+17-element Vector{Vector{Int64}}:
+ [1, -1, 0, 0]
+ [1, 0, -1, 0]
+ [1, 0, 0, -1]
+ [0, 0, 1, -1]
+ [0, 1, -1, 0]
+ [2, -1, -1, 0]
+ [2, -1, 0, -1]
+ [2, 0, -1, -1]
+ [1, 0, 1, -2]
+ [1, -1, 1, -1]
+ [1, 1, -2, 0]
+ [1, 1, -1, -1]
+ [0, 1, 0, -1]
+ [3, -1, -1, -1]
+ [2, -1, 1, -2]
+ [2, 1, -2, -1]
+ [1, 1, 0, -2]
+```
+
+The `generic` keyword argument only returns the stability parameters
+from the top-dimensional chambers of the VGIT fan, i.e., the ones
+for which semistability and stability are equivalent:
+
+```jldoctest
+julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
+
+julia> all_stability_parameters(Q, d; generic=true)
+4-element Vector{Vector{Int64}}:
+ [3, -1, -1, -1]
+ [2, -1, 1, -2]
+ [2, 1, -2, -1]
+ [1, 1, 0, -2]
+```
+
+This method behaves well with respect to the trivial case of our favourite quiver, of course:
+
+```jldoctests
+julia> Q = kronecker_quiver(3); d = [2, 3];
+
+julia> all_stability_parameters(Q, d)
+1-element Vector{Vector{Int64}}:
+ [3, -2]
+```
+
+"""
+function all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false)
+    F = vgit_fan(Q, d)
+  if generic
+    cones = Oscar.cones(F, Oscar.dim(F))
+  else
+    cones = vcat([collect(Oscar.cones(F, i)) for i in 1:Oscar.dim(F)]...)
+  end
+  # unique!(cones)
+  return map(general_stability, cones) #do we add the semisimple condition?
 end
 
 # NB: no `@compile_workload` here. The VGIT functions return polymake C++ objects
