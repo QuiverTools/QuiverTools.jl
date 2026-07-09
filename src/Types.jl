@@ -356,18 +356,28 @@ function show(io::IO, M::QuiverModuliStack)
   )
 end
 
-# TODO this needs to be explained better
 """
 # Summary
 
 `struct HNType`
 
-A struct for a Harder-Narasimhan type.
+A Harder-Narasimhan type for a quiver, a dimension vector `d`
+and a stability parameter `theta`: an ordered tuple ``(d^1, \\dots, d^s)``
+of dimension vectors with ``d^1 + \\dots + d^s = d``,
+recording the dimension vectors of the semistable subquotients
+of the Harder-Narasimhan filtration of a representation
+of dimension vector ``d``.
+
+The entries are ordered by strictly decreasing slope,
+``\\mu(d^1) > \\dots > \\mu(d^s)``,
+so that ``d^1`` is the dimension vector of the first step of the filtration,
+the maximal destabilizing subrepresentation.
 
 # Fields
 
- `hn :: Vector{AbstractVector{Int}}`\\
-
+ `hn :: Vector{Vector{Int}}`: the dimension vectors ``d^1, \\dots, d^s``,
+ in order of strictly decreasing slope. The constructor accepts any
+ `Vector{<:AbstractVector{Int}}` and coerces the entries.
 """
 struct HNType
   hn::Vector{Vector{Int}}
