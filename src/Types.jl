@@ -144,8 +144,21 @@ function show(io::IO, Q::Quiver)
   end
 end
 
-# TODO ChowRing.parent should be of type QuiverModuliSpace,
-# but this creates a circular dependency.
+"""
+# Summary
+
+`abstract type QuiverModuli`
+
+Abstract type for a moduli space or stack of quiver representations.
+
+# Supertype Hierarchy
+
+`QuiverModuliSpace <: QuiverModuli <: Any`\\
+`QuiverModuliStack <: QuiverModuli <: Any`
+
+"""
+abstract type QuiverModuli end
+
 """
 # Summary
 
@@ -155,7 +168,7 @@ A Type used to encode various Chow ring data.
 
 # Fields
 
-`parent :: Any`\\
+`parent :: QuiverModuli`\\
 `ring   :: Singular.PolyRing{Singular.n_Q}`\\
 `chi    :: AbstractVector{Int}`\\
 `point  :: Union{Singular.spoly{Singular.n_Q},UndefInitializer}`\\
@@ -164,7 +177,7 @@ A Type used to encode various Chow ring data.
 `_inclusion :: Singular.SAlgHom{Singular.Rationals}`
 """
 mutable struct ChowRing
-  parent::Any
+  parent::QuiverModuli
   ring::Singular.PolyRing{Singular.n_Q}
   chi::AbstractVector{Int}
   point::Union{Singular.spoly{Singular.n_Q},UndefInitializer}
@@ -207,21 +220,6 @@ function show(io::IO, chow::ChowRing)
 end
 
 linearization(CH::ChowRing) = CH.chi
-
-"""
-# Summary
-
-`abstract type QuiverModuli`
-
-Abstract type for a moduli space or stack of quiver representations.
-
-# Supertype Hierarchy
-
-`QuiverModuliSpace <: QuiverModuli <: Any`\\
-`QuiverModuliStack <: QuiverModuli <: Any`
-
-"""
-abstract type QuiverModuli end
 
 # TODO consider this:
 # https://stackoverflow.com/questions/71738970/in-julia-declare-abstractvectorabstractvector
