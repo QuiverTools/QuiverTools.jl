@@ -396,7 +396,11 @@ function index(M::QuiverModuliSpace)
       "The quiver moduli problem is not amply stable, no description of the Mukai index is known."
     ),
   )
-  return gcd(canonical_stability(M.Q, M.d))
+  # The index formula of [MR4352662] only holds for a full-support dimension vector, so
+  # restrict to the support first: `M(Q, d)` is isomorphic to the moduli space of the
+  # support subquiver, but zero entries of `d` would otherwise pollute the gcd (issue #12).
+  Qs, ds = support_subquiver(M.Q, M.d)
+  return gcd(canonical_stability(Qs, ds))
 end
 
 """
