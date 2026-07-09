@@ -263,16 +263,17 @@ function QuiverModuliSpace(
   condition::String="semistable",
   denom::Function=sum,
 )
-  if condition in ["stable", "semistable"] &&
-    length(d) == n_vertices(Q) &&
-    length(theta) == n_vertices(Q)
-    d = coerce_vector(d)
-    theta = coerce_vector(theta)
-    M = QuiverModuliSpace(Q, d, theta, condition, denom, ChowRing())
-    setfield!(M.chow, :parent, M)
-    return M
-  end
-  throw(DomainError("Invalid input"))
+  condition in ["stable", "semistable"] ||
+    throw(ArgumentError("condition must be \"stable\" or \"semistable\""))
+  length(d) == n_vertices(Q) ||
+    throw(ArgumentError("length of d must equal the number of vertices"))
+  length(theta) == n_vertices(Q) ||
+    throw(ArgumentError("length of theta must equal the number of vertices"))
+  d = coerce_vector(d)
+  theta = coerce_vector(theta)
+  M = QuiverModuliSpace(Q, d, theta, condition, denom, ChowRing())
+  setfield!(M.chow, :parent, M)
+  return M
 end
 
 function set_linearization!(M::QuiverModuliSpace, chi::AbstractVector{Int})
@@ -320,14 +321,15 @@ struct QuiverModuliStack <: QuiverModuli
     condition::String="semistable",
     denom::Function=sum,
   )
-    if condition in ["stable", "semistable"] &&
-      length(d) == n_vertices(Q) &&
-      length(theta) == n_vertices(Q)
-      d = coerce_vector(d)
-      theta = coerce_vector(theta)
-      return new(Q, d, theta, condition, denom)
-    end
-    throw(DomainError("Invalid input"))
+    condition in ["stable", "semistable"] ||
+      throw(ArgumentError("condition must be \"stable\" or \"semistable\""))
+    length(d) == n_vertices(Q) ||
+      throw(ArgumentError("length of d must equal the number of vertices"))
+    length(theta) == n_vertices(Q) ||
+      throw(ArgumentError("length of theta must equal the number of vertices"))
+    d = coerce_vector(d)
+    theta = coerce_vector(theta)
+    return new(Q, d, theta, condition, denom)
   end
 end
 
