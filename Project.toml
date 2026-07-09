@@ -9,11 +9,17 @@ Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 IterTools = "c8e1da08-722c-5040-9ed9-7db0dc04731e"
 LinearAlgebraX = "9b3f67b0-2d00-526e-9884-9e4938f8fb88"
 Memoization = "6fafb56a-5788-4b4e-91ca-c0cea6611c73"
-Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[weakdeps]
+Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
+
+[extensions]
+QuiverToolsOscarExt = "Oscar"
 
 [compat]
 Combinatorics = "1"
@@ -22,6 +28,7 @@ IterTools = "1"
 LinearAlgebraX = "0.2.10"
 Memoization = "0.2.2"
 Oscar = "1"
+PrecompileTools = "1"
 Singular = "0.28"
 StaticArrays = "1.9.17"
 julia = "1.10"

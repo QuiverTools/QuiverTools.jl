@@ -2,7 +2,6 @@ module QuiverTools
 
 using Pkg
 
-using Oscar: Oscar
 using Memoization: Memoization
 using IterTools: IterTools
 using LinearAlgebraX: LinearAlgebraX
@@ -10,6 +9,8 @@ using Combinatorics
 using StaticArrays
 
 using Singular: Singular
+
+using PrecompileTools: PrecompileTools
 
 import Base:
   show, ==, hash, convert, getindex, setindex!, length, iterate, keys, haskey, *, +, -, ^
@@ -133,12 +134,6 @@ end
 # Include all the submodules
 #######################################################
 
-# Disambiguate between Singular's and Oscar's overloads of
-# `(::PolyRing)(::spoly)`, which collide once both packages are loaded.
-(R::Singular.PolyRing)(f::Singular.spoly) = invoke(
-  R, Tuple{Union{Singular.spoly,Oscar.AbstractAlgebra.MPolyRingElem}}, f
-)
-
 include("Types.jl")
 include("Quivers.jl")
 include("Stability.jl")
@@ -151,6 +146,17 @@ include("Chow.jl")
 include("Teleman.jl")
 include("Bundles.jl")
 include("WallsAndChambers.jl")
+
+# Warm the JIT for the shared Chow/Hodge computation path so the user's first
+# invariant computation is near-instant. Compilation is input-independent, so a
+# single small example caches nearly all of it (see benchmark/ notes).
+PrecompileTools.@compile_workload begin
+  Q = kronecker_quiver(3)
+  M = QuiverModuliSpace(Q, [2, 3])
+  hodge_diamond(M)
+  chow_ring(M)
+  chern_numbers(M; unsafe=true)
+end
 
 ######################
 # end of QuiverTools

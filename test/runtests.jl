@@ -7,7 +7,10 @@ Pkg.activate(@__DIR__)
 
 @info "Almost all the tests are in the documentation."
 
-DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools))
+# `import Oscar` (not `using`) loads Oscar so the walls-and-chambers / VGIT extension
+# activates and its doctests resolve `Oscar.*`, without pulling Oscar's exports into
+# scope (which would clash with QuiverTools names such as `index`, `todd_class`, ...).
+DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar))
 doctest(QuiverTools; manual=false, testset="Doctests")
 
 @testset "strict sst" begin

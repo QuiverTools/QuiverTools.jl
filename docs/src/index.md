@@ -16,6 +16,14 @@ julia> using Pkg; Pkg.add("QuiverTools")
 
 ```
 
+Some functionality requires `Oscar` to be installed.
+This can be done by running 
+
+```julia-repl
+julia> using Pkg; Pkg.add("Oscar")
+
+```
+
 ## Acknowledgements
 
 QuiverTools is developed by [P. Belmans](https://pbelmans.ncag.info/),
