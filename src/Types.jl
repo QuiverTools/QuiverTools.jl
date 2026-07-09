@@ -221,9 +221,6 @@ end
 
 linearization(CH::ChowRing) = CH.chi
 
-# TODO consider this:
-# https://stackoverflow.com/questions/71738970/in-julia-declare-abstractvectorabstractvector
-# this is also necessary to be able to type function outputs correctly.
 """
 # Summary
 

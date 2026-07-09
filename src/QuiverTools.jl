@@ -91,9 +91,6 @@ export chern_character, chern_class, chern_classes, dual, exterior_power, symmet
 export rays, is_special_subdimension_vector, all_special_subdimension_vectors, sst,
   vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent
 
-# TODO add missing doctests across codebase
-# TODO add safety checks everywhere in the codebase
-
 import Pkg
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))

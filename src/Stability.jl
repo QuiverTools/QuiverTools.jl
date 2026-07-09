@@ -433,7 +433,6 @@ false
   )
   # none of the subdimension vectors violating the condition should be general
   return all(eprime -> !is_general_subdimension_vector(Q, eprime, e), subdimensions)
-  # return general_ext(Q, e, d - e) == 0 # TODO test performance
 end
 
 """

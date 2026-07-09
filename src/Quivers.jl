@@ -9,8 +9,6 @@ function deglex_key(Q::Quiver, e::AbstractVector{Int})
   return Int(sum(e[i] * b^(n - i) for i in 1:length(e)) + sum(e) * b^n)
 end
 
-# TODO why is this a symmetric matrix? this should be `underlying_undirectd_graph`?
-# a "graph", as opposed to a "directed graph (i.e., a quiver)", is undirected - and thus the adjacency matrix is symmetric
 """
     underlying_graph(Q::Quiver)
 
