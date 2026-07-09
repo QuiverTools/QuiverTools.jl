@@ -408,10 +408,10 @@ function symmetric_power(F::Bundle, k::Int)
 end
 
 function truncate(M::QuiverModuliSpace, x, n)
-  comps = __homogeneous_components(M, x)
-  # TODO this may be slow, try building new polynomial
-  # also can I use the incorrect but faster Singular.degree?
-  return sum(comps[i + 1] for i in 0:n)
+  return sum(
+    (t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) <= n);
+    init=parent(x)(0),
+  )
 end
 
 """
