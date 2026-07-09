@@ -241,4 +241,12 @@ end;
   # d = (1^6; 2) and canonical stability: it has ten nodes, one for each splitting
   # of the six thin subspace vertices into complementary triples
   @test !is_smooth(QuiverModuliSpace(S, [1, 1, 1, 1, 1, 1, 2]))
+
+  # codimension of the singular locus: the ten nodes of the Segre cubic; for the
+  # 3-Kronecker quiver and d = (2, 2) the properly semistable locus is non-empty
+  # while the singular locus is empty, and for d = (3, 3) the largest singular
+  # Luna stratum has codimension 3 in the 10-dimensional moduli space
+  @test codimension_singular_locus(QuiverModuliSpace(S, [1, 1, 1, 1, 1, 1, 2])) == 3
+  @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [2, 2])) == Inf
+  @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [3, 3])) == 3
 end;

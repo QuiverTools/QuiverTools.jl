@@ -827,6 +827,58 @@ function is_smooth(M::QuiverModuliSpace)
 end
 
 """
+    codimension_singular_locus(M::QuiverModuliSpace)
+
+Computes the codimension of the singular locus of the moduli space.
+
+The singular locus is a union of Luna strata: all points of the stratum of a Luna type
+are singular if the corresponding local quiver setting is not coregular, and smooth
+otherwise, as in [`is_smooth`](@ref). Unlike for moduli of vector bundles on a curve,
+the singular locus can be strictly smaller than the locus of properly semistable
+representations, whose codimension is bounded by that of the singular locus.
+
+# Input
+
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+
+# Output
+
+- the codimension of the singular locus, or `Inf` if the moduli space is smooth.
+
+# Examples
+
+The Segre cubic threefold, with its ten singular points:
+```jldoctest
+julia> M = QuiverModuliSpace(subspace_quiver(6), [1, 1, 1, 1, 1, 1, 2]);
+
+julia> codimension_singular_locus(M)
+3
+```
+
+For the 3-Kronecker quiver and `d = (2, 2)` the properly semistable locus is non-empty
+yet the moduli space is smooth, whilst for `d = (3, 3)` there are singularities:
+```jldoctest
+julia> codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [2, 2]))
+Inf
+
+julia> codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [3, 3]))
+3
+```
+"""
+function codimension_singular_locus(M::QuiverModuliSpace)
+  M.condition == "stable" && return Inf
+
+  # the stratum of a Luna type consists of singular points if and only if its local
+  # quiver setting is not coregular; the stable stratum is always smooth
+  singular = filter(all_luna_types(M)) do tau
+    setting = local_quiver_setting(M, tau)
+    !is_coregular(setting["Q"], setting["d"])
+  end
+  isempty(singular) && return Inf
+  return dimension(M) - maximum(dimension_of_luna_stratum(M, tau) for tau in singular)
+end
+
+"""
     is_smooth(M::QuiverModuliStack)
 
 Checks if the moduli stack is smooth.

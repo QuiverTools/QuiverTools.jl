@@ -65,7 +65,8 @@ export euler_form, euler_matrix, is_root, is_schur_root, is_real_root, is_imagin
 
 # Moduli
 export all_luna_types, is_luna_type, dimension_of_luna_stratum
-export is_nonempty, codimension_unstable_locus, dimension, is_smooth,
+export is_nonempty, codimension_unstable_locus, codimension_singular_locus, dimension,
+  is_smooth,
   is_projective, is_strongly_amply_stable, semistable_equals_stable, semisimple_moduli_space
 
 # Hodge
