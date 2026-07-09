@@ -236,4 +236,9 @@ end;
   @test !is_smooth(QuiverModuliSpace(S, d, [2, 2, 2, 2, 2, 1, -4]))
   # for d = (1^4, 2^2; 3) the analogous first wall crossing has smooth target too
   @test is_smooth(QuiverModuliSpace(S, [1, 1, 1, 1, 2, 2, 3], [2, 2, 2, 2, 1, 1, -4]))
+
+  # the Segre cubic threefold, as the moduli space for the 6-subspace quiver with
+  # d = (1^6; 2) and canonical stability: it has ten nodes, one for each splitting
+  # of the six thin subspace vertices into complementary triples
+  @test !is_smooth(QuiverModuliSpace(S, [1, 1, 1, 1, 1, 1, 2]))
 end;
