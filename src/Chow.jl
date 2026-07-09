@@ -327,6 +327,13 @@ function chow_ring(
   verbose::Bool=false,
   unsafe::Bool=false,
 )
+  # `unsafe` asserts the stable locus is nonempty, so seed the dimension cache with the
+  # cheap `1 - <d, d>` before any bundle is built. This stops downstream `dimension(M)`
+  # calls from triggering the expensive `has_stables` check (issue #20).
+  if unsafe && M.chow._dimension === nothing
+    setfield!(M.chow, :_dimension, 1 - euler_form(M.Q, M.d, M.d))
+  end
+
   # gate on `:ring`, not `:chi`: `set_linearization!` sets `chi` without building the
   # ring, so keying off `:chi` would skip the build and leave `ring` undefined (issue #16)
   if !isdefined(M.chow, :ring)

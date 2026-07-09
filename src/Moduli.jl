@@ -706,6 +706,18 @@ julia> dimension(M)
 ```
 """
 function dimension(M::QuiverModuliSpace)
+  # dimension is independent of the linearization, so cache it on `M.chow`. In `unsafe`
+  # mode this cache is pre-seeded with `1 - <d, d>`, so we never run the expensive
+  # `has_stables` check (issue #20). Only a finite dimension is cached; the empty case
+  # returns the `-Inf` sentinel, which is cheap to recompute and stays uncached.
+  cached = M.chow._dimension
+  cached !== nothing && return cached
+  n = _dimension(M)
+  n isa Int && setfield!(M.chow, :_dimension, n)
+  return n
+end
+
+function _dimension(M::QuiverModuliSpace)
   # the zero representation is semistable, but not stable, for d = 0
   !is_connected(M.Q) &&
     raise(ArgumentError("Q is not connected, M has disjoint connected components."))
