@@ -250,3 +250,47 @@ end;
   @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [2, 2])) == Inf
   @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [3, 3])) == 3
 end;
+
+@testset "cofree quiver settings" begin
+  # cyclic quiver settings and matrix invariants: pairs of 2x2 matrices are cofree,
+  # pairs of 3x3 matrices and triples of 2x2 matrices are not; any number of loops on
+  # a vertex of dimension 1 is cofree
+  @test all(is_cofree(cyclic_quiver(n), fill(k, n)) for n in 1:3, k in 1:3)
+  @test is_cofree(cyclic_quiver(3), [1, 2, 3])
+  @test is_cofree(jordan_quiver(2), [2])
+  @test !is_cofree(jordan_quiver(2), [3])
+  @test !is_cofree(jordan_quiver(3), [2])
+  @test is_cofree(jordan_quiver(3), [1])
+
+  # acyclic settings are trivially cofree, as the invariants are constants
+  @test is_cofree(kronecker_quiver(3), [2, 3])
+  @test is_cofree(subspace_quiver(4), [1, 1, 1, 1, 2])
+
+  # settings with all cycles through a vertex of dimension 1: the k arrows back and
+  # forth give 2k - 1 as the bound on the other dimension
+  @test is_cofree(Quiver("1-2, 2-1"), [1, 5])
+  @test is_cofree(Quiver("1--2, 2--1"), [1, 3])
+  @test !is_cofree(Quiver("1--2, 2--1"), [1, 2])
+
+  # two cycles sharing a path: cofree iff exactly one shared dimension is 2 and the
+  # others are at least 4, so coregularity does not suffice
+  @test is_coregular(Quiver("1--2, 2-1"), [2, 2])
+  @test !is_cofree(Quiver("1--2, 2-1"), [2, 2])
+  @test !is_cofree(Quiver("1--2, 2-1"), [2, 3])
+  @test is_cofree(Quiver("1--2, 2-1"), [2, 4])
+
+  # two cycles sharing a path through a vertex of dimension 1: cofree iff the minimal
+  # dimension along the big cycle is attained exactly once in the shared path, or not
+  # there but exactly once in the other branch
+  theta_quiver = Quiver("1-2, 2-3, 3-1, 2-4, 4-1")
+  @test is_cofree(theta_quiver, [2, 3, 4, 1])
+  @test is_cofree(theta_quiver, [3, 3, 2, 1])
+  @test !is_cofree(theta_quiver, [2, 2, 3, 1])
+
+  # wedging removes the vertex of dimension 3 on the path to the central vertex,
+  # reducing to the setting [2, 3, 4, 1] above; with dimension 1 instead there are two
+  # vertices of dimension 1 on a common cycle, which is never cofree
+  wedged = Quiver("1-2, 2-3, 3-1, 2-5, 5-4, 4-1")
+  @test is_cofree(wedged, [2, 3, 4, 1, 3])
+  @test !is_cofree(wedged, [2, 3, 4, 1, 1])
+end;

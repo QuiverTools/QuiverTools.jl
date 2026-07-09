@@ -18,5 +18,6 @@ canonical_decomposition
 in_fundamental_domain
 bocklandt_reduction
 is_coregular
+is_cofree
 first_hochschild_cohomology
 ```
