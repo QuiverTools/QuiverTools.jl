@@ -320,3 +320,38 @@ end;
   @test is_cofree(wedged, [2, 3, 4, 1, 3])
   @test !is_cofree(wedged, [2, 3, 4, 1, 1])
 end;
+
+@testset "Domokos reductions" begin
+  # M. Domokos, Quiver moduli spaces of a given dimension, https://doi.org/10.4171/JCA/97
+  # τ and σ reductions preserve the moduli space up to isomorphism (Theorem 2.5), which we
+  # witness through the Hodge diamond. The stability sign is QuiverTools' (opposite King),
+  # so the Section 9 weight θ_paper = (-2, 1, 1) is passed as (2, -1, -1).
+  diag(M) = [hodge_diamond(M)[i, i] for i in 1:size(hodge_diamond(M), 1)]
+
+  # τ_u at a large middle vertex: 1 → 2 ⇉⇉⇉ 3 reduces to the 3-Kronecker quiver.
+  # With d = [1, 3, 1] the moduli space is ℙ²; with d = [2, 9, 3] it is the 6-fold M(K₃, [2,3]).
+  Q = Quiver("1-2,2---3")
+  @test is_large(Q, [1, 3, 1], 2)
+  @test tau_reduction(Q, [1, 3, 1], [3, 1, -6], 2) == (Quiver([0 3; 0 0]), [1, 1], [3, -3])
+  @test diag(QuiverModuliSpace(Q, [1, 3, 1], [3, 1, -6])) == [1, 1, 1]              # ℙ²
+  @test diag(QuiverModuliSpace(Q, [2, 9, 3], [9, 1, -9])) ==
+    diag(tau_reduction(QuiverModuliSpace(Q, [2, 9, 3], [9, 1, -9]), 2)) ==
+    [1, 1, 3, 3, 3, 1, 1]                                                           # the 6-fold
+
+  # Section 9 (Proposition 9.1): a τσ-minimal pair with no large vertex.
+  Q9, d9, th9 = Quiver("1--3,1-2,3-2"), [2, 1, 3], [2, -1, -1]
+  @test !any(v -> is_large(Q9, d9, v), 1:3)
+  @test is_small_source(Q9, d9, 1) && is_small_sink(Q9, d9, 2)
+  @test tau_sigma_reduce(Q9, d9, th9) == (Q9, d9, th9)          # greedy reduce is a fixpoint
+  # σ preserves the moduli space (dimension is a cheap invariant here)
+  M9 = QuiverModuliSpace(Q9, d9, th9)
+  @test dimension(sigma_reduction(M9, 1)) == dimension(M9) == 4
+
+  # σ_u is an involution
+  @test sigma_reduction(sigma_reduction(Q9, d9, th9, 1)..., 1) == (Q9, d9, th9)
+
+  # the 2-cycle with d = [1, 1]: not minimal (large vertex), reduces to a single loop
+  @test is_taus_minimal(Quiver("1-2,2-1"), [1, 1], [1, -1]) == false
+  @test tau_sigma_reduce(Quiver("1-2,2-1"), [1, 1], [1, -1]) == (Quiver([1;;]), [1], [0])
+  @test is_taus_minimal(Quiver([1;;]), [1], [0]) == true
+end;
