@@ -348,6 +348,10 @@ end
 Construct the extended (affine) Dynkin quiver of type `type` with `n + 1` vertices,
 oriented lexicographically (arrows go from lower- to higher-numbered vertices).
 
+The vertices follow the Bourbaki numbering of the affine diagram, shifted by one
+so that the affine node ``0`` becomes vertex `1` and the Bourbaki node ``k``
+becomes vertex `k + 1`.
+
 Supported types are `"A"` (`n ≥ 1`), `"D"` (`n ≥ 4`) and `"E"` (`n ∈ {6, 7, 8}`).
 
 # Examples
@@ -390,14 +394,16 @@ function extended_dynkin_quiver(type::String, n::Int)
     M[n - 1, n + 1] = 1
     return Quiver(M, "Extended Dynkin quiver of type D$n")
   elseif type == "E"
+    # Bourbaki numbering of the finite diagram shifted by one (vertex k + 1 is
+    # the Bourbaki node k), with the affine node as vertex 1
     if n == 6
       return Quiver(
         [
-          0 1 0 0 0 0 0
           0 0 1 0 0 0 0
-          0 0 0 1 0 1 0
+          0 0 0 1 0 0 0
           0 0 0 0 1 0 0
-          0 0 0 0 0 0 0
+          0 0 0 0 1 0 0
+          0 0 0 0 0 1 0
           0 0 0 0 0 0 1
           0 0 0 0 0 0 0
         ],
@@ -407,12 +413,12 @@ function extended_dynkin_quiver(type::String, n::Int)
       return Quiver(
         [
           0 1 0 0 0 0 0 0
-          0 0 1 0 0 0 0 0
           0 0 0 1 0 0 0 0
-          0 0 0 0 1 0 0 1
+          0 0 0 0 1 0 0 0
+          0 0 0 0 1 0 0 0
           0 0 0 0 0 1 0 0
           0 0 0 0 0 0 1 0
-          0 0 0 0 0 0 0 0
+          0 0 0 0 0 0 0 1
           0 0 0 0 0 0 0 0
         ],
         "Extended Dynkin quiver of type E7",
@@ -420,14 +426,14 @@ function extended_dynkin_quiver(type::String, n::Int)
     elseif n == 8
       return Quiver(
         [
-          0 1 0 0 0 0 0 0 0
-          0 0 1 0 0 0 0 0 0
-          0 0 0 1 0 0 0 0 1
+          0 0 0 0 0 0 0 0 1
+          0 0 0 1 0 0 0 0 0
+          0 0 0 0 1 0 0 0 0
           0 0 0 0 1 0 0 0 0
           0 0 0 0 0 1 0 0 0
           0 0 0 0 0 0 1 0 0
           0 0 0 0 0 0 0 1 0
-          0 0 0 0 0 0 0 0 0
+          0 0 0 0 0 0 0 0 1
           0 0 0 0 0 0 0 0 0
         ],
         "Extended Dynkin quiver of type E8",
