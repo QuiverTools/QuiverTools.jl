@@ -16,5 +16,7 @@ all_general_subdimension_vectors
 is_general_subdimension_vector
 canonical_decomposition
 in_fundamental_domain
+bocklandt_reduction
+is_coregular
 first_hochschild_cohomology
 ```

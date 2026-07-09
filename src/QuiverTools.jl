@@ -60,7 +60,8 @@ export is_general_subdimension_vector, all_general_subdimension_vectors
 # Representation theory
 export euler_form, euler_matrix, is_root, is_schur_root, is_real_root, is_imaginary_root,
   is_isotropic_root,
-  general_ext, general_hom, canonical_decomposition, in_fundamental_domain
+  general_ext, general_hom, canonical_decomposition, in_fundamental_domain,
+  bocklandt_reduction, is_coregular
 
 # Moduli
 export all_luna_types, is_luna_type, dimension_of_luna_stratum

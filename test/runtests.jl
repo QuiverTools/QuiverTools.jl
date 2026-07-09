@@ -180,3 +180,38 @@ end;
   @test string(poincare_polynomial(M)) ==
     "L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1"
 end;
+
+@testset "Bocklandt reduction" begin
+  # invariants of pairs of 2x2 matrices form a polynomial ring, of 3x3 they do not,
+  # and neither do those of triples of 2x2 matrices; a single matrix always does
+  @test is_coregular(jordan_quiver(2), [2])
+  @test !is_coregular(jordan_quiver(2), [3])
+  @test !is_coregular(jordan_quiver(3), [2])
+  @test all(is_coregular(jordan_quiver(1), [n]) for n in 1:5)
+
+  # for acyclic quivers the quotient variety is a point
+  @test is_coregular(kronecker_quiver(3), [2, 3])
+  @test is_coregular(subspace_quiver(4), [1, 1, 1, 1, 2])
+
+  # settings I, II and IV of [Theorem 4.4, MR1929191] are coregular
+  @test is_coregular(Quiver("1-2, 2-1"), [4, 5])              # I
+  @test is_coregular(Quiver("1--2, 2--1"), [1, 2])            # II with k = 2 <= n = 2
+  @test !is_coregular(Quiver("1--2, 2--1"), [1, 1])           # II fails for k = 2 > n = 1
+  @test is_coregular(Quiver("1-2, 2-1, 2-3, 3-2"), [3, 2, 3]) # IV
+
+  # the reduction combines R_III, R_I and R_II to a lone vertex of dimension 1
+  setting = bocklandt_reduction(Quiver("1-2, 2-2, 2-1"), [1, 2])
+  @test n_vertices(setting["Q"]) == 1
+  @test n_arrows(setting["Q"]) == 0
+  @test setting["d"] == [1]
+
+  # a reduced setting is returned unchanged
+  setting = bocklandt_reduction(Quiver("1--2, 2--1"), [1, 1])
+  @test Matrix(setting["Q"].adjacency) == [0 2; 2 0]
+  @test setting["d"] == [1, 1]
+
+  # vertices of dimension 0 and arrows between strongly connected components are dropped
+  @test bocklandt_reduction(kronecker_quiver(3), [2, 0])["d"] == [2]
+  @test is_coregular(Quiver("1-1, 1-2, 2-2"), [2, 2])
+  @test is_coregular(kronecker_quiver(3), [0, 0])
+end;
