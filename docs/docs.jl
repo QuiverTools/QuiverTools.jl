@@ -1,4 +1,7 @@
 using Documenter, QuiverTools
+# To ensure that the version of the documentation being compiled
+# is the latest committed one,
+# the local installation of QuiverTools should be the one developed at path="../."
 
 ```@meta
 CurrentModule = QuiverTools

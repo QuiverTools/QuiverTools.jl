@@ -1,4 +1,7 @@
 using Test, QuiverTools, Documenter
+# To ensure that the version of the tests being run
+# is the latest committed one,
+# the local installation of QuiverTools should be the one developed at path="../."
 
 # Tests that have mathematical significance
 # should be in the documentation doctests.
