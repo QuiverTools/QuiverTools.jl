@@ -63,10 +63,10 @@ julia> euler_form(Q, [1, 1], [1, 1]) == -2
 true
 ```
 """
-# this inlines x' * (I - adjacency) * y: retrieving the memoized Euler matrix
-# costs more than recomputing the two products
 euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
   x' * y - x' * (Q.adjacency * y)
+# this inlines x' * (I - adjacency) * y: retrieving the memoized Euler matrix
+# costs more than recomputing the two products
 
 ########################################################################################
 # Canonical decomposition
