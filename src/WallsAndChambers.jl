@@ -265,6 +265,8 @@ which corresponds to the stability parameter `zeros(Int, length(d))`.
 The `generic` keyword argument only returns stability parameters
 from the top-dimensional chambers of the VGIT fan.
 
+Requires Oscar: run `import Oscar` to enable this function.
+
 ```jldoctests
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
@@ -355,6 +357,7 @@ end
 for f in (
   :is_special_subdimension_vector, :all_special_subdimension_vectors, :sst,
   :vgit_walls, :wall_system, :vgit_chambers, :vgit_fan, :git_equivalent,
+  :all_stability_parameters,
 )
   @eval @oscar_stub $f
 end
