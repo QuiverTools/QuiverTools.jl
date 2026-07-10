@@ -13,7 +13,7 @@ using IterTools: IterTools
 import Memoization: @memoize
 import QuiverTools:
   is_special_subdimension_vector, all_special_subdimension_vectors, sst,
-  vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent
+  vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent, all_stability_parameters
 
 # Disambiguate between Singular's and Oscar's overloads of `(::PolyRing)(::spoly)`,
 # which collide once both packages are loaded.
