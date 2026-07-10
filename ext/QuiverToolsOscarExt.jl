@@ -3,6 +3,9 @@ module QuiverToolsOscarExt
 # Oscar-backed walls-and-chambers / VGIT functionality. Loaded automatically when a
 # user runs `using Oscar` alongside QuiverTools. The docstrings for the exported
 # entry points live on the stub definitions in src/WallsAndChambers.jl.
+# To define new functionality, add it here, add a stub in src/WallsAndChambers.jl,
+# import the stub here, add it to the list at the bottom of src/WallsAndChambers.jl,
+# and export it from QuiverTools.jl.
 
 using QuiverTools
 using Oscar
