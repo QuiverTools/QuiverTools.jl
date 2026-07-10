@@ -12,6 +12,9 @@
 # them toward a `τσ`-minimal representative (Definition 2.3) is Domokos' route to the
 # finiteness of moduli spaces of a fixed dimension.
 #
+# The paper assumes throughout that the dimension vector is sincere, i.e. nonzero at
+# every vertex; the functions below do not enforce this.
+#
 # SIGN CONVENTION. Domokos follows King: a representation is θ-semistable when
 # θ·dim(S) ≥ 0 for every subrepresentation S, so destabilizing means θ·dim(S) < 0.
 # QuiverTools' `slope`/`has_stables` declare subdimension vectors of strictly larger
@@ -64,7 +67,8 @@ end
     is_small_source(Q::Quiver, d::AbstractVector{Int}, u::Int)
 
 Check whether `u` is a *small source* for `(Q, d)`: a source of `Q` with
-`∑_{sa=u} d(ta) > d(u)` [Definition 2.2, [Domokos](https://doi.org/10.4171/JCA/97)].
+``\\sum_{a\\colon sa=u} d(ta) > d(u)``
+[Definition 2.2, [Domokos](https://doi.org/10.4171/JCA/97)].
 
 # Examples
 
@@ -82,7 +86,8 @@ is_small_source(Q::Quiver, d::AbstractVector{Int}, u::Int) =
     is_small_sink(Q::Quiver, d::AbstractVector{Int}, u::Int)
 
 Check whether `u` is a *small sink* for `(Q, d)`: a sink of `Q` with
-`∑_{ta=u} d(sa) > d(u)` [Definition 2.2, [Domokos](https://doi.org/10.4171/JCA/97)].
+``\\sum_{a\\colon ta=u} d(sa) > d(u)``
+[Definition 2.2, [Domokos](https://doi.org/10.4171/JCA/97)].
 
 # Examples
 
@@ -100,19 +105,20 @@ is_small_sink(Q::Quiver, d::AbstractVector{Int}, u::Int) =
     tau_reduction(Q::Quiver, d, theta, u::Int)
     tau_reduction(M::QuiverModuliSpace, u::Int)
 
-Apply the `τ_u` reduction at a large vertex `u`
+Apply the ``\\tau_u`` reduction at a large vertex `u`
 [Definition 2.1 and Lemma 3.1, [Domokos](https://doi.org/10.4171/JCA/97)].
 
 The vertex `u` and its adjacent arrows are deleted; for every pair of arrows
-`b : v → u` and `c : u → w` a new arrow `v → w` is added (so the number of new arrows
-`v → w` is `(#v→u)·(#u→w)`). The dimension vector is restricted to the remaining
+``b\\colon v \\to u`` and ``c\\colon u \\to w`` a new arrow ``v \\to w`` is added, so
+that ``r_{vu} r_{uw}`` new arrows ``v \\to w`` appear, where ``r_{vu}`` denotes the
+number of arrows ``v \\to u``. The dimension vector is restricted to the remaining
 vertices. The weight transforms, in QuiverTools' sign convention, by
 
-- `θ(u) > 0` (paper case (b), requires `d(u) = ∑_{sc=u} d(tc)`):
-  `(τθ)(v) = θ(v) + (#u→v)·θ(u)`;
-- `θ(u) < 0` (paper case (a), requires `d(u) = ∑_{tb=u} d(sb)`):
-  `(τθ)(v) = θ(v) + (#v→u)·θ(u)`;
-- `θ(u) = 0` (case (c)): `(τθ)(v) = θ(v)`.
+- ``\\theta(u) > 0`` (paper case (b), requires ``d(u) = \\sum_{c\\colon sc=u} d(tc)``):
+  ``(\\tau\\theta)(v) = \\theta(v) + r_{uv}\\theta(u)``;
+- ``\\theta(u) < 0`` (paper case (a), requires ``d(u) = \\sum_{b\\colon tb=u} d(sb)``):
+  ``(\\tau\\theta)(v) = \\theta(v) + r_{vu}\\theta(u)``;
+- ``\\theta(u) = 0`` (case (c)): ``(\\tau\\theta)(v) = \\theta(v)``.
 
 Returns the triple `(Q', d', θ')`, or a new `QuiverModuliSpace` when called on `M`.
 By [Theorem 2.5, [Domokos](https://doi.org/10.4171/JCA/97)] the moduli space is
@@ -122,8 +128,8 @@ otherwise.
 
 # Examples
 
-Reduce a three-vertex quiver whose moduli space is `ℙ²` to the `3`-Kronecker quiver with
-dimension vector `[1, 1]`:
+Reduce a three-vertex quiver whose moduli space is ``\\mathbb{P}^2`` to the
+`3`-Kronecker quiver with dimension vector `[1, 1]`:
 
 ```jldoctest
 julia> Q = Quiver("1-2,2---3");
@@ -174,7 +180,7 @@ end
     sigma_reduction(Q::Quiver, d, theta, u::Int)
     sigma_reduction(M::QuiverModuliSpace, u::Int)
 
-Apply the `σ_u` reflection at a small source or small sink `u`
+Apply the ``\\sigma_u`` reflection at a small source or small sink `u`
 [Definition 2.2 and Lemma 3.3, [Domokos](https://doi.org/10.4171/JCA/97)].
 
 All arrows adjacent to `u` are reversed (so a source becomes a sink and vice versa).
@@ -187,11 +193,13 @@ The dimension changes only at `u`:
 \\end{cases}
 ```
 
-The weight transforms by `(σθ)(u) = -θ(u)` and, for `v ≠ u`,
-`(σθ)(v) = θ(v) + (#u→v)·θ(u)` if `u` is a source, `θ(v) + (#v→u)·θ(u)` if `u` is a sink.
-(These formulas are sign-convention independent.)
+The weight transforms by ``(\\sigma\\theta)(u) = -\\theta(u)`` and, for ``v \\neq u``,
+``(\\sigma\\theta)(v) = \\theta(v) + r_{uv}\\theta(u)`` if `u` is a source and
+``\\theta(v) + r_{vu}\\theta(u)`` if `u` is a sink, where ``r_{uv}`` denotes the number
+of arrows ``u \\to v``. (These formulas are sign-convention independent.)
 
-`σ_u` is an involution. Returns `(Q', d', θ')`, or a new `QuiverModuliSpace` on `M`.
+``\\sigma_u`` is an involution. Returns `(Q', d', θ')`, or a new `QuiverModuliSpace`
+on `M`.
 The stability parameter must satisfy ``\\theta \\cdot d = 0``, i.e. King's
 normalization; an `ArgumentError` is thrown otherwise.
 
@@ -250,13 +258,15 @@ end
 Greedily reduce `(Q, d, θ)` to a smaller, moduli-isomorphic representative by repeatedly
 
 1. applying [`tau_reduction`](@ref) at any large vertex (this drops a vertex), then
-2. applying [`sigma_reduction`](@ref) at any small source/sink whose reflection *shrinks*
-   the dimension vector (i.e. `∑ neighbours < 2·d(u)`).
+2. applying [`sigma_reduction`](@ref) at any small source or sink whose reflection
+   *shrinks* the dimension vector, i.e. whose weighted neighbour sum is less than
+   ``2d(u)``.
 
-Both steps strictly decrease `(|Q₀|, |d|)` lexicographically, so this terminates. The
-result has no large vertex and no dimension-shrinking small source/sink. Note this greedy
-descent is weaker than `τσ`-minimality (Definition 2.3), which also permits `σ`-steps that
-temporarily *raise* `|d|`; see [`is_taus_minimal`](@ref).
+Both steps strictly decrease ``(\\#Q_0, |d|)`` lexicographically, so this terminates.
+The result has no large vertex and no dimension-shrinking small source or sink. Note
+this greedy descent is weaker than ``\\tau\\sigma``-minimality (Definition 2.3), which
+also permits ``\\sigma``-steps that temporarily *raise* ``|d|``; see
+[`is_taus_minimal`](@ref).
 
 Returns the reduced triple `(Q', d', θ')`.
 
@@ -300,21 +310,22 @@ end
 """
     is_taus_minimal(Q::Quiver, d, theta; max_states::Int = 10_000)
 
-Decide whether `(Q, d)` is `τσ`-minimal among all sincere quiver-dimension vector pairs
-[Definition 2.3, [Domokos](https://doi.org/10.4171/JCA/97)]: whether *no* sequence of
-`τ`/`σ` reductions reaches a pair `(Q', d')` with `|Q'₀| < |Q₀|`, or `|Q'₀| = |Q₀|` and
-`|d'| < |d|`.
+Decide whether `(Q, d)` is ``\\tau\\sigma``-minimal among all sincere quiver-dimension
+vector pairs [Definition 2.3, [Domokos](https://doi.org/10.4171/JCA/97)]: whether *no*
+sequence of ``\\tau`` and ``\\sigma`` reductions reaches a pair `(Q', d')` with
+``\\#Q_0' < \\#Q_0``, or ``\\#Q_0' = \\#Q_0`` and ``|d'| < |d|``.
 
-This explores the reduction graph breadth-first. Since `τ` drops a vertex and a
-dimension-lowering `σ` is immediately witnessed, a *negative* answer (`false`) is always a
-genuine witness. A `σ`-orbit can be infinite (Section 9 of the reference is `τσ`-minimal
-yet has `σ`-steps that raise `|d|` without bound), so the search is capped at `max_states`
-pairs; if the cap is hit the function returns `true` with a warning, meaning "not disproved
-within the search bound".
+This explores the reduction graph breadth-first. Since ``\\tau`` drops a vertex and a
+dimension-lowering ``\\sigma`` is immediately witnessed, a *negative* answer (`false`)
+is always a genuine witness. A ``\\sigma``-orbit can be infinite (Section 9 of the
+reference is ``\\tau\\sigma``-minimal yet has ``\\sigma``-steps that raise ``|d|``
+without bound), so the search is capped at `max_states` pairs; if the cap is hit the
+function returns `true` with a warning, meaning "not disproved within the search
+bound".
 
 # Examples
 
-A pair with a large vertex is never minimal (its `τ` reduction drops a vertex):
+A pair with a large vertex is never minimal (its ``\\tau`` reduction drops a vertex):
 
 ```jldoctest
 julia> is_taus_minimal(Quiver("1-2,2-1"), [1, 1], [1, -1])
