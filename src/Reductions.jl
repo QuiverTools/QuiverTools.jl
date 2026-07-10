@@ -116,7 +116,9 @@ vertices. The weight transforms, in QuiverTools' sign convention, by
 
 Returns the triple `(Q', d', θ')`, or a new `QuiverModuliSpace` when called on `M`.
 By [Theorem 2.5, [Domokos](https://doi.org/10.4171/JCA/97)] the moduli space is
-unchanged up to isomorphism.
+unchanged up to isomorphism. The stability parameter must satisfy
+``\\theta \\cdot d = 0``, i.e. King's normalization; an `ArgumentError` is thrown
+otherwise.
 
 # Examples
 
@@ -138,6 +140,9 @@ julia> dr, thetar
 function tau_reduction(
   Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, u::Int
 )
+  # the case split on sign(theta(u)) presupposes King's normalization
+  theta' * d == 0 ||
+    throw(ArgumentError("the stability parameter theta must satisfy theta . d = 0"))
   is_large(Q, d, u) || throw(ArgumentError("vertex $u is not large for (Q, d)"))
   n = n_vertices(Q)
   A = Matrix{Int}(Q.adjacency)
@@ -187,6 +192,8 @@ The weight transforms by `(σθ)(u) = -θ(u)` and, for `v ≠ u`,
 (These formulas are sign-convention independent.)
 
 `σ_u` is an involution. Returns `(Q', d', θ')`, or a new `QuiverModuliSpace` on `M`.
+The stability parameter must satisfy ``\\theta \\cdot d = 0``, i.e. King's
+normalization; an `ArgumentError` is thrown otherwise.
 
 # Examples
 
@@ -202,6 +209,9 @@ julia> dr, thetar
 function sigma_reduction(
   Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, u::Int
 )
+  # the moduli isomorphism of Lemma 3.3 presupposes King's normalization
+  theta' * d == 0 ||
+    throw(ArgumentError("the stability parameter theta must satisfy theta . d = 0"))
   n = n_vertices(Q)
   A = Matrix{Int}(Q.adjacency)
   col = A[:, u]    # col[v] = #(v → u)
