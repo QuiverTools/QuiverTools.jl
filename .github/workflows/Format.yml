@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'src/**'
+      - 'ext/**'
       - 'test/**'
       - 'docs/make.jl'
       - '.JuliaFormatter.jl'

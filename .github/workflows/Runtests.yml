@@ -6,6 +6,7 @@ on:
       - '!schubert-polynomials'
     paths:
       - 'src/**'
+      - 'ext/**'
       - 'test/**'
       - '.github/workflows/Runtests.yml'
   workflow_dispatch:
