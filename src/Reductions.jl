@@ -25,9 +25,9 @@
 ########################################################################################
 
 # arrows into u weighted by d:  Σ_{tb=u} d(sb) = Σ_v (#v→u)·d(v)   (column u · d)
-_in_sum(Q::Quiver, d::AbstractVector{Int}, u::Int) = sum(Q.adjacency[:, u] .* d)
+__in_sum(Q::Quiver, d::AbstractVector{Int}, u::Int) = sum(Q.adjacency[:, u] .* d)
 # arrows out of u weighted by d: Σ_{sc=u} d(tc) = Σ_v (#u→v)·d(v)   (row u · d)
-_out_sum(Q::Quiver, d::AbstractVector{Int}, u::Int) = sum(Q.adjacency[u, :] .* d)
+__out_sum(Q::Quiver, d::AbstractVector{Int}, u::Int) = sum(Q.adjacency[u, :] .* d)
 
 """
     is_large(Q::Quiver, d::AbstractVector{Int}, u::Int)
@@ -57,7 +57,7 @@ false
 function is_large(Q::Quiver, d::AbstractVector{Int}, u::Int)
   Q.adjacency[u, u] == 0 || return false                  # no loop at u
   indegree(Q, u) + outdegree(Q, u) > 0 || return false    # deg_Q(u) > 0
-  return d[u] >= max(_in_sum(Q, d, u), _out_sum(Q, d, u))
+  return d[u] >= max(__in_sum(Q, d, u), __out_sum(Q, d, u))
 end
 
 """
@@ -76,7 +76,7 @@ true
 ```
 """
 is_small_source(Q::Quiver, d::AbstractVector{Int}, u::Int) =
-  is_source(Q, u) && _out_sum(Q, d, u) > d[u]
+  is_source(Q, u) && __out_sum(Q, d, u) > d[u]
 
 """
     is_small_sink(Q::Quiver, d::AbstractVector{Int}, u::Int)
@@ -94,7 +94,7 @@ true
 ```
 """
 is_small_sink(Q::Quiver, d::AbstractVector{Int}, u::Int) =
-  is_sink(Q, u) && _in_sum(Q, d, u) > d[u]
+  is_sink(Q, u) && __in_sum(Q, d, u) > d[u]
 
 """
     tau_reduction(Q::Quiver, d, theta, u::Int)
@@ -157,11 +157,11 @@ function tau_reduction(
 
   tu = theta[u]
   if tu > 0                                       # paper case (b): outgoing side
-    d[u] == _out_sum(Q, d, u) ||
+    d[u] == __out_sum(Q, d, u) ||
       throw(ArgumentError("(Q, d, θ) is not θ-semistable at the large vertex $u"))
     theta_full = collect(theta) .+ row .* tu      # (τθ)(v) = θ(v) + (#u→v)·θ(u)
   elseif tu < 0                                   # paper case (a): incoming side
-    d[u] == _in_sum(Q, d, u) ||
+    d[u] == __in_sum(Q, d, u) ||
       throw(ArgumentError("(Q, d, θ) is not θ-semistable at the large vertex $u"))
     theta_full = collect(theta) .+ col .* tu      # (τθ)(v) = θ(v) + (#v→u)·θ(u)
   else                                            # case (c)
@@ -219,10 +219,10 @@ function sigma_reduction(
   tu = theta[u]
 
   if is_small_source(Q, d, u)
-    dnew_u = -d[u] + _out_sum(Q, d, u)
+    dnew_u = -d[u] + __out_sum(Q, d, u)
     theta_new = collect(theta) .+ row .* tu    # source: θ(v) + (#u→v)·θ(u)
   elseif is_small_sink(Q, d, u)
-    dnew_u = -d[u] + _in_sum(Q, d, u)
+    dnew_u = -d[u] + __in_sum(Q, d, u)
     theta_new = collect(theta) .+ col .* tu    # sink:   θ(v) + (#v→u)·θ(u)
   else
     throw(ArgumentError("vertex $u is not a small source or small sink for (Q, d)"))
@@ -286,8 +286,8 @@ function tau_sigma_reduce(
       continue
     end
     u = findfirst(1:n) do v
-      (is_small_source(Q, d, v) && _out_sum(Q, d, v) < 2 * d[v]) ||
-        (is_small_sink(Q, d, v) && _in_sum(Q, d, v) < 2 * d[v])
+      (is_small_source(Q, d, v) && __out_sum(Q, d, v) < 2 * d[v]) ||
+        (is_small_sink(Q, d, v) && __in_sum(Q, d, v) < 2 * d[v])
     end
     if !isnothing(u)
       Q, d, theta = sigma_reduction(Q, d, theta, u)
