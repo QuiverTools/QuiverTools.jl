@@ -587,10 +587,14 @@ The provided methods are described in [Walls and Chambers decomposition](@ref).
 
 ### Technical note
 
-The walls and chambers functionality is contained in a *package extension*,
-which automatically loads the optional dependency `Oscar.jl`
-the first time one of the methods requiring it is called.
+The walls and chambers functionality is contained in a *package extension*
+that depends on the `Oscar` algebra system.
 
-Using these features requires `Oscar` to be present in the same environment.
-If not yet present, it can be installed by running `using Pkg; Pkg.add("Oscar")`
-in the same Julia session.
+To use it, one must
+
+- Ensure `Oscar` is installed in the current environment, by running `using Pkg; Pkg.add("Oscar")`; and
+- Load the Oscar package, possibly without its interface, by running `import Oscar`.
+
+If `import Oscar` is not run, `QuiverTools` will run it automatically,
+but it may trigger recompilation and produce unwanted output.
+For non-interactive workflows, it is best to run it at the beginning of the session.

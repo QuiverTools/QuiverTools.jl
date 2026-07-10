@@ -4,15 +4,26 @@ QuiverTools implements the walls-and-chambers decomposition
 of the GIT problem of quiver moduli using the polyhedral geometry
 interface of `Oscar.jl`.
 
-This functionality lives in a package extension and is only available once Oscar
-is loaded. This happens automatically, provided that Oscar is available in the
-same environment. Oscar can be installed in said environment by running
+This functionality lives in a *package extension*
+that depends on the `Oscar` algebra system.
 
-```julia
-using Pkg; Pkg.add("Oscar")
-```
+To use it, one must
 
-Without Oscar loaded, the functions below raise an error explaining this.
+- Ensure `Oscar` is installed in the current environment, by running `using Pkg; Pkg.add("Oscar")`; and
+- Load the Oscar package, possibly without its interface, by running `import Oscar`.
+
+If `import Oscar` is not run, `QuiverTools` will run it automatically,
+but this may trigger recompilation and produce unwanted output.
+For non-interactive workflows, it is best to run it at the beginning of the session.
+
+Note that running `using Oscar` instead of `import Oscar` will expose
+the Oscar interface, and this might clash with functions provided by QuiverTools.
+The interface of either package can be accessed even if it is not exposed,
+by prepending the package name to the bindings. 
+For instance, if one only runs `import Oscar`,
+the function `dim()` of Oscar can be used
+by running `Oscar.dim()`.
+
 
 ```@docs
 is_special_subdimension_vector
