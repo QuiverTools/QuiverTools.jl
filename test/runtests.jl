@@ -326,7 +326,10 @@ end;
   # τ and σ reductions preserve the moduli space up to isomorphism (Theorem 2.5), which we
   # witness through the Hodge diamond. The stability sign is QuiverTools' (opposite King),
   # so the Section 9 weight θ_paper = (-2, 1, 1) is passed as (2, -1, -1).
-  diag(M) = [hodge_diamond(M)[i, i] for i in 1:size(hodge_diamond(M), 1)]
+  function diag(M)
+    h = hodge_diamond(M)
+    return [h[i, i] for i in 1:size(h, 1)]
+  end
 
   # τ_u at a large middle vertex: 1 → 2 ⇉⇉⇉ 3 reduces to the 3-Kronecker quiver.
   # With d = [1, 3, 1] the moduli space is ℙ²; with d = [2, 9, 3] it is the 6-fold M(K₃, [2,3]).
