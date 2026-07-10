@@ -8,13 +8,15 @@
 #   - σ_u : reflect a *small* source or sink u (Definition 2.2, Lemma 3.3).
 #
 # Both preserve the moduli space up to isomorphism and preserve stability
-# (Theorem 2.5): M(Q, α, θ) ≅ M(reduced Q, α, θ). Iterating them toward a
-# `τσ`-minimal representative (Definition 2.3) is Domokos' route to the
+# (Theorem 2.5): M(Q, α, θ) ≅ M(τ_u Q, τ_u α, τ_u θ), and likewise for σ_u. Iterating
+# them toward a `τσ`-minimal representative (Definition 2.3) is Domokos' route to the
 # finiteness of moduli spaces of a fixed dimension.
 #
-# SIGN CONVENTION. Domokos declares a subrepresentation S destabilizing when
-# θ·dim(S) > 0; QuiverTools' `slope`/`has_stables` use the opposite King sign
-# (destabilizing when θ·dim(S) < 0), i.e. θ_QuiverTools = −θ_paper. Every weight
+# SIGN CONVENTION. Domokos follows King: a representation is θ-semistable when
+# θ·dim(S) ≥ 0 for every subrepresentation S, so destabilizing means θ·dim(S) < 0.
+# QuiverTools' `slope`/`has_stables` declare subdimension vectors of strictly larger
+# slope destabilizing, which for θ·d = 0 means θ·dim(S) > 0. Hence
+# θ_QuiverTools = −θ_paper. Every weight
 # formula below is *linear* in θ, so negation commutes with it and the formulas
 # are written directly in QuiverTools' sign. The one visible consequence is in
 # `tau_reduction`: the paper selects its two cases by sign(θ_paper(u)), so under
