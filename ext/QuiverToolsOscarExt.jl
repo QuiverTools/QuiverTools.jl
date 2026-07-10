@@ -379,68 +379,6 @@ function general_stability(cone)
   return Int.(out ./ l)
 end
 
-"""
-    all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false)
-
-Compute a list of stability parameters, one for each equivalence class of
-stability parameters for the quiver `Q` and dimension vector `d`.
-
-For now this excludes the semisimple condition,
-which corresponds to the stability parameter `zeros(Int, length(d))`.
-
-The `generic` keyword argument only returns stability parameters
-from the top-dimensional chambers of the VGIT fan.
-
-```jldoctests
-julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
-
-julia> all_stability_parameters(Q, d)
-17-element Vector{Vector{Int64}}:
- [1, -1, 0, 0]
- [1, 0, -1, 0]
- [1, 0, 0, -1]
- [0, 0, 1, -1]
- [0, 1, -1, 0]
- [2, -1, -1, 0]
- [2, -1, 0, -1]
- [2, 0, -1, -1]
- [1, 0, 1, -2]
- [1, -1, 1, -1]
- [1, 1, -2, 0]
- [1, 1, -1, -1]
- [0, 1, 0, -1]
- [3, -1, -1, -1]
- [2, -1, 1, -2]
- [2, 1, -2, -1]
- [1, 1, 0, -2]
-```
-
-The `generic` keyword argument only returns the stability parameters
-from the top-dimensional chambers of the VGIT fan, i.e., the ones
-for which semistability and stability are equivalent:
-
-```jldoctest
-julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
-
-julia> all_stability_parameters(Q, d; generic=true)
-4-element Vector{Vector{Int64}}:
- [3, -1, -1, -1]
- [2, -1, 1, -2]
- [2, 1, -2, -1]
- [1, 1, 0, -2]
-```
-
-This method behaves well with respect to the trivial case of our favourite quiver, of course:
-
-```jldoctests
-julia> Q = kronecker_quiver(3); d = [2, 3];
-
-julia> all_stability_parameters(Q, d)
-1-element Vector{Vector{Int64}}:
- [3, -2]
-```
-
-"""
 function all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false)
   F = vgit_fan(Q, d)
   if generic
