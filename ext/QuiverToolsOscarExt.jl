@@ -334,7 +334,6 @@ function __lower_fan(Q::Quiver, d::AbstractVector{Int})
   return Oscar.polyhedral_fan(walls)
 end
 
-
 """
     general_stability(cone)
 
@@ -443,7 +442,7 @@ julia> all_stability_parameters(Q, d)
 
 """
 function all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false)
-    F = vgit_fan(Q, d)
+  F = vgit_fan(Q, d)
   if generic
     cones = Oscar.cones(F, Oscar.dim(F))
   else
