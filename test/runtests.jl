@@ -357,4 +357,15 @@ end;
   @test is_taus_minimal(Quiver("1-2,2-1"), [1, 1], [1, -1]) == false
   @test tau_sigma_reduce(Quiver("1-2,2-1"), [1, 1], [1, -1]) == (Quiver([1;;]), [1], [0])
   @test is_taus_minimal(Quiver([1;;]), [1], [0]) == true
+
+  # error paths: the vertex must be large resp. small, theta must be King-normalized,
+  # and Lemma 3.1 forces the equality at the large vertex when theta(u) is nonzero
+  @test_throws ArgumentError tau_reduction(Q, [1, 3, 1], [3, 1, -6], 1)
+  @test_throws ArgumentError tau_reduction(Q, [1, 3, 1], [3, 1, -5], 2)
+  @test_throws ArgumentError tau_reduction(Quiver("1-2,2-1"), [2, 1], [1, -2], 1)
+  @test_throws ArgumentError sigma_reduction(Q9, d9, th9, 3)
+  @test_throws ArgumentError sigma_reduction(Q9, d9, [2, -1, 0], 1)
+
+  # the sigma-orbit of the Section 9 pair is infinite, so a small cap trips the warning
+  @test (@test_logs (:warn,) is_taus_minimal(Q9, d9, th9; max_states=2)) == true
 end;
