@@ -19,7 +19,6 @@ QuiverTools.variety
 QuiverTools.weights_endomorphisms_universal_bundles_on_stratum
 QuiverTools.weights_endomorphism_universal_bundle_on_stratum
 QuiverTools.__chow_degrees
-QuiverTools.__helper_accelerate
 QuiverTools.product_lists
 QuiverTools.CardinalGl
 QuiverTools.weight_line_bundle_on_stratum
