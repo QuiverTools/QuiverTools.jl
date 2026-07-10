@@ -530,7 +530,9 @@ Returns the local quiver and dimension vector for the given Luna type.
 
 # Output
 
-- a dictionary with the local quiver `Q` and dimension vector `d` for the given Luna type.
+- a dictionary with the local quiver `Q`, its dimension vector `d`, and the list
+  `summands` of the dimension vectors of the stable summands, one for each vertex of
+  the local quiver, ordered compatibly with `d`.
 """
 function local_quiver_setting(M::QuiverModuli, tau)
   if !is_luna_type(M, tau)
