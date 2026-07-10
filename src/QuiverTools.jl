@@ -89,7 +89,7 @@ export chern_character, chern_class, chern_classes, dual, exterior_power, symmet
 
 # Walls and Chambers
 export rays, is_special_subdimension_vector, all_special_subdimension_vectors, sst,
-  vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent
+  vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent, all_stability_parameters
 
 import Pkg
 
