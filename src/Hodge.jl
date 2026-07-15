@@ -507,9 +507,7 @@ function poincare_polynomial(M::QuiverModuliSpace)
 
   m = motive(M.Q, M.d, M.theta, M.denom)
   v = Singular.transcendence_basis(Singular.parent(m))[1]
-  # the stack of stable representations is a G_m-gerbe over the moduli space, so
-  # [M] = (L - 1) * [stack motive]
-  P = (v - 1) * m
+  P = (1 - v) * m
 
   denominator(P) != 1 && throw(DomainError("must be a polynomial"))
   # returns a polynomial object instead of a FunctionField element.
@@ -551,7 +549,7 @@ Compute the motive of the moduli stack of `theta`-semistable representations.
 julia> Q = kronecker_quiver(3);
 
 julia> motive(Q, [2, 3])
-(L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1)//(L - 1)
+(-L^6 - L^5 - 3*L^4 - 3*L^3 - 3*L^2 - L - 1)//(L - 1)
 ```
 """
 function motive(
@@ -592,7 +590,5 @@ function motive(
   y[end] = 1
   y = coerce_vector(y)
 
-  # the HN recursion produces the negative of the honest stack motive; negate so
-  # this branch agrees with the trivial-stability branch above (see issue #36)
-  return -solve(T, y)[1]
+  return solve(T, y)[1]
 end
