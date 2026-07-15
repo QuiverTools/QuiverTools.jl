@@ -157,3 +157,26 @@ end;
   M = QuiverModuliSpace(kronecker_quiver(3), [2, 3])
   @test betti_numbers(M) == [1, 0, 1, 0, 3, 0, 3, 0, 3, 0, 1, 0, 1]
 end;
+
+@testset "motive/poincare sign" begin
+  # The two branches of motive must agree in sign: the HN recursion returns the
+  # honest stack motive [M]/(L-1), and the trivial-stability branch returns the
+  # full-stack motive; poincare_polynomial recovers [M] = (L-1)*[stack motive].
+  # (regression #36: for a quiver with loops the trivial branch was consumed with
+  # the opposite sign, giving e.g. P = -L for the affine line.)
+  # poincare_polynomial returns an spoly and motive an n_transExt, so compare the
+  # rendered strings, as the doctests do.
+
+  # loop_quiver(g), d = [1]: moduli space is A^g, so P = L^g and motive = L^g/(L-1)
+  for (g, p) in ((1, "L"), (2, "L^2"), (3, "L^3"))
+    M = QuiverModuliSpace(loop_quiver(g), [1], [0])
+    @test string(poincare_polynomial(M)) == p
+    @test string(motive(QuiverModuliStack(loop_quiver(g), [1], [0], "stable"))) ==
+      "$p//(L - 1)"
+  end
+
+  # recursion path is unchanged: the space motive of the 6-fold stays positive
+  M = QuiverModuliSpace(kronecker_quiver(3), [2, 3])
+  @test string(poincare_polynomial(M)) ==
+    "L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1"
+end;
