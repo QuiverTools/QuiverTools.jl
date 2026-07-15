@@ -413,7 +413,8 @@ Compute the Betti numbers of the moduli space `M`.
 
 # Output
 
-- a list of Betti numbers of the moduli space.
+- a list of Betti numbers of the moduli space, indexed by cohomological
+  degree ``0, \\dots, 2\\dim M``.
 
 # Examples
 
@@ -457,14 +458,11 @@ function betti_numbers(M::QuiverModuliSpace)
 
   N = dimension(M)
   P = poincare_polynomial(M)
-  coeff = Int.(numerator.(Singular.coefficients(P)))
-  betti = reduce(vcat, [c, 0] for c in coeff[1:(end - 1)])
-  push!(betti, coeff[end])
-
-  # if the polynomial did not have degree = N,
-  # we add zero coefficients
-  if length(betti) < 2 * N + 1
-    betti = vcat(betti, zeros(2 * N + 1 - length(betti)))
+  # entry 2k + 1 is the coefficient of L^k in P, i.e., the Betti number
+  # in cohomological degree 2k; all odd Betti numbers vanish
+  betti = zeros(Int, 2 * N + 1)
+  for (c, e) in zip(Singular.coefficients(P), Singular.exponent_vectors(P))
+    betti[2 * e[1] + 1] = Int(numerator(c))
   end
   return betti
 end

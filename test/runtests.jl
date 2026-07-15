@@ -140,3 +140,20 @@ end;
   # ξ5 = (e_K^2, e_Kbar^2): two vertices, a 2-cycle, local dimension (2, 2)
   @test fingerprint(Dict(eK => [2], eKb => [2])) == ([2, 2], [0, 0], [0, 0, 1, 1], true)
 end;
+
+@testset "Betti numbers" begin
+  # betti_numbers is the coefficient vector of the Poincaré polynomial, indexed
+  # by ascending cohomological degree, always a Vector{Int} (regression: for
+  # non-palindromic Poincaré polynomials, which occur for quivers with oriented
+  # cycles, the coefficients were listed by descending degree and the padding to
+  # length 2 dim + 1 used Float64 zeros; a monomial Poincaré polynomial crashed).
+  # The round-trip quiver with d = (1, 1) has moduli space A^1, so P = L.
+  Q = Quiver([0 1; 1 0])
+  M = QuiverModuliSpace(Q, [1, 1], [1, -1])
+  @test betti_numbers(M) isa Vector{Int}
+  @test betti_numbers(M) == [0, 0, 1]
+
+  # the smooth projective (palindromic) case is unchanged: our favourite 6-fold
+  M = QuiverModuliSpace(kronecker_quiver(3), [2, 3])
+  @test betti_numbers(M) == [1, 0, 1, 0, 3, 0, 3, 0, 3, 0, 1, 0, 1]
+end;
