@@ -354,6 +354,99 @@ end
 """
 # Summary
 
+`struct FramedQuiverModuliSpace`
+
+The framed quiver moduli space ``M^{\\Theta\\text{-fr}}(Q, \\mathbf{d}, \\mathbf{n})`` of a
+quiver `Q`, base dimension vector `d`, base stability parameter `theta` and framing datum
+`n`. It is realized as the quiver moduli space of the framed quiver ``\\widehat{Q}`` (see
+[`framed_quiver`](@ref) / [`coframed_quiver`](@ref)) for dimension vector
+``\\widehat{\\mathbf{d}}`` and an induced stability parameter ``\\widehat{\\Theta}``; use
+[`total_space`](@ref) to obtain that ordinary [`QuiverModuliSpace`](@ref) and [`base`](@ref)
+to obtain the codomain ``M^{\\Theta}(Q, \\mathbf{d})`` of the projection
+``p\\colon M^{\\Theta\\text{-fr}}(Q, \\mathbf{d}, \\mathbf{n}) \\to M^{\\Theta}(Q, \\mathbf{d})``.
+
+The fibres of `p` over a Luna stratum are described by [`fibre`](@ref); see
+[arXiv:2607.12895](https://arxiv.org/abs/2607.12895).
+
+# Fields
+
+`Q         :: Quiver`                base quiver.\\
+`d         :: AbstractVector{Int}`   base dimension vector.\\
+`theta     :: AbstractVector{Int}`   base stability parameter.\\
+`denom     :: Function`              slope denominator.\\
+`n         :: AbstractVector{Int}`   framing datum.\\
+`coframed  :: Bool`                  `false`: arrows ``i_0 \\to i`` (framing vertex first);
+                                     `true`: arrows ``i \\to i_0`` (coframing vertex last).
+"""
+struct FramedQuiverModuliSpace
+  Q::Quiver
+  d::AbstractVector{Int}
+  theta::AbstractVector{Int}
+  denom::Function
+  n::AbstractVector{Int}
+  coframed::Bool
+end
+function FramedQuiverModuliSpace(
+  Q::Quiver,
+  d::AbstractVector{Int};
+  n::AbstractVector{Int},
+  theta::AbstractVector{Int}=canonical_stability(Q, d),
+  denom::Function=sum,
+  coframed::Bool=false,
+)
+  length(d) == n_vertices(Q) ||
+    throw(ArgumentError("length of d must equal the number of vertices"))
+  length(theta) == n_vertices(Q) ||
+    throw(ArgumentError("length of theta must equal the number of vertices"))
+  length(n) == n_vertices(Q) ||
+    throw(ArgumentError("length of n must equal the number of vertices"))
+  return FramedQuiverModuliSpace(
+    Q, coerce_vector(d), coerce_vector(theta), denom, coerce_vector(n), coframed
+  )
+end
+
+function show(io::IO, X::FramedQuiverModuliSpace)
+  print(
+    io,
+    "$(X.coframed ? "Coframed" : "Framed") quiver moduli space defined as follows:
+ - base quiver: $(X.Q)
+ - base dimension vector: $(X.d)
+ - base stability parameter: $(X.theta)
+ - framing datum: $(X.n)
+    ",
+  )
+end
+
+"""
+# Summary
+
+`struct NilpotentLocus`
+
+A marker for the closed sublocus of nilpotent representations inside a quiver moduli space
+`ambient` (here a [`FramedQuiverModuliSpace`](@ref)): the representations whose underlying
+representation of the quiver (ignoring the framing) is nilpotent.
+
+The nilpotency is recorded, not computed: there is no general routine here for the
+nullcone of a non-acyclic quiver, so `ambient(N)` is the ambient moduli space and the
+nilpotent locus is identified by hand, as in
+[arXiv:2607.12895](https://arxiv.org/abs/2607.12895). It arises as the fibre of the framed
+projection, see [`fibre`](@ref).
+
+# Fields
+
+`ambient :: FramedQuiverModuliSpace`
+"""
+struct NilpotentLocus{M}
+  ambient::M
+end
+
+function show(io::IO, N::NilpotentLocus)
+  print(io, "Nilpotent locus inside\n  ", N.ambient)
+end
+
+"""
+# Summary
+
 `struct HNType`
 
 A Harder-Narasimhan type for a quiver, a dimension vector `d`

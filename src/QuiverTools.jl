@@ -36,6 +36,8 @@ import Singular: polynomial_ring, degree, coeff, constant_coefficient,
 
 # Types
 export Quiver, HNType, LunaType, QuiverModuli, QuiverModuliSpace, QuiverModuliStack, Bundle
+export FramedQuiverModuliSpace, NilpotentLocus
+export base, total_space, framing_vector, fibre, ambient, local_structure
 
 # Quivers
 export n_vertices,
@@ -47,7 +49,7 @@ export kronecker_quiver, loop_quiver, jordan_quiver, subspace_quiver, star_quive
   generalized_subspace_quiver, thickened_subspace_quiver, three_vertex_quiver,
   cyclic_quiver,
   bipartite_quiver, opposite_quiver, double_quiver, disjoint_union, dynkin_quiver,
-  extended_dynkin_quiver
+  extended_dynkin_quiver, framed_quiver, coframed_quiver
 export kronecker_moduli, subspace_quiver_moduli
 
 # Stability
@@ -64,7 +66,7 @@ export euler_form, euler_matrix, is_root, is_schur_root, is_real_root, is_imagin
   bocklandt_reduction, is_coregular, is_cofree
 
 # Moduli
-export all_luna_types, is_luna_type, dimension_of_luna_stratum
+export all_luna_types, is_luna_type, dimension_of_luna_stratum, local_quiver_setting
 export is_nonempty, codimension_unstable_locus, codimension_singular_locus, dimension,
   is_smooth,
   is_projective, is_strongly_amply_stable, semistable_equals_stable, semisimple_moduli_space
