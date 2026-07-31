@@ -226,6 +226,28 @@ end;
     @test length(betti) == 2 * dimension(M) + 1
   end
 
+  # a quiver need not be acyclic, but then the moduli space is affine rather than
+  # projective and the answer is compactly supported. These are the spaces of matrix
+  # invariants, whose intersection cohomology is Theorem 8.2 of [MR4000572]; for `d = 1`
+  # the moduli space is A^m, and for m = d = 2 it is A^5 because the five traces and
+  # determinants are independent.
+  for (m, d, expected) in [
+    (2, 1, [2]),
+    (3, 1, [3]),
+    (2, 2, [5]),
+    (2, 3, [10]),
+    (2, 4, [17, 15]),
+    (3, 2, [9]),
+    (3, 3, [19, 17, 16]),
+    (4, 2, [13, 11]),
+  ]
+    M = QuiverModuliSpace(loop_quiver(m), [d])
+    @test dimension(M) == (m - 1) * d^2 + 1
+    betti = intersection_betti_numbers(M)
+    @test findall(!iszero, betti) .- 1 == sort(2 .* expected)
+    @test all(isone, betti[findall(!iszero, betti)])
+  end
+
   # the Donaldson--Thomas invariant vanishes when nothing of dimension vector `d` is
   # stable, which is an exact cancellation in the plethystic logarithm
   for n in 2:4
