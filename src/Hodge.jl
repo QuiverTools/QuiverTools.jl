@@ -596,3 +596,324 @@ function motive(
   # this branch agrees with the trivial-stability branch above (see issue #36)
   return -solve(T, y)[1]
 end
+
+########################################################################################
+# Intersection cohomology of quiver moduli spaces.
+#
+# When `d` and `theta` admit properly semistable representations the moduli space is
+# singular and its ordinary cohomology is not determined by the Harder--Narasimhan
+# recursion. Meinhardt--Reineke
+# [[MR4000572](https://mathscinet.ams.org/mathscinet-getitem?mr=4000572)] identify the
+# Donaldson--Thomas invariants of the quiver with the intersection cohomology of the
+# moduli space, which makes it computable from the motives of the semistable stacks.
+#
+# With ``\Lambda_\mu`` the monoid of dimension vectors of the slope of ``d``, their
+# Lemma in §3.1 and Theorem 3.4 read
+#
+#     \sum_{e \in \Lambda_\mu} L^{(e, e)/2} [\mathfrak{M}^{ss}_e] t^e
+#       = Exp((\sum_{0 \neq e \in \Lambda_\mu} DT_e t^e)/(L^{1/2} - L^{-1/2})),
+#     E(IH^*(M^{ss}_d)) = L^{\dim/2} DT_d,   \dim M^{ss}_d = 1 - (d, d),
+#
+# where ``(-, -)`` is the Euler form and ``Exp`` is the plethystic exponential.
+# The motive of the stack ``\mathfrak{M}^{ss}_e`` is what `motive` computes.
+#
+# Quiver moduli have Hodge structures concentrated on the diagonal, so everything in
+# sight is a rational function in the Lefschetz class alone, and the half powers only
+# need a square root `w` of it, with ``L^{1/2} = -w`` because ``L^{1/2}`` sits in odd
+# degree. The Adams operations are then the substitutions ``w \mapsto w^n``.
+#
+# For a dimension vector which is primitive in ``\Lambda_\mu`` the plethystic logarithm
+# is its own leading term, and the answer is the ordinary Poincaré polynomial again.
+########################################################################################
+
+"""
+    _mobius(n::Int)
+
+Return the Möbius function ``\\mu(n)``.
+
+This is an internal method, only used in the plethystic logarithm computing
+intersection cohomology.
+
+# Examples
+
+```jldoctest
+julia> QuiverTools._mobius.(1:10)
+10-element Vector{Int64}:
+  1
+ -1
+ -1
+  0
+ -1
+  1
+ -1
+  0
+  0
+  1
+```
+"""
+function _mobius(n::Int)
+  result = 1
+  for p in 2:n            # the range is fixed before the loop divides `n` down
+    if n % p == 0
+      n = n ÷ p
+      n % p == 0 && return 0
+      result = -result
+    end
+  end
+  return result
+end
+
+"""
+    intersection_poincare_polynomial(M::QuiverModuliSpace)
+
+Compute the Poincaré polynomial of the intersection cohomology of the moduli space `M`.
+
+The algorithm is the one of
+[[MR4000572](https://mathscinet.ams.org/mathscinet-getitem?mr=4000572)], which identifies
+the Donaldson--Thomas invariants of the quiver with the intersection cohomology of
+``M^{ss}_\\theta(Q, \\mathbf{d})``. It needs `M.theta` to be generic for the slope of
+`M.d`, meaning that the antisymmetrized Euler form vanishes on the dimension vectors of
+that slope, and it needs stable representations to exist; both are checked.
+
+The moduli space is smooth exactly when no proper subdimension vector has the slope of
+`M.d`, and there intersection cohomology is ordinary cohomology, so this agrees with
+[`poincare_polynomial`](@ref).
+
+# Input
+
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+
+# Output
+
+- the Poincaré polynomial of the intersection cohomology of the moduli space.
+
+# Examples
+
+The moduli space for the 3-Kronecker quiver and dimension vector `[2, 2]` is singular,
+as `[1, 1]` has the same slope, and it has the intersection cohomology of ``\\mathbb{P}^5``:
+```jldoctest
+julia> Q = kronecker_quiver(3);
+
+julia> M = QuiverModuliSpace(Q, [2, 2]);
+
+julia> intersection_poincare_polynomial(M)
+L^5 + L^4 + L^3 + L^2 + L + 1
+```
+
+Reflection functors identify moduli spaces for different dimension vectors:
+```jldoctest
+julia> Q = kronecker_quiver(4);
+
+julia> M = QuiverModuliSpace(Q, [3, 3]); N = QuiverModuliSpace(Q, [3, 9]);
+
+julia> intersection_poincare_polynomial(M) == intersection_poincare_polynomial(N)
+true
+```
+
+In the smooth case this is the ordinary Poincaré polynomial:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
+
+julia> intersection_poincare_polynomial(M)
+L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1
+
+julia> intersection_poincare_polynomial(M) == poincare_polynomial(M)
+true
+```
+
+There is nothing to compute if no representation of dimension vector `M.d` is stable:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(2), [2, 2]);
+
+julia> intersection_poincare_polynomial(M)
+ERROR: ArgumentError: there are no stable representations of dimension vector [2, 2]
+```
+"""
+function intersection_poincare_polynomial(M::QuiverModuliSpace)
+  M.condition == "semistable" || throw(
+    ArgumentError("intersection cohomology is computed for the semistable moduli space")
+  )
+  Q, d, theta, denom = M.Q, M.d, M.theta, M.denom
+
+  # the dimension vectors of the slope of `d`, i.e. the part of the monoid
+  # ``\Lambda_\mu`` below `d`; the zero vector is left out and treated separately
+  lattice = filter(
+    e -> slope(e, theta, denom) == slope(d, theta, denom),
+    all_subdimension_vectors(d; nonzero=true),
+  )
+  all(euler_form(Q, e, f) == euler_form(Q, f, e) for e in lattice, f in lattice) || throw(
+    ArgumentError(
+      "the stability parameter is not generic for the slope of $(Vector(d)), " *
+      "so intersection cohomology is out of reach",
+    ),
+  )
+
+  R, ws = polynomial_ring(Singular.QQ, ["w"])
+  w = ws[1]
+  F = fraction_field(R)
+  # the Adams operation ``\psi^n``, and the passage from the Lefschetz class to `w`
+  psi(x, n) = F(numerator(x)(w^n))//F(denominator(x)(w^n))
+  half(m) =
+    F(Singular.n_transExt_to_spoly(numerator(m))(w^2)) //
+    F(Singular.n_transExt_to_spoly(denominator(m))(w^2))
+
+  # the generating series, without its constant term
+  E = typeof(F(w))
+  series = Dict{Vector{Int},E}(
+    e => power(F(-w), euler_form(Q, e, e)) * half(motive(Q, e, theta, denom)) for
+    e in lattice
+  )
+
+  # the ordinary logarithm ``\log(1 + x) = \sum_k (-1)^{k-1}/k x^k``; the kth power is
+  # supported on sums of k nonzero dimension vectors, so the sum stops at ``|d|``
+  logarithm = Dict{Vector{Int},E}()
+  term = series
+  for k in 1:sum(d)
+    isempty(term) && break
+    scale = F((-1)^(k - 1))//F(k)
+    for (e, value) in term
+      logarithm[e] = get(logarithm, e, zero(F)) + scale * value
+    end
+    # multiply by `series`, dropping everything that is no longer below `d`
+    next = Dict{Vector{Int},E}()
+    for (e, value) in term, (f, factor) in series
+      is_subdimension_vector(e + f, d) || continue
+      next[e + f] = get(next, e + f, zero(F)) + value * factor
+    end
+    term = next
+  end
+
+  # and the plethystic one, ``Log(1 + x) = \sum_n \mu(n)/n \psi^n(\log(1 + x))``; only
+  # those `n` with `n * e = d` for some `e` contribute, i.e. the divisors of `gcd(d)`
+  total = get(logarithm, Vector{Int}(d), zero(F))
+  g = gcd(d)
+  for k in 2:g
+    (g % k == 0 && _mobius(k) != 0) || continue
+    piece = get(logarithm, Vector{Int}(d .÷ k), zero(F))
+    total += F(_mobius(k))//F(k) * psi(piece, k)
+  end
+
+  # ``DT_d = (L^{1/2} - L^{-1/2}) [Log Q]_{t^d}``, then ``E(IH^*) = L^{\dim/2} DT_d``
+  root = F(-w)
+  result = power(root, 1 - euler_form(Q, d, d)) * (root - inv(root)) * total
+  iszero(result) && throw(
+    ArgumentError("there are no stable representations of dimension vector $(Vector(d))")
+  )
+  isone(denominator(result)) ||
+    throw(DomainError("intersection cohomology is not polynomial"))
+
+  # intersection cohomology of these moduli spaces is concentrated in even degree, so the
+  # answer has to be a polynomial in `w^2`; that is a real check on the whole computation
+  S, Ls = polynomial_ring(Singular.QQ, ["L"])
+  L = Ls[1]
+  invariant = numerator(result)
+  P = zero(S)
+  for (c, e) in
+      zip(Singular.coefficients(invariant), Singular.exponent_vectors(invariant))
+    isodd(e[1]) && throw(DomainError("intersection cohomology in odd degree"))
+    P += S(c) * L^(e[1] ÷ 2)
+  end
+  return P
+end
+
+"""
+    intersection_betti_numbers(M::QuiverModuliSpace)
+
+Compute the Betti numbers of the intersection cohomology of the moduli space `M`.
+
+See [`intersection_poincare_polynomial`](@ref) for the algorithm and its hypotheses.
+
+# Input
+
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+
+# Output
+
+- a list of intersection Betti numbers of the moduli space, indexed by cohomological
+  degree ``0, \\dots, 2\\dim M``.
+
+# Examples
+
+The singular moduli space for the 3-Kronecker quiver and dimension vector `[2, 2]`:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
+
+julia> intersection_betti_numbers(M)
+11-element Vector{Int64}:
+ 1
+ 0
+ 1
+ 0
+ 1
+ 0
+ 1
+ 0
+ 1
+ 0
+ 1
+```
+
+In the smooth case these are the ordinary Betti numbers:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
+
+julia> intersection_betti_numbers(M) == betti_numbers(M)
+true
+```
+"""
+function intersection_betti_numbers(M::QuiverModuliSpace)
+  P = intersection_poincare_polynomial(M)
+  # entry 2k + 1 is the coefficient of L^k in P, i.e. the intersection Betti number
+  # in cohomological degree 2k; all odd ones vanish
+  betti = zeros(Int, 2 * dimension(M) + 1)
+  for (c, e) in zip(Singular.coefficients(P), Singular.exponent_vectors(P))
+    betti[2 * e[1] + 1] = Int(numerator(c))
+  end
+  return betti
+end
+
+"""
+    intersection_hodge_diamond(M::QuiverModuliSpace)
+
+Compute the Hodge diamond of the intersection cohomology of the moduli space `M`.
+
+See [`intersection_poincare_polynomial`](@ref) for the algorithm and its hypotheses.
+The Hodge structure is of Hodge--Tate type, so the diamond is concentrated on the
+diagonal.
+
+# Input
+
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+
+# Output
+
+- the Hodge diamond of the intersection cohomology of the moduli space.
+
+# Examples
+
+The singular moduli space for the 3-Kronecker quiver and dimension vector `[2, 2]` has
+the intersection cohomology of ``\\mathbb{P}^5``:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
+
+julia> intersection_hodge_diamond(M)
+6×6 Matrix{Int64}:
+ 1  0  0  0  0  0
+ 0  1  0  0  0  0
+ 0  0  1  0  0  0
+ 0  0  0  1  0  0
+ 0  0  0  0  1  0
+ 0  0  0  0  0  1
+```
+
+In the smooth case this is the ordinary Hodge diamond:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
+
+julia> intersection_hodge_diamond(M) == hodge_diamond(M)
+true
+```
+"""
+function intersection_hodge_diamond(M::QuiverModuliSpace)
+  return Matrix{Int}(diagonal(intersection_betti_numbers(M)[1:2:end]))
+end
