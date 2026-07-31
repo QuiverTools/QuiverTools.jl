@@ -94,3 +94,21 @@ hodge_diamond
 hodge_polynomial
 betti_numbers
 ```
+
+## Intersection cohomology
+
+If some proper subdimension vector has the slope of ``\mathbf{d}`` there are properly
+semistable representations and the moduli space is singular, so the methods above no
+longer apply. Its intersection cohomology is still computable, by the theorem of
+[Meinhardt--Reineke](https://mathscinet.ams.org/mathscinet-getitem?mr=4000572)
+identifying the Donaldson--Thomas invariants of the quiver with it. This needs the
+stability parameter to be generic for the slope of ``\mathbf{d}``, and stable
+representations to exist.
+
+The two agree in the smooth case, where intersection cohomology is ordinary cohomology.
+
+```@docs
+intersection_poincare_polynomial
+intersection_betti_numbers
+intersection_hodge_diamond
+```
