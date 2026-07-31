@@ -180,3 +180,64 @@ end;
   @test string(poincare_polynomial(M)) ==
     "L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1"
 end;
+
+@testset "intersection cohomology" begin
+  # intersection cohomology agrees with ordinary cohomology on smooth moduli spaces, so
+  # route a few of those through the Meinhardt--Reineke branch on purpose
+  for (Q, d, theta) in [
+    (kronecker_quiver(2), [1, 1], [1, -1]),
+    (kronecker_quiver(5), [1, 1], nothing),
+    (kronecker_quiver(4), [1, 2], [2, 1]),
+    (kronecker_quiver(5), [2, 3], nothing),
+    (Quiver([0 1 1; 0 0 2; 0 0 0]), [1, 1, 1], nothing),
+  ]
+    M = if isnothing(theta)
+      QuiverModuliSpace(Q, d)
+    else
+      QuiverModuliSpace(Q, d, theta)
+    end
+    @test intersection_betti_numbers(M) == betti_numbers(M)
+  end
+
+  # reflection functors identify M(a, b) with M(b, m*b - a) for the m-Kronecker quiver,
+  # on dimension vectors whose moduli space is singular
+  for (m, d, e) in [
+    (3, [2, 2], [2, 4]),
+    (3, [3, 3], [3, 6]),
+    (3, [2, 3], [3, 7]),
+    (4, [3, 3], [3, 9]),
+    (5, [2, 2], [2, 8]),
+  ]
+    Q = kronecker_quiver(m)
+    @test intersection_poincare_polynomial(QuiverModuliSpace(Q, d)) ==
+      intersection_poincare_polynomial(QuiverModuliSpace(Q, e))
+  end
+
+  # intersection cohomology of a projective variety satisfies Poincaré duality
+  for (Q, d) in [
+    (kronecker_quiver(3), [2, 2]),
+    (kronecker_quiver(4), [2, 4]),
+    (Quiver([0 1 1; 0 0 2; 0 0 0]), [2, 2, 2]),
+  ]
+    M = QuiverModuliSpace(Q, d)
+    betti = intersection_betti_numbers(M)
+    @test betti == reverse(betti)
+    @test all(b >= 0 for b in betti)
+    @test length(betti) == 2 * dimension(M) + 1
+  end
+
+  # the Donaldson--Thomas invariant vanishes when nothing of dimension vector `d` is
+  # stable, which is an exact cancellation in the plethystic logarithm
+  for n in 2:4
+    M = QuiverModuliSpace(kronecker_quiver(2), [n, n])
+    @test_throws ArgumentError intersection_poincare_polynomial(M)
+  end
+
+  # the theorem needs the stability parameter to be generic for the slope of `d`
+  M = QuiverModuliSpace(Quiver([0 1 1 0; 0 0 1 0; 0 0 0 1; 0 0 0 0]), [3, 3, 4, 1])
+  @test_throws ArgumentError intersection_poincare_polynomial(M)
+
+  # and it describes the semistable moduli space
+  M = QuiverModuliSpace(kronecker_quiver(3), [2, 3], [3, -2], "stable")
+  @test_throws ArgumentError intersection_poincare_polynomial(M)
+end;
