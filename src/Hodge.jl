@@ -680,6 +680,10 @@ The moduli space is smooth exactly when no proper subdimension vector has the sl
 `M.d`, and there intersection cohomology is ordinary cohomology, so this agrees with
 [`poincare_polynomial`](@ref).
 
+The quiver need not be acyclic, but then the moduli space is affine rather than
+projective and, as for [`poincare_polynomial`](@ref), the answer is the Poincaré
+polynomial for cohomology with compact support.
+
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
@@ -699,6 +703,14 @@ julia> M = QuiverModuliSpace(Q, [2, 2]);
 
 julia> intersection_poincare_polynomial(M)
 L^5 + L^4 + L^3 + L^2 + L + 1
+```
+
+The dimension vector `[3, 3]` for the same quiver gives a singular 10-fold:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [3, 3]);
+
+julia> intersection_poincare_polynomial(M)
+L^10 + L^9 + 2*L^8 + 2*L^7 + 2*L^6 + 2*L^5 + 2*L^4 + 2*L^3 + 2*L^2 + L + 1
 ```
 
 Reflection functors identify moduli spaces for different dimension vectors:
@@ -722,12 +734,37 @@ julia> intersection_poincare_polynomial(M) == poincare_polynomial(M)
 true
 ```
 
+The quiver with one vertex and `m` loops and the trivial stability parameter gives the
+classical space of matrix invariants, `m`-tuples of operators on a `d`-dimensional vector
+space up to simultaneous conjugation. It is affine of dimension ``(m-1)d^2+1``, singular
+except for ``d = 1`` or ``m = d = 2``, and its intersection cohomology is worked out in
+Theorem 8.2 of [[MR4000572](https://mathscinet.ams.org/mathscinet-getitem?mr=4000572)]:
+```jldoctest
+julia> intersection_poincare_polynomial(QuiverModuliSpace(loop_quiver(3), [1]))
+L^3
+
+julia> intersection_poincare_polynomial(QuiverModuliSpace(loop_quiver(2), [3]))
+L^10
+
+julia> intersection_poincare_polynomial(QuiverModuliSpace(loop_quiver(4), [2]))
+L^13 + L^11
+```
+
 There is nothing to compute if no representation of dimension vector `M.d` is stable:
 ```jldoctest
 julia> M = QuiverModuliSpace(kronecker_quiver(2), [2, 2]);
 
 julia> intersection_poincare_polynomial(M)
 ERROR: ArgumentError: there are no stable representations of dimension vector [2, 2]
+```
+
+Nor is there anything to compute if the stability parameter is not generic for the slope
+of `M.d`, which happens on a fake wall:
+```jldoctest
+julia> Q = Quiver([0 1 1 0; 0 0 1 0; 0 0 0 1; 0 0 0 0]);
+
+julia> intersection_poincare_polynomial(QuiverModuliSpace(Q, [3, 3, 4, 1]))
+ERROR: ArgumentError: the stability parameter is not generic for the slope of [3, 3, 4, 1], so intersection cohomology is out of reach
 ```
 """
 function intersection_poincare_polynomial(M::QuiverModuliSpace)
@@ -838,11 +875,12 @@ See [`intersection_poincare_polynomial`](@ref) for the algorithm and its hypothe
 # Output
 
 - a list of intersection Betti numbers of the moduli space, indexed by cohomological
-  degree ``0, \\dots, 2\\dim M``.
+  degree ``0, \\dots, 2\\dim M``. The odd ones vanish.
 
 # Examples
 
-The singular moduli space for the 3-Kronecker quiver and dimension vector `[2, 2]`:
+The singular moduli space for the 3-Kronecker quiver and dimension vector `[2, 2]` has
+the intersection cohomology of ``\\mathbb{P}^5``:
 ```jldoctest
 julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
 
@@ -858,6 +896,34 @@ julia> intersection_betti_numbers(M)
  0
  1
  0
+ 1
+```
+
+Intersection cohomology of a projective variety still satisfies Poincaré duality, so the
+Betti numbers of a singular moduli space are palindromic just as well:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(4), [2, 4]);
+
+julia> betti = intersection_betti_numbers(M);
+
+julia> betti == reverse(betti)
+true
+
+julia> betti[1:2:end]
+14-element Vector{Int64}:
+ 1
+ 1
+ 3
+ 4
+ 6
+ 6
+ 7
+ 7
+ 6
+ 6
+ 4
+ 3
+ 1
  1
 ```
 
@@ -911,6 +977,20 @@ julia> intersection_hodge_diamond(M)
  0  0  1  0  0  0
  0  0  0  1  0  0
  0  0  0  0  1  0
+ 0  0  0  0  0  1
+```
+
+A quiver on a wall, where the moduli space is a singular 5-fold:
+```jldoctest
+julia> Q = Quiver("1-2,1-3,2--3"); M = QuiverModuliSpace(Q, [2, 2, 2]);
+
+julia> intersection_hodge_diamond(M)
+6×6 Matrix{Int64}:
+ 1  0  0  0  0  0
+ 0  2  0  0  0  0
+ 0  0  3  0  0  0
+ 0  0  0  3  0  0
+ 0  0  0  0  2  0
  0  0  0  0  0  1
 ```
 
