@@ -12,7 +12,7 @@ using Test, QuiverTools, Documenter
 # activates and its doctests resolve `Oscar.*`, without pulling Oscar's exports into
 # scope (which would clash with QuiverTools names such as `index`, `todd_class`, ...).
 DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar))
-doctest(QuiverTools; manual=false, testset="Doctests")
+doctest(QuiverTools; manual=true, testset="Doctests")
 
 @testset "strict sst" begin
   # proper-semistability
