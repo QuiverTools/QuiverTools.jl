@@ -629,7 +629,7 @@ end
 """
     _mobius(n::Int)
 
-Return the Möbius function ``\\mu(n)``.
+Return the Möbius function ``\\mu(n)``, by trial division.
 
 This is an internal method, only used in the plethystic logarithm computing
 intersection cohomology.
@@ -652,15 +652,16 @@ julia> QuiverTools._mobius.(1:10)
 ```
 """
 function _mobius(n::Int)
-  result = 1
-  for p in 2:n            # the range is fixed before the loop divides `n` down
-    if n % p == 0
-      n = n ÷ p
-      n % p == 0 && return 0
-      result = -result
+  sign, remaining = 1, n
+  for divisor in 2:isqrt(n)
+    if iszero(remaining % divisor)
+      remaining ÷= divisor
+      iszero(remaining % divisor) && return 0
+      sign = -sign
     end
   end
-  return result
+  # what is left is 1 or the one prime factor above the square root
+  return isone(remaining) ? sign : -sign
 end
 
 """
@@ -734,12 +735,12 @@ function intersection_poincare_polynomial(M::QuiverModuliSpace)
     ArgumentError("intersection cohomology is computed for the semistable moduli space")
   )
   Q, d, theta, denom = M.Q, M.d, M.theta, M.denom
+  mu = slope(d, theta, denom)
 
   # the dimension vectors of the slope of `d`, i.e. the part of the monoid
   # ``\Lambda_\mu`` below `d`; the zero vector is left out and treated separately
   lattice = filter(
-    e -> slope(e, theta, denom) == slope(d, theta, denom),
-    all_subdimension_vectors(d; nonzero=true),
+    e -> slope(e, theta, denom) == mu, all_subdimension_vectors(d; nonzero=true)
   )
   all(euler_form(Q, e, f) == euler_form(Q, f, e) for e in lattice, f in lattice) || throw(
     ArgumentError(
@@ -751,17 +752,22 @@ function intersection_poincare_polynomial(M::QuiverModuliSpace)
   R, ws = polynomial_ring(Singular.QQ, ["w"])
   w = ws[1]
   F = fraction_field(R)
-  # the Adams operation ``\psi^n``, and the passage from the Lefschetz class to `w`
-  psi(x, n) = F(numerator(x)(w^n))//F(denominator(x)(w^n))
-  half(m) =
-    F(Singular.n_transExt_to_spoly(numerator(m))(w^2)) //
-    F(Singular.n_transExt_to_spoly(denominator(m))(w^2))
+  E = Singular.elem_type(F)
+  root = F(-w)                     # ``L^{1/2}``, which sits in odd degree
+  # substitute `image` for the variable of a univariate rational function
+  substitute(num, den, image) = F(num(image))//F(den(image))
+  adams(x, n) = substitute(numerator(x), denominator(x), w^n)
+  # the motive lives in ``\mathbb{Q}(L)``; move it to the square root, ``L = w^2``
+  to_square_root(m) = substitute(
+    Singular.n_transExt_to_spoly(numerator(m)),
+    Singular.n_transExt_to_spoly(denominator(m)),
+    w^2,
+  )
 
   # the generating series, without its constant term
-  E = typeof(F(w))
   series = Dict{Vector{Int},E}(
-    e => power(F(-w), euler_form(Q, e, e)) * half(motive(Q, e, theta, denom)) for
-    e in lattice
+    e => power(root, euler_form(Q, e, e)) * to_square_root(motive(Q, e, theta, denom))
+    for e in lattice
   )
 
   # the ordinary logarithm ``\log(1 + x) = \sum_k (-1)^{k-1}/k x^k``; the kth power is
@@ -770,31 +776,33 @@ function intersection_poincare_polynomial(M::QuiverModuliSpace)
   term = series
   for k in 1:sum(d)
     isempty(term) && break
-    scale = F((-1)^(k - 1))//F(k)
+    scale = F((-1)^(k - 1))//k
     for (e, value) in term
       logarithm[e] = get(logarithm, e, zero(F)) + scale * value
     end
+    k == sum(d) && break
     # multiply by `series`, dropping everything that is no longer below `d`
     next = Dict{Vector{Int},E}()
-    for (e, value) in term, (f, factor) in series
+    for (e, left) in term, (f, right) in series
       is_subdimension_vector(e + f, d) || continue
-      next[e + f] = get(next, e + f, zero(F)) + value * factor
+      next[e + f] = get(next, e + f, zero(F)) + left * right
     end
     term = next
   end
 
   # and the plethystic one, ``Log(1 + x) = \sum_n \mu(n)/n \psi^n(\log(1 + x))``; only
   # those `n` with `n * e = d` for some `e` contribute, i.e. the divisors of `gcd(d)`
-  total = get(logarithm, Vector{Int}(d), zero(F))
-  g = gcd(d)
-  for k in 2:g
-    (g % k == 0 && _mobius(k) != 0) || continue
-    piece = get(logarithm, Vector{Int}(d .÷ k), zero(F))
-    total += F(_mobius(k))//F(k) * psi(piece, k)
+  target = Vector{Int}(d)
+  total = get(logarithm, target, zero(F))
+  common = gcd(d)
+  for k in 2:common
+    iszero(common % k) || continue
+    mobius = _mobius(k)
+    iszero(mobius) && continue
+    total += F(mobius)//k * adams(get(logarithm, target .÷ k, zero(F)), k)
   end
 
   # ``DT_d = (L^{1/2} - L^{-1/2}) [Log Q]_{t^d}``, then ``E(IH^*) = L^{\dim/2} DT_d``
-  root = F(-w)
   result = power(root, 1 - euler_form(Q, d, d)) * (root - inv(root)) * total
   iszero(result) && throw(
     ArgumentError("there are no stable representations of dimension vector $(Vector(d))")
