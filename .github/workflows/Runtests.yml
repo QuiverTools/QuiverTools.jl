@@ -1,9 +1,8 @@
 name: Runtests
 on:
   push:
-    branches:
-      - '*'
-      - '!schubert-polynomials'
+    branches-ignore:
+      - 'schubert-polynomials'
     paths:
       - 'src/**'
       - 'ext/**'
