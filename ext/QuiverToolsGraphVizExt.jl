@@ -13,11 +13,14 @@ import QuiverTools: draw
 Base.show(io::IO, mime::MIME"image/svg+xml", Q::Quiver) =
   show(io, mime, GraphViz.Graph(to_dot(Q)))
 
-function draw(Q::Quiver)
-  path = tempname() * ".svg"
+function _write_svg(Q::Quiver, path::AbstractString=tempname() * ".svg")
   open(path, "w") do io
     show(io, MIME("image/svg+xml"), Q)
   end
+  return path
+end
+
+function _open_in_default_viewer(path::AbstractString)
   if Sys.isapple()
     run(`open $path`)
   elseif Sys.iswindows()
@@ -25,6 +28,12 @@ function draw(Q::Quiver)
   else
     run(`xdg-open $path`)
   end
+  return nothing
+end
+
+function draw(Q::Quiver)
+  path = _write_svg(Q)
+  _open_in_default_viewer(path)
   return path
 end
 

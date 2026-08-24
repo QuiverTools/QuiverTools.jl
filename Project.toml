@@ -17,9 +17,9 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [weakdeps]
 GraphViz = "f526b714-d49f-11e8-06ff-31ed36ee7ee0"
-# Not imported directly; listed only to pin its version. The resolver otherwise
-# defaults to an older Graphviz_jll build whose `libgvc` binding is undefined,
-# which crashes GraphViz on load. See the GraphViz compat note below.
+# Not imported directly; listed so its compat bound participates in resolution.
+# GraphViz 0.2 otherwise resolves to Graphviz_jll 2.49.3+1, whose generated
+# bindings do not define `libgvc`, causing GraphViz to fail during initialization.
 Graphviz_jll = "3c863552-8265-54e4-a6dc-903eb78fde85"
 Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 

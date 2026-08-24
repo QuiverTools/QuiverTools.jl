@@ -1,4 +1,5 @@
 using Test, QuiverTools, Documenter
+import GraphViz
 # To ensure that the version of the tests being run
 # is the latest committed one,
 # the local installation of QuiverTools should be the one developed at path="../."
@@ -200,4 +201,28 @@ end;
   isolated = to_dot(Quiver([0 0; 0 0]))
   @test count(l -> occursin("->", l), split(isolated, '\n')) == 0
   @test occursin("\n  1;\n", isolated) && occursin("\n  2;\n", isolated)
+
+  # graph names are quoted DOT strings, so syntax characters and physical line
+  # breaks must be escaped before interpolation; UTF-8 and tabs remain literal
+  named = Quiver(zeros(Int, 1, 1), "α → β, 日本語: quote \" slash \\ line\nbreak\ttab")
+  @test occursin(
+    "label=\"α → β, 日本語: quote \\\" slash \\\\ line\\nbreak\ttab\";",
+    to_dot(named),
+  )
+end;
+
+@testset "GraphViz extension" begin
+  Q = Quiver([0 1; 0 0], "α → β, 日本語: quote \" slash \\ line\nbreak")
+  svg = sprint(show, MIME("image/svg+xml"), Q)
+  @test occursin("<svg", svg)
+  @test occursin("α → β, 日本語", svg)
+
+  extension_module = Base.get_extension(QuiverTools, :QuiverToolsGraphVizExt)
+  @test !isnothing(extension_module)
+  mktempdir() do directory
+    path = joinpath(directory, "quiver.svg")
+    @test extension_module._write_svg(Q, path) == path
+    @test isfile(path)
+    @test occursin("<svg", read(path, String))
+  end
 end;

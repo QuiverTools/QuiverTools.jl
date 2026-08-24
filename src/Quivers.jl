@@ -214,6 +214,16 @@ end
 # multiple loops on the same side otherwise, which reads as a single blob.
 const _LOOP_PORTS = ("n", "s", "e", "w", "ne", "sw", "se", "nw")
 
+function _escape_dot_string(value::AbstractString)
+  return replace(
+    value,
+    '\\' => "\\\\",
+    '"' => "\\\"",
+    '\n' => "\\n",
+    '\r' => "\\r",
+  )
+end
+
 """
     to_dot(Q::Quiver)
 
@@ -222,6 +232,8 @@ Return a Graphviz DOT description of `Q` as a `String`.
 Every arrow becomes its own `i -> j` line, so parallel arrows and loops (a
 quiver's defining features) are drawn as themselves; self-loops are distributed
 around their vertex with compass ports. Isolated vertices are emitted explicitly.
+Quiver names are preserved as UTF-8 labels; DOT syntax characters and physical
+line breaks are escaped.
 
 Feed the result to Graphviz, e.g. `using GraphViz; GraphViz.Graph(to_dot(Q))`,
 which also makes `Q` render as SVG in notebooks and VS Code once GraphViz is
@@ -255,7 +267,7 @@ function to_dot(Q::Quiver)
   n = n_vertices(Q)
   io = IOBuffer()
   println(io, "digraph {")
-  isempty(Q.name) || println(io, "  label=\"", Q.name, "\";")
+  isempty(Q.name) || println(io, "  label=\"", _escape_dot_string(Q.name), "\";")
   println(io, "  node [shape=circle];")
   for i in 1:n
     println(io, "  ", i, ";")

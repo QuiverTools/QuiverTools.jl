@@ -14,6 +14,7 @@ files = [
   "src/Teleman.jl",
   "src/Types.jl",
   "src/WallsAndChambers.jl",
+  "ext/QuiverToolsGraphVizExt.jl",
   "ext/QuiverToolsOscarExt.jl",
   "docs/docs.jl",
   "benchmark/benchmarks.jl",
