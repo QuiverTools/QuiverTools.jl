@@ -532,6 +532,11 @@ function __wedge_step(A::Matrix{Int}, d::Vector{Int})
   return nothing
 end
 
+# the weakly connected components of the quiver with adjacency matrix A, as the
+# strongly connected components of its double
+__weakly_connected_components(A::Matrix{Int}) =
+  strongly_connected_components(Quiver(A + A'))
+
 # Split a strongly connected quiver setting into its prime components, i.e., the
 # summands of its decomposition as an iterated connected sum at vertices of
 # dimension 1; a setting is cofree iff its prime components are [Lemma 3].
@@ -541,8 +546,7 @@ function __prime_components(A::Matrix{Int}, d::Vector{Int})
     # the summands at v are the weakly connected components of the quiver minus v,
     # each taken together with v and the arrows between them, and every loop at v
     others = setdiff(1:n, v)
-    U = A[others, others]
-    pieces = strongly_connected_components(Quiver(U + U'))
+    pieces = __weakly_connected_components(A[others, others])
     length(pieces) + A[v, v] >= 2 || continue
     out = [(fill(1, 1, 1), [1]) for _ in 1:A[v, v]]
     for piece in pieces
