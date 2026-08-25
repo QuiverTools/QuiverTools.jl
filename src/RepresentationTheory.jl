@@ -287,15 +287,14 @@ end
 # its cache.
 function __bocklandt_step(A::Matrix{Int}, d::Vector{Int})
   n = length(d)
-  # \chi(d, e_v) and \chi(e_v, d), for e_v the unit vector at the vertex v
-  chi_in(v) = d[v] - sum(d[w] * A[w, v] for w in 1:n)
-  chi_out(v) = d[v] - sum(A[v, w] * d[w] for w in 1:n)
+  # the vectors of \chi(d, e_v) and \chi(e_v, d), for e_v the unit vector at v
+  chi_in, chi_out = d - A' * d, d - A * d
   for v in 1:n
     # R_I [Lemma 3.2, MR1929191]: remove a loopless vertex whose incoming or outgoing
     # paths carry at most d[v] dimensions, shortcutting every path through it; a lone
     # vertex is kept so that the reduced coregular settings are the three settings of
     # [Theorem 1.1, MR1929191]
-    if A[v, v] == 0 && n > 1 && (chi_in(v) >= 0 || chi_out(v) >= 0)
+    if A[v, v] == 0 && n > 1 && (chi_in[v] >= 0 || chi_out[v] >= 0)
       keep = setdiff(1:n, v)
       return A[keep, keep] + A[keep, v] * A[v, keep]', d[keep]
     end
@@ -309,10 +308,10 @@ function __bocklandt_step(A::Matrix{Int}, d::Vector{Int})
     # loop and, besides the loop, a single incoming (resp. outgoing) arrow from
     # (resp. to) a vertex of dimension 1, remove the loop and thicken that arrow to
     # k parallel arrows
-    if A[v, v] == 1 && d[v] >= 2 && (chi_in(v) == -1 || chi_out(v) == -1)
+    if A[v, v] == 1 && d[v] >= 2 && (chi_in[v] == -1 || chi_out[v] == -1)
       B = copy(A)
       B[v, v] = 0
-      if chi_in(v) == -1
+      if chi_in[v] == -1
         u = findfirst(w -> w != v && A[w, v] > 0, 1:n)
         B[u, v] = d[v]
       else
