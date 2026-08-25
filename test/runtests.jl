@@ -320,3 +320,61 @@ end;
   @test is_cofree(wedged, [2, 3, 4, 1, 3])
   @test !is_cofree(wedged, [2, 3, 4, 1, 1])
 end;
+
+@testset "framed quiver moduli" begin
+  # Quiver-level framing (Sage parity): the framing vertex is prepended (arrows i0 -> i),
+  # the coframing vertex appended (arrows i -> i0). See arXiv:2607.12895.
+  kro = kronecker_quiver(2)
+  @test Matrix(framed_quiver(kro, [0, 1]).adjacency) == [0 0 1; 0 0 2; 0 0 0]
+  @test Matrix(coframed_quiver(kro, [0, 1]).adjacency) == [0 2 0; 0 0 1; 0 0 0]
+  @test_throws ArgumentError framed_quiver(kro, [1])
+
+  # A framed quiver moduli space: `base` is the codomain of the projection p, `total_space`
+  # the framed moduli space as an ordinary QuiverModuliSpace.
+  X = FramedQuiverModuliSpace(kro, [2, 2]; n=[0, 2])
+  @test base(X).d == [2, 2]
+  @test framing_vector(X) == [0, 2]
+  @test n_vertices(total_space(X).Q) == 3
+
+  # local_quiver_setting is public API (issue #41): the local quiver and dimension vector of
+  # a Luna stratum. For the 3-Kronecker quiver and the type [1,1] with multiplicity 3, the
+  # local quiver is the two-loop quiver on one vertex.
+  M = QuiverModuliSpace(kronecker_quiver(3), [3, 3])
+  @test local_quiver_setting(M, Dict([1, 1] => [3])).d == [3]
+
+  # Proposition 5: the etale-local model of the singularity along a Luna stratum is the local
+  # quiver at the trivial stability parameter.
+  L = local_structure(M, Dict([1, 1] => [3]))
+  @test L isa QuiverModuliSpace
+  @test L.d == [3]
+  @test Matrix(L.Q.adjacency) == fill(2, 1, 1)   # one vertex, two loops
+  @test L.theta == [0]
+
+  # Proposition 6: fibres of the framed projection for the framed affine-D4 quiver, base
+  # dimension 2*(1,1,1,1;2). This is the four-dimensional QM_1 of arXiv:2607.12895, whose
+  # five fibre types are Lemmas 18-22. The fibre over each stratum is a NilpotentLocus in a
+  # framed moduli of the local quiver, with local framing datum n_tau = sum_k (n.d_k) i_k and
+  # framed stability [sum d_tau, -1, ..., -1] (framing vertex first). Local vertex order is
+  # not canonical, so the framing datum is compared sorted. Rows: (Lemma, tau, d_tau, n_tau).
+  delta = [1, 1, 1, 1, 2]
+  XD4 = FramedQuiverModuliSpace(subspace_quiver(4), 2 .* delta; n=[0, 0, 0, 0, 1])
+  @test dimension(total_space(XD4)) == 4
+  eK, eKb = [1, 1, 0, 0, 1], [0, 0, 1, 1, 1]
+  eL, eLb = [1, 0, 1, 0, 1], [0, 1, 0, 1, 1]
+  types = [
+    (18, Dict(delta => [1, 1]), [1, 1], [2, 2]),
+    (19, Dict(delta => [1], eK => [1], eKb => [1]), [1, 1, 1], [1, 1, 2]),
+    (20, Dict(eK => [1], eKb => [1], eL => [1], eLb => [1]), [1, 1, 1, 1], [1, 1, 1, 1]),
+    (21, Dict(delta => [2]), [2], [2]),
+    (22, Dict(eK => [2], eKb => [2]), [2, 2], [1, 1]),
+  ]
+  for (lemma, tau, dloc, nloc) in types
+    F = fibre(XD4, tau)
+    @test F isa NilpotentLocus
+    A = ambient(F)
+    @test A isa FramedQuiverModuliSpace
+    @test sort(A.d) == dloc
+    @test sort(framing_vector(A)) == nloc
+    @test total_space(A).theta == [sum(dloc); fill(-1, length(dloc))]
+  end
+end;

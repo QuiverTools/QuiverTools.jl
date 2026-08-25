@@ -203,6 +203,76 @@ function thickened_subspace_quiver(m::Int, k::Int)
   return Quiver(A, "thickened subspace quiver with $m sources and multiplicity $k")
 end
 
+"""
+    framed_quiver(Q::Quiver, n::AbstractVector{Int})
+
+Construct the framed quiver ``\\widehat{Q}`` of `Q` with framing datum `n`.
+
+A new framing vertex ``i_0`` is prepended as the **first** vertex, together with `n[i]`
+arrows ``i_0 \\to i`` for every vertex `i` of `Q`. See the framing construction in
+[arXiv:2607.12895](https://arxiv.org/abs/2607.12895).
+
+# Input
+
+- `Q`: a quiver.
+- `n`: a vector of length `n_vertices(Q)`; `n[i]` is the number of framing arrows to vertex `i`.
+
+# Output
+
+The framed quiver, with the framing vertex as vertex `1`.
+
+# Examples
+
+```jldoctest
+julia> framed_quiver(kronecker_quiver(2), [0, 1])
+framing of 2-Kronecker quiver
+```
+"""
+function framed_quiver(Q::Quiver, n::AbstractVector{Int})
+  length(n) == n_vertices(Q) ||
+    throw(ArgumentError("length of n must equal the number of vertices"))
+  N = n_vertices(Q)
+  A = zeros(Int, N + 1, N + 1)
+  A[2:end, 2:end] .= Q.adjacency
+  A[1, 2:end] .= n
+  return Quiver(A, "framing of " * Q.name)
+end
+
+"""
+    coframed_quiver(Q::Quiver, n::AbstractVector{Int})
+
+Construct the coframed quiver of `Q` with coframing datum `n`.
+
+A new coframing vertex ``i_0`` is appended as the **last** vertex, together with `n[i]`
+arrows ``i \\to i_0`` for every vertex `i` of `Q`. This is the linear dual of
+[`framed_quiver`](@ref); see [arXiv:2607.12895](https://arxiv.org/abs/2607.12895).
+
+# Input
+
+- `Q`: a quiver.
+- `n`: a vector of length `n_vertices(Q)`; `n[i]` is the number of coframing arrows from vertex `i`.
+
+# Output
+
+The coframed quiver, with the coframing vertex as the last vertex.
+
+# Examples
+
+```jldoctest
+julia> coframed_quiver(kronecker_quiver(2), [0, 1])
+coframing of 2-Kronecker quiver
+```
+"""
+function coframed_quiver(Q::Quiver, n::AbstractVector{Int})
+  length(n) == n_vertices(Q) ||
+    throw(ArgumentError("length of n must equal the number of vertices"))
+  N = n_vertices(Q)
+  A = zeros(Int, N + 1, N + 1)
+  A[1:N, 1:N] .= Q.adjacency
+  A[1:N, N + 1] .= n
+  return Quiver(A, "coframing of " * Q.name)
+end
+
 # Split a Dynkin label like "A3" or "D10" into its letter type and integer rank.
 function _parse_dynkin_label(Tn::String)
   m = match(r"^([A-Za-z]+)([0-9]+)$", Tn)

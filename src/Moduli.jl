@@ -577,6 +577,99 @@ function __is_smooth_stratum(M::QuiverModuli, tau)
   return is_coregular(setting.Q, setting.d)
 end
 
+# Induced stability parameter on the framed quiver: C * theta - kappa + kappa(d) * i_0^*,
+# with kappa = (1, ..., 1) and C = kappa(d) + 1 (arXiv:2607.12895). The framing vertex carries
+# kappa(d) = sum(d); base vertex i carries C * theta_i - 1. This lies in the framing chamber
+# for every base theta, and for theta = 0 (fibres) reduces to kappa(d) * i_0^* - kappa, e.g.
+# [2, -1, -1] for the local quiver of the first fibre type in arXiv:2607.12895.
+function _framed_stability(
+  theta::AbstractVector{Int}, d::AbstractVector{Int}, coframed::Bool
+)
+  kappa_d = sum(d)
+  C = kappa_d + 1
+  base_part = C .* theta .- 1
+  return coframed ? [base_part; kappa_d] : [kappa_d; base_part]
+end
+
+"""
+    base(X::FramedQuiverModuliSpace)
+
+The base moduli space ``M^{\\Theta}(Q, \\mathbf{d})``, i.e. the codomain of the projection
+`p` from the framed quiver moduli space `X`.
+"""
+base(X::FramedQuiverModuliSpace) =
+  QuiverModuliSpace(X.Q, X.d, X.theta, "semistable", X.denom)
+
+"""
+    total_space(X::FramedQuiverModuliSpace)
+
+The framed quiver moduli space `X` as an ordinary [`QuiverModuliSpace`](@ref) of the framed
+quiver ``\\widehat{Q}`` for dimension vector ``\\widehat{\\mathbf{d}}`` and induced stability
+parameter ``\\widehat{\\Theta}``.
+"""
+function total_space(X::FramedQuiverModuliSpace)
+  Qhat = X.coframed ? coframed_quiver(X.Q, X.n) : framed_quiver(X.Q, X.n)
+  dhat = X.coframed ? [X.d; 1] : [1; X.d]
+  theta_hat = _framed_stability(X.theta, X.d, X.coframed)
+  return QuiverModuliSpace(Qhat, dhat, theta_hat, "semistable", X.denom)
+end
+
+"""
+    framing_vector(X::FramedQuiverModuliSpace)
+
+The framing datum ``\\mathbf{n}`` of the framed quiver moduli space `X`.
+"""
+framing_vector(X::FramedQuiverModuliSpace) = X.n
+
+"""
+    ambient(N::NilpotentLocus)
+
+The ambient moduli space of the nilpotent locus `N` (see [`NilpotentLocus`](@ref)).
+"""
+ambient(N::NilpotentLocus) = N.ambient
+
+"""
+    local_structure(M::QuiverModuli, tau)
+
+The etale-local model of the singularity of the moduli space `M` along the Luna stratum
+`S_tau`, as a [`QuiverModuliSpace`](@ref).
+
+By [MR1972892] (see also arXiv:2607.12895) the singularity of `M` at any point of `S_tau` is
+etale equivalent to the singularity of the origin in ``M^{0}(Q_\\tau, \\mathbf{d}_\\tau)``,
+the moduli space of the local quiver `Q_tau` with local dimension vector `d_tau` (see
+[`local_quiver_setting`](@ref)) at the trivial stability parameter.
+"""
+function local_structure(M::QuiverModuli, tau)
+  lqs = local_quiver_setting(M, tau)
+  return QuiverModuliSpace(lqs.Q, lqs.d, zero_vector(lqs.Q))
+end
+
+"""
+    fibre(X::FramedQuiverModuliSpace, tau)
+
+The fibre of the projection `p` from the framed quiver moduli space `X` over the Luna stratum
+`S_tau` of the base ``M^{\\Theta}(Q, \\mathbf{d})``, as a [`NilpotentLocus`](@ref) inside a
+framed moduli space of the local quiver.
+
+By the description of the fibres (arXiv:2607.12895), the fibre over ``V \\in S_\\tau`` is the
+nilpotent locus of ``M^{0}(Q_\\tau, \\mathbf{d}_\\tau, \\mathbf{n}_\\tau)``, where `Q_tau`
+and `d_tau` are the local quiver and local dimension vector (see [`local_quiver_setting`](@ref))
+and the local framing datum is
+``\\mathbf{n}_\\tau = \\sum_k (\\mathbf{n} \\cdot \\mathbf{d}_k)\\, i_k``.
+"""
+function fibre(X::FramedQuiverModuliSpace, tau)
+  setting = local_quiver_setting(base(X), tau)
+  # local framing datum n_tau = sum_k (n . d_k) i_k, one entry per stable summand d_k;
+  # `summands` is ordered compatibly with the local dimension vector `d`.
+  nloc = [X.n' * e for e in setting.summands]
+  return NilpotentLocus(
+    FramedQuiverModuliSpace(
+      setting.Q, setting.d; n=nloc, theta=zero_vector(setting.Q),
+      coframed=X.coframed,
+    ),
+  )
+end
+
 """
     semistable_equals_stable(M::QuiverModuli)
 
