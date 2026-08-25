@@ -102,14 +102,29 @@ end;
   @test is_luna_type(M, Dict([1, 1] => [1], [2, 2] => [1])) # [1,1] + [2,2] = [3,3]
   @test !is_luna_type(M, Dict([1, 1] => [2]))              # 2*[1,1] = [2,2] != [3,3]
 
+  # The encoding requires nonzero dimension vectors, nonempty lists of positive
+  # multiplicities, and stable (not merely semistable) summands.
+  @test !is_luna_type(M, Dict([1, 1] => Int[]))
+  @test !is_luna_type(M, Dict([1, 1] => [-1], [2, 2] => [2]))
+  @test !is_luna_type(M, Dict([1, 1, 0] => [3]))
+  @test !is_luna_type(QuiverModuliSpace(kronecker_quiver(2), [2, 2]), Dict([2, 2] => [1]))
+
+  # A rigid stable summand can occur with higher multiplicity, but there cannot be
+  # two distinct stable summands of that dimension vector.
+  R = QuiverModuliSpace(Q, [2, 0])
+  @test is_luna_type(R, Dict([1, 0] => [2]))
+  @test !is_luna_type(R, Dict([1, 0] => [1, 1]))
+  @test_throws DomainError dimension_of_luna_stratum(R, Dict([1, 0] => [1, 1]))
+
   # Local quiver at a stable point is the g-loop quiver on one vertex with
   # g = 1 - <d,d> = dim M^s. For the 3-Kronecker quiver and d = (2,2) this is g = 5.
   # (This is the value from the definition in MR1972892; it intentionally differs from
   # QuiverTools/Sage, which returns 4 via general_ext and undercounts the diagonal.)
   X = QuiverModuliSpace(Q, [2, 2])
   loc = QuiverTools.local_quiver_setting(X, Dict([2, 2] => [1]))
-  @test loc["d"] == [1]
-  @test Matrix(loc["Q"].adjacency) == fill(5, 1, 1)
+  @test propertynames(loc) == (:Q, :d, :summands)
+  @test loc.d == [1]
+  @test Matrix(loc.Q.adjacency) == fill(5, 1, 1)
 
   # Luna strata of M(2d) ≅ P^2 for the subspace quiver Q^(4) = affine D4 with
   # d = (1,1,1,1;2). There are five polystable types; we check their local quivers
@@ -122,9 +137,9 @@ end;
   # whether the local quiver is symmetric (i.e. only loops and 2-cycles).
   function fingerprint(tau)
     s = QuiverTools.local_quiver_setting(N, tau)
-    A = Matrix(s["Q"].adjacency)
+    A = Matrix(s.Q.adjacency)
     loops = [A[i, i] for i in 1:size(A, 1)]
-    (sort(s["d"]), sort(loops), sort(vec(A)), A == permutedims(A))
+    (sort(s.d), sort(loops), sort(vec(A)), A == permutedims(A))
   end
   eK, eKb, eL, eLb = [1, 1, 0, 0, 1], [0, 0, 1, 1, 1], [1, 0, 1, 0, 1], [0, 1, 0, 1, 1]
   # ξ1 = (d, d): two vertices, a loop on each, no arrows between them
@@ -182,6 +197,16 @@ end;
 end;
 
 @testset "Bocklandt reduction" begin
+  # The public quiver-setting routines enforce the dimension-vector contract.
+  for f in (bocklandt_reduction, is_coregular, is_cofree)
+    @test_throws ArgumentError f(jordan_quiver(1), [1, 1])
+    @test_throws ArgumentError f(jordan_quiver(1), [-1])
+  end
+
+  # The dimension API rejects disconnected quivers with the documented exception.
+  disconnected = disjoint_union(kronecker_quiver(1), kronecker_quiver(1))
+  @test_throws ArgumentError dimension(QuiverModuliSpace(disconnected, [1, 1, 1, 1]))
+
   # invariants of pairs of 2x2 matrices form a polynomial ring, of 3x3 they do not,
   # and neither do those of triples of 2x2 matrices; a single matrix always does
   @test is_coregular(jordan_quiver(2), [2])
@@ -201,17 +226,18 @@ end;
 
   # the reduction combines R_III, R_I and R_II to a lone vertex of dimension 1
   setting = bocklandt_reduction(Quiver("1-2, 2-2, 2-1"), [1, 2])
-  @test n_vertices(setting["Q"]) == 1
-  @test n_arrows(setting["Q"]) == 0
-  @test setting["d"] == [1]
+  @test propertynames(setting) == (:Q, :d)
+  @test n_vertices(setting.Q) == 1
+  @test n_arrows(setting.Q) == 0
+  @test setting.d == [1]
 
   # a reduced setting is returned unchanged
   setting = bocklandt_reduction(Quiver("1--2, 2--1"), [1, 1])
-  @test Matrix(setting["Q"].adjacency) == [0 2; 2 0]
-  @test setting["d"] == [1, 1]
+  @test Matrix(setting.Q.adjacency) == [0 2; 2 0]
+  @test setting.d == [1, 1]
 
   # vertices of dimension 0 and arrows between strongly connected components are dropped
-  @test bocklandt_reduction(kronecker_quiver(3), [2, 0])["d"] == [2]
+  @test bocklandt_reduction(kronecker_quiver(3), [2, 0]).d == [2]
   @test is_coregular(Quiver("1-1, 1-2, 2-2"), [2, 2])
   @test is_coregular(kronecker_quiver(3), [0, 0])
 

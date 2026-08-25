@@ -461,6 +461,16 @@ function is_luna_type(M::QuiverModuli, tau)
   end
 
   ks = collect(keys(tau))
+  isempty(ks) && return false
+  if !all(
+    e -> length(e) == n_vertices(M.Q) && all(>=(0), e) && any(>(0), e),
+    ks,
+  )
+    return false
+  end
+  if !all(e -> !isempty(tau[e]) && all(>(0), tau[e]), ks)
+    return false
+  end
   # each key `e` contributes `sum(tau[e])` copies of `e` (one per multiplicity in its list)
   if sum(sum(tau[e]) * e for e in ks) != M.d
     return false
@@ -469,10 +479,12 @@ function is_luna_type(M::QuiverModuli, tau)
     return false
   end
 
-  if !all(has_semistables(M.Q, e, M.theta, M.denom) for e in ks)
+  if !all(has_stables(M.Q, e, M.theta, M.denom) for e in ks)
     return false
   end
-  return true
+  # A rigid stable representation is unique up to isomorphism, so its dimension
+  # vector cannot encode several distinct stable summands in one Luna type.
+  return all(e -> length(tau[e]) == 1 || euler_form(M.Q, e, e) <= 0, ks)
 end
 
 """
@@ -513,6 +525,8 @@ julia> dimension_of_luna_stratum(M, Dict([0, 0] => [1]))
 ```
 """
 function dimension_of_luna_stratum(M::QuiverModuli, tau)
+  is_luna_type(M, tau) ||
+    throw(DomainError(tau, "not a Luna type for the given moduli problem"))
   # the formula below would give 1 for the zero dimension vector
   sum(M.d) == 0 && return 0
   return sum(length(tau[e]) * (1 - euler_form(M.Q, e, e)) for e in collect(keys(tau)))
@@ -530,13 +544,13 @@ Returns the local quiver and dimension vector for the given Luna type.
 
 # Output
 
-- a dictionary with the local quiver `Q`, its dimension vector `d`, and the list
-  `summands` of the dimension vectors of the stable summands, one for each vertex of
-  the local quiver, ordered compatibly with `d`.
+- a named tuple `(Q, d, summands)` containing the local quiver, its dimension vector,
+  and the dimension vectors of the stable summands, one for each vertex of the local
+  quiver, ordered compatibly with `d`.
 """
 function local_quiver_setting(M::QuiverModuli, tau)
   if !is_luna_type(M, tau)
-    throw(DomainError("Not a Luna type"))
+    throw(DomainError(tau, "not a Luna type for the given moduli problem"))
   end
 
   # one local vertex per distinct stable summand, i.e. per entry of each multiplicity list;
@@ -551,14 +565,14 @@ function local_quiver_setting(M::QuiverModuli, tau)
   Qloc = Quiver(A)
   dloc = [m for e in keys(tau) for m in tau[e]]
 
-  return Dict("Q" => Qloc, "d" => dloc, "summands" => summands)
+  return (Q=Qloc, d=dloc, summands=summands)
 end
 
 # whether the local quiver setting of the Luna type is coregular, i.e., whether the
 # moduli space is smooth along the corresponding stratum
 function __is_smooth_stratum(M::QuiverModuli, tau)
   setting = local_quiver_setting(M, tau)
-  return is_coregular(setting["Q"], setting["d"])
+  return is_coregular(setting.Q, setting.d)
 end
 
 """
@@ -735,7 +749,7 @@ end
 function _dimension(M::QuiverModuliSpace)
   # the zero representation is semistable, but not stable, for d = 0
   !is_connected(M.Q) &&
-    raise(ArgumentError("Q is not connected, M has disjoint connected components."))
+    throw(ArgumentError("Q is not connected, M has disjoint connected components."))
 
   if all(M.d .== 0)
     if M.condition == "semistable"
@@ -755,10 +769,10 @@ function _dimension(M::QuiverModuliSpace)
   if M.condition == "stable"
     return -Inf
   elseif M.condition == "semistable"
-    if has_semistables(M.Q, M.d, M.theta)
+    if has_semistables(M.Q, M.d, M.theta, M.denom)
       return maximum(
         dimension_of_luna_stratum(M, tau) for
-        tau in all_luna_types(M.Q, M.d, M.theta)
+        tau in all_luna_types(M.Q, M.d, M.theta, M.denom)
       )
     end
   end

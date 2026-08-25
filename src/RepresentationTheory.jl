@@ -68,6 +68,14 @@ euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
 # this inlines x' * (I - adjacency) * y: retrieving the memoized Euler matrix
 # costs more than recomputing the two products
 
+# Validate the common public contract for a dimension vector on `Q`.
+function __check_dimension_vector(Q::Quiver, d::AbstractVector{Int})
+  length(d) == n_vertices(Q) ||
+    throw(ArgumentError("dimension vector must have length $(n_vertices(Q))"))
+  all(>=(0), d) || throw(ArgumentError("dimension vector must be non-negative"))
+  return nothing
+end
+
 ########################################################################################
 # Canonical decomposition
 ########################################################################################
@@ -367,7 +375,7 @@ the reduced setting is, which is what [`is_coregular`](@ref) exploits.
 
 # Output
 
-- a dictionary with the reduced quiver `Q` and dimension vector `d`.
+- a named tuple `(Q, d)` containing the reduced quiver and dimension vector.
 
 # Examples
 
@@ -379,10 +387,10 @@ julia> Q = Quiver("1-2, 2-2, 2-1");
 
 julia> setting = bocklandt_reduction(Q, [1, 2]);
 
-julia> setting["Q"]
+julia> setting.Q
 Quiver with adjacency matrix [0;;]
 
-julia> setting["d"]
+julia> setting.d
 1-element Vector{Int64}:
  1
 ```
@@ -392,20 +400,17 @@ A reduced setting is returned unchanged:
 ```jldoctest
 julia> setting = bocklandt_reduction(Quiver("1--2, 2--1"), [1, 1]);
 
-julia> setting["Q"]
+julia> setting.Q
 Quiver with adjacency matrix [0 2; 2 0]
 
-julia> setting["d"]
+julia> setting.d
 2-element Vector{Int64}:
  1
  1
 ```
 """
 function bocklandt_reduction(Q::Quiver, d::AbstractVector{Int})
-  length(d) == n_vertices(Q) ||
-    throw(ArgumentError("dimension vector must have length $(n_vertices(Q))"))
-  all(di >= 0 for di in d) ||
-    throw(ArgumentError("dimension vector must be non-negative"))
+  __check_dimension_vector(Q, d)
 
   # vertices of dimension 0 and arrows between different strongly connected components
   # play no role in the invariant theory [Lemma 2.4, MR1929191]
@@ -417,11 +422,11 @@ function bocklandt_reduction(Q::Quiver, d::AbstractVector{Int})
     __bocklandt_reduce(A[vertices[c], vertices[c]], Vector{Int}(d[vertices[c]])) for
     c in components
   ]
-  return Dict(
-    "Q" => reduce(
+  return (
+    Q=reduce(
       disjoint_union, [Quiver(B) for (B, _) in reduced]; init=Quiver(zeros(Int, 0, 0))
     ),
-    "d" => reduce(vcat, [e for (_, e) in reduced]; init=Int[]),
+    d=reduce(vcat, [e for (_, e) in reduced]; init=Int[]),
   )
 end
 
@@ -476,10 +481,10 @@ true
 """
 function is_coregular(Q::Quiver, d::AbstractVector{Int})
   setting = bocklandt_reduction(Q, d)
-  A, e = setting["Q"].adjacency, setting["d"]
+  A, e = setting.Q.adjacency, setting.d
   return all(
     length(c) == 1 && (A[c[1], c[1]] <= 1 || (A[c[1], c[1]], e[c[1]]) == (2, 2)) for
-    c in strongly_connected_components(setting["Q"])
+    c in strongly_connected_components(setting.Q)
   )
 end
 
@@ -688,10 +693,7 @@ julia> is_coregular(Q, [2, 4]), is_cofree(Q, [2, 4])
 ```
 """
 function is_cofree(Q::Quiver, d::AbstractVector{Int})
-  length(d) == n_vertices(Q) ||
-    throw(ArgumentError("dimension vector must have length $(n_vertices(Q))"))
-  all(di >= 0 for di in d) ||
-    throw(ArgumentError("dimension vector must be non-negative"))
+  __check_dimension_vector(Q, d)
 
   # vertices of dimension 0 do not contribute, and arrows between different strongly
   # connected components only contribute a free matrix factor [Lemma 3]
