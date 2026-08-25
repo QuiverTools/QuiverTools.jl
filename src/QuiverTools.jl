@@ -93,6 +93,10 @@ export chern_character, chern_class, chern_classes, dual, exterior_power, symmet
 export rays, is_special_subdimension_vector, all_special_subdimension_vectors, sst,
   vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent, all_stability_parameters
 
+# Domokos reductions
+export is_large, is_small_source, is_small_sink,
+  tau_reduction, sigma_reduction, tau_sigma_reduce, is_taus_minimal
+
 import Pkg
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -140,6 +144,7 @@ include("Stability.jl")
 include("RepresentationTheory.jl")
 include("Constructors.jl")
 include("Moduli.jl")
+include("Reductions.jl")
 include("Hodge.jl")
 include("Chow.jl")
 include("Teleman.jl")
