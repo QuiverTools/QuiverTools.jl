@@ -127,9 +127,9 @@ is not an issue for the quivers we consider.
 # Examples
 
 ```jldoctest
-julia> strongly_connected_components(cyclic_quiver(3))
+julia> strongly_connected_components(cyclic_quiver(4))  # 1 → 4 needs a path of length 3
 1-element Vector{Vector{Int64}}:
- [1, 2, 3]
+ [1, 2, 3, 4]
 
 julia> strongly_connected_components(kronecker_quiver(3))
 2-element Vector{Vector{Int64}}:
@@ -146,6 +146,7 @@ function strongly_connected_components(Q::Quiver)
   n = n_vertices(Q)
   # reflexive-transitive closure by Floyd--Warshall [doi:10.1145/321105.321107]
   reachable = [i == j || Q.adjacency[i, j] > 0 for i in 1:n, j in 1:n]
+  # After the kth outer pass, paths may use any intermediate vertex in 1:k.
   for k in 1:n, i in 1:n, j in 1:n
     reachable[i, j] |= reachable[i, k] && reachable[k, j]
   end
