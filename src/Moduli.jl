@@ -549,7 +549,14 @@ function local_quiver_setting(M::QuiverModuli, tau)
   Qloc = Quiver(A)
   dloc = [m for e in keys(tau) for m in tau[e]]
 
-  return Dict("Q" => Qloc, "d" => dloc)
+  return Dict("Q" => Qloc, "d" => dloc, "summands" => summands)
+end
+
+# whether the local quiver setting of the Luna type is coregular, i.e., whether the
+# moduli space is smooth along the corresponding stratum
+function __is_smooth_stratum(M::QuiverModuli, tau)
+  setting = local_quiver_setting(M, tau)
+  return is_coregular(setting["Q"], setting["d"])
 end
 
 """
@@ -820,10 +827,7 @@ function is_smooth(M::QuiverModuliSpace)
   # coregularity of its local quiver setting, by combining the étale-local description
   # of [MR1972892] with [Theorem 2.1, MR1929191]; this is the globalization of
   # [Theorem 4.2, MR1929191] to arbitrary stability parameters
-  return all(all_luna_types(M)) do tau
-    setting = local_quiver_setting(M, tau)
-    is_coregular(setting["Q"], setting["d"])
-  end
+  return all(tau -> __is_smooth_stratum(M, tau), all_luna_types(M))
 end
 
 """
@@ -870,10 +874,7 @@ function codimension_singular_locus(M::QuiverModuliSpace)
 
   # the stratum of a Luna type consists of singular points if and only if its local
   # quiver setting is not coregular; the stable stratum is always smooth
-  singular = filter(all_luna_types(M)) do tau
-    setting = local_quiver_setting(M, tau)
-    !is_coregular(setting["Q"], setting["d"])
-  end
+  singular = filter(tau -> !__is_smooth_stratum(M, tau), all_luna_types(M))
   isempty(singular) && return Inf
   return dimension(M) - maximum(dimension_of_luna_stratum(M, tau) for tau in singular)
 end
