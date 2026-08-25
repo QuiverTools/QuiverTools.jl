@@ -13,7 +13,7 @@
 # finiteness of moduli spaces of a fixed dimension.
 #
 # The paper assumes throughout that the dimension vector is sincere, i.e. nonzero at
-# every vertex; the functions below do not enforce this.
+# every vertex. The public predicates and reductions below assert this hypothesis.
 #
 # SIGN CONVENTION. Domokos follows King: a representation is θ-semistable when
 # θ·dim(S) ≥ 0 for every subrepresentation S, so destabilizing means θ·dim(S) < 0.
@@ -27,10 +27,41 @@
 # and is annotated with the matching paper case.
 ########################################################################################
 
+function __check_sincere_dimension_vector(Q::Quiver, d::AbstractVector{Int})
+  __check_dimension_vector(Q, d)
+  @assert all(>(0), d) "dimension vector must be sincere"
+  return nothing
+end
+
+function __checked_dot(a::AbstractVector{Int}, b::AbstractVector{Int})
+  length(a) == length(b) || throw(DimensionMismatch("vectors must have equal lengths"))
+  return foldl(eachindex(a); init=0) do total, i
+    Base.Checked.checked_add(total, Base.Checked.checked_mul(a[i], b[i]))
+  end
+end
+
+__checked_sum(a::AbstractVector{Int}) =
+  foldl(Base.Checked.checked_add, a; init=0)
+
+function __check_domokos_weight(
+  Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}
+)
+  __check_sincere_dimension_vector(Q, d)
+  length(theta) == n_vertices(Q) ||
+    throw(ArgumentError("stability parameter must have length $(n_vertices(Q))"))
+  __checked_dot(theta, d) == 0 ||
+    throw(ArgumentError("the stability parameter theta must satisfy theta . d = 0"))
+  has_semistables(Q, d, theta) ||
+    throw(ArgumentError("the dimension vector must be theta-semistable"))
+  return nothing
+end
+
 # arrows into u weighted by d:  Σ_{tb=u} d(sb) = Σ_v (#v→u)·d(v)   (column u · d)
-__in_sum(Q::Quiver, d::AbstractVector{Int}, u::Int) = sum(Q.adjacency[:, u] .* d)
+__in_sum(Q::Quiver, d::AbstractVector{Int}, u::Int) =
+  __checked_dot(Q.adjacency[:, u], d)
 # arrows out of u weighted by d: Σ_{sc=u} d(tc) = Σ_v (#u→v)·d(v)   (row u · d)
-__out_sum(Q::Quiver, d::AbstractVector{Int}, u::Int) = sum(Q.adjacency[u, :] .* d)
+__out_sum(Q::Quiver, d::AbstractVector{Int}, u::Int) =
+  __checked_dot(Q.adjacency[u, :], d)
 
 """
     is_large(Q::Quiver, d::AbstractVector{Int}, u::Int)
@@ -44,6 +75,8 @@ d(u) \\ge \\max\\Bigl\\{\\sum_{b\\colon tb=u} d(sb),\\ \\sum_{c\\colon sc=u} d(t
 ```
 
 A large vertex can be removed by [`tau_reduction`](@ref).
+As in the cited definition, `d` must be sincere; an `AssertionError` is thrown
+otherwise.
 
 # Examples
 
@@ -58,6 +91,7 @@ false
 ```
 """
 function is_large(Q::Quiver, d::AbstractVector{Int}, u::Int)
+  __check_sincere_dimension_vector(Q, d)
   Q.adjacency[u, u] == 0 || return false                  # no loop at u
   indegree(Q, u) + outdegree(Q, u) > 0 || return false    # deg_Q(u) > 0
   return d[u] >= max(__in_sum(Q, d, u), __out_sum(Q, d, u))
@@ -69,6 +103,8 @@ end
 Check whether `u` is a *small source* for `(Q, d)`: a source of `Q` with
 ``\\sum_{a\\colon sa=u} d(ta) > d(u)``
 [Definition 2.2, [Domokos](https://doi.org/10.4171/JCA/97)].
+As in the cited definition, `d` must be sincere; an `AssertionError` is thrown
+otherwise.
 
 # Examples
 
@@ -79,8 +115,10 @@ julia> is_small_source(Q, [2, 1, 3], 1)
 true
 ```
 """
-is_small_source(Q::Quiver, d::AbstractVector{Int}, u::Int) =
-  is_source(Q, u) && __out_sum(Q, d, u) > d[u]
+function is_small_source(Q::Quiver, d::AbstractVector{Int}, u::Int)
+  __check_sincere_dimension_vector(Q, d)
+  return is_source(Q, u) && __out_sum(Q, d, u) > d[u]
+end
 
 """
     is_small_sink(Q::Quiver, d::AbstractVector{Int}, u::Int)
@@ -88,6 +126,8 @@ is_small_source(Q::Quiver, d::AbstractVector{Int}, u::Int) =
 Check whether `u` is a *small sink* for `(Q, d)`: a sink of `Q` with
 ``\\sum_{a\\colon ta=u} d(sa) > d(u)``
 [Definition 2.2, [Domokos](https://doi.org/10.4171/JCA/97)].
+As in the cited definition, `d` must be sincere; an `AssertionError` is thrown
+otherwise.
 
 # Examples
 
@@ -98,16 +138,20 @@ julia> is_small_sink(Q, [2, 1, 3], 2)
 true
 ```
 """
-is_small_sink(Q::Quiver, d::AbstractVector{Int}, u::Int) =
-  is_sink(Q, u) && __in_sum(Q, d, u) > d[u]
+function is_small_sink(Q::Quiver, d::AbstractVector{Int}, u::Int)
+  __check_sincere_dimension_vector(Q, d)
+  return is_sink(Q, u) && __in_sum(Q, d, u) > d[u]
+end
 
 """
+    tau_reduction(Q::Quiver, d, u::Int)
     tau_reduction(Q::Quiver, d, theta, u::Int)
     tau_reduction(M::QuiverModuliSpace, u::Int)
 
 Apply the ``\\tau_u`` reduction at a large vertex `u`
 [Definition 2.1 and Lemma 3.1, [Domokos](https://doi.org/10.4171/JCA/97)].
 
+The pair-only method implements Domokos's operation on `(Q, d)`.
 The vertex `u` and its adjacent arrows are deleted; for every pair of arrows
 ``b\\colon v \\to u`` and ``c\\colon u \\to w`` a new arrow ``v \\to w`` is added, so
 that ``r_{vu} r_{uw}`` new arrows ``v \\to w`` appear, where ``r_{vu}`` denotes the
@@ -120,11 +164,17 @@ vertices. The weight transforms, in QuiverTools' sign convention, by
   ``(\\tau\\theta)(v) = \\theta(v) + r_{vu}\\theta(u)``;
 - ``\\theta(u) = 0`` (case (c)): ``(\\tau\\theta)(v) = \\theta(v)``.
 
-Returns the triple `(Q', d', θ')`, or a new `QuiverModuliSpace` when called on `M`.
+Returns the pair `(Q', d')`, the triple `(Q', d', θ')`, or a new
+`QuiverModuliSpace`, according to the method called.
 By [Theorem 2.5, [Domokos](https://doi.org/10.4171/JCA/97)] the moduli space is
-unchanged up to isomorphism. The stability parameter must satisfy
-``\\theta \\cdot d = 0``, i.e. King's normalization; an `ArgumentError` is thrown
-otherwise.
+unchanged up to isomorphism. For the weight-aware methods, `d` must be
+`theta`-semistable and `theta` must satisfy ``\\theta \\cdot d = 0``, i.e. King's
+normalization. The transformed weight is normalized as well. A reduced moduli object
+uses the standard denominator `sum`; a denominator closure on the original vertex set
+is not reused after that set changes.
+
+All methods require a sincere dimension vector, as in the cited results; an
+`AssertionError` is thrown otherwise.
 
 # Examples
 
@@ -143,12 +193,8 @@ julia> dr, thetar
 ([1, 1], [3, -3])
 ```
 """
-function tau_reduction(
-  Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, u::Int
-)
-  # the case split on sign(theta(u)) presupposes King's normalization
-  theta' * d == 0 ||
-    throw(ArgumentError("the stability parameter theta must satisfy theta . d = 0"))
+function tau_reduction(Q::Quiver, d::AbstractVector{Int}, u::Int)
+  __check_sincere_dimension_vector(Q, d)
   is_large(Q, d, u) || throw(ArgumentError("vertex $u is not large for (Q, d)"))
   n = n_vertices(Q)
   A = Matrix{Int}(Q.adjacency)
@@ -156,27 +202,53 @@ function tau_reduction(
   row = A[u, :]    # row[v] = #(u → v)
 
   # new arrows v → w with multiplicity (#v→u)·(#u→w); row/col u are dropped below.
-  B = A .+ col * row'
+  B = similar(A)
+  for v in axes(A, 1), w in axes(A, 2)
+    B[v, w] = Base.Checked.checked_add(
+      A[v, w], Base.Checked.checked_mul(col[v], row[w])
+    )
+  end
   keep = deleteat!(collect(1:n), u)
   Qnew = Quiver(B[keep, keep])
   dnew = collect(d)[keep]
+  return Qnew, dnew
+end
+
+function tau_reduction(
+  Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, u::Int
+)
+  __check_domokos_weight(Q, d, theta)
+  Qnew, dnew = tau_reduction(Q, d, u)
+  A = Matrix{Int}(Q.adjacency)
+  col = A[:, u]    # col[v] = #(v → u)
+  row = A[u, :]    # row[v] = #(u → v)
+  keep = deleteat!(collect(1:n_vertices(Q)), u)
 
   tu = theta[u]
   if tu > 0                                       # paper case (b): outgoing side
     d[u] == __out_sum(Q, d, u) ||
       throw(ArgumentError("(Q, d, θ) is not θ-semistable at the large vertex $u"))
-    theta_full = collect(theta) .+ row .* tu      # (τθ)(v) = θ(v) + (#u→v)·θ(u)
+    theta_full = [
+      Base.Checked.checked_add(theta[v], Base.Checked.checked_mul(row[v], tu)) for
+      v in eachindex(theta)
+    ]                                             # (τθ)(v) = θ(v) + (#u→v)·θ(u)
   elseif tu < 0                                   # paper case (a): incoming side
     d[u] == __in_sum(Q, d, u) ||
       throw(ArgumentError("(Q, d, θ) is not θ-semistable at the large vertex $u"))
-    theta_full = collect(theta) .+ col .* tu      # (τθ)(v) = θ(v) + (#v→u)·θ(u)
+    theta_full = [
+      Base.Checked.checked_add(theta[v], Base.Checked.checked_mul(col[v], tu)) for
+      v in eachindex(theta)
+    ]                                             # (τθ)(v) = θ(v) + (#v→u)·θ(u)
   else                                            # case (c)
     theta_full = collect(theta)
   end
-  return Qnew, dnew, theta_full[keep]
+  theta_new = theta_full[keep]
+  @assert __checked_dot(theta_new, dnew) == 0 "tau reduction must preserve King normalization"
+  return Qnew, dnew, theta_new
 end
 
 """
+    sigma_reduction(Q::Quiver, d, u::Int)
     sigma_reduction(Q::Quiver, d, theta, u::Int)
     sigma_reduction(M::QuiverModuliSpace, u::Int)
 
@@ -193,15 +265,21 @@ The dimension changes only at `u`:
 \\end{cases}
 ```
 
+The pair-only method implements Domokos's operation on `(Q, d)`.
 The weight transforms by ``(\\sigma\\theta)(u) = -\\theta(u)`` and, for ``v \\neq u``,
 ``(\\sigma\\theta)(v) = \\theta(v) + r_{uv}\\theta(u)`` if `u` is a source and
 ``\\theta(v) + r_{vu}\\theta(u)`` if `u` is a sink, where ``r_{uv}`` denotes the number
 of arrows ``u \\to v``. (These formulas are sign-convention independent.)
 
-``\\sigma_u`` is an involution. Returns `(Q', d', θ')`, or a new `QuiverModuliSpace`
-on `M`.
-The stability parameter must satisfy ``\\theta \\cdot d = 0``, i.e. King's
-normalization; an `ArgumentError` is thrown otherwise.
+``\\sigma_u`` is an involution. Returns `(Q', d')`, `(Q', d', θ')`, or a new
+`QuiverModuliSpace`, according to the method called.
+For the weight-aware methods, `d` must be `theta`-semistable and the stability
+parameter must satisfy ``\\theta \\cdot d = 0``, i.e. King's normalization. The
+transformed weight is normalized as well, and a reduced moduli object uses the
+standard denominator `sum`.
+
+All methods require a sincere dimension vector, as in the cited results; an
+`AssertionError` is thrown otherwise.
 
 # Examples
 
@@ -214,24 +292,17 @@ julia> dr, thetar
 ([5, 1, 3], [-2, 1, 3])
 ```
 """
-function sigma_reduction(
-  Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, u::Int
-)
-  # the moduli isomorphism of Lemma 3.3 presupposes King's normalization
-  theta' * d == 0 ||
-    throw(ArgumentError("the stability parameter theta must satisfy theta . d = 0"))
+function sigma_reduction(Q::Quiver, d::AbstractVector{Int}, u::Int)
+  __check_sincere_dimension_vector(Q, d)
   n = n_vertices(Q)
   A = Matrix{Int}(Q.adjacency)
   col = A[:, u]    # col[v] = #(v → u)
   row = A[u, :]    # row[v] = #(u → v)
-  tu = theta[u]
 
   if is_small_source(Q, d, u)
-    dnew_u = -d[u] + __out_sum(Q, d, u)
-    theta_new = collect(theta) .+ row .* tu    # source: θ(v) + (#u→v)·θ(u)
+    dnew_u = Base.Checked.checked_sub(__out_sum(Q, d, u), d[u])
   elseif is_small_sink(Q, d, u)
-    dnew_u = -d[u] + __in_sum(Q, d, u)
-    theta_new = collect(theta) .+ col .* tu    # sink:   θ(v) + (#v→u)·θ(u)
+    dnew_u = Base.Checked.checked_sub(__in_sum(Q, d, u), d[u])
   else
     throw(ArgumentError("vertex $u is not a small source or small sink for (Q, d)"))
   end
@@ -241,18 +312,43 @@ function sigma_reduction(
   B[u, :] = col    # outgoing arrows ← old incoming
   dnew = collect(d)
   dnew[u] = dnew_u
-  theta_new[u] = -tu                            # (σθ)(u) = -θ(u)
-  return Quiver(B), dnew, theta_new
+  return Quiver(B), dnew
+end
+
+function sigma_reduction(
+  Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, u::Int
+)
+  __check_domokos_weight(Q, d, theta)
+  Qnew, dnew = sigma_reduction(Q, d, u)
+  A = Matrix{Int}(Q.adjacency)
+  col = A[:, u]    # col[v] = #(v → u)
+  row = A[u, :]    # row[v] = #(u → v)
+  tu = theta[u]
+  theta_new = if is_small_source(Q, d, u)
+    [
+      Base.Checked.checked_add(theta[v], Base.Checked.checked_mul(row[v], tu)) for
+      v in eachindex(theta)
+    ]                                # source: θ(v) + (#u→v)·θ(u)
+  else
+    [
+      Base.Checked.checked_add(theta[v], Base.Checked.checked_mul(col[v], tu)) for
+      v in eachindex(theta)
+    ]                                # sink:   θ(v) + (#v→u)·θ(u)
+  end
+  theta_new[u] = Base.Checked.checked_neg(tu)    # (σθ)(u) = -θ(u)
+  @assert __checked_dot(theta_new, dnew) == 0 "sigma reduction must preserve King normalization"
+  return Qnew, dnew, theta_new
 end
 
 for reduction in (:tau_reduction, :sigma_reduction)
   @eval function $reduction(M::QuiverModuliSpace, u::Int)
     Q, d, theta = $reduction(M.Q, M.d, M.theta, u)
-    return QuiverModuliSpace(Q, d, theta, M.condition, M.denom)
+    return QuiverModuliSpace(Q, d, theta, M.condition)
   end
 end
 
 """
+    tau_sigma_reduce(Q::Quiver, d)
     tau_sigma_reduce(Q::Quiver, d, theta)
 
 Greedily reduce `(Q, d, θ)` to a smaller, moduli-isomorphic representative by repeatedly
@@ -268,7 +364,10 @@ this greedy descent is weaker than ``\\tau\\sigma``-minimality (Definition 2.3),
 also permits ``\\sigma``-steps that temporarily *raise* ``|d|``; see
 [`is_taus_minimal`](@ref).
 
-Returns the reduced triple `(Q', d', θ')`.
+Returns the reduced pair `(Q', d')` or triple `(Q', d', θ')`, according to the
+method called. The dimension vector must be sincere. The weight-aware method also
+requires `d` to be `theta`-semistable and `theta` to be King-normalized; every
+intermediate weight remains normalized.
 
 # Examples
 
@@ -283,9 +382,32 @@ julia> Qr, dr
 (Quiver with adjacency matrix [1;;], [1])
 ```
 """
+function tau_sigma_reduce(Q::Quiver, d::AbstractVector{Int})
+  __check_sincere_dimension_vector(Q, d)
+  d = collect(d)
+  while true
+    n = n_vertices(Q)
+    u = findfirst(v -> is_large(Q, d, v), 1:n)
+    if !isnothing(u)
+      Q, d = tau_reduction(Q, d, u)
+      continue
+    end
+    u = findfirst(1:n) do v
+      (is_small_source(Q, d, v) && __out_sum(Q, d, v) < 2 * d[v]) ||
+        (is_small_sink(Q, d, v) && __in_sum(Q, d, v) < 2 * d[v])
+    end
+    if !isnothing(u)
+      Q, d = sigma_reduction(Q, d, u)
+      continue
+    end
+    return Q, d
+  end
+end
+
 function tau_sigma_reduce(
   Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}
 )
+  __check_domokos_weight(Q, d, theta)
   d = collect(d)
   theta = collect(theta)
   while true
@@ -308,65 +430,110 @@ function tau_sigma_reduce(
 end
 
 """
-    is_taus_minimal(Q::Quiver, d, theta; max_states::Int = 10_000)
+    is_taus_minimal(Q::Quiver, d; max_states::Int = 10_000)
 
-Decide whether `(Q, d)` is ``\\tau\\sigma``-minimal among all sincere quiver-dimension
-vector pairs [Definition 2.3, [Domokos](https://doi.org/10.4171/JCA/97)]: whether *no*
-sequence of ``\\tau`` and ``\\sigma`` reductions reaches a pair `(Q', d')` with
-``\\#Q_0' < \\#Q_0``, or ``\\#Q_0' = \\#Q_0`` and ``|d'| < |d|``.
+Decide whether `(Q, d)` is ``\\tau\\sigma``-minimal in the class of all sincere
+quiver-dimension vector pairs [Definition 2.3,
+[Domokos](https://doi.org/10.4171/JCA/97)]. That is, decide whether no finite sequence
+of ``\\tau`` and ``\\sigma`` reductions reaches a pair `(Q', d')` with fewer vertices,
+or with the same number of vertices and smaller total dimension.
 
-This explores the reduction graph breadth-first. Since ``\\tau`` drops a vertex and a
-dimension-lowering ``\\sigma`` is immediately witnessed, a *negative* answer (`false`)
-is always a genuine witness. A ``\\sigma``-orbit can be infinite (Section 9 of the
-reference is ``\\tau\\sigma``-minimal yet has ``\\sigma``-steps that raise ``|d|``
-without bound), so the search is capped at `max_states` pairs; if the cap is hit the
-function returns `true` with a warning, meaning "not disproved within the search
-bound".
+This is a property of `(Q, d)` alone; a stability parameter is not part of the cited
+definition. The function explores the reduction graph breadth-first. A `false` result
+comes with a reduction witness, and `true` is returned only after the reachable graph
+has been exhausted. A ``\\sigma``-orbit can be infinite, so the search may instead
+reach `max_states`. In that case an `ArgumentError` is thrown because minimality is
+still undetermined. The paper does not supply a general search bound: for its Section 9
+example, it proves minimality separately by inequalities that describe every possible
+sequence of reflections.
+
+The dimension vector must be sincere, as in the cited definition; an `AssertionError`
+is thrown otherwise. `max_states` must be positive.
 
 # Examples
 
 A pair with a large vertex is never minimal (its ``\\tau`` reduction drops a vertex):
 
 ```jldoctest
-julia> is_taus_minimal(Quiver("1-2,2-1"), [1, 1], [1, -1])
+julia> is_taus_minimal(Quiver("1-2,2-1"), [1, 1])
 false
 ```
 
 A single vertex carrying a loop is trivially minimal:
 
 ```jldoctest
-julia> is_taus_minimal(Quiver([1;;]), [1], [0])
+julia> is_taus_minimal(Quiver([1;;]), [1])
+true
+```
+
+A state limit is not a proof of minimality. In this four-vertex example, the first
+reflection does not make the pair smaller, but it exposes a later ``\\tau`` reduction:
+
+```jldoctest
+julia> Q = Quiver([0 0 1 0; 0 0 2 2; 0 1 0 1; 0 2 1 0]);
+
+julia> d = [3, 2, 6, 1];
+
+julia> try
+           is_taus_minimal(Q, d; max_states=1)
+       catch error
+           error isa ArgumentError
+       end
+true
+
+julia> is_taus_minimal(Q, d; max_states=100)
+false
+```
+
+The pair in Section 9 of the paper is minimal, but its infinite reflection orbit also
+shows why bounded breadth-first search need not prove that fact:
+
+```jldoctest
+julia> Q = Quiver("1--3,1-2,3-2");
+
+julia> try
+           is_taus_minimal(Q, [2, 1, 3]; max_states=2)
+       catch error
+           error isa ArgumentError
+       end
 true
 ```
 """
 function is_taus_minimal(
-  Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}; max_states::Int=10_000
+  Q::Quiver, d::AbstractVector{Int}; max_states::Int=10_000
 )
-  start = (n_vertices(Q), sum(d))
+  __check_sincere_dimension_vector(Q, d)
+  max_states > 0 || throw(ArgumentError("max_states must be positive"))
+  start = (n_vertices(Q), __checked_sum(d))
   seen = Set{Tuple{Matrix{Int},Vector{Int}}}()
-  queue = [(Q, collect(d), collect(theta))]
+  queue = [(Q, collect(d))]
+  head = 1
   push!(seen, (Matrix{Int}(Q.adjacency), collect(d)))
 
-  while !isempty(queue)
-    Qc, dc, tc = popfirst!(queue)
+  while head <= length(queue)
+    Qc, dc = queue[head]
+    head += 1
     n = n_vertices(Qc)
-    neighbours = Tuple{Quiver,Vector{Int},Vector{Int}}[]
+    neighbours = Tuple{Quiver,Vector{Int}}[]
     for v in 1:n
-      is_large(Qc, dc, v) && push!(neighbours, tau_reduction(Qc, dc, tc, v))
+      is_large(Qc, dc, v) && push!(neighbours, tau_reduction(Qc, dc, v))
       (is_small_source(Qc, dc, v) || is_small_sink(Qc, dc, v)) &&
-        push!(neighbours, sigma_reduction(Qc, dc, tc, v))
+        push!(neighbours, sigma_reduction(Qc, dc, v))
     end
-    for (Qn, dn, tn) in neighbours
-      (n_vertices(Qn), sum(dn)) < start && return false   # genuine witness
+    for (Qn, dn) in neighbours
+      (n_vertices(Qn), __checked_sum(dn)) < start && return false   # genuine witness
       key = (Matrix{Int}(Qn.adjacency), dn)
       key in seen && continue
       if length(seen) >= max_states
-        @warn "is_taus_minimal: search truncated at $max_states pairs; " *
-          "returning `true` unproven"
-        return true
+        throw(
+          ArgumentError(
+            "max_states=$max_states reached before the reduction graph was exhausted; " *
+            "minimality is undetermined",
+          ),
+        )
       end
       push!(seen, key)
-      push!(queue, (Qn, dn, tn))
+      push!(queue, (Qn, dn))
     end
   end
   return true
