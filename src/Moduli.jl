@@ -902,7 +902,7 @@ end
 
 Checks if the moduli stack is smooth.
 
-This is always trus, as the quotient stack of a smooth variety is smooth.
+This is always true, as the quotient stack of a smooth variety is smooth.
 
 # Input
 
