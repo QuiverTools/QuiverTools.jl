@@ -382,3 +382,98 @@ end;
   @test is_cofree(wedged, [2, 3, 4, 1, 3])
   @test !is_cofree(wedged, [2, 3, 4, 1, 1])
 end;
+
+@testset "nullcones and defect" begin
+  # The public nullcone routines enforce the dimension-vector contract.
+  for f in (dimension_nullcone, nullcone_motive, defect)
+    @test_throws ArgumentError f(jordan_quiver(1), [1, 1])
+    @test_throws ArgumentError f(jordan_quiver(1), [-1])
+  end
+
+  # nilpotent matrices, and pairs of matrices with a common complete flag
+  @test dimension_nullcone(jordan_quiver(1), [3]) == 6
+  @test dimension_nullcone(jordan_quiver(2), [2]) == 3
+  # acyclic settings have no invariants, so the nullcone is everything
+  @test dimension_nullcone(kronecker_quiver(3), [2, 3]) == 18
+  # the motivic recursion reaches larger settings, and for symmetric quivers it
+  # matches the closed formula of [Remark 3.6, doi:10.3842/SIGMA.2026.020]
+  @test dimension_nullcone(jordan_quiver(2), [4]) == 18
+  @test dimension_nullcone(jordan_quiver(3), [2]) == 4
+  @test dimension_nullcone(Quiver("1-1, 1-2, 2-1"), [2, 3]) == 11
+  # the motive of pairs of nilpotent 3x3 matrices is
+  # L^9 + 2L^8 - L^6 - 2L^5 + L^3 [Example (4) in Section 3.2, loc. cit.]
+  @test QuiverTools.__nullcone_motive(fill(2, 1, 1), [3]) ==
+    [0, 0, 0, 1, 0, -2, -1, 0, 2, 1]
+
+  # the defect measures the failure of equidimensionality: it vanishes for cofree
+  # settings, and for the settings 2 <=> k it decreases to zero as k grows to 4
+  @test defect(jordan_quiver(1), [4]) == 0
+  @test defect(jordan_quiver(2), [2]) == 0
+  @test defect(jordan_quiver(2), [3]) == 1
+  @test [defect(Quiver("1--2, 2-1"), [2, k]) for k in 2:4] == [2, 1, 0]
+  @test defect(cyclic_quiver(3), [2, 3, 4]) == 0
+
+  # Popov: cofree iff coregular with vanishing defect, as an independent check of
+  # the classification-based is_cofree against the independently computed defect
+  for a in 0:2, b in 0:2, l1 in 0:1, l2 in 0:1, d1 in 1:2, d2 in 1:2
+    a + b + l1 + l2 <= 3 || continue
+    Q = Quiver([l1 a; b l2])
+    d = [d1, d2]
+    @test is_cofree(Q, d) == (is_coregular(Q, d) && defect(Q, d) == 0)
+  end
+end;
+
+@testset "projections to walls" begin
+  # the projection of the 6-subspace quiver moduli with d = (1^5, 2; 3) from the
+  # canonical chamber to the wall (1^5, 2; -3), whose target is Gr(2, 4): birational,
+  # with fibres P^1 over five surfaces and P^1 x P^1 over ten points, hence semismall
+  # but not flat
+  S = subspace_quiver(6)
+  d = [1, 1, 1, 1, 1, 2, 3]
+  theta = [3, 3, 3, 3, 3, 3, -7]
+  thetabar = [1, 1, 1, 1, 1, 2, -3]
+  @test fibre_dimension(S, d, theta, thetabar, Dict(d => [1])) == 0
+  e1, e3 = [1, 0, 0, 0, 0, 1, 1], [0, 1, 1, 1, 1, 1, 2]
+  @test fibre_dimension(S, d, theta, thetabar, Dict(e1 => [1], e3 => [1])) == 1
+  e2, f2 = [0, 1, 0, 0, 0, 1, 1], [0, 0, 1, 1, 1, 0, 1]
+  @test fibre_dimension(S, d, theta, thetabar, Dict(e1 => [1], e2 => [1], f2 => [1])) == 2
+  @test !is_flat(S, d, theta, thetabar)
+  @test is_semismall(S, d, theta, thetabar)
+
+  # the projection to the other wall is a semismall resolution of the ten isolated
+  # singularities, with fibres P^2; the target is singular so flatness would need more
+  # than miracle flatness
+  @test is_semismall(S, d, theta, [2, 2, 2, 2, 2, 1, -4])
+  @test_throws ArgumentError is_flat(S, d, theta, [2, 2, 2, 2, 2, 1, -4])
+
+  # the identity projection is flat
+  @test is_flat(kronecker_quiver(3), [2, 3], [3, -2], [3, -2])
+
+  # the source stability parameter must be King-normalized
+  @test_throws ArgumentError fibre_dimension(
+    S, d, [1, 1, 1, 1, 1, 1, -7], thetabar, Dict(d => [1])
+  )
+
+  # The target must also be King-normalized, and the source must be a chamber point.
+  @test_throws ArgumentError fibre_dimension(
+    S, d, theta, thetabar .+ [1, 0, 0, 0, 0, 0, 0], Dict(d => [1])
+  )
+  @test_throws ArgumentError fibre_dimension(S, d, thetabar, thetabar, Dict(d => [1]))
+
+  # Parameters in different VGIT chambers do not define a projection to a wall.
+  T = three_vertex_quiver(2, 3, 4)
+  @test_throws ArgumentError fibre_dimension(
+    T, [1, 2, 2], [4, -1, -1], [4, 1, -3], Dict([1, 2, 2] => [1])
+  )
+
+  # A custom denominator belongs to the original quiver only. This closure accepts
+  # seven-component vectors and would fail if reused on the two-vertex local quiver.
+  weights = collect(1:7)
+  weighted_denom = e -> sum(weights .* e)
+  @test fibre_dimension(
+    S, d, theta, thetabar, Dict(e1 => [1], e3 => [1]); denom=weighted_denom
+  ) == 1
+  @test_throws ArgumentError fibre_dimension(
+    S, d, theta, thetabar, Dict(d => [1]); denom=_e -> 0
+  )
+end;

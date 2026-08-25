@@ -44,8 +44,18 @@ representation, a moduli space is the affine quotient of a *local quiver setting
 coregularity of local quiver settings decides smoothness of moduli spaces; see
 [`is_smooth`](@ref) and [`codimension_singular_locus`](@ref).
 
+The *nullcone* is the locus of nilpotent representations, i.e., the fibre of the
+quotient map over the image of the zero representation. Its class in the Grothendieck
+ring of varieties is a polynomial in the Lefschetz motive, by
+[[Gösmann--Reineke](https://doi.org/10.3842/SIGMA.2026.020)], and its dimension
+controls the failure of equidimensionality of the quotient map, measured by the
+*defect*.
+
 ```@docs
 bocklandt_reduction
 is_coregular
 is_cofree
+nullcone_motive
+dimension_nullcone
+defect
 ```
