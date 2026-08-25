@@ -135,9 +135,9 @@ end
 
 include("Types.jl")
 include("Quivers.jl")
+include("Misc.jl")
 include("Stability.jl")
 include("RepresentationTheory.jl")
-include("Misc.jl")
 include("Constructors.jl")
 include("Moduli.jl")
 include("Hodge.jl")

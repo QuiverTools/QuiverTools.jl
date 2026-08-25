@@ -68,14 +68,6 @@ euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int}) =
 # this inlines x' * (I - adjacency) * y: retrieving the memoized Euler matrix
 # costs more than recomputing the two products
 
-# Validate the common public contract for a dimension vector on `Q`.
-function __check_dimension_vector(Q::Quiver, d::AbstractVector{Int})
-  length(d) == n_vertices(Q) ||
-    throw(ArgumentError("dimension vector must have length $(n_vertices(Q))"))
-  all(>=(0), d) || throw(ArgumentError("dimension vector must be non-negative"))
-  return nothing
-end
-
 ########################################################################################
 # Canonical decomposition
 ########################################################################################
