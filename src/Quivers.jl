@@ -111,8 +111,8 @@ Compute the strongly connected components of `Q`.
 
 Two vertices belong to the same strongly connected component if and only if
 they are connected by paths in both directions. The reachability relation is
-computed as the reflexive-transitive closure of the adjacency relation, using the
-Floyd--Warshall algorithm in its original, Boolean, form
+computed as the reflexive-transitive closure of the adjacency relation, using
+Warshall's Boolean transitive-closure algorithm
 [[Warshall](https://doi.org/10.1145/321105.321107)]; its ``O(n^3)`` running time
 is not an issue for the quivers we consider.
 
@@ -144,9 +144,9 @@ julia> strongly_connected_components(Quiver("1-2,2-1,2-3"))
 """
 function strongly_connected_components(Q::Quiver)
   n = n_vertices(Q)
-  # reflexive-transitive closure by Floyd--Warshall [doi:10.1145/321105.321107]
+  # `reachable[i, j]` records existence of a path, not the number of paths.
   reachable = [i == j || Q.adjacency[i, j] > 0 for i in 1:n, j in 1:n]
-  # After the kth outer pass, paths may use any intermediate vertex in 1:k.
+  # After the kth outer Warshall pass, paths may use any intermediate vertex in 1:k.
   for k in 1:n, i in 1:n, j in 1:n
     reachable[i, j] |= reachable[i, k] && reachable[k, j]
   end
