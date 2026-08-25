@@ -289,6 +289,8 @@ function __bocklandt_step(A::Matrix{Int}, d::Vector{Int})
   n = length(d)
   # the vectors of \chi(d, e_v) and \chi(e_v, d), for e_v the unit vector at v
   chi_in, chi_out = d - A' * d, d - A * d
+  # The three conditions are mutually exclusive at a fixed vertex, and the final
+  # reduced setting is independent of the chosen moves [Theorem 6, arXiv:math/0207250].
   for v in 1:n
     # R_I [Lemma 3.2, MR1929191]: remove a loopless vertex whose incoming or outgoing
     # paths carry at most d[v] dimensions, shortcutting every path through it; a lone
@@ -322,15 +324,6 @@ function __bocklandt_step(A::Matrix{Int}, d::Vector{Int})
     end
   end
   return nothing
-end
-
-# fully reduce a strongly connected quiver setting, i.e., apply reduction steps until
-# the setting is reduced in the sense of [Definition 3.1, MR1929191]
-function __bocklandt_reduce(A::Matrix{Int}, d::Vector{Int})
-  while (step = __bocklandt_step(A, d)) !== nothing
-    A, d = step
-  end
-  return A, d
 end
 
 """
@@ -410,10 +403,13 @@ function bocklandt_reduction(Q::Quiver, d::AbstractVector{Int})
   vertices = support(d)
   components = strongly_connected_components(Quiver(A[vertices, vertices]))
 
-  reduced = [
-    __bocklandt_reduce(A[vertices[c], vertices[c]], Vector{Int}(d[vertices[c]])) for
-    c in components
-  ]
+  reduced = map(components) do c
+    B, e = A[vertices[c], vertices[c]], Vector{Int}(d[vertices[c]])
+    while (step = __bocklandt_step(B, e)) !== nothing
+      B, e = step
+    end
+    return B, e
+  end
   return (
     Q=reduce(
       disjoint_union, [Quiver(B) for (B, _) in reduced]; init=Quiver(zeros(Int, 0, 0))
