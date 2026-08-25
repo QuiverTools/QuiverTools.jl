@@ -460,6 +460,8 @@ function is_luna_type(M::QuiverModuli, tau)
     return tau == Dict(M.d => [1])
   end
 
+  # A nonzero Luna type has at least one nonzero dimension vector of the correct length,
+  # and every dimension vector has a nonempty list of positive multiplicities.
   ks = collect(keys(tau))
   isempty(ks) && return false
   if !all(
