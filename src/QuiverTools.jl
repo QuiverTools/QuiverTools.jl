@@ -139,12 +139,12 @@ include("Misc.jl")
 include("Stability.jl")
 include("RepresentationTheory.jl")
 include("Constructors.jl")
+include("WallsAndChambers.jl")
 include("Moduli.jl")
 include("Hodge.jl")
 include("Chow.jl")
 include("Teleman.jl")
 include("Bundles.jl")
-include("WallsAndChambers.jl")
 
 # Warm the JIT for the shared Chow/Hodge computation path so the user's first
 # invariant computation is near-instant. Compilation is input-independent, so a
