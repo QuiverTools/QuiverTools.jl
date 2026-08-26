@@ -897,6 +897,334 @@ function codimension_singular_locus(M::QuiverModuliSpace)
   return dimension(M) - maximum(dimension_of_luna_stratum(M, tau) for tau in singular)
 end
 
+########################################################################################
+# Projections to walls
+########################################################################################
+
+# Validate all hypotheses needed to define a projection from the chamber of `theta`
+# to `thetabar`. The local quiver calculation is separately King-normalized and does
+# not inherit `denom`.
+function __validate_wall_projection(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector{Int},
+  thetabar::AbstractVector{Int},
+  denom::Function,
+)
+  n = n_vertices(Q)
+  length(d) == n || throw(ArgumentError("dimension vector must have length $n"))
+  length(theta) == n || throw(ArgumentError("theta must have length $n"))
+  length(thetabar) == n || throw(ArgumentError("thetabar must have length $n"))
+
+  dvec = coerce_vector(d)
+  theta_vec = coerce_vector(theta)
+  thetabar_vec = coerce_vector(thetabar)
+  all(>=(0), dvec) || throw(ArgumentError("dimension vector must be non-negative"))
+  theta_vec' * dvec == 0 ||
+    throw(ArgumentError("theta must satisfy theta . d = 0"))
+  thetabar_vec' * dvec == 0 ||
+    throw(ArgumentError("thetabar must satisfy thetabar . d = 0"))
+
+  subdimensions = all_subdimension_vectors(dvec; nonzero=true)
+  all(e -> denom(e) > 0, subdimensions) ||
+    throw(ArgumentError("denom must be positive on every nonzero subdimension of d"))
+  has_semistables(Q, dvec, theta_vec, denom) ||
+    throw(ArgumentError("theta must admit semistable representations of dimension d"))
+  has_semistables(Q, dvec, thetabar_vec, denom) ||
+    throw(ArgumentError("thetabar must admit semistable representations of dimension d"))
+  __is_vgit_chamber_parameter(Q, dvec, theta_vec) ||
+    throw(ArgumentError("theta must lie in a VGIT chamber, not on a wall"))
+  __in_closure_of_vgit_chamber(Q, dvec, theta_vec, thetabar_vec) ||
+    throw(ArgumentError("thetabar must lie in the closure of the chamber containing theta"))
+
+  return dvec, theta_vec, thetabar_vec
+end
+
+# The dimension of the moduli space of theta-stable nilpotent representations of
+# dimension vector beta, or -Inf if there are none. The stable locus is certified to
+# be dense in every top-dimensional component of the nullcone by bounding the locus of
+# nilpotent representations with a destabilizing subrepresentation of dimension e by
+# the dimension of the incidence variety of pairs (subrepresentation, representation),
+# which fibres over the flag with nilpotent sub, nilpotent quotient and an extension
+# block. If certification fails an ArgumentError is thrown.
+@memoize Dict function __dimension_stable_nilpotent_moduli(
+  Q::Quiver, beta::Vector{Int}, theta::Vector{Int}, denom
+)
+  has_stables(Q, beta, theta, denom) || return -Inf
+  N = dimension_nullcone(Q, beta)
+  # if the zero representation is the only nilpotent one, it is stable iff simple
+  N == 0 && return sum(beta) == 1 ? 0 : -Inf
+
+  A = Matrix{Int}(Q.adjacency)
+  for e in all_subdimension_vectors(beta; nonzero=true, strict=true)
+    slope(e, theta, denom) >= slope(beta, theta, denom) || continue
+    bound =
+      sum(e .* (beta .- e)) +
+      dimension_nullcone(Q, Vector{Int}(e)) +
+      dimension_nullcone(Q, beta .- e) +
+      (beta .- e)' * A * e
+    bound < N || throw(
+      ArgumentError(
+        "cannot certify that stable representations are dense in the nullcone " *
+        "for the dimension vector $beta",
+      ),
+    )
+  end
+  return N - (sum(beta .^ 2) - 1)
+end
+
+# The dimension of the moduli space of nilpotent theta-semistable representations,
+# maximized over its polystable types: a polystable representation is determined by
+# its distinct stable nilpotent summands.
+function __dimension_nilpotent_moduli(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denom)
+  all(d .== 0) && return 0
+  best = -Inf
+  for tau in all_luna_types(Q, d, theta, denom)
+    value = sum(
+      length(tau[e]) *
+      __dimension_stable_nilpotent_moduli(Q, Vector{Int}(e), theta, denom) for
+      e in keys(tau)
+    )
+    best = max(best, value)
+  end
+  return best
+end
+
+"""
+    fibre_dimension(Q::Quiver, d, theta, thetabar, tau; denom = sum)
+
+Computes the dimension of the fibre of the projection to the wall over a point of the
+Luna stratum of type `tau`.
+
+When `thetabar` lies in the closure of the chamber of the stability parameter `theta`,
+every `theta`-semistable representation is `thetabar`-semistable, which induces the
+projective morphism
+
+```math
+p\\colon M^{\\theta{\\rm -ss}}(Q, d) \\longrightarrow M^{\\bar\\theta{\\rm -ss}}(Q, d)
+```
+
+called the *projection to the wall*. Étale-locally around a polystable representation
+of Luna type `tau` the morphism `p` is the quotient map of the local quiver setting of
+[[MR1972892](https://mathscinet.ams.org/mathscinet/relay-station?mr=1972892)], so the
+fibre over any point of the stratum of `tau` is the moduli space of *nilpotent*
+representations of the local quiver setting which are semistable for the local
+stability parameter, given by evaluating `theta` on the stable summands.
+
+Its dimension is computed by maximizing over the polystable types of the nilpotent
+moduli space, where the moduli of stable nilpotent representations of a summand has
+the dimension of the nullcone minus the orbit dimension; this is certified by checking
+that the loci of nilpotent representations admitting a destabilizing subrepresentation
+have smaller dimension than the nullcone itself, and an `ArgumentError` is thrown when
+certification fails.
+
+# Input
+
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+- `theta::AbstractVector{Int}`: the stability parameter of the source. It must satisfy
+  ``\\theta \\cdot d = 0``, admit semistable representations, and lie in a VGIT chamber.
+- `thetabar::AbstractVector{Int}`: the stability parameter of the target. It must
+  satisfy ``\\bar\\theta \\cdot d = 0``, admit semistable representations, and lie in
+  the closure of the chamber containing `theta`.
+- `tau`: a Luna type for `thetabar`; see [`LunaType`](@ref).
+
+Keyword arguments:
+
+- `denom::Function`: the denominator of the slope on the original quiver. It must be
+  positive on every nonzero subdimension vector of `d`. Default is `sum`. The induced
+  stability on the local quiver is always King-normalized and therefore uses the
+  standard denominator `sum`; `denom` is not reused on its different vertex set.
+
+# Output
+
+- the dimension of the fibre of the projection to the wall over any point of the Luna
+  stratum of `tau`, or `-Inf` if the type is not realized by nilpotent representations.
+
+# Examples
+
+For the 6-subspace quiver with `d = (1^5, 2; 3)` the projection from the moduli space
+for the canonical stability parameter to the wall given by `(1^5, 2; -3)` is
+birational, with fibres of dimension `1` over the five surfaces where one subspace
+degenerates:
+
+```jldoctest
+julia> Q = subspace_quiver(6); d = [1, 1, 1, 1, 1, 2, 3];
+
+julia> theta = [3, 3, 3, 3, 3, 3, -7]; thetabar = [1, 1, 1, 1, 1, 2, -3];
+
+julia> fibre_dimension(Q, d, theta, thetabar, Dict(d => [1]))
+0
+
+julia> tau = Dict([1, 0, 0, 0, 0, 1, 1] => [1], [0, 1, 1, 1, 1, 1, 2] => [1]);
+
+julia> fibre_dimension(Q, d, theta, thetabar, tau)
+1
+```
+"""
+function fibre_dimension(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector{Int},
+  thetabar::AbstractVector{Int},
+  tau;
+  denom::Function=sum,
+)
+  dvec, theta_vec, thetabar_vec = __validate_wall_projection(Q, d, theta, thetabar, denom)
+  Mbar = QuiverModuliSpace(Q, dvec, thetabar_vec, "semistable", denom)
+  return __fibre_dimension(Mbar, theta_vec, tau)
+end
+
+# Fibre calculation after the wall-projection data have been validated. The local
+# stability is King-normalized, and hence uses `sum` independently of the denominator
+# chosen on the original quiver.
+function __fibre_dimension(Mbar::QuiverModuliSpace, theta::Vector{Int}, tau)
+  # the local quiver setting of tau, with the stability induced by theta
+  setting = local_quiver_setting(Mbar, tau)
+  thetaloc = [theta' * e for e in setting.summands]
+
+  # a repeated rigid summand is not realized by any representation
+  any(<(0), setting.Q.adjacency) && return -Inf
+  f = __dimension_nilpotent_moduli(setting.Q, setting.d, thetaloc, sum)
+  return isfinite(f) ? Int(f) : f
+end
+
+"""
+    is_flat(Q::Quiver, d, theta, thetabar; denom = sum)
+
+Checks whether the projection to the wall
+
+```math
+p\\colon M^{\\theta{\\rm -ss}}(Q, d) \\longrightarrow M^{\\bar\\theta{\\rm -ss}}(Q, d)
+```
+
+is flat; see [`fibre_dimension`](@ref) for the setup.
+
+The source of `p` is a GIT quotient of a smooth variety, hence Cohen--Macaulay by
+Hochster--Roberts. By miracle flatness, when the target is smooth the morphism is flat
+if and only if all fibres have the same dimension, which is checked stratum by
+stratum. When the target is singular this criterion does not apply, and an
+`ArgumentError` is thrown.
+
+# Input
+
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+- `theta::AbstractVector{Int}`: the stability parameter of the source. It must satisfy
+  ``\\theta \\cdot d = 0``, admit semistable representations, and lie in a VGIT chamber.
+- `thetabar::AbstractVector{Int}`: the stability parameter of the target. It must
+  satisfy ``\\bar\\theta \\cdot d = 0``, admit semistable representations, and lie in
+  the closure of the chamber containing `theta`.
+
+Keyword arguments:
+
+- `denom::Function`: the denominator of the slope on the original quiver. It must be
+  positive on every nonzero subdimension vector of `d`. Default is `sum`. Local-quiver
+  computations always use the standard denominator `sum`.
+
+# Output
+
+- whether the projection to the wall is flat.
+
+# Examples
+
+The projection of the 6-subspace quiver moduli space with `d = (1^5, 2; 3)` to the
+wall `(1^5, 2; -3)` is birational with positive-dimensional fibres, so it is not flat:
+
+```jldoctest
+julia> Q = subspace_quiver(6); d = [1, 1, 1, 1, 1, 2, 3];
+
+julia> is_flat(Q, d, [3, 3, 3, 3, 3, 3, -7], [1, 1, 1, 1, 1, 2, -3])
+false
+```
+"""
+function is_flat(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector{Int},
+  thetabar::AbstractVector{Int};
+  denom::Function=sum,
+)
+  dvec, theta_vec, thetabar_vec = __validate_wall_projection(Q, d, theta, thetabar, denom)
+  Mbar = QuiverModuliSpace(Q, dvec, thetabar_vec, "semistable", denom)
+  is_smooth(Mbar) || throw(
+    ArgumentError(
+      "the target of the projection is singular; miracle flatness does not apply"
+    ),
+  )
+  generic =
+    dimension(QuiverModuliSpace(Q, dvec, theta_vec, "semistable", denom)) -
+    dimension(Mbar)
+  # types with fibre dimension -Inf are not realized, so they are skipped
+  return all(all_luna_types(Mbar)) do tau
+    f = __fibre_dimension(Mbar, theta_vec, tau)
+    f == -Inf || f == generic
+  end
+end
+
+"""
+    is_semismall(Q::Quiver, d, theta, thetabar; denom = sum)
+
+Checks whether the projection to the wall
+
+```math
+p\\colon M^{\\theta{\\rm -ss}}(Q, d) \\longrightarrow M^{\\bar\\theta{\\rm -ss}}(Q, d)
+```
+
+is semismall, i.e., whether for every Luna stratum the sum of its dimension and twice
+the fibre dimension over it is at most the dimension of the source; see
+[`fibre_dimension`](@ref) for the setup.
+
+# Input
+
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+- `theta::AbstractVector{Int}`: the stability parameter of the source. It must satisfy
+  ``\\theta \\cdot d = 0``, admit semistable representations, and lie in a VGIT chamber.
+- `thetabar::AbstractVector{Int}`: the stability parameter of the target. It must
+  satisfy ``\\bar\\theta \\cdot d = 0``, admit semistable representations, and lie in
+  the closure of the chamber containing `theta`.
+
+Keyword arguments:
+
+- `denom::Function`: the denominator of the slope on the original quiver. It must be
+  positive on every nonzero subdimension vector of `d`. Default is `sum`. Local-quiver
+  computations always use the standard denominator `sum`.
+
+# Output
+
+- whether the projection to the wall is semismall.
+
+# Examples
+
+The projection of the 6-subspace quiver moduli space with `d = (1^5, 2; 3)` to the
+wall `(1^5, 2; -3)`, whose target is the Grassmannian ``\\operatorname{Gr}(2, 4)``, is
+semismall:
+
+```jldoctest
+julia> Q = subspace_quiver(6); d = [1, 1, 1, 1, 1, 2, 3];
+
+julia> is_semismall(Q, d, [3, 3, 3, 3, 3, 3, -7], [1, 1, 1, 1, 1, 2, -3])
+true
+```
+"""
+function is_semismall(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector{Int},
+  thetabar::AbstractVector{Int};
+  denom::Function=sum,
+)
+  dvec, theta_vec, thetabar_vec = __validate_wall_projection(Q, d, theta, thetabar, denom)
+  Mbar = QuiverModuliSpace(Q, dvec, thetabar_vec, "semistable", denom)
+  dM = dimension(QuiverModuliSpace(Q, dvec, theta_vec, "semistable", denom))
+  # types with fibre dimension -Inf are not realized, so they are skipped
+  return all(all_luna_types(Mbar)) do tau
+    f = __fibre_dimension(Mbar, theta_vec, tau)
+    f == -Inf || dimension_of_luna_stratum(Mbar, tau) + 2 * f <= dM
+  end
+end
+
 """
     is_smooth(M::QuiverModuliStack)
 

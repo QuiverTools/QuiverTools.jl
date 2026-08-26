@@ -700,3 +700,233 @@ function is_cofree(Q::Quiver, d::AbstractVector{Int})
   end
   return true
 end
+
+########################################################################################
+# Nullcones
+########################################################################################
+
+# product of dense integer polynomials, given by their coefficient vectors in
+# ascending degree
+function __polymul(p::Vector{BigInt}, q::Vector{BigInt})
+  r = zeros(BigInt, length(p) + length(q) - 1)
+  for (i, a) in pairs(p), (j, b) in pairs(q)
+    r[i + j - 1] += a * b
+  end
+  return r
+end
+
+# the Gaussian binomial coefficient as a polynomial in the Lefschetz motive, given by
+# its coefficient vector, using the q-Pascal recursion
+@memoize Dict function __gaussian_binomial(n::Int, k::Int)
+  (k == 0 || k == n) && return [big(1)]
+  p, q = __gaussian_binomial(n - 1, k - 1), __gaussian_binomial(n - 1, k)
+  r = zeros(BigInt, max(length(p), k + length(q)))
+  r[eachindex(p)] .+= p
+  r[k .+ eachindex(q)] .+= q
+  return r
+end
+
+# The motive of the nullcone of the setting (A, d) as a polynomial in the Lefschetz
+# motive L, given by its coefficient vector, following the recursion of
+# [Corollary 3.1, doi:10.3842/SIGMA.2026.020], which stratifies the nullcone by the
+# dimension vector of the socle:
+#
+#   [N_d] = -\sum_{e < d} (-1)^{|d| - |e|} L^{s(e, d)} [d; e]_L [N_e],
+#
+# where s(e, d) = \sum_i binomial(d_i - e_i, 2) + \sum_{a: i -> j} e_i (d_j - e_j).
+function __nullcone_motive(A::Matrix{Int}, d::Vector{Int})
+  n = length(d)
+  motives = Dict{Vector{Int},Vector{BigInt}}(zeros(Int, n) => [big(1)])
+  for e in sort!(all_subdimension_vectors(d; nonzero=true); by=sum)
+    total = BigInt[]
+    for f in all_subdimension_vectors(e; strict=true)
+      term = motives[f]
+      for i in 1:n
+        term = __polymul(term, __gaussian_binomial(e[i], f[i]))
+      end
+      shift =
+        sum(binomial(e[i] - f[i], 2) for i in 1:n) +
+        sum(A[i, j] * f[i] * (e[j] - f[j]) for i in 1:n, j in 1:n)
+      length(total) < shift + length(term) &&
+        append!(total, zeros(BigInt, shift + length(term) - length(total)))
+      sign = isodd(sum(e) - sum(f)) ? 1 : -1
+      total[shift .+ eachindex(term)] .+= sign .* term
+    end
+    while length(total) > 1 && iszero(total[end])
+      pop!(total)
+    end
+    motives[e] = total
+  end
+  return motives[d]
+end
+
+"""
+    dimension_nullcone(Q::Quiver, d::AbstractVector{Int})
+
+Compute the dimension of the nullcone of the quiver setting `(Q, d)`.
+
+The nullcone is the fibre of the quotient map to the affine quotient over the image of
+the zero representation; it consists of the nilpotent representations, i.e., those
+admitting a filtration by the vertex simples, or equivalently those on which the trace
+of every oriented cycle vanishes. Its class in the Grothendieck ring of varieties is a
+polynomial in the Lefschetz motive, computed here by the recursion of
+[[Corollary 3.1, Gösmann--Reineke](https://doi.org/10.3842/SIGMA.2026.020)], which
+stratifies the nullcone by the dimension vector of the socle; the dimension of the
+nullcone is the degree of this polynomial. For a symmetric quiver it is given by the
+closed formula ``\\sum_i (r_{ii} + 1)\\binom{d_i}{2} + \\sum_{i < j} r_{ij} d_i d_j``
+of [Remark 3.6, loc. cit.], where ``r_{ij}`` is the number of arrows between ``i``
+and ``j``.
+
+# Input
+
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+
+# Output
+
+- the dimension of the nullcone of the setting `(Q, d)`.
+
+# Examples
+
+The nullcone of the Jordan quiver consists of the nilpotent matrices; for pairs of
+``2 \\times 2`` or ``4 \\times 4`` matrices it consists of the pairs that are
+simultaneously strictly triangularizable:
+
+```jldoctest
+julia> dimension_nullcone(jordan_quiver(1), [3])
+6
+
+julia> dimension_nullcone(jordan_quiver(2), [2])
+3
+
+julia> dimension_nullcone(jordan_quiver(2), [4])
+18
+```
+
+For an acyclic quiver there are no invariants, so the nullcone is everything:
+
+```jldoctest
+julia> dimension_nullcone(kronecker_quiver(3), [2, 3])
+18
+```
+"""
+@memoize Dict function dimension_nullcone(Q::Quiver, d::AbstractVector{Int})
+  __check_dimension_vector(Q, d)
+
+  return length(__nullcone_motive(Matrix{Int}(Q.adjacency), Vector{Int}(d))) - 1
+end
+
+"""
+    nullcone_motive(Q::Quiver, d::AbstractVector{Int})
+
+Compute the motive of the nullcone of the quiver setting `(Q, d)`.
+
+The class of the nullcone in the Grothendieck ring of varieties is a polynomial in the
+Lefschetz motive ``\\mathbb{L}``, computed by the recursion of
+[[Corollary 3.1, Gösmann--Reineke](https://doi.org/10.3842/SIGMA.2026.020)], which
+stratifies the nullcone by the dimension vector of the socle. It is returned as an
+element of the field ``\\mathbb{Q}(L)``, as for [`motive`](@ref), and its degree is
+[`dimension_nullcone`](@ref).
+
+# Input
+
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+
+# Output
+
+- the motive of the nullcone of the setting `(Q, d)`, as a polynomial in the Lefschetz
+  motive `L`.
+
+# Examples
+
+The variety of nilpotent ``d \\times d`` matrices has motive ``\\mathbb{L}^{d(d-1)}``,
+whilst for tuples of matrices the motive is no longer a single power:
+
+```jldoctest
+julia> nullcone_motive(jordan_quiver(1), [3])
+L^6
+
+julia> nullcone_motive(jordan_quiver(2), [2])
+L^3 + L^2 - L
+```
+
+For an acyclic quiver the nullcone is the whole representation variety:
+
+```jldoctest
+julia> nullcone_motive(kronecker_quiver(3), [2, 3])
+L^18
+```
+"""
+function nullcone_motive(Q::Quiver, d::AbstractVector{Int})
+  __check_dimension_vector(Q, d)
+
+  coefficients = __nullcone_motive(Matrix{Int}(Q.adjacency), Vector{Int}(d))
+  K, L = Singular.FunctionField(Singular.QQ, ["L"])
+  L = L[1]
+  return sum(K(coefficients[k]) * L^(k - 1) for k in eachindex(coefficients))
+end
+
+"""
+    defect(Q::Quiver, d::AbstractVector{Int})
+
+Compute the defect of the quiver setting `(Q, d)`, i.e., the difference between the
+dimension of the nullcone and the dimension of the generic fibre of the quotient map
+to the affine quotient,
+
+```math
+\\operatorname{def}(Q, d) =
+\\dim\\operatorname{Null}(Q, d) - \\dim\\operatorname{Rep}(Q, d) +
+\\dim\\operatorname{iss}(Q, d),
+```
+
+as in [[Definition 3, Bocklandt--Van de Weyer]
+(https://doi.org/10.1016/j.jalgebra.2007.08.019)]. The defect is non-negative, and it
+vanishes if and only if the quotient map is equidimensional. By a criterion of Popov,
+the setting is cofree if and only if it is coregular and has defect zero, which gives
+an independent verification of [`is_cofree`](@ref).
+
+# Input
+
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+
+# Output
+
+- the defect of the setting `(Q, d)`.
+
+# Examples
+
+Cyclic quiver settings are cofree, so their defect vanishes; for pairs of
+``3 \\times 3`` matrices the nullcone is too large:
+
+```jldoctest
+julia> defect(jordan_quiver(1), [4])
+0
+
+julia> defect(jordan_quiver(2), [3])
+1
+```
+"""
+function defect(Q::Quiver, d::AbstractVector{Int})
+  __check_dimension_vector(Q, d)
+  A = Matrix{Int}(Q.adjacency)
+  dim_rep = sum(A .* (Vector(d) * Vector(d)'))
+  return dimension_nullcone(Q, d) - dim_rep + __dimension_affine_quotient(Q, d)
+end
+
+# The dimension of the affine quotient iss(Q, d), i.e., of the moduli space for the
+# zero stability parameter, computed one connected component of the support at a time.
+function __dimension_affine_quotient(Q::Quiver, d::AbstractVector{Int})
+  keep = support(d)
+  A = Matrix{Int}(Q.adjacency)[keep, keep]
+  return sum(
+    Int(
+      dimension(
+        QuiverModuliSpace(Quiver(A[c, c]), Vector{Int}(d[keep[c]]), zeros(Int, length(c)))
+      ),
+    )
+    for c in __weakly_connected_components(A);
+    init=0,
+  )
+end
