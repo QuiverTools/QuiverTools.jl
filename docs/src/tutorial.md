@@ -587,7 +587,7 @@ The provided methods are described in [Walls and Chambers decomposition](@ref).
 
 ### Technical note
 
-The Boolean function [`git_equivalent`](@ref) does not require an optional dependency.
+The boolean function [`git_equivalent`](@ref) does not require an optional dependency.
 Constructing the walls, chambers, and VGIT fan uses a *package extension*
 that depends on the `Oscar` algebra system.
 

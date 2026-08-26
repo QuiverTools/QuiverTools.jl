@@ -2,7 +2,7 @@
 
 QuiverTools implements the walls-and-chambers decomposition
 of the GIT problem of quiver moduli.
-The Boolean equivalence test [`git_equivalent`](@ref) is implemented combinatorially
+The boolean equivalence test [`git_equivalent`](@ref) is implemented combinatorially
 and has no optional dependencies.
 Constructing the polyhedral cones and fans uses the geometry interface of `Oscar.jl`.
 

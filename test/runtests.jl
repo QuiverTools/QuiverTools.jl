@@ -9,7 +9,7 @@ using Test, QuiverTools, Documenter
 @info "Almost all the tests are in the documentation."
 
 @testset "Oscar-independent VGIT predicates" begin
-  # Boolean VGIT queries must not load the optional Oscar extension.
+  # VGIT boolean queries must not load the optional Oscar extension.
   @test Base.get_extension(QuiverTools, :QuiverToolsOscarExt) === nothing
 
   Q = three_vertex_quiver(2, 3, 4)
