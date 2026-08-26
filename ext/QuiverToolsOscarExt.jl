@@ -16,7 +16,7 @@ using IterTools: IterTools
 import Memoization: @memoize
 import QuiverTools:
   is_special_subdimension_vector, all_special_subdimension_vectors, sst,
-  vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent, all_stability_parameters
+  vgit_walls, wall_system, vgit_chambers, vgit_fan, all_stability_parameters
 
 # Disambiguate between Singular's and Oscar's overloads of `(::PolyRing)(::spoly)`,
 # which collide once both packages are loaded.
@@ -86,13 +86,14 @@ function __helper_accelerate(P::Oscar.Polyhedron)
 end
 
 @memoize Dict function sst(Q, e)
-  e_perp = Oscar.polyhedron([e, -e], [0, 0]) #e^{\perp}
-  all_gen = filter(
-    eprime -> !all(ei == 0 for ei in eprime) && eprime != e,
-    all_general_subdimension_vectors(Q, e),
+  data = QuiverTools.__semistable_cone_data(Q, e)
+  equations = vcat(data.equations, .-data.equations)
+  e_perp = Oscar.polyhedron(equations, zeros(Int, length(equations)))
+  isempty(data.inequalities) && return e_perp
+  return intersect(
+    e_perp,
+    Oscar.polyhedron(data.inequalities, zeros(Int, length(data.inequalities))),
   )
-  isempty(all_gen) && return e_perp
-  return intersect(e_perp, Oscar.polyhedron(all_gen, zeros(Int, length(all_gen))))
 end
 
 @memoize Dict function vgit_walls(Q, d; inner=false, top_dimension=true)
@@ -280,19 +281,6 @@ function vgit_fan(Q, d; verbose=false)
   )
 end
 
-function git_equivalent(Q, d, theta1, theta2)
-  theta1 == theta2 && return true
-  line = Oscar.convex_hull([theta1, theta2]) # 1-dimensional iif theta1 != theta2
-
-  # either the line lies in a wall or it intersects none of them
-  for w in vgit_walls(Q, d; top_dimension=false)
-    if !Oscar.issubset(line, w) && Oscar.is_feasible(Oscar.intersect(line, w))
-      return false
-    end
-  end
-  return true
-end
-
 """
     __sst_cone(Q::Quiver, e::AbstractVector{Int})
 
@@ -302,12 +290,10 @@ but seen as an Oscar `Cone` object.
 For internal use only for now.
 """
 function __sst_cone(Q::Quiver, e::AbstractVector{Int})
-  all_gen = filter(
-    eprime -> !all(ei == 0 for ei in eprime) && eprime != e,
-    all_general_subdimension_vectors(Q, e),
-  )
-  isempty(all_gen) && return Oscar.cone_from_inequalities([e, -e])
-  return Oscar.cone_from_inequalities(all_gen, [e])
+  data = QuiverTools.__semistable_cone_data(Q, e)
+  isempty(data.inequalities) &&
+    return Oscar.cone_from_inequalities(vcat(data.equations, .-data.equations))
+  return Oscar.cone_from_inequalities(data.inequalities, data.equations)
 end
 
 """

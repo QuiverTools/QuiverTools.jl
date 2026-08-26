@@ -1,7 +1,145 @@
-# Walls-and-chambers and VGIT functionality relies on Oscar's polyhedral geometry
-# and therefore lives in the Oscar package extension (ext/QuiverToolsOscarExt.jl).
-# The functions below are only method stubs: the extension adds the real methods
-# once Oscar is loaded. Until then, calling any of them raises a clear error.
+# The combinatorial VGIT layer is independent of Oscar. It records the equations and
+# inequalities defining semistable cones and walls, and provides exact point and line
+# segment predicates. The Oscar extension consumes the same data to construct the
+# corresponding polyhedra.
+
+# Equations and inequalities defining sst(d). The inequalities are Schofield's general
+# subdimension vectors; zero and d impose no inequalities and are omitted.
+function __semistable_cone_data(Q::Quiver, d::AbstractVector{Int})
+  return __semistable_cone_data(Q, Vector{Int}(d))
+end
+
+@memoize Dict function __semistable_cone_data(Q::Quiver, d::Vector{Int})
+  inequalities = filter(
+    e -> any(!=(0), e) && e != d,
+    all_general_subdimension_vectors(Q, d),
+  )
+  return (equations=[d], inequalities=inequalities)
+end
+
+# Equations and inequalities defining W_e = sst(e) ∩ sst(d-e) ∩ sst(d).
+function __vgit_wall_data(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  e::AbstractVector{Int},
+)
+  return __vgit_wall_data(Q, Vector{Int}(d), Vector{Int}(e))
+end
+
+@memoize Dict function __vgit_wall_data(Q::Quiver, d::Vector{Int}, e::Vector{Int})
+  data = __semistable_cone_data.(Ref(Q), (e, d - e, d))
+  equations = unique!(vcat((datum.equations for datum in data)...))
+  inequalities = unique!(vcat((datum.inequalities for datum in data)...))
+  return (equations=equations, inequalities=inequalities)
+end
+
+# Evaluate a scalar product without losing exactness when the parameter is rational.
+function __exact_dot(x::AbstractVector{Int}, y::AbstractVector)
+  length(x) == length(y) || throw(DimensionMismatch("vectors must have equal lengths"))
+  value = big(0) // big(1)
+  for i in eachindex(x, y)
+    value += big(x[i]) * y[i]
+  end
+  return value
+end
+
+function __in_rational_cone(data, theta::AbstractVector)
+  return all(normal -> iszero(__exact_dot(normal, theta)), data.equations) &&
+         all(normal -> __exact_dot(normal, theta) <= 0, data.inequalities)
+end
+
+"""Return whether `theta` belongs to the semistable cone `sst(d)`."""
+function __in_semistable_cone(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector,
+)
+  return __in_rational_cone(__semistable_cone_data(Q, d), theta)
+end
+
+"""Return whether `theta` belongs to the VGIT wall `W_e`."""
+function __in_vgit_wall(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  e::AbstractVector{Int},
+  theta::AbstractVector,
+)
+  return __in_rational_cone(__vgit_wall_data(Q, d, e), theta)
+end
+
+# Intersect the segment theta1--theta2 with a rational polyhedral cone. The result is
+# the exact closed interval of parameters t in [0,1] for which
+# (1-t)theta1 + t theta2 belongs to the cone, or nothing when it is empty.
+function __segment_cone_intersection(data, theta1::AbstractVector, theta2::AbstractVector)
+  length(theta1) == length(theta2) ||
+    throw(DimensionMismatch("stability parameters must have equal lengths"))
+  lower = big(0) // big(1)
+  upper = big(1) // big(1)
+
+  for normal in data.equations
+    initial = __exact_dot(normal, theta1)
+    delta = __exact_dot(normal, theta2) - initial
+    if iszero(delta)
+      iszero(initial) || return nothing
+    else
+      crossing = -initial / delta
+      lower = max(lower, crossing)
+      upper = min(upper, crossing)
+      lower <= upper || return nothing
+    end
+  end
+
+  for normal in data.inequalities
+    initial = __exact_dot(normal, theta1)
+    delta = __exact_dot(normal, theta2) - initial
+    if iszero(delta)
+      initial <= 0 || return nothing
+    elseif delta > 0
+      upper = min(upper, -initial / delta)
+    else
+      lower = max(lower, -initial / delta)
+    end
+    lower <= upper || return nothing
+  end
+
+  return (lower, upper)
+end
+
+"""Return whether `theta` lies in a VGIT chamber rather than on a wall."""
+function __is_vgit_chamber_parameter(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector,
+)
+  __in_semistable_cone(Q, d, theta) || return false
+  return all(all_subdimension_vectors(d; nonzero=true, strict=true)) do e
+    !__in_vgit_wall(Q, d, e, theta)
+  end
+end
+
+# The target may meet a wall at the endpoint of the segment, but the segment must not
+# meet any wall earlier. Using complete cone data also handles smaller walls when the
+# whole segment lies in their defining hyperplane.
+function __in_closure_of_vgit_chamber(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector,
+  thetabar::AbstractVector,
+)
+  __is_vgit_chamber_parameter(Q, d, theta) || return false
+  __in_semistable_cone(Q, d, thetabar) || return false
+  endpoint = big(1) // big(1)
+  for e in all_subdimension_vectors(d; nonzero=true, strict=true)
+    intersection = __segment_cone_intersection(__vgit_wall_data(Q, d, e), theta, thetabar)
+    intersection === nothing && continue
+    intersection == (endpoint, endpoint) || return false
+  end
+  return true
+end
+
+# Polyhedral wall and chamber objects rely on Oscar and therefore live in the Oscar
+# package extension (ext/QuiverToolsOscarExt.jl). The declarations below are method
+# stubs which load that extension on demand.
 #
 # To enable them, load Oscar alongside QuiverTools. Use `import Oscar` rather than
 # `using Oscar`: it activates the extension without bringing Oscar's exports into
@@ -201,7 +339,8 @@ By [[Corollary 4.4, MR5007902](https://mathscinet.ams.org/mathscinet-getitem?mr=
 this is equivalent to their convex hull
 either lying in a wall or not intersecting any of them.
 
-Requires Oscar: run `import Oscar` to enable this function.
+This computation uses the combinatorial equations and inequalities defining the VGIT
+walls and does not require Oscar.
 
 # Example
 
@@ -251,7 +390,21 @@ julia> any(y in w for w in W)
 true
 ```
 """
-function git_equivalent end
+function git_equivalent(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta1::AbstractVector,
+  theta2::AbstractVector,
+)
+  theta1 == theta2 && return true
+  for e in all_subdimension_vectors(d; nonzero=true, strict=true)
+    data = __vgit_wall_data(Q, d, e)
+    __segment_cone_intersection(data, theta1, theta2) === nothing && continue
+    __in_rational_cone(data, theta1) && __in_rational_cone(data, theta2) && continue
+    return false
+  end
+  return true
+end
 
 """
     all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false)
@@ -356,8 +509,7 @@ end
 # take precedence once Oscar has been loaded.
 for f in (
   :is_special_subdimension_vector, :all_special_subdimension_vectors, :sst,
-  :vgit_walls, :wall_system, :vgit_chambers, :vgit_fan, :git_equivalent,
-  :all_stability_parameters,
+  :vgit_walls, :wall_system, :vgit_chambers, :vgit_fan, :all_stability_parameters,
 )
   @eval @oscar_stub $f
 end

@@ -8,11 +8,73 @@ using Test, QuiverTools, Documenter
 
 @info "Almost all the tests are in the documentation."
 
+@testset "Oscar-independent VGIT predicates" begin
+  # VGIT boolean queries must not load the optional Oscar extension.
+  @test Base.get_extension(QuiverTools, :QuiverToolsOscarExt) === nothing
+
+  Q = three_vertex_quiver(2, 3, 4)
+  d = [1, 2, 2]
+  theta1 = [2, -1 // 2, -1 // 2]
+  theta2 = [2, 1 // 2, -3 // 2]
+  @test !git_equivalent(Q, d, theta1, theta2)
+  @test git_equivalent(Q, d, theta1, 2 .* theta1)
+
+  S = subspace_quiver(6)
+  d = [1, 1, 1, 1, 1, 2, 3]
+  theta = [3, 3, 3, 3, 3, 3, -7]
+  thetabar = [1, 1, 1, 1, 1, 2, -3]
+  @test QuiverTools.__is_vgit_chamber_parameter(S, d, theta)
+  @test QuiverTools.__in_closure_of_vgit_chamber(S, d, theta, thetabar)
+  @test !QuiverTools.__is_vgit_chamber_parameter(S, d, thetabar)
+
+  @test Base.get_extension(QuiverTools, :QuiverToolsOscarExt) === nothing
+end;
+
 # `import Oscar` (not `using`) loads Oscar so the walls-and-chambers / VGIT extension
 # activates and its doctests resolve `Oscar.*`, without pulling Oscar's exports into
 # scope (which would clash with QuiverTools names such as `index`, `todd_class`, ...).
 DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar))
 doctest(QuiverTools; manual=false, testset="Doctests")
+
+import Oscar
+
+@testset "VGIT predicates agree with Oscar" begin
+  Q = three_vertex_quiver(2, 3, 4)
+  d = [1, 2, 2]
+  parameters = [
+    [2, -1 // 2, -1 // 2],
+    [2, 1 // 2, -3 // 2],
+    [1, 3 // 2, -2],
+    [0, 1, -1],
+    [1, 0, -1 // 2],
+    [0, 0, 0],
+  ]
+
+  cone = sst(Q, d)
+  for theta in parameters
+    @test QuiverTools.__in_semistable_cone(Q, d, theta) == (theta in cone)
+  end
+
+  for e in QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true)
+    wall = reduce(Oscar.intersect, (sst(Q, e), sst(Q, d - e), cone))
+    for theta in parameters
+      @test QuiverTools.__in_vgit_wall(Q, d, e, theta) == (theta in wall)
+    end
+  end
+
+  walls = vgit_walls(Q, d; top_dimension=false)
+  function oscar_git_equivalent(theta1, theta2)
+    theta1 == theta2 && return true
+    line = Oscar.convex_hull([theta1, theta2])
+    return all(walls) do wall
+      Oscar.issubset(line, wall) || !Oscar.is_feasible(Oscar.intersect(line, wall))
+    end
+  end
+  for theta1 in parameters, theta2 in parameters
+    @test git_equivalent(Q, d, theta1, theta2) ==
+      oscar_git_equivalent(theta1, theta2)
+  end
+end;
 
 @testset "strict sst" begin
   # proper-semistability

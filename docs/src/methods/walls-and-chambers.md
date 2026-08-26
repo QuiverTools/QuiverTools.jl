@@ -1,10 +1,12 @@
 # Walls and Chambers decomposition
 
 QuiverTools implements the walls-and-chambers decomposition
-of the GIT problem of quiver moduli using the polyhedral geometry
-interface of `Oscar.jl`.
+of the GIT problem of quiver moduli.
+The boolean equivalence test [`git_equivalent`](@ref) is implemented combinatorially
+and has no optional dependencies.
+Constructing the polyhedral cones and fans uses the geometry interface of `Oscar.jl`.
 
-This functionality lives in a *package extension*
+The polyhedral functionality lives in a *package extension*
 that depends on the `Oscar` algebra system.
 
 To use it, one must
