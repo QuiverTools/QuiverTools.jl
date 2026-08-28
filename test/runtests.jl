@@ -47,6 +47,8 @@ end;
   @test string(all_hn_types(Q, d, theta; ordered=true)) == expected
 end;
 
+include("covering_quiver.jl")
+
 @testset "Constructors" begin
   # equivalences from the Sage docstrings; == compares adjacency matrices only
   @test thickened_subspace_quiver(2, 6) == three_vertex_quiver(0, 6, 6)
