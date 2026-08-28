@@ -65,7 +65,7 @@ export euler_form, euler_matrix, is_root, is_schur_root, is_real_root, is_imagin
 # Covering quiver
 export CoveringDimVector, shift_beta, covering_euler_form, extract_finite_subquiver,
   compatible_dimension_vectors, torus_fixed_components,
-  weight_space_dimension, nonzero_weights
+  weight_space_dimension, tangent_weight_multiplicities
 
 # Moduli
 export all_luna_types, is_luna_type, dimension_of_luna_stratum

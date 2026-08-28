@@ -13,14 +13,15 @@
 # These covers describe the fixed loci of the natural action of the full-rank torus
 # T = G_m^{Q_1} on M^{theta}(Q, d), see
 #
-#   * Boos--Franzen, *Weight Spaces and Attracting Sets for Torus Actions on
-#     Quiver Moduli*,
-#     [arXiv:2002.12049](https://doi.org/10.48550/arXiv.2002.12049),
+#   * Boos--Franzen, *Weight spaces and attracting sets for torus actions on
+#     quiver moduli*, Bull. Lond. Math. Soc. 54 (2022), 1658--1682,
+#     [doi:10.1112/blms.12649](https://doi.org/10.1112/blms.12649),
 #
 # which builds on Weist's localisation
 #
 #   * Weist, *Localization in quiver moduli spaces*,
-#     Represent. Theory 17 (2013), 382--425.
+#     Represent. Theory 17 (2013), 382--425,
+#     [doi:10.1090/S1088-4165-2013-00436-3](https://doi.org/10.1090/S1088-4165-2013-00436-3).
 #
 # A *compatible dimension vector* for d in N^{Q_0} is a function
 # beta: Q_0 x Z^m -> N with finite support such that
@@ -42,9 +43,14 @@ Keys are pairs `(i, xi)` where `i` is a vertex of `Q` and `xi` is a lattice poin
 in `Z^{n_arrows(Q)}`; values are positive multiplicities. Only nonzero entries
 are stored.
 
+The lattice coordinates are mutable `Vector`s for compatibility with the rest of
+the package. Do not mutate a coordinate while it is used as a dictionary key;
+doing so invalidates the dictionary's hash table. Public covering-quiver
+operations validate vertex indices, coordinate lengths, and multiplicities.
+
 For the role of `CoveringDimVector` in the description of the natural torus fixed
-locus of `M^{theta}(Q, d)`, see Section 3 of
-[[arXiv:2002.12049](https://doi.org/10.48550/arXiv.2002.12049)].
+locus of `M^{theta}(Q, d)`, see
+[[Theorem 3.1, Boos--Franzen](https://doi.org/10.1112/blms.12649)].
 The shift action of `Z^{n_arrows(Q)}` is realised by [`shift_beta`](@ref);
 the enumeration of equivalence classes by [`compatible_dimension_vectors`](@ref).
 
@@ -64,6 +70,47 @@ const CoveringDimVector = Dict{Tuple{Int,Vector{Int}},Int}
 
 _covering_arrows(Q::Quiver) = n_arrows(Q) == 0 ? Tuple{Int,Int}[] : arrows(Q)
 
+function _validate_covering_dimension_vector(
+  beta::CoveringDimVector,
+  lattice_rank::Int;
+  vertex_count::Union{Nothing,Int}=nothing,
+  name::String="beta",
+)
+  for ((v, xi), multiplicity) in beta
+    v > 0 || throw(ArgumentError("$name contains the nonpositive vertex index $v"))
+    if vertex_count !== nothing && v > vertex_count
+      throw(
+        ArgumentError(
+          "$name contains vertex $v, but the quiver has $vertex_count vertices"
+        ),
+      )
+    end
+    length(xi) == lattice_rank ||
+      throw(
+        DimensionMismatch(
+          "$name contains a lattice point of length $(length(xi)); " *
+          "expected $lattice_rank",
+        ),
+      )
+    multiplicity > 0 ||
+      throw(ArgumentError("$name contains the nonpositive multiplicity $multiplicity"))
+  end
+  return nothing
+end
+
+function _validate_covering_dimension_vector(
+  Q::Quiver,
+  beta::CoveringDimVector;
+  name::String="beta",
+)
+  return _validate_covering_dimension_vector(
+    beta,
+    n_arrows(Q);
+    vertex_count=n_vertices(Q),
+    name=name,
+  )
+end
+
 """
     shift_beta(beta::CoveringDimVector, chi::AbstractVector{Int})
 
@@ -77,7 +124,7 @@ At the level of the underlying `Dict`, this maps each key `(i, xi)` to
 `(i, xi - chi)`, so that reading the shifted vector at `(i, eta)` returns the
 original multiplicity at `(i, eta + chi)`.
 
-See Section 3 of [[arXiv:2002.12049](https://doi.org/10.48550/arXiv.2002.12049)].
+See [[Section 3, Boos--Franzen](https://doi.org/10.1112/blms.12649)].
 
 # Input
 
@@ -104,6 +151,7 @@ true
 ```
 """
 function shift_beta(beta::CoveringDimVector, chi::AbstractVector{Int})
+  _validate_covering_dimension_vector(beta, length(chi))
   shifted = CoveringDimVector()
   sizehint!(shifted, length(beta))
   for ((v, xi), count) in beta
@@ -127,10 +175,16 @@ For finitely-supported `beta`, `gamma`, this is
 where `e_a` is the standard basis vector of `Z^{n_arrows(Q)}` indexing the arrow `a`.
 
 This is the natural lift of [`euler_form`](@ref) along the covering map
-`Q(w) -> Q`: if `beta` and `gamma` have all support at `xi = 0`, the result equals
-the Euler form of the underlying dimension vectors on `Q`.
+`Q(w) -> Q`. If `beta` and `gamma` push forward to dimension vectors `d`
+and `e` on `Q`, respectively, then
+```math
+\\langle d, e\\rangle_Q
+  = \\sum_{\\chi \\in \\mathbb Z^{Q_1}}
+      \\langle \\beta, s_{-\\chi}\\gamma\\rangle_{Q(w)}.
+```
+Only finitely many summands on the right are nonzero.
 
-See Section 3 of [[arXiv:2002.12049](https://doi.org/10.48550/arXiv.2002.12049)].
+See [[Section 6, Boos--Franzen](https://doi.org/10.1112/blms.12649)].
 
 # Input
 
@@ -173,6 +227,8 @@ true
 function covering_euler_form(
   Q::Quiver, beta::CoveringDimVector, gamma::CoveringDimVector
 )
+  _validate_covering_dimension_vector(Q, beta)
+  _validate_covering_dimension_vector(Q, gamma; name="gamma")
   arrow_list = _covering_arrows(Q)
   m = n_arrows(Q)
 
@@ -212,7 +268,7 @@ A stability parameter `theta` on `Q` lifts to `Q(w)` via the projection
 sub_theta = [theta[k[1]] for k in sort(collect(keys(beta)))]
 ```
 and is the construction used to identify `F_beta` with `M^{theta_hat}(Q(w), beta)`
-in Section 3 of [[arXiv:2002.12049](https://doi.org/10.48550/arXiv.2002.12049)].
+in [[Theorem 3.1, Boos--Franzen](https://doi.org/10.1112/blms.12649)].
 
 # Input
 
@@ -261,6 +317,7 @@ julia> (n_vertices(sub_Q), n_arrows(sub_Q), sub_d)
 ```
 """
 function extract_finite_subquiver(Q::Quiver, beta::CoveringDimVector)
+  _validate_covering_dimension_vector(Q, beta)
   arrow_list = _covering_arrows(Q)
   m = n_arrows(Q)
 
@@ -351,10 +408,11 @@ Enumerate the connected-support dimension vectors on `Q(w)` compatible with `d`,
 up to the `Z^{n_arrows(Q)}`-shift action.
 
 A `beta::CoveringDimVector` is *compatible* with `d` if
-`sum_{xi} beta(i, xi) = d_i` for each vertex `i`. By Section 3 of
-[[arXiv:2002.12049](https://doi.org/10.48550/arXiv.2002.12049)], each nonempty
-fixed component of the natural torus action on `M^{theta}(Q, d)` arises from a
-shift-equivalence class of such `beta`.
+`sum_{xi} beta(i, xi) = d_i` for each vertex `i`. By
+[[Theorem 3.1, Boos--Franzen](https://doi.org/10.1112/blms.12649)] and
+[[Theorem 3.8, Weist](https://doi.org/10.1090/S1088-4165-2013-00436-3)], each
+nonempty fixed component of the natural torus action on `M^{theta}(Q, d)` arises
+from a shift-equivalence class of such `beta`.
 
 This function returns one representative per shift-equivalence class
 *with connected support*. A dimension vector with disconnected support in
@@ -561,29 +619,29 @@ function _build_betas!(
 end
 
 """
-    weight_space_dimension(Q::Quiver, beta::CoveringDimVector, chi::AbstractVector{Int})
+    weight_space_dimension(
+      M::QuiverModuliSpace,
+      beta::CoveringDimVector,
+      chi::AbstractVector{Int},
+    )
 
-Dimension of the `chi`-weight space of `Ext^1_{Q(w)}(N, s_{-chi} N)`,
-where `N` is a representation of `Q(w)` with dimension vector `beta`.
+Return the dimension of the `chi`-weight space of the tangent space along the
+stable fixed component indexed by `beta`.
 
-This is the dimension of the `chi`-weight space of the tangent space at the
-fixed point `[M]` in `M^{theta}(Q, d)` corresponding to `beta`, under the
-full-rank torus action `T = G_m^{Q_1}`. By
-[[Theorem 6.1, arXiv:2002.12049](https://doi.org/10.48550/arXiv.2002.12049)],
+Here `beta` must be compatible with the dimension vector of `M`, and its lifted
+stability condition must admit stable representations. For a stable
+representation `N` of `Q(w)` with dimension vector `beta`, the weight space is
+`Ext^1_{Q(w)}(N, s_{-chi} N)`. By
+[[Theorem 6.1, Boos--Franzen](https://doi.org/10.1112/blms.12649)],
 ```math
 \\dim (T_{[M]} \\mathcal M)_\\chi
   = \\delta_{\\chi, 0} - \\langle \\beta, s_{-\\chi}\\beta\\rangle_{Q(w)}.
 ```
 
-Summing the right-hand side over all `chi in Z^{n_arrows(Q)}` recovers
-`dim M^{theta}(Q, d) = 1 - \\langle d, d\\rangle_Q` (the proof reduces to
-recognising that the double sums of `beta(i, xi) beta(i, xi - chi)` and
-`beta(s(a), xi) beta(t(a), xi + e_a - chi)` over `chi` collapse to
-`d_i^2` and `d_{s(a)} d_{t(a)}` respectively).
-
 # Input
 
-- `Q::Quiver` a quiver.
+- `M::QuiverModuliSpace` the ambient stable moduli space, or a semistable moduli
+  space whose stable and semistable loci agree.
 - `beta::CoveringDimVector` a finitely-supported dimension vector on `Q(w)`.
 - `chi::AbstractVector{Int}` a character in `Z^{n_arrows(Q)}`.
 
@@ -599,9 +657,11 @@ At a real-root fixed point of `M^{theta}(K_2, (1, 1)) \\cong \\mathbb P^1`, the
 ```jldoctest
 julia> Q = kronecker_quiver(2);
 
+julia> M = QuiverModuliSpace(Q, [1, 1], [1, -1]);
+
 julia> beta = CoveringDimVector((1, [0, 0]) => 1, (2, [1, 0]) => 1);
 
-julia> weight_space_dimension(Q, beta, [0, 0])
+julia> weight_space_dimension(M, beta, [0, 0])
 0
 ```
 
@@ -611,17 +671,32 @@ at `chi = [-1, 1]`:
 ```jldoctest
 julia> Q = kronecker_quiver(2);
 
+julia> M = QuiverModuliSpace(Q, [1, 1], [1, -1]);
+
 julia> beta = CoveringDimVector((1, [0, 0]) => 1, (2, [1, 0]) => 1);
 
-julia> weight_space_dimension(Q, beta, [-1, 1])
+julia> weight_space_dimension(M, beta, [-1, 1])
 1
 
-julia> weight_space_dimension(Q, beta, [1, -1])
+julia> weight_space_dimension(M, beta, [1, -1])
 0
 ```
 """
 function weight_space_dimension(
-  Q::Quiver, beta::CoveringDimVector, chi::AbstractVector{Int}
+  M::QuiverModuliSpace,
+  beta::CoveringDimVector,
+  chi::AbstractVector{Int},
+)
+  _require_stable_fixed_locus(M)
+  _fixed_component_moduli(M, beta) === nothing &&
+    throw(ArgumentError("beta does not admit a stable lift for M"))
+  return _stable_weight_space_dimension(M.Q, beta, chi)
+end
+
+function _stable_weight_space_dimension(
+  Q::Quiver,
+  beta::CoveringDimVector,
+  chi::AbstractVector{Int},
 )
   m = n_arrows(Q)
   length(chi) == m || throw(ArgumentError("length(chi) must equal n_arrows(Q)"))
@@ -645,12 +720,16 @@ function weight_space_dimension(
 end
 
 """
-    nonzero_weights(Q::Quiver, beta::CoveringDimVector)
+    tangent_weight_multiplicities(
+      M::QuiverModuliSpace,
+      beta::CoveringDimVector,
+    )
 
 Return the characters `chi in Z^{n_arrows(Q)}` with
-`weight_space_dimension(Q, beta, chi) > 0`, together with the corresponding dimensions.
+`weight_space_dimension(M, beta, chi) > 0`, together with their multiplicities.
+The zero character is included when the fixed component has positive dimension.
 
-By [[Theorem 6.1, arXiv:2002.12049](https://doi.org/10.48550/arXiv.2002.12049)],
+By [[Theorem 6.1, Boos--Franzen](https://doi.org/10.1112/blms.12649)],
 the support of the character of `T_{[M]} \\mathcal M` for the full-rank torus
 is finite, with the only possible nonzero weights of the form
 `chi = xi + e_a - xi'` for an arrow `a: s -> t` and points
@@ -659,7 +738,8 @@ is finite, with the only possible nonzero weights of the form
 
 # Input
 
-- `Q::Quiver` a quiver.
+- `M::QuiverModuliSpace` the ambient stable moduli space, or a semistable moduli
+  space whose stable and semistable loci agree.
 - `beta::CoveringDimVector` a finitely-supported dimension vector on `Q(w)`.
 
 # Output
@@ -674,39 +754,41 @@ there is exactly one nonzero weight, of dimension `1`:
 ```jldoctest
 julia> Q = kronecker_quiver(2);
 
+julia> M = QuiverModuliSpace(Q, [1, 1], [1, -1]);
+
 julia> beta = CoveringDimVector((1, [0, 0]) => 1, (2, [1, 0]) => 1);
 
-julia> nonzero_weights(Q, beta)
+julia> tangent_weight_multiplicities(M, beta)
 1-element Vector{Tuple{Vector{Int64}, Int64}}:
  ([-1, 1], 1)
 ```
 
-At a `beta` whose fixed-point component is smooth (e.g. any real-root `beta`
-representing an isolated fixed point, as in `M^{theta}(K_m, (1, 1)) \\cong
-\\mathbb P^{m-1}`), all weight space dimensions are nonnegative and they sum to
-`dim M = 1 - \\langle d, d\\rangle_Q`:
+For every stable fixed component, all weight multiplicities are nonnegative and
+sum to `dim M = 1 - \\langle d, d\\rangle_Q`:
 
 ```jldoctest
 julia> Q = kronecker_quiver(3); d = [1, 1];
 
-julia> all(compatible_dimension_vectors(Q, d)) do beta
-           sum(dim for (_, dim) in nonzero_weights(Q, beta)) == 1 - euler_form(Q, d, d)
+julia> M = QuiverModuliSpace(Q, d, [1, -1]);
+
+julia> all(torus_fixed_components(M)) do component
+           sum(last, tangent_weight_multiplicities(M, component.beta); init=0) ==
+             1 - euler_form(Q, d, d)
        end
 true
 ```
-
-In general, the algebraic identity
-```math
-\\sum_{\\chi} \\bigl(\\delta_{\\chi, 0} - \\langle \\beta, s_{-\\chi}\\beta\\rangle_{Q(w)}\\bigr)
-  = 1 - \\langle d, d\\rangle_Q
-```
-holds for every compatible `beta`, but individual terms can be negative when
-`beta` is not a fixed point of a smooth moduli component.
 """
-function nonzero_weights(Q::Quiver, beta::CoveringDimVector)
+function tangent_weight_multiplicities(
+  M::QuiverModuliSpace,
+  beta::CoveringDimVector,
+)
+  _require_stable_fixed_locus(M)
+  _fixed_component_moduli(M, beta) === nothing &&
+    throw(ArgumentError("beta does not admit a stable lift for M"))
+
   out = Tuple{Vector{Int},Int}[]
-  for chi in _weight_candidates(Q, beta)
-    dim = weight_space_dimension(Q, beta, chi)
+  for chi in _weight_candidates(M.Q, beta)
+    dim = _stable_weight_space_dimension(M.Q, beta, chi)
     dim > 0 && push!(out, (chi, dim))
   end
   return sort!(out; by=first)
@@ -716,9 +798,8 @@ end
     _weight_candidates(Q::Quiver, beta::CoveringDimVector)
 
 Return the (finite) set of characters `chi in Z^{n_arrows(Q)}` outside of which
-`weight_space_dimension(Q, beta, chi) = 0`. Used by `nonzero_weights`; exposed for
-testing the algebraic sum identity of
-[[Theorem 6.1, arXiv:2002.12049](https://doi.org/10.48550/arXiv.2002.12049)].
+the tangent-weight expression vanishes. Used internally by
+[`tangent_weight_multiplicities`](@ref).
 """
 function _weight_candidates(Q::Quiver, beta::CoveringDimVector)
   arrow_list = _covering_arrows(Q)
@@ -759,6 +840,37 @@ function _lift_denominator(M::QuiverModuliSpace, vertex_map::Dict)
     return M.denom(projected_d)
   end
   return lifted_denominator
+end
+
+function _require_stable_fixed_locus(M::QuiverModuliSpace)
+  if M.condition == "semistable" && !semistable_equals_stable(M)
+    throw(
+      ArgumentError(
+        "semistable and stable loci must agree; use condition=\"stable\" " *
+        "to compute the fixed locus of the stable moduli space",
+      ),
+    )
+  end
+  return nothing
+end
+
+function _fixed_component_moduli(
+  M::QuiverModuliSpace,
+  beta::CoveringDimVector,
+)
+  _validate_covering_dimension_vector(M.Q, beta)
+
+  projected_d = zeros(Int, n_vertices(M.Q))
+  for ((v, _), multiplicity) in beta
+    projected_d[v] += multiplicity
+  end
+  projected_d == M.d ||
+    throw(ArgumentError("beta is not compatible with the dimension vector of M"))
+
+  sub_Q, sub_d, sub_theta, vertex_map = extract_finite_subquiver(M.Q, beta, M.theta)
+  sub_denom = _lift_denominator(M, vertex_map)
+  has_stables(sub_Q, sub_d, sub_theta, sub_denom) || return nothing
+  return QuiverModuliSpace(sub_Q, sub_d, sub_theta, "stable", sub_denom)
 end
 
 """
@@ -817,22 +929,13 @@ true
 ```
 """
 function torus_fixed_components(M::QuiverModuliSpace)
-  if M.condition == "semistable" && !semistable_equals_stable(M)
-    throw(
-      ArgumentError(
-        "semistable and stable loci must agree; use condition=\"stable\" " *
-        "to compute the fixed locus of the stable moduli space",
-      ),
-    )
-  end
+  _require_stable_fixed_locus(M)
 
   component_type = NamedTuple{(:beta, :moduli),Tuple{CoveringDimVector,QuiverModuliSpace}}
   components = component_type[]
   for beta in compatible_dimension_vectors(M.Q, M.d)
-    sub_Q, sub_d, sub_theta, vertex_map = extract_finite_subquiver(M.Q, beta, M.theta)
-    sub_denom = _lift_denominator(M, vertex_map)
-    has_stables(sub_Q, sub_d, sub_theta, sub_denom) || continue
-    moduli = QuiverModuliSpace(sub_Q, sub_d, sub_theta, "stable", sub_denom)
+    moduli = _fixed_component_moduli(M, beta)
+    moduli === nothing && continue
     push!(components, (beta=beta, moduli=moduli))
   end
   return components
