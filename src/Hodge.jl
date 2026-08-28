@@ -454,7 +454,7 @@ julia> betti_numbers(M)
 ```
 """
 function betti_numbers(M::QuiverModuliSpace)
-  !is_coprime(M.d, M.theta) && throw(ArgumentError("d and theta are not coprime"))
+  !is_coprime(M) && throw(ArgumentError("d and theta are not coprime"))
 
   N = dimension(M)
   P = poincare_polynomial(M)
@@ -503,7 +503,7 @@ L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1
 ```
 """
 function poincare_polynomial(M::QuiverModuliSpace)
-  !is_coprime(M.d, M.theta) && throw(ArgumentError("d and theta are not coprime"))
+  !is_coprime(M) && throw(ArgumentError("d and theta are not coprime"))
 
   m = motive(M.Q, M.d, M.theta, M.denom)
   v = Singular.transcendence_basis(Singular.parent(m))[1]

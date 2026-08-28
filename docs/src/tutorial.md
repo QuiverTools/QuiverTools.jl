@@ -61,8 +61,10 @@ julia> is_coprime(d, θ)
 true
 ```
 
-Here, `is_coprime()` checks if ``d`` is θ-coprime, i.e., if none of the
-proper subdimension vectors ``0 \neq d' \nleq d`` satisfies ``\theta \cdot d' = 0``.
+Here, `is_coprime()` checks if ``d`` is θ-coprime, i.e., if no proper nonzero
+subdimension vector has the same slope as ``d``. When ``\theta \cdot d=0``,
+this is equivalent to requiring ``\theta \cdot d' \neq 0`` for every proper
+nonzero subdimension vector ``d'``.
 
 The bilinear Euler form relative to a quiver Q of any two vectors
 in ``\mathbb{Z}^{Q_0}`` can be computed:

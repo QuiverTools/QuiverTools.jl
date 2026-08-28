@@ -42,8 +42,9 @@ end
 """
     is_coprime(M::QuiverModuli)
 
-Checks if the stability parameter is coprime with the dimension vector,
-i.e., if for all subdimension vectors ``e`` of ``d``, ``\\theta\\cdot e \\neq 0``.
+Checks if the slope stability is coprime with the dimension vector, i.e., if
+every proper nonzero subdimension vector has slope different from that of
+`M.d`.
 
 # Input
 
@@ -65,7 +66,7 @@ true
 ```
 """
 function is_coprime(M::QuiverModuli)
-  return is_coprime(M.d, M.theta)
+  return is_coprime(M.d, M.theta, M.denom)
 end
 
 """
@@ -587,7 +588,7 @@ false
 ```
 """
 function semistable_equals_stable(M::QuiverModuli)
-  if is_coprime(M.d, M.theta) || !has_semistables(M.Q, M.d, M.theta, M.denom)
+  if is_coprime(M) || !has_semistables(M.Q, M.d, M.theta, M.denom)
     return true
   end
   return length(all_luna_types(M; stable=false)) == 0
