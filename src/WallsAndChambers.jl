@@ -267,7 +267,7 @@ from the top-dimensional chambers of the VGIT fan.
 
 Requires Oscar: run `import Oscar` to enable this function.
 
-```jldoctests
+```jldoctest
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
 julia> all_stability_parameters(Q, d)
@@ -308,7 +308,7 @@ julia> all_stability_parameters(Q, d; generic=true)
 
 This method behaves well with respect to the trivial case of our favourite quiver, of course:
 
-```jldoctests
+```jldoctest
 julia> Q = kronecker_quiver(3); d = [2, 3];
 
 julia> all_stability_parameters(Q, d)
