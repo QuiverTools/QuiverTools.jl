@@ -29,6 +29,12 @@ doctest(QuiverTools; manual=false, testset="Doctests")
   @test has_stables(Q, [0, 3], [1, 0]) == false
   @test has_semistables(Q, [3, 0], [0, -1]) == true
   @test has_semistables(Q, [0, 3], [1, 0]) == true
+
+  # Coprimality compares slopes, also when theta is not normalized by theta*d = 0.
+  Q = Quiver(zeros(Int, 1, 1))
+  M = QuiverModuliSpace(Q, [2], [1], "semistable")
+  @test !is_coprime(M)
+  @test !semistable_equals_stable(M)
 end;
 
 @testset "HN types" begin
@@ -46,6 +52,8 @@ end;
 
   @test string(all_hn_types(Q, d, theta; ordered=true)) == expected
 end;
+
+include("covering_quiver.jl")
 
 @testset "Constructors" begin
   # equivalences from the Sage docstrings; == compares adjacency matrices only

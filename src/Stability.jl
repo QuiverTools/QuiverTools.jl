@@ -32,18 +32,25 @@ function canonical_stability(Q::Quiver, d::AbstractVector{Int})
 end
 
 """
-    is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
+    is_coprime(
+      d::AbstractVector{Int},
+      theta::AbstractVector{Int},
+      denom::Function=sum,
+    )
 
-Check if `d` is `theta`-coprime.
+Check if `d` is coprime for the slope determined by `theta` and `denom`.
 
-A dimension vector ``d`` is said to be ``\\theta``-coprime for the
-stability parameter ``\\theta`` if all subdimension vectors ``0 \\neq e < d``
-satisfy ``\\theta * e \\neq 0``.
+A dimension vector ``d`` is coprime for a slope ``\\mu`` if every
+subdimension vector ``0 \\neq e < d`` satisfies
+``\\mu(e) \\neq \\mu(d)``. If ``\\theta \\cdot d = 0``, this is
+equivalent to ``\\theta \\cdot e \\neq 0``.
 
 # Input
 
 - `d::AbstractVector{Int}` a dimension vector.
 - `theta::AbstractVector{Int}` a stability parameter.
+- `denom::Function` a function computing the slope denominator. Default is
+  `sum`.
 
 # Output
 
@@ -59,11 +66,19 @@ true
 
 julia> is_coprime([3, 3], theta)
 false
+
+julia> is_coprime([2], [1])
+false
 ```
 """
-function is_coprime(d::AbstractVector{Int}, theta::AbstractVector{Int})
+function is_coprime(
+  d::AbstractVector{Int},
+  theta::AbstractVector{Int},
+  denom::Function=sum,
+)
+  slope_d = slope(d, theta, denom)
   return all(
-    e -> theta' * e != 0,
+    e -> slope(e, theta, denom) != slope_d,
     all_subdimension_vectors(d; nonzero=true, strict=true),
   )
 end
@@ -751,6 +766,6 @@ end
 function has_properly_semistables(
   Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum
 )
-  is_coprime(d, theta) && return false
+  is_coprime(d, theta, denom) && return false
   return !isempty(all_luna_types(Q, d, theta, denom; stable=false))
 end

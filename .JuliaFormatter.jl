@@ -4,6 +4,7 @@ files = [
   "src/Bundles.jl",
   "src/Chow.jl",
   "src/Constructors.jl",
+  "src/CoveringQuiver.jl",
   "src/Hodge.jl",
   "src/Misc.jl",
   "src/Moduli.jl",
@@ -17,6 +18,7 @@ files = [
   "ext/QuiverToolsOscarExt.jl",
   "docs/docs.jl",
   "benchmark/benchmarks.jl",
+  "test/covering_quiver.jl",
   "test/runtests.jl",
   ".JuliaFormatter.jl",
 ]

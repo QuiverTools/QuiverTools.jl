@@ -29,6 +29,7 @@ makedocs(;
       "Constructors" => "methods/constructors.md",
       "Quiver moduli" => "methods/quiver-moduli.md",
       "Representation theory" => "methods/representation-theory.md",
+      "Covering quiver" => "methods/covering-quiver.md",
       "Teleman quantization" => "methods/teleman-quantization.md",
       "Chow rings" => "methods/chow-rings.md",
       "Walls and chamber decompositions" => "methods/walls-and-chambers.md",
