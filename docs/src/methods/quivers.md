@@ -26,3 +26,16 @@ is_sink
 is_source
 underlying_graph
 ```
+
+## Visualization
+
+`to_dot` renders a quiver as a [Graphviz](https://graphviz.org) DOT string,
+drawing parallel arrows and loops as themselves. Running `using GraphViz`
+alongside QuiverTools additionally makes a `Quiver` display as an SVG drawing in
+notebooks (Pluto, IJulia) and VS Code; from the REPL, `draw` opens that drawing
+in the system viewer.
+
+```@docs
+to_dot
+draw
+```

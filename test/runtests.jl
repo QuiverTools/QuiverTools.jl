@@ -1,4 +1,5 @@
 using Test, QuiverTools, Documenter
+import GraphViz
 # To ensure that the version of the tests being run
 # is the latest committed one,
 # the local installation of QuiverTools should be the one developed at path="../."
@@ -179,4 +180,49 @@ end;
   M = QuiverModuliSpace(kronecker_quiver(3), [2, 3])
   @test string(poincare_polynomial(M)) ==
     "L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1"
+end;
+
+@testset "to_dot" begin
+  # the exact string for the happy path is locked by the doctests; here we check
+  # arrow bookkeeping and the edge cases they don't show.
+
+  # one `->` line per arrow, loops included
+  count_arrows(Q) = count(l -> occursin("->", l), split(to_dot(Q), '\n'))
+  @test count_arrows(kronecker_quiver(3)) == n_arrows(kronecker_quiver(3)) == 3
+  @test count_arrows(three_vertex_quiver(1, 2, 3)) ==
+    n_arrows(three_vertex_quiver(1, 2, 3)) == 6
+  @test count_arrows(loop_quiver(4)) == n_arrows(loop_quiver(4)) == 4
+
+  # self-loops are spread with compass ports rather than stacked
+  @test occursin("1:n -> 1:n", to_dot(loop_quiver(2)))
+  @test occursin("1:s -> 1:s", to_dot(loop_quiver(2)))
+
+  # a quiver with no arrows still declares its (isolated) vertices, no crash
+  isolated = to_dot(Quiver([0 0; 0 0]))
+  @test count(l -> occursin("->", l), split(isolated, '\n')) == 0
+  @test occursin("\n  1;\n", isolated) && occursin("\n  2;\n", isolated)
+
+  # graph names are quoted DOT strings, so syntax characters and physical line
+  # breaks must be escaped before interpolation; UTF-8 and tabs remain literal
+  named = Quiver(zeros(Int, 1, 1), "α → β, 日本語: quote \" slash \\ line\nbreak\ttab")
+  @test occursin(
+    "label=\"α → β, 日本語: quote \\\" slash \\\\ line\\nbreak\ttab\";",
+    to_dot(named),
+  )
+end;
+
+@testset "GraphViz extension" begin
+  Q = Quiver([0 1; 0 0], "α → β, 日本語: quote \" slash \\ line\nbreak")
+  svg = sprint(show, MIME("image/svg+xml"), Q)
+  @test occursin("<svg", svg)
+  @test occursin("α → β, 日本語", svg)
+
+  extension_module = Base.get_extension(QuiverTools, :QuiverToolsGraphVizExt)
+  @test !isnothing(extension_module)
+  mktempdir() do directory
+    path = joinpath(directory, "quiver.svg")
+    @test extension_module._write_svg(Q, path) == path
+    @test isfile(path)
+    @test occursin("<svg", read(path, String))
+  end
 end;

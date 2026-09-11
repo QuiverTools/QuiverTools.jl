@@ -210,6 +210,103 @@ function arrows(Q::Quiver)
   )
 end
 
+# Compass ports used to spread self-loops around a vertex: Graphviz stacks
+# multiple loops on the same side otherwise, which reads as a single blob.
+const _LOOP_PORTS = ("n", "s", "e", "w", "ne", "sw", "se", "nw")
+
+function _escape_dot_string(value::AbstractString)
+  return replace(
+    value,
+    '\\' => "\\\\",
+    '"' => "\\\"",
+    '\n' => "\\n",
+    '\r' => "\\r",
+  )
+end
+
+"""
+    to_dot(Q::Quiver)
+
+Return a Graphviz DOT description of `Q` as a `String`.
+
+Every arrow becomes its own `i -> j` line, so parallel arrows and loops (a
+quiver's defining features) are drawn as themselves; self-loops are distributed
+around their vertex with compass ports. Isolated vertices are emitted explicitly.
+Quiver names are preserved as UTF-8 labels; DOT syntax characters and physical
+line breaks are escaped.
+
+Feed the result to Graphviz, e.g. `using GraphViz; GraphViz.Graph(to_dot(Q))`,
+which also makes `Q` render as SVG in notebooks and VS Code once GraphViz is
+loaded. With the DOT string in hand you can equally pipe it to the `dot`
+command line tool.
+
+# Examples
+
+```jldoctest
+julia> print(to_dot(kronecker_quiver(2)))
+digraph {
+  label="2-Kronecker quiver";
+  node [shape=circle];
+  1;
+  2;
+  1 -> 2;
+  1 -> 2;
+}
+
+julia> print(to_dot(loop_quiver(2)))
+digraph {
+  label="2-loop quiver";
+  node [shape=circle];
+  1;
+  1:n -> 1:n;
+  1:s -> 1:s;
+}
+```
+"""
+function to_dot(Q::Quiver)
+  n = n_vertices(Q)
+  io = IOBuffer()
+  println(io, "digraph {")
+  isempty(Q.name) || println(io, "  label=\"", _escape_dot_string(Q.name), "\";")
+  println(io, "  node [shape=circle];")
+  for i in 1:n
+    println(io, "  ", i, ";")
+  end
+  for i in 1:n, j in 1:n
+    if i == j
+      for t in 1:Q.adjacency[i, i]
+        p = _LOOP_PORTS[mod1(t, length(_LOOP_PORTS))]
+        println(io, "  ", i, ":", p, " -> ", i, ":", p, ";")
+      end
+    else
+      for _ in 1:Q.adjacency[i, j]
+        println(io, "  ", i, " -> ", j, ";")
+      end
+    end
+  end
+  println(io, "}")
+  return String(take!(io))
+end
+
+"""
+    draw(Q::Quiver)
+
+Render `Q` with Graphviz and open the drawing in the system's default viewer
+(browser or image application). Writes a temporary SVG file and returns its path.
+
+Requires GraphViz: run `using GraphViz` to enable this method. In notebooks and
+VS Code you do not need `draw`, evaluating `Q` displays the drawing inline.
+
+# Example
+
+```julia
+using QuiverTools, GraphViz
+
+draw(loop_quiver(2))   # opens the drawing; returns the temporary file path
+```
+"""
+function draw end
+
 """
     first_hochschild_cohomology(Q::Quiver)
 
