@@ -26,6 +26,7 @@ Black-box methods are provided to study some of their properties.
 is_nonempty
 dimension
 is_smooth
+codimension_singular_locus
 is_projective
 index
 motive

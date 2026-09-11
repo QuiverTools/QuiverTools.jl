@@ -105,6 +105,55 @@ function is_connected(Q::Quiver)
 end
 
 """
+    strongly_connected_components(Q::Quiver)
+
+Compute the strongly connected components of `Q`.
+
+Two vertices belong to the same strongly connected component if and only if
+they are connected by paths in both directions. The reachability relation is
+computed as the reflexive-transitive closure of the adjacency relation, using
+Warshall's Boolean transitive-closure algorithm
+[[Warshall](https://doi.org/10.1145/321105.321107)]; its ``O(n^3)`` running time
+is not an issue for the quivers we consider.
+
+# Input
+
+- `Q::Quiver`: a quiver.
+
+# Output
+
+- a list of the strongly connected components, each given as the list of its vertices.
+
+# Examples
+
+```jldoctest
+julia> strongly_connected_components(cyclic_quiver(4))  # 1 → 4 needs a path of length 3
+1-element Vector{Vector{Int64}}:
+ [1, 2, 3, 4]
+
+julia> strongly_connected_components(kronecker_quiver(3))
+2-element Vector{Vector{Int64}}:
+ [1]
+ [2]
+
+julia> strongly_connected_components(Quiver("1-2,2-1,2-3"))
+2-element Vector{Vector{Int64}}:
+ [1, 2]
+ [3]
+```
+"""
+function strongly_connected_components(Q::Quiver)
+  n = n_vertices(Q)
+  # `reachable[i, j]` records existence of a path, not the number of paths.
+  reachable = [i == j || Q.adjacency[i, j] > 0 for i in 1:n, j in 1:n]
+  # After the kth outer Warshall pass, paths may use any intermediate vertex in 1:k.
+  for k in 1:n, i in 1:n, j in 1:n
+    reachable[i, j] |= reachable[i, k] && reachable[k, j]
+  end
+  return unique([findall(j -> reachable[i, j] && reachable[j, i], 1:n) for i in 1:n])
+end
+
+"""
     indegree(Q::Quiver, j::Int)
 
 Return the number of incoming arrows to the vertex `j`.
