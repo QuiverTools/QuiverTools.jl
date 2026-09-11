@@ -35,6 +35,7 @@ QuiverTools.weights_universal_bundle_on_stratum
 QuiverTools.local_quiver_setting
 QuiverTools.thin_dimension_vector
 QuiverTools.solve
+QuiverTools._mobius
 QuiverTools.todd_Q
 QuiverTools.is_root
 QuiverTools.total_chern_class_universal

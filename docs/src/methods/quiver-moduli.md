@@ -1,3 +1,9 @@
+```@meta
+DocTestSetup = quote
+  using QuiverTools
+end
+```
+
 # Quiver moduli
 
 The main purpose of QuiverTools is to treat quiver moduli.
@@ -93,4 +99,35 @@ semisimple_moduli_space
 hodge_diamond
 hodge_polynomial
 betti_numbers
+```
+
+## Intersection cohomology
+
+If some proper subdimension vector has the slope of ``\mathbf{d}`` there are properly
+semistable representations and the moduli space is singular, so the methods above no
+longer apply. Its intersection cohomology is still computable, by the theorem of
+[Meinhardt--Reineke](https://mathscinet.ams.org/mathscinet-getitem?mr=4000572)
+identifying the Donaldson--Thomas invariants of the quiver with it. This needs the
+stability parameter to be generic for the slope of ``\mathbf{d}``, and stable
+representations to exist.
+
+For instance, the 3-Kronecker quiver with dimension vector ``(2,2)`` has the ``(1,1)``'s
+of the same slope, so its moduli space is singular. It turns out to have the intersection
+cohomology of ``\mathbb{P}^5``:
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
+
+julia> intersection_poincare_polynomial(M)
+L^5 + L^4 + L^3 + L^2 + L + 1
+```
+
+The quiver need not be acyclic. With one vertex, ``m`` loops and the trivial stability
+parameter one gets the classical spaces of matrix invariants, which are affine, so that
+the answer is then the Poincaré polynomial for cohomology with compact support.
+
+```@docs
+intersection_poincare_polynomial
+intersection_betti_numbers
+intersection_hodge_diamond
 ```

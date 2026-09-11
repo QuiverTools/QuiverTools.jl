@@ -70,6 +70,11 @@ export is_nonempty, codimension_unstable_locus, dimension, is_smooth,
 # Hodge
 export hodge_diamond, hodge_polynomial, picard_rank, index, betti_numbers
 
+# Intersection cohomology
+export intersection_poincare_polynomial,
+  intersection_betti_numbers,
+  intersection_hodge_diamond
+
 # Chow
 export chow_ring, motive, index, betti_numbers, poincare_polynomial, is_smooth,
   is_projective,
