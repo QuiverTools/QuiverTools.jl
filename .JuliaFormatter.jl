@@ -10,6 +10,7 @@ files = [
   "src/Quivers.jl",
   "src/QuiverTools.jl",
   "src/RepresentationTheory.jl",
+  "src/SemiInvariants.jl",
   "src/Stability.jl",
   "src/Teleman.jl",
   "src/Types.jl",
@@ -18,6 +19,7 @@ files = [
   "docs/docs.jl",
   "benchmark/benchmarks.jl",
   "test/runtests.jl",
+  "test/semi_invariants.jl",
   ".JuliaFormatter.jl",
 ]
 
