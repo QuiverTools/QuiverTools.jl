@@ -1,4 +1,7 @@
 # Schur function coefficients used by polynomial semi-invariants.
+# A partition is stored without trailing zeroes; () is the empty partition.
+# All products below take place in the Schur basis for GL(rank), so terms with
+# more than rank parts are discarded.
 
 const SIPartition = Tuple{Vararg{Int}}
 
@@ -12,6 +15,8 @@ function _si_trim(parts::Vector{Int})
   return Tuple(parts)
 end
 
+# Reuse partitions and LR coefficients while evaluating one weight space.
+# Keeping one context per rank also makes the rank bound implicit in cache keys.
 mutable struct _SchurContext
   rank::Int
   partitions::Dict{Int,Vector{SIPartition}}
@@ -30,6 +35,8 @@ function _si_partitions(context::_SchurContext, size::Int)
   end
 end
 
+# Pieri: s_inner * s_(k) contains s_outer exactly when outer/inner is a
+# horizontal strip. The inequalities also require inner to fit inside outer.
 function _si_horizontal_strip(outer::SIPartition, inner::SIPartition)
   return all(
     _si_part(outer, i) >= _si_part(inner, i) >= _si_part(outer, i + 1)
@@ -37,7 +44,10 @@ function _si_horizontal_strip(outer::SIPartition, inner::SIPartition)
   )
 end
 
-# Read the skew tableau right to left in each row, starting at the top.
+# Count LR tableaux of shape nu/lambda and content mu. Cells are visited in
+# reading-word order: right to left within each row, from top to bottom.
+# `used` enforces the content and ballot-prefix condition; `right` and `above`
+# enforce weak increase along rows and strict increase down columns.
 function _si_count_tableaux(lambda::SIPartition, mu::SIPartition, nu::SIPartition)
   cells = [
     (row, col) for row in 1:length(nu)
@@ -73,6 +83,7 @@ function _si_lr_coefficient(
   context::_SchurContext, lambda::SIPartition, mu::SIPartition, nu::SIPartition
 )
   return get!(context.lr, (lambda, mu, nu)) do
+    # Degree, rank, and containment are necessary before any tableau search.
     _si_size(lambda) + _si_size(mu) == _si_size(nu) || return big(0)
     length(nu) <= context.rank || return big(0)
     all(_si_part(nu, i) >= _si_part(lambda, i) for i in 1:context.rank) ||
@@ -81,6 +92,7 @@ function _si_lr_coefficient(
     isempty(lambda) && return mu == nu ? big(1) : big(0)
     length(mu) == 1 && return _si_horizontal_strip(nu, lambda) ? big(1) : big(0)
     length(lambda) == 1 && return _si_horizontal_strip(nu, mu) ? big(1) : big(0)
+    # A full-height rectangle is det^width and simply shifts every part.
     for (rectangle, other) in ((lambda, mu), (mu, lambda))
       if length(rectangle) == context.rank && all(==(rectangle[1]), rectangle)
         return if all(
@@ -97,6 +109,8 @@ function _si_lr_coefficient(
   end
 end
 
+# Enumerate partitions in a height-by-width rectangle. The same mutable
+# `part` is reused at every leaf, so a caller retaining it must copy it.
 function _si_each_rectangle_partition(f, height::Int, width::Int)
   part = zeros(Int, height)
   function visit(row::Int, upper::Int)
@@ -112,8 +126,9 @@ function _si_each_rectangle_partition(f, height::Int, width::Int)
   visit(1, width)
 end
 
-# s_(w^h)^2 is multiplicity-free: the terms are (w+p, w-reverse(p))
-# for partitions p inside the h-by-w rectangle.
+# The square of s_(w^h) is multiplicity-free. For each p inside the h-by-w
+# rectangle, concatenate (w+p_1,...,w+p_h) with
+# (w-p_h,...,w-p_1). This identity avoids a general LR expansion.
 function _si_rectangle_square(
   first::SIPartition, second::SIPartition, rank::Int
 )
@@ -133,6 +148,8 @@ function _si_rectangle_square(
   return product
 end
 
+# Expand a product in the Schur basis. Start with any equal rectangular pair
+# if present, then multiply the other factors using LR coefficients.
 function _si_schur_product(context::_SchurContext, factors)
   product = Dict{SIPartition,BigInt}(() => big(1))
   paired = nothing
@@ -169,12 +186,17 @@ function _si_schur_coefficient(context::_SchurContext, factors, target::SIPartit
   return get(_si_schur_product(context, factors), target, big(0))
 end
 
+# Complement a partition inside (width^rank), with a half-turn. Thus the
+# coefficient of s_(width^rank) in s_part * s_other is 1 precisely when
+# `other == _si_complement(part, width, rank)`.
 function _si_complement(part::SIPartition, width::Int, rank::Int)
   length(part) <= rank && _si_part(part, 1) <= width || return nothing
   return _si_trim([width - _si_part(part, rank + 1 - i) for i in 1:rank])
 end
 
-# The coefficient of s_(width^rank) in a product of Schur functions.
+# Extract the coefficient of s_(width^rank) without expanding the full product.
+# With three factors, complement the last one and compute one LR coefficient.
+# For longer products, pair complementary terms from two partial products.
 function _si_rectangular_coefficient(context::_SchurContext, factors, width::Int)
   width < 0 && return big(0)
   target = width == 0 ? () : Tuple(fill(width, context.rank))

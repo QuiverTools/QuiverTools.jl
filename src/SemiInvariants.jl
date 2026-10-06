@@ -1,5 +1,8 @@
-# Cauchy decomposition assigns a partition to each arrow. At a vertex, the
-# Schur products of outgoing and incoming partitions must differ by det^weight.
+# The coordinate ring has one Sym(V_source ⊗ V_target^*) factor per arrow.
+# Cauchy decomposition assigns the same partition to both ends of an arrow.
+# At each vertex, the tensor product of the outgoing Schur factors and the
+# incoming dual Schur factors must contain det^weight. For each assignment of
+# arrow partitions, multiply these local multiplicities, then sum the results.
 
 function _si_topological_order(Q::Quiver)
   n = n_vertices(Q)
@@ -21,6 +24,10 @@ function _si_topological_order(Q::Quiver)
   return order
 end
 
+# If the outgoing and incoming products have Schur coefficients a_lambda and
+# b_mu, pair terms for which lambda_i = mu_i + weight at every i <= rank.
+# The local multiplicity is the sum of the corresponding a_lambda*b_mu.
+# The degree equality below rules out most assignments before expansion.
 function _si_vertex_coefficient(
   context::_SchurContext, outgoing, incoming, weight::Int
 )
@@ -28,6 +35,7 @@ function _si_vertex_coefficient(
   rank == 0 && return big(1)
   sum(_si_size, outgoing; init=0) - sum(_si_size, incoming; init=0) ==
   weight * rank || return big(0)
+  # In rank one, partitions are rows and the degree equality is sufficient.
   rank == 1 && return big(1)
   isempty(incoming) && return _si_rectangular_coefficient(context, outgoing, weight)
   isempty(outgoing) && return _si_rectangular_coefficient(context, incoming, -weight)
@@ -55,6 +63,9 @@ function _si_vertex_coefficient(
   return result
 end
 
+# State for one topological traversal. Each edge receives one partition when
+# its source is visited, so all incoming partitions are assigned by the time
+# the target is reached. `total` sums products of local multiplicities.
 mutable struct _SIProblem
   dimensions::Vector{Int}
   weight::Vector{Int}
@@ -70,6 +81,7 @@ end
 
 function _SIProblem(Q::Quiver, dimensions::Vector{Int}, weight::Vector{Int})
   order = _si_topological_order(Q)
+  # An arrow incident to a zero-dimensional space contributes only ().
   edges = [(i, j) for (i, j) in arrows(Q) if dimensions[i] > 0 && dimensions[j] > 0]
   outgoing = [Int[] for _ in dimensions]
   incoming = [Int[] for _ in dimensions]
@@ -96,6 +108,10 @@ function _si_local_coefficient(problem::_SIProblem, vertex::Int)
   end
 end
 
+# At vertex v, every nonzero local coefficient satisfies
+# sum |outgoing partitions| = weight[v]*dimensions[v] + sum |incoming partitions|.
+# Enumerate only outgoing assignments with that total size; each arrow
+# partition has at most min(dimensions[source], dimensions[target]) parts.
 function _si_assign_outgoing!(
   problem::_SIProblem, position::Int, edge_position::Int,
   remaining::Int, coefficient::BigInt,
@@ -126,8 +142,10 @@ function _si_assign_outgoing!(
   return nothing
 end
 
-# A determinant at a source fixes one outgoing partition, or makes two of
-# them complementary in a rectangle. These are general Schur identities.
+# At a source, the required Schur coefficient is rectangular. One outgoing
+# factor must equal that rectangle; with two factors, each choice of the first
+# partition fixes the second as its rectangle complement. Both have local
+# multiplicity one, so no generic vertex calculation is needed.
 function _si_source!(problem::_SIProblem, position::Int, coefficient::BigInt)
   vertex = problem.order[position]
   isempty(problem.incoming[vertex]) && problem.dimensions[vertex] > 0 &&
@@ -159,6 +177,8 @@ function _si_source!(problem::_SIProblem, position::Int, coefficient::BigInt)
   return false
 end
 
+# `coefficient` is the product of local multiplicities at visited vertices.
+# A complete arrow assignment contributes that product exactly once.
 function _si_visit!(problem::_SIProblem, position::Int, coefficient::BigInt)
   if position > length(problem.order)
     problem.total += coefficient
@@ -180,6 +200,9 @@ function _si_generic_dimension(Q::Quiver, dimensions::Vector{Int}, weight::Vecto
   return problem.total
 end
 
+# Write E for the Euler matrix. Reciprocity replaces (d, E^T*alpha) by
+# (alpha, -E*d). Acyclicity lets us solve E^T*alpha = weight in topological
+# order; a negative component of alpha makes the reciprocal space zero.
 function _si_reciprocal_problem(Q::Quiver, dimensions::Vector{Int}, weight::Vector{Int})
   alpha = zeros(Int, length(dimensions))
   for vertex in _si_topological_order(Q)
