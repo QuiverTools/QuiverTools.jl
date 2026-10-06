@@ -1,4 +1,6 @@
-# The coordinate ring has one Sym(V_source ⊗ V_target^*) factor per arrow.
+# Derksen--Schofield--Weyman, Proposition 8 (MR2351613), identifies the
+# semi-invariant dimension with a Schur multiplicity in this coordinate ring.
+# The ring has one Sym(V_source ⊗ V_target^*) factor per arrow.
 # Cauchy decomposition assigns the same partition to both ends of an arrow.
 # At each vertex, the tensor product of the outgoing Schur factors and the
 # incoming dual Schur factors must contain det^weight. For each assignment of
@@ -225,11 +227,13 @@ The quiver must be acyclic. A coordinate on an arrow ``i\\to j`` has
 determinant weight positive at ``i`` and negative at ``j``.
 Weights at zero-dimensional vertices are ignored.
 
-The default `method=:lr` uses the Cauchy and Littlewood--Richardson rules.
+The default `method=:lr` computes the Schur multiplicities of
+Derksen--Schofield--Weyman, Proposition 8 (MR2351613), using Cauchy's formula
+and the Littlewood--Richardson rule.
 Rectangular Schur squares, rectangle complements, and Pieri's rule are applied
 whenever their partition shapes occur, independently of the quiver.
 Set `method=:reciprocity` to use Derksen--Weyman reciprocity
-(MR1758751, Corollary 1). Reciprocity can be slower when its new dimension
+(MR1758750, Corollary 1). Reciprocity can be slower when its new dimension
 vector is larger. This function concerns polynomial semi-invariants;
 identifying them with sections of a line bundle on a quiver moduli space
 requires the corresponding ample-stability hypothesis.
