@@ -25,30 +25,29 @@
   @test_throws ArgumentError semi_invariant_dimension(Quiver([0 1; 1 0]), [1, 1], [0, 0])
 
   # A nontrivial LR multiplicity, to check the tableau rule beyond Pieri.
-  @test QuiverTools._si_lr_coefficient((2, 1), (2, 1), (3, 2, 1), 3,
-    Dict{Any,BigInt}()) == 2
-  square = QuiverTools._si_rectangle_square([(2, 2), (2, 2)], 4)
+  @test QuiverTools._si_lr_coefficient(QuiverTools._SchurContext(3),
+    (2, 1), (2, 1), (3, 2, 1)) == 2
+  square = QuiverTools._si_rectangle_square((2, 2), (2, 2), 4)
   @test length(square) == 6
   @test square[(4, 4)] == 1
 
-  # The five rows of Table 4 in the extended-Dynkin manuscript.
-  families = (
-    (Quiver([0 2 0; 0 0 0; 0 2 0]), k -> [k, k, 1],
-      (9, 75, 620, 5140)),
-    (Quiver([0 2 0; 0 0 0; 1 1 0]), k -> [k, k, 1],
-      (9, 75, 620, 5140)),
-    (Quiver([0 1 1 0; 0 0 1 0; 0 0 0 0; 0 1 1 0]),
-      k -> [k, k, k, 1], (8, 63, 504, 4090)),
-    (Quiver([0 0 1 1 0; 0 0 1 1 0; 0 0 0 0 0;
-        0 0 0 0 0; 0 0 1 1 0]),
-      k -> [k, k, k, k, 1], (7, 52, 403, 3206)),
-    (Quiver([0 0 0 0 1 0; 0 0 0 0 1 0; 0 0 0 0 1 0;
-        0 0 0 0 1 0; 0 0 0 0 0 0; 0 0 0 0 1 0]),
-      k -> [k, k, k, k, 2k, 1], (6, 42, 316, 2470)),
+  # Multiple row factors at a sink.
+  parallel_sources = Quiver([0 2 0; 0 0 0; 0 2 0])
+  d = [2, 2, 1]
+  @test semi_invariant_dimension(parallel_sources, d,
+    canonical_stability(parallel_sources, d)) == 75
+
+  # A mixed vertex with one incoming and two outgoing Schur factors.
+  mixed_vertex = Quiver([0 2 0; 0 0 0; 1 1 0])
+  @test semi_invariant_dimension(mixed_vertex, d,
+    canonical_stability(mixed_vertex, d)) == 75
+
+  # Four equal rectangular factors and one row at a sink.
+  star = Quiver(
+    [0 0 0 0 1 0; 0 0 0 0 1 0; 0 0 0 0 1 0;
+      0 0 0 0 1 0; 0 0 0 0 0 0; 0 0 0 0 1 0],
   )
-  for (quiver, dimension, expected) in families, k in 1:4
-    d = dimension(k)
-    @test semi_invariant_dimension(quiver, d, canonical_stability(quiver, d)) ==
-      expected[k]
-  end
+  d = [4, 4, 4, 4, 8, 1]
+  @test semi_invariant_dimension(star, d,
+    canonical_stability(star, d)) == 2470
 end

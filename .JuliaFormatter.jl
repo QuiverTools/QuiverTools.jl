@@ -10,6 +10,7 @@ files = [
   "src/Quivers.jl",
   "src/QuiverTools.jl",
   "src/RepresentationTheory.jl",
+  "src/SchurCoefficients.jl",
   "src/SemiInvariants.jl",
   "src/Stability.jl",
   "src/Teleman.jl",
