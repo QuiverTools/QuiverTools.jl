@@ -8,6 +8,8 @@ using Test, QuiverTools, Documenter
 
 @info "Almost all the tests are in the documentation."
 
+include("semi_invariants.jl")
+
 # `import Oscar` (not `using`) loads Oscar so the walls-and-chambers / VGIT extension
 # activates and its doctests resolve `Oscar.*`, without pulling Oscar's exports into
 # scope (which would clash with QuiverTools names such as `index`, `todd_class`, ...).
