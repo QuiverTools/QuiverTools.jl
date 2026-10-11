@@ -518,6 +518,7 @@ function __wedge_step(A::Matrix{Int}, d::Vector{Int})
     outs, ins = findall(>(0), A[v, :]), findall(>(0), A[:, v])
     out = length(outs) == 1 && A[v, outs[1]] == 1 && d[outs[1]] == 1
     into = length(ins) == 1 && A[ins[1], v] == 1 && d[ins[1]] == 1
+    # we don't actually care how many quasiprimitive cycles there are, knowing that there are at most d[v] suffices - hence the cap
     ((out || into) && __n_quasiprimitive_cycles(A, d, v, d[v]) <= d[v]) || continue
     B = copy(A)
     out ? (B[:, outs[1]] .+= A[:, v]) : (B[ins[1], :] .+= A[v, :])
