@@ -637,7 +637,7 @@ the classification of
 the setting is cofree if and only if all its strongly connected components are, which
 is decided by wedging away vertices (their reduction step ``W``), splitting into prime
 components (the summands of the decomposition as an iterated connected sum at vertices
-of dimension `1`), and comparing against the list of [Theorem 1, loc. cit.].
+of dimension `1`), and comparing against the list of [Theorem 1, op. cit.].
 
 Cofreeness is stronger than coregularity: it moreover makes the quotient map from the
 representation variety to the affine quotient flat.
