@@ -487,11 +487,13 @@ end
 # and 9. Paths and cycles are quasiprimitive throughout: they use every vertex w as a
 # source of at most d[w] arrows.
 
-# The number of quasiprimitive cycles through v, counted with arrow multiplicities and
-# capped to bound the enumeration; only used when every such cycle passes through v
-# exactly once, so that counting closed walks anchored at v is correct.
+# This function enumerates quasiprimitive cycles through v, until it finds at most `cap + 1` of them.
+# If the vertex v has an arrov v -> v, the only paths this method counts contain one arrow, i.e., "v -> v -> v" is not *one* path.
 function __n_quasiprimitive_cycles(A::Matrix{Int}, d::Vector{Int}, v::Int, cap::Int)
   total, budget = Ref(0), copy(d)
+  # each step of the recursion "walks" along arrows and adds to total when it comes across v.
+  # When called starting from v, this counts then cycles through v.
+  # the extra variable `mult` carries the amount of arrows that brought the walk where it is.
   function walk(x::Int, mult::Int)
     (total[] > cap || budget[x] == 0) && return nothing
     budget[x] -= 1
