@@ -460,7 +460,19 @@ function is_luna_type(M::QuiverModuli, tau)
     return tau == Dict(M.d => [1])
   end
 
+  # A nonzero Luna type has at least one nonzero dimension vector of the correct length,
+  # and every dimension vector has a nonempty list of positive multiplicities.
   ks = collect(keys(tau))
+  isempty(ks) && return false
+  if !all(
+    e -> length(e) == n_vertices(M.Q) && all(>=(0), e) && any(>(0), e),
+    ks,
+  )
+    return false
+  end
+  if !all(e -> !isempty(tau[e]) && all(>(0), tau[e]), ks)
+    return false
+  end
   # each key `e` contributes `sum(tau[e])` copies of `e` (one per multiplicity in its list)
   if sum(sum(tau[e]) * e for e in ks) != M.d
     return false
@@ -469,10 +481,12 @@ function is_luna_type(M::QuiverModuli, tau)
     return false
   end
 
-  if !all(has_semistables(M.Q, e, M.theta, M.denom) for e in ks)
+  if !all(has_stables(M.Q, e, M.theta, M.denom) for e in ks)
     return false
   end
-  return true
+  # A rigid stable representation is unique up to isomorphism, so its dimension
+  # vector cannot encode several distinct stable summands in one Luna type.
+  return all(e -> length(tau[e]) == 1 || euler_form(M.Q, e, e) <= 0, ks)
 end
 
 """
@@ -513,6 +527,8 @@ julia> dimension_of_luna_stratum(M, Dict([0, 0] => [1]))
 ```
 """
 function dimension_of_luna_stratum(M::QuiverModuli, tau)
+  is_luna_type(M, tau) ||
+    throw(DomainError(tau, "not a Luna type for the given moduli problem"))
   # the formula below would give 1 for the zero dimension vector
   sum(M.d) == 0 && return 0
   return sum(length(tau[e]) * (1 - euler_form(M.Q, e, e)) for e in collect(keys(tau)))
@@ -530,11 +546,13 @@ Returns the local quiver and dimension vector for the given Luna type.
 
 # Output
 
-- a dictionary with the local quiver `Q` and dimension vector `d` for the given Luna type.
+- a named tuple `(Q, d, summands)` containing the local quiver, its dimension vector,
+  and the dimension vectors of the stable summands, one for each vertex of the local
+  quiver, ordered compatibly with `d`.
 """
 function local_quiver_setting(M::QuiverModuli, tau)
   if !is_luna_type(M, tau)
-    throw(DomainError("Not a Luna type"))
+    throw(DomainError(tau, "not a Luna type for the given moduli problem"))
   end
 
   # one local vertex per distinct stable summand, i.e. per entry of each multiplicity list;
@@ -549,7 +567,14 @@ function local_quiver_setting(M::QuiverModuli, tau)
   Qloc = Quiver(A)
   dloc = [m for e in keys(tau) for m in tau[e]]
 
-  return Dict("Q" => Qloc, "d" => dloc)
+  return (Q=Qloc, d=dloc, summands=summands)
+end
+
+# whether the local quiver setting of the Luna type is coregular, i.e., whether the
+# moduli space is smooth along the corresponding stratum
+function __is_smooth_stratum(M::QuiverModuli, tau)
+  setting = local_quiver_setting(M, tau)
+  return is_coregular(setting.Q, setting.d)
 end
 
 """
@@ -726,7 +751,7 @@ end
 function _dimension(M::QuiverModuliSpace)
   # the zero representation is semistable, but not stable, for d = 0
   !is_connected(M.Q) &&
-    raise(ArgumentError("Q is not connected, M has disjoint connected components."))
+    throw(ArgumentError("Q is not connected, M has disjoint connected components."))
 
   if all(M.d .== 0)
     if M.condition == "semistable"
@@ -746,10 +771,10 @@ function _dimension(M::QuiverModuliSpace)
   if M.condition == "stable"
     return -Inf
   elseif M.condition == "semistable"
-    if has_semistables(M.Q, M.d, M.theta)
+    if has_semistables(M.Q, M.d, M.theta, M.denom)
       return maximum(
         dimension_of_luna_stratum(M, tau) for
-        tau in all_luna_types(M.Q, M.d, M.theta)
+        tau in all_luna_types(M.Q, M.d, M.theta, M.denom)
       )
     end
   end
@@ -761,6 +786,15 @@ end
     is_smooth(M::QuiverModuliSpace)
 
 Checks if the moduli space is smooth.
+
+In the presence of properly semistable representations, the moduli space is
+étale-locally isomorphic, around a polystable representation, to the affine quotient of
+the corresponding local quiver setting near the zero representation, by
+[[MR1972892](https://mathscinet.ams.org/mathscinet/relay-station?mr=1972892)].
+Following the strategy of
+[[Theorem 4.2, MR1929191](https://mathscinet.ams.org/mathscinet/relay-station?mr=1929191)],
+the moduli space is thus smooth if and only if the local quiver setting of every Luna
+type is coregular, which is checked using [`is_coregular`](@ref).
 
 # Input
 
@@ -779,6 +813,26 @@ julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 julia> is_smooth(M)
 true
 ```
+
+For the 3-Kronecker quiver and `d = (3, 3)` the moduli space is singular, whereas for
+`d = (2, 2)` and `d = (2, 4)` one gets ``\\mathbb{P}^5``, despite the presence of
+properly semistable representations:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [3, 3]);
+
+julia> is_smooth(M)
+false
+
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
+
+julia> is_smooth(M)
+true
+
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 4]);
+
+julia> is_smooth(M)
+true
+```
 """
 function is_smooth(M::QuiverModuliSpace)
   if M.condition == "stable"
@@ -787,7 +841,60 @@ function is_smooth(M::QuiverModuliSpace)
     return true
   end
 
-  throw(NotImplementedError("Not implemented for properly semistable cases."))
+  # smoothness at the polystable points of a Luna stratum is equivalent to
+  # coregularity of its local quiver setting, by combining the étale-local description
+  # of [MR1972892] with [Theorem 2.1, MR1929191]; this is the globalization of
+  # [Theorem 4.2, MR1929191] to arbitrary stability parameters
+  return all(tau -> __is_smooth_stratum(M, tau), all_luna_types(M))
+end
+
+"""
+    codimension_singular_locus(M::QuiverModuliSpace)
+
+Computes the codimension of the singular locus of the moduli space.
+
+The singular locus is a union of Luna strata: all points of the stratum of a Luna type
+are singular if the corresponding local quiver setting is not coregular, and smooth
+otherwise, as in [`is_smooth`](@ref). Unlike for moduli of vector bundles on a curve,
+the singular locus can be strictly smaller than the locus of properly semistable
+representations, whose codimension is bounded by that of the singular locus.
+
+# Input
+
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+
+# Output
+
+- the codimension of the singular locus, or `Inf` if the moduli space is smooth.
+
+# Examples
+
+The Segre cubic threefold, with its ten singular points:
+```jldoctest
+julia> M = QuiverModuliSpace(subspace_quiver(6), [1, 1, 1, 1, 1, 1, 2]);
+
+julia> codimension_singular_locus(M)
+3
+```
+
+For the 3-Kronecker quiver and `d = (2, 2)` the properly semistable locus is non-empty
+yet the moduli space is smooth, whilst for `d = (3, 3)` there are singularities:
+```jldoctest
+julia> codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [2, 2]))
+Inf
+
+julia> codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [3, 3]))
+3
+```
+"""
+function codimension_singular_locus(M::QuiverModuliSpace)
+  M.condition == "stable" && return Inf
+
+  # the stratum of a Luna type consists of singular points if and only if its local
+  # quiver setting is not coregular; the stable stratum is always smooth
+  singular = filter(tau -> !__is_smooth_stratum(M, tau), all_luna_types(M))
+  isempty(singular) && return Inf
+  return dimension(M) - maximum(dimension_of_luna_stratum(M, tau) for tau in singular)
 end
 
 """
@@ -795,7 +902,7 @@ end
 
 Checks if the moduli stack is smooth.
 
-This is always trus, as the quotient stack of a smooth variety is smooth.
+This is always true, as the quotient stack of a smooth variety is smooth.
 
 # Input
 

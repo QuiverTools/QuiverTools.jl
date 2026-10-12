@@ -40,7 +40,7 @@ export Quiver, HNType, LunaType, QuiverModuli, QuiverModuliSpace, QuiverModuliSt
 # Quivers
 export n_vertices,
   n_arrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source,
-  underlying_graph, first_hochschild_cohomology
+  strongly_connected_components, underlying_graph, first_hochschild_cohomology
 
 # Constructors
 export kronecker_quiver, loop_quiver, jordan_quiver, subspace_quiver, star_quiver,
@@ -60,11 +60,13 @@ export is_general_subdimension_vector, all_general_subdimension_vectors
 # Representation theory
 export euler_form, euler_matrix, is_root, is_schur_root, is_real_root, is_imaginary_root,
   is_isotropic_root,
-  general_ext, general_hom, canonical_decomposition, in_fundamental_domain
+  general_ext, general_hom, canonical_decomposition, in_fundamental_domain,
+  bocklandt_reduction, is_coregular, is_cofree
 
 # Moduli
 export all_luna_types, is_luna_type, dimension_of_luna_stratum
-export is_nonempty, codimension_unstable_locus, dimension, is_smooth,
+export is_nonempty, codimension_unstable_locus, codimension_singular_locus, dimension,
+  is_smooth,
   is_projective, is_strongly_amply_stable, semistable_equals_stable, semisimple_moduli_space
 
 # Hodge
@@ -133,9 +135,9 @@ end
 
 include("Types.jl")
 include("Quivers.jl")
+include("Misc.jl")
 include("Stability.jl")
 include("RepresentationTheory.jl")
-include("Misc.jl")
 include("Constructors.jl")
 include("Moduli.jl")
 include("Hodge.jl")
