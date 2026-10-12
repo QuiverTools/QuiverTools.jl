@@ -44,7 +44,7 @@ function __exact_dot(x::AbstractVector{Int}, y::AbstractVector)
 end
 
 function __in_rational_cone(data, theta::AbstractVector)
-  return all(normal -> iszero(__exact_dot(normal, theta)), data.equations) &&
+  return all(normal -> __exact_dot(normal, theta) == 0, data.equations) &&
          all(normal -> __exact_dot(normal, theta) <= 0, data.inequalities)
 end
 
