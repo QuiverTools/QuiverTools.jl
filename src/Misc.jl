@@ -17,7 +17,6 @@ function __check_sincere_dimension_vector(Q::Quiver, d::AbstractVector{Int})
   return nothing
 end
 
-
 """
     identity_matrix(n::Int)
 
