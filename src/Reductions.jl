@@ -20,10 +20,10 @@
 # QuiverTools' `slope`/`has_stables` declare subdimension vectors of strictly larger
 # slope destabilizing, which for θ·d = 0 means θ·dim(S) > 0. Hence
 # θ_QuiverTools = −θ_paper. Every weight
-# formula below is *linear* in θ, so negation commutes with it and the formulas
-# are written directly in QuiverTools' sign. The one visible consequence is in
+# formula below is *linear* in θ, so multiplying by -1 commutes with it and the formulas
+# are written directly in QuiverTools' convention. The one visible consequence is in
 # `tau_reduction`: the paper selects its two cases by sign(θ_paper(u)), so under
-# negation cases (a)⇄(b) swap. The code keys on sign(θ(u)) in QuiverTools' sign
+# negation cases (a) and (b) swap. The code keys on sign(θ(u)) in QuiverTools' sign
 # and is annotated with the matching paper case.
 ########################################################################################
 
@@ -81,7 +81,7 @@ otherwise.
 # Examples
 
 ```jldoctest
-julia> Q = Quiver("1-2,2---3");  # 1 → 2, and 2 ⇉⇉⇉ 3
+julia> Q = Quiver("1-2,2---3");  # 1 → 2, and 2 ->->-> 3
 
 julia> is_large(Q, [1, 3, 1], 2)
 true
