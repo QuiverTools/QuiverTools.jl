@@ -168,8 +168,8 @@ Returns the pair `(Q', d')`, the triple `(Q', d', θ')`, or a new
 `QuiverModuliSpace`, according to the method called.
 By [Theorem 2.5, [Domokos](https://doi.org/10.4171/JCA/97)] the moduli space is
 unchanged up to isomorphism. For the weight-aware methods, `d` must be
-`theta`-semistable and `theta` must satisfy ``\\theta \\cdot d = 0``, i.e. King's
-normalization. The transformed weight is normalized as well. A reduced moduli object
+`theta`-semistable and `theta` must satisfy ``\\theta \\cdot d = 0``.
+The transformed weight is normalized as well. A reduced moduli object
 uses the standard denominator `sum`; a denominator closure on the original vertex set
 is not reused after that set changes.
 
@@ -243,7 +243,7 @@ function tau_reduction(
     theta_full = collect(theta)
   end
   theta_new = theta_full[keep]
-  @assert __checked_dot(theta_new, dnew) == 0 "tau reduction must preserve King normalization"
+  @assert __checked_dot(theta_new, dnew) == 0 "tau reduction must preserve `theta_new * d_new = 0`"
   return Qnew, dnew, theta_new
 end
 
@@ -274,8 +274,8 @@ of arrows ``u \\to v``. (These formulas are sign-convention independent.)
 ``\\sigma_u`` is an involution. Returns `(Q', d')`, `(Q', d', θ')`, or a new
 `QuiverModuliSpace`, according to the method called.
 For the weight-aware methods, `d` must be `theta`-semistable and the stability
-parameter must satisfy ``\\theta \\cdot d = 0``, i.e. King's normalization. The
-transformed weight is normalized as well, and a reduced moduli object uses the
+parameter must satisfy ``\\theta \\cdot d = 0``.
+The transformed weight is normalized as well, and a reduced moduli object uses the
 standard denominator `sum`.
 
 All methods require a sincere dimension vector, as in the cited results; an
@@ -336,7 +336,7 @@ function sigma_reduction(
     ]                                # sink:   θ(v) + (#v→u)·θ(u)
   end
   theta_new[u] = Base.Checked.checked_neg(tu)    # (σθ)(u) = -θ(u)
-  @assert __checked_dot(theta_new, dnew) == 0 "sigma reduction must preserve King normalization"
+  @assert __checked_dot(theta_new, dnew) == 0 "sigma reduction must preserve `theta_new * d_new = 0`"
   return Qnew, dnew, theta_new
 end
 
@@ -366,7 +366,7 @@ also permits ``\\sigma``-steps that temporarily *raise* ``|d|``; see
 
 Returns the reduced pair `(Q', d')` or triple `(Q', d', θ')`, according to the
 method called. The dimension vector must be sincere. The weight-aware method also
-requires `d` to be `theta`-semistable and `theta` to be King-normalized; every
+requires `d` to be `theta`-semistable and `theta` to satisfy `theta' * d == 0`; every
 intermediate weight remains normalized.
 
 # Examples
