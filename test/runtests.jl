@@ -1,5 +1,4 @@
 using Test, QuiverTools, Documenter
-import GraphViz
 # To ensure that the version of the tests being run
 # is the latest committed one,
 # the local installation of QuiverTools should be the one developed at path="../."
@@ -12,7 +11,7 @@ import GraphViz
 # `import Oscar` (not `using`) loads Oscar so the walls-and-chambers / VGIT extension
 # activates and its doctests resolve `Oscar.*`, without pulling Oscar's exports into
 # scope (which would clash with QuiverTools names such as `index`, `todd_class`, ...).
-DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar))
+DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar, GraphViz))
 doctest(QuiverTools; manual=false, testset="Doctests")
 
 @testset "strict sst" begin
@@ -441,4 +440,6 @@ end;
   d4 = [3, 2, 6, 1]
   @test_throws ArgumentError is_taus_minimal(Q4, d4; max_states=1)
   @test is_taus_minimal(Q4, d4; max_states=100) == false
-end;
+end
+
+end
