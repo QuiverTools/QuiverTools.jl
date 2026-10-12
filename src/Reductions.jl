@@ -27,22 +27,6 @@
 # and is annotated with the matching paper case.
 ########################################################################################
 
-function __check_sincere_dimension_vector(Q::Quiver, d::AbstractVector{Int})
-  __check_dimension_vector(Q, d)
-  @assert all(>(0), d) "dimension vector must be sincere"
-  return nothing
-end
-
-function __checked_dot(a::AbstractVector{Int}, b::AbstractVector{Int})
-  length(a) == length(b) || throw(DimensionMismatch("vectors must have equal lengths"))
-  return foldl(eachindex(a); init=0) do total, i
-    Base.Checked.checked_add(total, Base.Checked.checked_mul(a[i], b[i]))
-  end
-end
-
-__checked_sum(a::AbstractVector{Int}) =
-  foldl(Base.Checked.checked_add, a; init=0)
-
 function __check_domokos_weight(
   Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}
 )
