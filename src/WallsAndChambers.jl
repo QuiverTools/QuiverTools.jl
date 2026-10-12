@@ -9,6 +9,7 @@ function __semistable_cone_data(Q::Quiver, d::AbstractVector{Int})
   return __semistable_cone_data(Q, Vector{Int}(d))
 end
 
+# equalities and inequalities that define sst(d), as in [Theorem 1, arXiv:2506.20568]
 @memoize Dict function __semistable_cone_data(Q::Quiver, d::Vector{Int})
   inequalities = filter(
     e -> any(!=(0), e) && e != d,
@@ -26,6 +27,7 @@ function __vgit_wall_data(
   return __vgit_wall_data(Q, Vector{Int}(d), Vector{Int}(e))
 end
 
+# Equalities and inequalities that define the VGIT wall W_e, as in [Theorem 1, arXiv:2506.20568]
 @memoize Dict function __vgit_wall_data(Q::Quiver, d::Vector{Int}, e::Vector{Int})
   data = __semistable_cone_data.(Ref(Q), (e, d - e, d))
   equations = unique!(vcat((datum.equations for datum in data)...))
@@ -80,8 +82,11 @@ function __segment_cone_intersection(data, theta1::AbstractVector, theta2::Abstr
     initial = __exact_dot(normal, theta1)
     delta = __exact_dot(normal, theta2) - initial
     if iszero(delta)
-      iszero(initial) || return nothing
+      iszero(initial) || return nothing # if Δ = 0, the segment either lies in the hyperplane or does not touch it
     else
+      # else, either crossing is the unique value of t between 0 and 1
+      # for which the segment theta1 + t*(theta2 - theta1) crosses the hyperplane,
+      # or there is no crossing.
       crossing = -initial / delta
       lower = max(lower, crossing)
       upper = min(upper, crossing)
@@ -93,8 +98,9 @@ function __segment_cone_intersection(data, theta1::AbstractVector, theta2::Abstr
     initial = __exact_dot(normal, theta1)
     delta = __exact_dot(normal, theta2) - initial
     if iszero(delta)
-      initial <= 0 || return nothing
+      initial <= 0 || return nothing # same: if Δ = 0 the segment is on one side of the hyperplane
     elseif delta > 0
+      # if not, it crosses it and the bound tightens depending on the sign of Δ
       upper = min(upper, -initial / delta)
     else
       lower = max(lower, -initial / delta)
@@ -105,7 +111,13 @@ function __segment_cone_intersection(data, theta1::AbstractVector, theta2::Abstr
   return (lower, upper)
 end
 
-"""Return whether `theta` lies in a VGIT chamber rather than on a wall."""
+"""
+    __is_vgit_chamber_parameter(Q, d, theta)
+
+Return whether `theta` lies in a VGIT chamber rather than on a wall.
+
+In other words, return whether `theta` is a *VGIT-generic* stability parameter.
+"""
 function __is_vgit_chamber_parameter(
   Q::Quiver,
   d::AbstractVector{Int},
@@ -117,7 +129,10 @@ function __is_vgit_chamber_parameter(
   end
 end
 
-# The target may meet a wall at the endpoint of the segment, but the segment must not
+# This function takes theta and thetabar and, if theta is generic,
+# returns whether thetabar is in a wall adjacent to the chamber of theta.
+# Returns False otherwise.
+# thetabar may meet a wall W_e at the endpoint of the segment, but the segment must not
 # meet any wall earlier. Using complete cone data also handles smaller walls when the
 # whole segment lies in their defining hyperplane.
 function __in_closure_of_vgit_chamber(
