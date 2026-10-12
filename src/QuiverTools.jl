@@ -160,6 +160,7 @@ PrecompileTools.@compile_workload begin
   hodge_diamond(M)
   chow_ring(M)
   chern_numbers(M; unsafe=true)
+  empty_all_caches!()
 end
 
 ######################
