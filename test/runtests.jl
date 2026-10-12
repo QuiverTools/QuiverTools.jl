@@ -11,7 +11,9 @@ using Test, QuiverTools, Documenter
 # `import Oscar` (not `using`) loads Oscar so the walls-and-chambers / VGIT extension
 # activates and its doctests resolve `Oscar.*`, without pulling Oscar's exports into
 # scope (which would clash with QuiverTools names such as `index`, `todd_class`, ...).
-DocMeta.setdocmeta!(QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar, GraphViz))
+DocMeta.setdocmeta!(
+  QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar, GraphViz)
+)
 doctest(QuiverTools; manual=false, testset="Doctests")
 
 @testset "strict sst" begin
@@ -239,207 +241,207 @@ end;
     @test isfile(path)
     @test occursin("<svg", read(path, String))
   end
-@testset "Bocklandt reduction" begin
-  # The public quiver-setting routines enforce the dimension-vector contract.
-  for f in (bocklandt_reduction, is_coregular, is_cofree)
-    @test_throws ArgumentError f(jordan_quiver(1), [1, 1])
-    @test_throws ArgumentError f(jordan_quiver(1), [-1])
+  @testset "Bocklandt reduction" begin
+    # The public quiver-setting routines enforce the dimension-vector contract.
+    for f in (bocklandt_reduction, is_coregular, is_cofree)
+      @test_throws ArgumentError f(jordan_quiver(1), [1, 1])
+      @test_throws ArgumentError f(jordan_quiver(1), [-1])
+    end
+
+    # The dimension API rejects disconnected quivers with the documented exception.
+    disconnected = disjoint_union(kronecker_quiver(1), kronecker_quiver(1))
+    @test_throws ArgumentError dimension(QuiverModuliSpace(disconnected, [1, 1, 1, 1]))
+
+    # invariants of pairs of 2x2 matrices form a polynomial ring, of 3x3 they do not,
+    # and neither do those of triples of 2x2 matrices; a single matrix always does
+    @test is_coregular(jordan_quiver(2), [2])
+    @test !is_coregular(jordan_quiver(2), [3])
+    @test !is_coregular(jordan_quiver(3), [2])
+    @test all(is_coregular(jordan_quiver(1), [n]) for n in 1:5)
+
+    # for acyclic quivers the quotient variety is a point
+    @test is_coregular(kronecker_quiver(3), [2, 3])
+    @test is_coregular(subspace_quiver(4), [1, 1, 1, 1, 2])
+
+    # settings I, II and IV of [Theorem 4.4, MR1929191] are coregular
+    @test is_coregular(Quiver("1-2, 2-1"), [4, 5])              # I
+    @test is_coregular(Quiver("1--2, 2--1"), [1, 2])            # II with k = 2 <= n = 2
+    @test !is_coregular(Quiver("1--2, 2--1"), [1, 1])           # II fails for k = 2 > n = 1
+    @test is_coregular(Quiver("1-2, 2-1, 2-3, 3-2"), [3, 2, 3]) # IV
+
+    # the reduction combines R_III, R_I and R_II to a lone vertex of dimension 1
+    setting = bocklandt_reduction(Quiver("1-2, 2-2, 2-1"), [1, 2])
+    @test propertynames(setting) == (:Q, :d)
+    @test n_vertices(setting.Q) == 1
+    @test n_arrows(setting.Q) == 0
+    @test setting.d == [1]
+
+    # a reduced setting is returned unchanged
+    setting = bocklandt_reduction(Quiver("1--2, 2--1"), [1, 1])
+    @test Matrix(setting.Q.adjacency) == [0 2; 2 0]
+    @test setting.d == [1, 1]
+
+    # vertices of dimension 0 and arrows between strongly connected components are dropped
+    @test bocklandt_reduction(kronecker_quiver(3), [2, 0]).d == [2]
+    @test is_coregular(Quiver("1-1, 1-2, 2-2"), [2, 2])
+    @test is_coregular(kronecker_quiver(3), [0, 0])
+
+    # smoothness of moduli spaces with properly semistable representations: for the
+    # 2-Kronecker quiver and d = (2, 2) one gets P^2, and for the 3-Kronecker quiver
+    # both d = (2, 2) and d = (2, 4) give P^5: the deepest local quiver setting is two
+    # loops on a vertex of dimension 2, the reduced coregular setting C1 of [MR1929191];
+    # for d = (3, 3) that setting has dimension 3 instead, so the space is singular
+    @test is_smooth(QuiverModuliSpace(kronecker_quiver(2), [2, 2]))
+    @test is_smooth(QuiverModuliSpace(kronecker_quiver(3), [2, 2]))
+    @test is_smooth(QuiverModuliSpace(kronecker_quiver(3), [2, 4]))
+    @test !is_smooth(QuiverModuliSpace(kronecker_quiver(3), [3, 3]))
+
+    # the 6-subspace quiver with d = (1^5, 2; 3) and stability parameters on a wall:
+    # for theta = (1^5, 2; -3) the moduli space is accidentally isomorphic to Gr(2, 4),
+    # hence smooth despite the eleven Luna strata, whereas for theta = (2^5, 1; -4)
+    # there are ten isolated singular points, one for each two-element subset of the
+    # five thin subspace vertices
+    S = subspace_quiver(6)
+    d = [1, 1, 1, 1, 1, 2, 3]
+    @test is_smooth(QuiverModuliSpace(S, d, [1, 1, 1, 1, 1, 2, -3]))
+    @test !is_smooth(QuiverModuliSpace(S, d, [2, 2, 2, 2, 2, 1, -4]))
+    # for d = (1^4, 2^2; 3) the analogous first wall crossing has smooth target too
+    @test is_smooth(QuiverModuliSpace(S, [1, 1, 1, 1, 2, 2, 3], [2, 2, 2, 2, 1, 1, -4]))
+
+    # the Segre cubic threefold, as the moduli space for the 6-subspace quiver with
+    # d = (1^6; 2) and canonical stability: it has ten nodes, one for each splitting
+    # of the six thin subspace vertices into complementary triples
+    @test !is_smooth(QuiverModuliSpace(S, [1, 1, 1, 1, 1, 1, 2]))
+
+    # codimension of the singular locus: the ten nodes of the Segre cubic; for the
+    # 3-Kronecker quiver and d = (2, 2) the properly semistable locus is non-empty
+    # while the singular locus is empty, and for d = (3, 3) the largest singular
+    # Luna stratum has codimension 3 in the 10-dimensional moduli space
+    @test codimension_singular_locus(QuiverModuliSpace(S, [1, 1, 1, 1, 1, 1, 2])) == 3
+    @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [2, 2])) == Inf
+    @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [3, 3])) == 3
   end
 
-  # The dimension API rejects disconnected quivers with the documented exception.
-  disconnected = disjoint_union(kronecker_quiver(1), kronecker_quiver(1))
-  @test_throws ArgumentError dimension(QuiverModuliSpace(disconnected, [1, 1, 1, 1]))
+  @testset "cofree quiver settings" begin
+    # cyclic quiver settings and matrix invariants: pairs of 2x2 matrices are cofree,
+    # pairs of 3x3 matrices and triples of 2x2 matrices are not; any number of loops on
+    # a vertex of dimension 1 is cofree
+    @test all(is_cofree(cyclic_quiver(n), fill(k, n)) for n in 1:3, k in 1:3)
+    @test is_cofree(cyclic_quiver(3), [1, 2, 3])
+    @test is_cofree(jordan_quiver(2), [2])
+    @test !is_cofree(jordan_quiver(2), [3])
+    @test !is_cofree(jordan_quiver(3), [2])
+    @test is_cofree(jordan_quiver(3), [1])
 
-  # invariants of pairs of 2x2 matrices form a polynomial ring, of 3x3 they do not,
-  # and neither do those of triples of 2x2 matrices; a single matrix always does
-  @test is_coregular(jordan_quiver(2), [2])
-  @test !is_coregular(jordan_quiver(2), [3])
-  @test !is_coregular(jordan_quiver(3), [2])
-  @test all(is_coregular(jordan_quiver(1), [n]) for n in 1:5)
+    # acyclic settings are trivially cofree, as the invariants are constants
+    @test is_cofree(kronecker_quiver(3), [2, 3])
+    @test is_cofree(subspace_quiver(4), [1, 1, 1, 1, 2])
 
-  # for acyclic quivers the quotient variety is a point
-  @test is_coregular(kronecker_quiver(3), [2, 3])
-  @test is_coregular(subspace_quiver(4), [1, 1, 1, 1, 2])
+    # settings with all cycles through a vertex of dimension 1: the k arrows back and
+    # forth give 2k - 1 as the bound on the other dimension
+    @test is_cofree(Quiver("1-2, 2-1"), [1, 5])
+    @test is_cofree(Quiver("1--2, 2--1"), [1, 3])
+    @test !is_cofree(Quiver("1--2, 2--1"), [1, 2])
 
-  # settings I, II and IV of [Theorem 4.4, MR1929191] are coregular
-  @test is_coregular(Quiver("1-2, 2-1"), [4, 5])              # I
-  @test is_coregular(Quiver("1--2, 2--1"), [1, 2])            # II with k = 2 <= n = 2
-  @test !is_coregular(Quiver("1--2, 2--1"), [1, 1])           # II fails for k = 2 > n = 1
-  @test is_coregular(Quiver("1-2, 2-1, 2-3, 3-2"), [3, 2, 3]) # IV
+    # two cycles sharing a path: cofree iff exactly one shared dimension is 2 and the
+    # others are at least 4, so coregularity does not suffice
+    @test is_coregular(Quiver("1--2, 2-1"), [2, 2])
+    @test !is_cofree(Quiver("1--2, 2-1"), [2, 2])
+    @test !is_cofree(Quiver("1--2, 2-1"), [2, 3])
+    @test is_cofree(Quiver("1--2, 2-1"), [2, 4])
 
-  # the reduction combines R_III, R_I and R_II to a lone vertex of dimension 1
-  setting = bocklandt_reduction(Quiver("1-2, 2-2, 2-1"), [1, 2])
-  @test propertynames(setting) == (:Q, :d)
-  @test n_vertices(setting.Q) == 1
-  @test n_arrows(setting.Q) == 0
-  @test setting.d == [1]
+    # two cycles sharing a path through a vertex of dimension 1: cofree iff the minimal
+    # dimension along the big cycle is attained exactly once in the shared path, or not
+    # there but exactly once in the other branch
+    theta_quiver = Quiver("1-2, 2-3, 3-1, 2-4, 4-1")
+    @test is_cofree(theta_quiver, [2, 3, 4, 1])
+    @test is_cofree(theta_quiver, [3, 3, 2, 1])
+    @test !is_cofree(theta_quiver, [2, 2, 3, 1])
 
-  # a reduced setting is returned unchanged
-  setting = bocklandt_reduction(Quiver("1--2, 2--1"), [1, 1])
-  @test Matrix(setting.Q.adjacency) == [0 2; 2 0]
-  @test setting.d == [1, 1]
-
-  # vertices of dimension 0 and arrows between strongly connected components are dropped
-  @test bocklandt_reduction(kronecker_quiver(3), [2, 0]).d == [2]
-  @test is_coregular(Quiver("1-1, 1-2, 2-2"), [2, 2])
-  @test is_coregular(kronecker_quiver(3), [0, 0])
-
-  # smoothness of moduli spaces with properly semistable representations: for the
-  # 2-Kronecker quiver and d = (2, 2) one gets P^2, and for the 3-Kronecker quiver
-  # both d = (2, 2) and d = (2, 4) give P^5: the deepest local quiver setting is two
-  # loops on a vertex of dimension 2, the reduced coregular setting C1 of [MR1929191];
-  # for d = (3, 3) that setting has dimension 3 instead, so the space is singular
-  @test is_smooth(QuiverModuliSpace(kronecker_quiver(2), [2, 2]))
-  @test is_smooth(QuiverModuliSpace(kronecker_quiver(3), [2, 2]))
-  @test is_smooth(QuiverModuliSpace(kronecker_quiver(3), [2, 4]))
-  @test !is_smooth(QuiverModuliSpace(kronecker_quiver(3), [3, 3]))
-
-  # the 6-subspace quiver with d = (1^5, 2; 3) and stability parameters on a wall:
-  # for theta = (1^5, 2; -3) the moduli space is accidentally isomorphic to Gr(2, 4),
-  # hence smooth despite the eleven Luna strata, whereas for theta = (2^5, 1; -4)
-  # there are ten isolated singular points, one for each two-element subset of the
-  # five thin subspace vertices
-  S = subspace_quiver(6)
-  d = [1, 1, 1, 1, 1, 2, 3]
-  @test is_smooth(QuiverModuliSpace(S, d, [1, 1, 1, 1, 1, 2, -3]))
-  @test !is_smooth(QuiverModuliSpace(S, d, [2, 2, 2, 2, 2, 1, -4]))
-  # for d = (1^4, 2^2; 3) the analogous first wall crossing has smooth target too
-  @test is_smooth(QuiverModuliSpace(S, [1, 1, 1, 1, 2, 2, 3], [2, 2, 2, 2, 1, 1, -4]))
-
-  # the Segre cubic threefold, as the moduli space for the 6-subspace quiver with
-  # d = (1^6; 2) and canonical stability: it has ten nodes, one for each splitting
-  # of the six thin subspace vertices into complementary triples
-  @test !is_smooth(QuiverModuliSpace(S, [1, 1, 1, 1, 1, 1, 2]))
-
-  # codimension of the singular locus: the ten nodes of the Segre cubic; for the
-  # 3-Kronecker quiver and d = (2, 2) the properly semistable locus is non-empty
-  # while the singular locus is empty, and for d = (3, 3) the largest singular
-  # Luna stratum has codimension 3 in the 10-dimensional moduli space
-  @test codimension_singular_locus(QuiverModuliSpace(S, [1, 1, 1, 1, 1, 1, 2])) == 3
-  @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [2, 2])) == Inf
-  @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [3, 3])) == 3
-end;
-
-@testset "cofree quiver settings" begin
-  # cyclic quiver settings and matrix invariants: pairs of 2x2 matrices are cofree,
-  # pairs of 3x3 matrices and triples of 2x2 matrices are not; any number of loops on
-  # a vertex of dimension 1 is cofree
-  @test all(is_cofree(cyclic_quiver(n), fill(k, n)) for n in 1:3, k in 1:3)
-  @test is_cofree(cyclic_quiver(3), [1, 2, 3])
-  @test is_cofree(jordan_quiver(2), [2])
-  @test !is_cofree(jordan_quiver(2), [3])
-  @test !is_cofree(jordan_quiver(3), [2])
-  @test is_cofree(jordan_quiver(3), [1])
-
-  # acyclic settings are trivially cofree, as the invariants are constants
-  @test is_cofree(kronecker_quiver(3), [2, 3])
-  @test is_cofree(subspace_quiver(4), [1, 1, 1, 1, 2])
-
-  # settings with all cycles through a vertex of dimension 1: the k arrows back and
-  # forth give 2k - 1 as the bound on the other dimension
-  @test is_cofree(Quiver("1-2, 2-1"), [1, 5])
-  @test is_cofree(Quiver("1--2, 2--1"), [1, 3])
-  @test !is_cofree(Quiver("1--2, 2--1"), [1, 2])
-
-  # two cycles sharing a path: cofree iff exactly one shared dimension is 2 and the
-  # others are at least 4, so coregularity does not suffice
-  @test is_coregular(Quiver("1--2, 2-1"), [2, 2])
-  @test !is_cofree(Quiver("1--2, 2-1"), [2, 2])
-  @test !is_cofree(Quiver("1--2, 2-1"), [2, 3])
-  @test is_cofree(Quiver("1--2, 2-1"), [2, 4])
-
-  # two cycles sharing a path through a vertex of dimension 1: cofree iff the minimal
-  # dimension along the big cycle is attained exactly once in the shared path, or not
-  # there but exactly once in the other branch
-  theta_quiver = Quiver("1-2, 2-3, 3-1, 2-4, 4-1")
-  @test is_cofree(theta_quiver, [2, 3, 4, 1])
-  @test is_cofree(theta_quiver, [3, 3, 2, 1])
-  @test !is_cofree(theta_quiver, [2, 2, 3, 1])
-
-  # wedging removes the vertex of dimension 3 on the path to the central vertex,
-  # reducing to the setting [2, 3, 4, 1] above; with dimension 1 instead there are two
-  # vertices of dimension 1 on a common cycle, which is never cofree
-  wedged = Quiver("1-2, 2-3, 3-1, 2-5, 5-4, 4-1")
-  @test is_cofree(wedged, [2, 3, 4, 1, 3])
-  @test !is_cofree(wedged, [2, 3, 4, 1, 1])
-end;
-
-@testset "Domokos reductions" begin
-  # M. Domokos, Quiver moduli spaces of a given dimension, https://doi.org/10.4171/JCA/97
-  # τ and σ reductions preserve the moduli space up to isomorphism (Theorem 2.5), which we
-  # witness through the Hodge diamond. The stability sign is QuiverTools' (opposite King),
-  # so the Section 9 weight θ_paper = (-2, 1, 1) is passed as (2, -1, -1).
-  function diag(M)
-    h = hodge_diamond(M)
-    return [h[i, i] for i in 1:size(h, 1)]
+    # wedging removes the vertex of dimension 3 on the path to the central vertex,
+    # reducing to the setting [2, 3, 4, 1] above; with dimension 1 instead there are two
+    # vertices of dimension 1 on a common cycle, which is never cofree
+    wedged = Quiver("1-2, 2-3, 3-1, 2-5, 5-4, 4-1")
+    @test is_cofree(wedged, [2, 3, 4, 1, 3])
+    @test !is_cofree(wedged, [2, 3, 4, 1, 1])
   end
 
-  # τ_u at a large middle vertex: 1 → 2 ⇉⇉⇉ 3 reduces to the 3-Kronecker quiver.
-  # With d = [1, 3, 1] the moduli space is ℙ²; with d = [2, 9, 3] it is the 6-fold M(K₃, [2,3]).
-  Q = Quiver("1-2,2---3")
-  @test is_large(Q, [1, 3, 1], 2)
-  @test tau_reduction(Q, [1, 3, 1], 2) == (Quiver([0 3; 0 0]), [1, 1])
-  @test tau_reduction(Q, [1, 3, 1], [3, 1, -6], 2) == (Quiver([0 3; 0 0]), [1, 1], [3, -3])
-  @test diag(QuiverModuliSpace(Q, [1, 3, 1], [3, 1, -6])) == [1, 1, 1]              # ℙ²
-  @test diag(QuiverModuliSpace(Q, [2, 9, 3], [9, 1, -9])) ==
-    diag(tau_reduction(QuiverModuliSpace(Q, [2, 9, 3], [9, 1, -9]), 2)) ==
-    [1, 1, 3, 3, 3, 1, 1]                                                           # the 6-fold
+  @testset "Domokos reductions" begin
+    # M. Domokos, Quiver moduli spaces of a given dimension, https://doi.org/10.4171/JCA/97
+    # τ and σ reductions preserve the moduli space up to isomorphism (Theorem 2.5), which we
+    # witness through the Hodge diamond. The stability sign is QuiverTools' (opposite King),
+    # so the Section 9 weight θ_paper = (-2, 1, 1) is passed as (2, -1, -1).
+    function diag(M)
+      h = hodge_diamond(M)
+      return [h[i, i] for i in 1:size(h, 1)]
+    end
 
-  # Section 9 (Proposition 9.1): a τσ-minimal pair with no large vertex.
-  Q9, d9, th9 = Quiver("1--3,1-2,3-2"), [2, 1, 3], [2, -1, -1]
-  @test !any(v -> is_large(Q9, d9, v), 1:3)
-  @test is_small_source(Q9, d9, 1) && is_small_sink(Q9, d9, 2)
-  @test tau_sigma_reduce(Q9, d9) == (Q9, d9)
-  @test tau_sigma_reduce(Q9, d9, th9) == (Q9, d9, th9)          # greedy reduce is a fixpoint
-  # σ preserves the moduli space (dimension is a cheap invariant here)
-  M9 = QuiverModuliSpace(Q9, d9, th9)
-  @test dimension(sigma_reduction(M9, 1)) == dimension(M9) == 4
+    # τ_u at a large middle vertex: 1 → 2 ⇉⇉⇉ 3 reduces to the 3-Kronecker quiver.
+    # With d = [1, 3, 1] the moduli space is ℙ²; with d = [2, 9, 3] it is the 6-fold M(K₃, [2,3]).
+    Q = Quiver("1-2,2---3")
+    @test is_large(Q, [1, 3, 1], 2)
+    @test tau_reduction(Q, [1, 3, 1], 2) == (Quiver([0 3; 0 0]), [1, 1])
+    @test tau_reduction(Q, [1, 3, 1], [3, 1, -6], 2) ==
+      (Quiver([0 3; 0 0]), [1, 1], [3, -3])
+    @test diag(QuiverModuliSpace(Q, [1, 3, 1], [3, 1, -6])) == [1, 1, 1]              # ℙ²
+    @test diag(QuiverModuliSpace(Q, [2, 9, 3], [9, 1, -9])) ==
+      diag(tau_reduction(QuiverModuliSpace(Q, [2, 9, 3], [9, 1, -9]), 2)) ==
+      [1, 1, 3, 3, 3, 1, 1]                                                           # the 6-fold
 
-  # σ_u is an involution
-  @test sigma_reduction(sigma_reduction(Q9, d9, 1)..., 1) == (Q9, d9)
-  @test sigma_reduction(sigma_reduction(Q9, d9, th9, 1)..., 1) == (Q9, d9, th9)
+    # Section 9 (Proposition 9.1): a τσ-minimal pair with no large vertex.
+    Q9, d9, th9 = Quiver("1--3,1-2,3-2"), [2, 1, 3], [2, -1, -1]
+    @test !any(v -> is_large(Q9, d9, v), 1:3)
+    @test is_small_source(Q9, d9, 1) && is_small_sink(Q9, d9, 2)
+    @test tau_sigma_reduce(Q9, d9) == (Q9, d9)
+    @test tau_sigma_reduce(Q9, d9, th9) == (Q9, d9, th9)          # greedy reduce is a fixpoint
+    # σ preserves the moduli space (dimension is a cheap invariant here)
+    M9 = QuiverModuliSpace(Q9, d9, th9)
+    @test dimension(sigma_reduction(M9, 1)) == dimension(M9) == 4
 
-  # the 2-cycle with d = [1, 1]: not minimal (large vertex), reduces to a single loop
-  @test is_taus_minimal(Quiver("1-2,2-1"), [1, 1]) == false
-  @test tau_sigma_reduce(Quiver("1-2,2-1"), [1, 1]) == (Quiver([1;;]), [1])
-  @test tau_sigma_reduce(Quiver("1-2,2-1"), [1, 1], [1, -1]) == (Quiver([1;;]), [1], [0])
-  @test is_taus_minimal(Quiver([1;;]), [1]) == true
+    # σ_u is an involution
+    @test sigma_reduction(sigma_reduction(Q9, d9, 1)..., 1) == (Q9, d9)
+    @test sigma_reduction(sigma_reduction(Q9, d9, th9, 1)..., 1) == (Q9, d9, th9)
 
-  # A denominator closure belongs to its original vertex set. The transformed King
-  # weight is normalized, so reduced moduli objects use the standard denominator.
-  weighted_denom = e -> [1, 2, 3]' * e
-  @test tau_reduction(
-    QuiverModuliSpace(Q, [1, 3, 1], [3, 1, -6], "semistable", weighted_denom), 2
-  ).denom === sum
-  @test sigma_reduction(
-    QuiverModuliSpace(Q9, d9, th9, "semistable", weighted_denom), 1
-  ).denom === sum
+    # the 2-cycle with d = [1, 1]: not minimal (large vertex), reduces to a single loop
+    @test is_taus_minimal(Quiver("1-2,2-1"), [1, 1]) == false
+    @test tau_sigma_reduce(Quiver("1-2,2-1"), [1, 1]) == (Quiver([1;;]), [1])
+    @test tau_sigma_reduce(Quiver("1-2,2-1"), [1, 1], [1, -1]) == (Quiver([1;;]), [1], [0])
+    @test is_taus_minimal(Quiver([1;;]), [1]) == true
 
-  # error paths: the vertex must be large resp. small, theta must be King-normalized,
-  # the source must be semistable, and the dimension vector must be sincere
-  @test_throws ArgumentError tau_reduction(Q, [1, 3, 1], [3, 1, -6], 1)
-  @test_throws ArgumentError tau_reduction(Q, [1, 3, 1], [3, 1, -5], 2)
-  @test_throws ArgumentError tau_reduction(Quiver("1-2,2-1"), [2, 1], [1, -2], 1)
-  @test_throws ArgumentError sigma_reduction(Q9, d9, th9, 3)
-  @test_throws ArgumentError sigma_reduction(Q9, d9, [2, -1, 0], 1)
-  @test_throws ArgumentError tau_sigma_reduce(Quiver([1;;]), [1], [1])
-  @test_throws AssertionError is_large(Q, [1, 0, 1], 2)
-  @test_throws AssertionError is_taus_minimal(Quiver([1;;]), [0])
-  @test_throws ArgumentError is_taus_minimal(Quiver([1;;]), [1]; max_states=0)
+    # A denominator closure belongs to its original vertex set. The transformed King
+    # weight is normalized, so reduced moduli objects use the standard denominator.
+    weighted_denom = e -> [1, 2, 3]' * e
+    @test tau_reduction(
+      QuiverModuliSpace(Q, [1, 3, 1], [3, 1, -6], "semistable", weighted_denom), 2
+    ).denom === sum
+    @test sigma_reduction(
+      QuiverModuliSpace(Q9, d9, th9, "semistable", weighted_denom), 1
+    ).denom === sum
 
-  # The sigma-orbit of the Section 9 pair is infinite, so a bounded search cannot prove
-  # its minimality. Hitting the cap reports an indeterminate result rather than `true`,
-  # and a still larger traversal reports integer overflow rather than mistaking wrapped
-  # dimension entries for a smaller pair.
-  @test_throws ArgumentError is_taus_minimal(Q9, d9; max_states=2)
-  @test_throws OverflowError is_taus_minimal(Q9, d9; max_states=200)
+    # error paths: the vertex must be large resp. small, theta must be King-normalized,
+    # the source must be semistable, and the dimension vector must be sincere
+    @test_throws ArgumentError tau_reduction(Q, [1, 3, 1], [3, 1, -6], 1)
+    @test_throws ArgumentError tau_reduction(Q, [1, 3, 1], [3, 1, -5], 2)
+    @test_throws ArgumentError tau_reduction(Quiver("1-2,2-1"), [2, 1], [1, -2], 1)
+    @test_throws ArgumentError sigma_reduction(Q9, d9, th9, 3)
+    @test_throws ArgumentError sigma_reduction(Q9, d9, [2, -1, 0], 1)
+    @test_throws ArgumentError tau_sigma_reduce(Quiver([1;;]), [1], [1])
+    @test_throws AssertionError is_large(Q, [1, 0, 1], 2)
+    @test_throws AssertionError is_taus_minimal(Quiver([1;;]), [0])
+    @test_throws ArgumentError is_taus_minimal(Quiver([1;;]), [1]; max_states=0)
 
-  # With this pair the first reflection does not lower the size, but it exposes a later
-  # tau reduction. A cap of one therefore must not produce a false proof of minimality.
-  Q4 = Quiver([0 0 1 0; 0 0 2 2; 0 1 0 1; 0 2 1 0])
-  d4 = [3, 2, 6, 1]
-  @test_throws ArgumentError is_taus_minimal(Q4, d4; max_states=1)
-  @test is_taus_minimal(Q4, d4; max_states=100) == false
-end
+    # The sigma-orbit of the Section 9 pair is infinite, so a bounded search cannot prove
+    # its minimality. Hitting the cap reports an indeterminate result rather than `true`,
+    # and a still larger traversal reports integer overflow rather than mistaking wrapped
+    # dimension entries for a smaller pair.
+    @test_throws ArgumentError is_taus_minimal(Q9, d9; max_states=2)
+    @test_throws OverflowError is_taus_minimal(Q9, d9; max_states=200)
 
+    # With this pair the first reflection does not lower the size, but it exposes a later
+    # tau reduction. A cap of one therefore must not produce a false proof of minimality.
+    Q4 = Quiver([0 0 1 0; 0 0 2 2; 0 1 0 1; 0 2 1 0])
+    d4 = [3, 2, 6, 1]
+    @test_throws ArgumentError is_taus_minimal(Q4, d4; max_states=1)
+    @test is_taus_minimal(Q4, d4; max_states=100) == false
+  end
 end
