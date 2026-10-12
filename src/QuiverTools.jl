@@ -40,6 +40,7 @@ export Quiver, HNType, LunaType, QuiverModuli, QuiverModuliSpace, QuiverModuliSt
 # Quivers
 export n_vertices,
   n_arrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source,
+  underlying_graph, first_hochschild_cohomology, to_dot, draw,
   strongly_connected_components, underlying_graph, first_hochschild_cohomology
 
 # Constructors
@@ -128,6 +129,15 @@ end
 function __init__()
   if displaysize(stdout)[2] >= 80
     _print_banner()
+  end
+
+  # `draw` only gets a method from the GraphViz extension; without it the bare
+  # MethodError does not tell the user what is missing.
+  Base.Experimental.register_error_hint(MethodError) do io, exc, argtypes, kwargs
+    if exc.f === draw &&
+      isnothing(Base.get_extension(QuiverTools, :QuiverToolsGraphVizExt))
+      print(io, "\n`draw` requires GraphViz: run `using GraphViz` to enable it.")
+    end
   end
 
   return nothing
