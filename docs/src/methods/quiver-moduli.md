@@ -95,3 +95,26 @@ hodge_diamond
 hodge_polynomial
 betti_numbers
 ```
+
+## Domokos reductions
+
+[[Domokos](https://doi.org/10.4171/JCA/97)] introduces two operations on a quiver, a
+dimension vector and a stability parameter which change the triple but preserve the
+moduli space up to isomorphism: [`tau_reduction`](@ref) merges away a *large* vertex,
+and [`sigma_reduction`](@ref) reflects a *small* source or sink. Iterating them
+produces smaller moduli-isomorphic triples, and a pair from which no sequence of
+reductions reaches anything smaller is *τσ-minimal*; this drives the finiteness of
+quiver moduli spaces of a fixed dimension.
+
+Stability parameters are expressed in QuiverTools' sign convention, which is opposite
+to that of the paper; see the docstrings for the precise translation.
+
+```@docs
+is_large
+is_small_source
+is_small_sink
+tau_reduction
+sigma_reduction
+tau_sigma_reduce
+is_taus_minimal
+```
