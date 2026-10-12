@@ -41,6 +41,7 @@ export Quiver, HNType, LunaType, QuiverModuli, QuiverModuliSpace, QuiverModuliSt
 export n_vertices,
   n_arrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source,
   underlying_graph, first_hochschild_cohomology, to_dot, draw
+  strongly_connected_components, underlying_graph, first_hochschild_cohomology
 
 # Constructors
 export kronecker_quiver, loop_quiver, jordan_quiver, subspace_quiver, star_quiver,
@@ -60,11 +61,13 @@ export is_general_subdimension_vector, all_general_subdimension_vectors
 # Representation theory
 export euler_form, euler_matrix, is_root, is_schur_root, is_real_root, is_imaginary_root,
   is_isotropic_root,
-  general_ext, general_hom, canonical_decomposition, in_fundamental_domain
+  general_ext, general_hom, canonical_decomposition, in_fundamental_domain,
+  bocklandt_reduction, is_coregular, is_cofree
 
 # Moduli
 export all_luna_types, is_luna_type, dimension_of_luna_stratum
-export is_nonempty, codimension_unstable_locus, dimension, is_smooth,
+export is_nonempty, codimension_unstable_locus, codimension_singular_locus, dimension,
+  is_smooth,
   is_projective, is_strongly_amply_stable, semistable_equals_stable, semisimple_moduli_space
 
 # Hodge
@@ -90,6 +93,10 @@ export chern_character, chern_class, chern_classes, dual, exterior_power, symmet
 # Walls and Chambers
 export rays, is_special_subdimension_vector, all_special_subdimension_vectors, sst,
   vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent, all_stability_parameters
+
+# Domokos reductions
+export is_large, is_small_source, is_small_sink,
+  tau_reduction, sigma_reduction, tau_sigma_reduce, is_taus_minimal
 
 import Pkg
 
@@ -142,11 +149,12 @@ end
 
 include("Types.jl")
 include("Quivers.jl")
+include("Misc.jl")
 include("Stability.jl")
 include("RepresentationTheory.jl")
-include("Misc.jl")
 include("Constructors.jl")
 include("Moduli.jl")
+include("Reductions.jl")
 include("Hodge.jl")
 include("Chow.jl")
 include("Teleman.jl")
@@ -162,6 +170,7 @@ PrecompileTools.@compile_workload begin
   hodge_diamond(M)
   chow_ring(M)
   chern_numbers(M; unsafe=true)
+  empty_all_caches!()
 end
 
 ######################

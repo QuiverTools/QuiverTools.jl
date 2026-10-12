@@ -266,6 +266,13 @@ end
 end
 
 function vgit_fan(Q, d; verbose=false)
+  chambers = vgit_chambers(Q, d; verbose=verbose)
+  !all(Oscar.lineality_dim(ch) == 0 for ch in chambers) && throw(
+    ArgumentError(
+      """The VGIT fan is not strongly convex.
+      Unsupported for now, see https://github.com/QuiverTools/QuiverTools.jl/issues/40""",
+    ),
+  )
   return Oscar.polyhedral_fan(
     map(ch -> Oscar.positive_hull(Oscar.rays(ch)),
       vgit_chambers(Q, d; verbose=verbose),

@@ -22,6 +22,7 @@ indegree
 outdegree
 is_acyclic
 is_connected
+strongly_connected_components
 is_sink
 is_source
 underlying_graph

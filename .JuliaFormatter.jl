@@ -9,6 +9,7 @@ files = [
   "src/Moduli.jl",
   "src/Quivers.jl",
   "src/QuiverTools.jl",
+  "src/Reductions.jl",
   "src/RepresentationTheory.jl",
   "src/Stability.jl",
   "src/Teleman.jl",
