@@ -98,7 +98,24 @@ end
   )
 end
 
-@memoize Dict function vgit_walls(Q, d; inner=false, top_dimension=true)
+function vgit_walls(Q, d; inner=false, top_dimension=true)
+  out = __vgit_walls(Q, d)
+  if top_dimension
+    dims = map(w -> Oscar.dim(w), out)
+    top_dim = maximum(dims) # max dimension of WALLS
+    out = out[findall(dims .== top_dim)]
+  end
+  if inner
+    facettes = Oscar.facets(Oscar.Polyhedron, sst(Q, d))
+    filter!(
+      w -> !any(issubset(w, f) for f in facettes),
+      out,
+    )
+  end
+  return out
+end
+
+@memoize Dict function __vgit_walls(Q, d)
   walls_data = map(
     e -> QuiverTools.__vgit_wall_data(Q, d, e),
     QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
@@ -110,18 +127,6 @@ end
         zeros(Int, 2 * length(wall_datum.equations) + length(wall_datum.inequalities)),
       ),
     walls_data)
-  if top_dimension
-    dims = map(w -> Oscar.dim(w), out)
-    top_dim = maximum(dims) # max dimension of WALLS
-    out = out[findall(dims .== top_dim)]
-  end
-  if inner
-     sstd = sst(Q, d)
-     facettes = Oscar.facets(Oscar.Polyhedron, sstd)
-      filter!(
-    w -> !any(issubset(w, f) for f in facettes),
-    out
-      )
   return unique!(__helper_accelerate, out)
 end
 
