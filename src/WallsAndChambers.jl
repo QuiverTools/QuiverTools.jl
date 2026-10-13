@@ -124,9 +124,10 @@ function __is_vgit_chamber_parameter(
   theta::AbstractVector,
 )
   __in_semistable_cone(Q, d, theta) || return false
-  return all(all_subdimension_vectors(d; nonzero=true, strict=true)) do e
-    !__in_vgit_wall(Q, d, e, theta)
-  end
+  return all(
+    !__in_vgit_wall(Q, d, e, theta) for
+    e in all_subdimension_vectors(d; nonzero=true, strict=true)
+  )
 end
 
 # This function takes theta and thetabar and, if theta is generic,
