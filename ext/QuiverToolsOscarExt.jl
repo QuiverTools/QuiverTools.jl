@@ -250,10 +250,12 @@ end
       # we are looking for common facets
       Oscar.dim(inters) != sstd_dim - 1 && continue
       # If the common facet lies on the walls, good.
-      # If the facet is covered by several walls
-      # on the same hyperplane without lying in any single one, also good.
-      # Since the walls form a fan, the facet lies in their union iff
-      # a point in its relative interior does.
+      # Note: ch1 \cap ch2 is either in the interior
+      # of a "true" chamber, or it is contained in the intersection C1 \cap C2 of two "true" chambers.
+      # Such an intersection is contained in a unique wall W_e for some e,
+      # so the error that commit 32179e8b374fa50bf13126a2413c6dbc6b6e5d39
+      # "fixed" could not happen.
+      # We keep this check because it is faster.
       p = Oscar.relative_interior_point(inters)
       any(w -> p in w, int_walls) && continue
       verbose && @info "Found a fake wall, removing it..."
