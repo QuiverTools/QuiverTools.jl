@@ -223,7 +223,8 @@ end
     top_chambers = timed() do
       chambers = vcat(
         map(
-          chamber -> if issubset(smaller_walls[i], chamber)
+          # split when the wall meets the chamber in codimension 1
+          chamber -> if Oscar.dim(intersect(smaller_walls[i], chamber)) == sstd_dim - 1
             helper_split(smaller_normals[i], chamber)
           else
             [chamber]
