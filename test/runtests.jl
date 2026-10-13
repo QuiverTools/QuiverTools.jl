@@ -76,6 +76,17 @@ import Oscar
   end
 end;
 
+@testset "vgit_chambers edge cases" begin
+  # a single vertex with d = [1] is a primitive Schur root and must not be rejected;
+  # fixed in 15b4405 (`extended_gcd(d)[1]` is `[1]`, not `1`, for one vertex)
+  @test length(vgit_chambers(Quiver(zeros(Int, 1, 1)), [1])) == 1
+
+  # splitting along earlier walls cuts some of the smaller walls into several pieces,
+  # each of which must still split the chamber it meets (this used to give 5 chambers);
+  # fixed in 783271c
+  @test length(vgit_chambers(Quiver("1-2,1-3,1--4,2--3,2-4,3-4"), [1, 1, 1, 1])) == 7
+end;
+
 @testset "strict sst" begin
   # proper-semistability
   Q = kronecker_quiver(2)

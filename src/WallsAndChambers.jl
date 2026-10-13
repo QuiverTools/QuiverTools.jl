@@ -288,7 +288,7 @@ If there exit no stable representations,
 
 Requires Oscar: run `import Oscar` to enable this function.
 
-# Example
+# Examples
 
 The following example has three inner walls `W_e`, and all of them are strictly smaller
 than the corresponding `H_e \\cap sst(d)` in the wall system.
@@ -315,6 +315,25 @@ julia> map(Oscar.rays, vgit_chambers(Q, d; verbose=false))
  [[1, -1, 0, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
  [[0, 1, -1, 0], [1, 0, 0, -1], [1, 0, -1, 0]]
  [[0, 1, -1, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
+```
+
+If there are no walls, `sst(Q, d)` is the only chamber.
+
+```jldoctest
+julia> Q = subspace_quiver(3); d = [0, 0, 0, 1];
+
+julia> isempty(vgit_walls(Q, d))
+true
+
+julia> vgit_chambers(Q, d) == [sst(Q, d)]
+true
+```
+
+Only primitive Schur roots `d` are currently supported: otherwise a wall can fill all of `sst(Q, d)`.
+
+```jldoctest
+julia> vgit_chambers(kronecker_quiver(3), [2, 2])
+ERROR: ArgumentError: The dimension vector [2, 2] is not a primitive Schur root for the quiver 3-Kronecker quiver. This case is unsupported for now, see Issue #53. Also see Issue #40 and [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153].
 ```
 """
 function vgit_chambers end
