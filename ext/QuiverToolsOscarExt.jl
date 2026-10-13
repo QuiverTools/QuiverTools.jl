@@ -189,7 +189,7 @@ end
 
   top_chambers = [sstd]
 
-  # helper function
+  # splits a top dimensional cone in two along an hyperplane
   function helper_split(wall, chamber)
     return [
       intersect(chamber, Oscar.polyhedron([wall], [0])),
