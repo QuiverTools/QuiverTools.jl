@@ -97,12 +97,22 @@ end
 end
 
 @memoize Dict function vgit_walls(Q, d; inner=false, top_dimension=true)
-  all_subd = QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true)
+  walls_data = map(
+    e -> QuiverTools.__vgit_wall_data(Q, d, e),
+    QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
+  )
   out = map(
-    e -> reduce(intersect, [sst(Q, e), sst(Q, d - e), sst(Q, d)]), # definition of W_{e}
-    all_subd)
-  top_dim = maximum(Oscar.dim(w) for w in out) # max dimension of WALLS
-  top_dimension && filter!(w -> Oscar.dim(w) == top_dim, out)
+    wall_datum ->
+      Oscar.polyhedron(
+        vcat(wall_datum.equations, .-wall_datum.equations, wall_datum.inequalities),
+        zeros(Int, 2 * length(wall_datum.equations) + length(wall_datum.inequalities)),
+      ),
+    walls_data)
+  if top_dimension
+    dims = map(w -> Oscar.dim(w), out)
+    top_dim = maximum(dims) # max dimension of WALLS
+    out = out[findall(dims .== top_dim)]
+  end
   inner && filter!(
     w -> !any(issubset(w, f) for f in Oscar.facets(Oscar.Polyhedron, sst(Q, d))), out
   )
