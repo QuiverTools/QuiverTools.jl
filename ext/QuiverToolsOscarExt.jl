@@ -143,7 +143,7 @@ function wall_system(Q, d; inner=false, as_cones=true)
   all_walls = map(vgit_walls(Q, d; inner=inner, top_dimension=true)) do w
     Oscar.polyhedron(nothing, Oscar.affine_hull(w))   # only pass to the polyhedron constructor the affine hull's equations
   end
-  as_cones && return map(w -> intersect(w, sstd), all_walls)
+  as_cones && (all_walls = map(w -> intersect(w, sstd), all_walls))
   return unique!(all_walls)
 end
 
