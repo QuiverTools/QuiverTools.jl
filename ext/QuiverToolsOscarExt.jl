@@ -100,6 +100,7 @@ end
 
 function vgit_walls(Q, d; inner=false, top_dimension=true)
   out = __vgit_walls(Q, d)
+  isempty(out) && return out
   if top_dimension
     dims = map(w -> Oscar.dim(w), out)
     top_dim = maximum(dims) # max dimension of WALLS
