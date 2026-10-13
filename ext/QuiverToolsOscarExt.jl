@@ -145,10 +145,7 @@ end
 
   sstd_dim = Oscar.dim(sstd)
   # top-dimensional inner walls
-  int_walls = vgit_walls(Q, d; top_dimension=true)
-  int_walls = filter(
-    w -> !any(issubset(w, f) for f in Oscar.facets(Oscar.Polyhedron, sstd)), int_walls
-  )
+  int_walls = vgit_walls(Q, d; inner=true, top_dimension=true)
 
   # @warn "we must treat the case of a wall W_e of dimension = Oscar.dim(sstd) here!"
 
@@ -159,17 +156,22 @@ end
   full_walls = filter(w -> w in wallsyst, int_walls)
   smaller_walls = filter(w -> !(w in wallsyst), int_walls)
 
-  full_walls = map(w -> Oscar.affine_hull(w), full_walls)
-  smaller_walls_ah = map(w -> Oscar.affine_hull(w), smaller_walls)
+  # n is a multiple of d iff all 2x2 minors of the matrix with rows n and d vanish
+  is_multiple_of_d(n) =
+    all(n[i] * d[j] == n[j] * d[i] for i in eachindex(d), j in eachindex(d))
 
-  # find a vector not equal to d that cuts out the wall
-  full_walls = map(AH -> AH[findfirst(hyp -> (hyp.a[1, :] != d), AH)].a[1, :], full_walls)
-  smaller_walls_ah = map(
-    AH -> AH[findfirst(hyp -> (hyp.a[1, :] != d), AH)].a[1, :], smaller_walls_ah
-  )
-
-  full_walls_iterate = eachindex(full_walls)
-  smaller_walls_iterate = eachindex(smaller_walls_ah)
+  # a normal vector not proportional to d of a hyperplane in the affine hull of the wall;
+  # together with d^⟂ it cuts out the hyperplane of d^⟂ spanned by the wall
+  function wall_normal(w)
+    normals = map(Oscar.normal_vector, Oscar.affine_hull(w))
+    k = findfirst(!is_multiple_of_d, normals)
+    k === nothing && error(
+      "One wall spans d^⟂ for d = $d, so it does not cut out a hyperplane of d^⟂"
+    )
+    return normals[k]
+  end
+  full_normals = map(wall_normal, full_walls)
+  smaller_normals = map(wall_normal, smaller_walls)
 
   top_chambers = [sstd]
 
@@ -183,34 +185,17 @@ end
   verbose &&
     @info "There are $(length(full_walls)) full walls and $(length(smaller_walls)) smaller walls."
 
+  # run `f`, timing it when verbose, so that both modes execute the same code
+  timed(f) = verbose ? (@time f()) : f()
+
   verbose && @info "Treating the full walls..."
-  for i in full_walls_iterate
-    if verbose
-      @time begin
-        # in-place
-        n = length(top_chambers)
-        for j in 1:n
-          push!(top_chambers,
-            helper_split(full_walls[i], top_chambers[j])...,
-          )
-        end
-        deleteat!(top_chambers, 1:n)
-
-        map!(__helper_accelerate, top_chambers, top_chambers)
-        filter!(c -> Oscar.dim(c) == sstd_dim, top_chambers)
-      end
-    else
-      # in-place
-      n = length(top_chambers)
-      for j in 1:n
-        push!(top_chambers,
-          helper_split(full_walls[i], top_chambers[j])...,
-        )
-      end
-      deleteat!(top_chambers, 1:n)
-
-      map!(__helper_accelerate, top_chambers, top_chambers)
-      filter!(c -> Oscar.dim(c) == sstd_dim, top_chambers)
+  for i in eachindex(full_normals)
+    top_chambers = timed() do
+      chambers = vcat(
+        map(chamber -> helper_split(full_normals[i], chamber), top_chambers)...
+      )
+      map!(__helper_accelerate, chambers, chambers)
+      return filter!(c -> Oscar.dim(c) == sstd_dim, chambers)
     end
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
   end
@@ -218,35 +203,20 @@ end
   length(smaller_walls) == 0 && return top_chambers
 
   verbose && @info "Treating the smaller walls..."
-  for i in smaller_walls_iterate
-    if verbose
-      @time begin
-        top_chambers = vcat(
-          map(
-            chamber -> if issubset(smaller_walls[i], chamber)
-              helper_split(smaller_walls_ah[i], chamber)
-            else
-              [chamber]
-            end,
-            top_chambers,
-          )...,
-        )
-        map!(__helper_accelerate, top_chambers, top_chambers)
-        filter!(c -> Oscar.dim(c) == length(d) - 1, top_chambers)
-      end
-    else
-      top_chambers = vcat(
+  for i in eachindex(smaller_walls)
+    top_chambers = timed() do
+      chambers = vcat(
         map(
           chamber -> if issubset(smaller_walls[i], chamber)
-            helper_split(smaller_walls_ah[i], chamber)
+            helper_split(smaller_normals[i], chamber)
           else
             [chamber]
           end,
           top_chambers,
         )...,
       )
-      map!(__helper_accelerate, top_chambers, top_chambers)
-      filter!(c -> Oscar.dim(c) == sstd_dim, top_chambers)
+      map!(__helper_accelerate, chambers, chambers)
+      return filter!(c -> Oscar.dim(c) == sstd_dim, chambers)
     end
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
   end
