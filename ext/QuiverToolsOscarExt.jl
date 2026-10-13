@@ -364,13 +364,13 @@ julia> walls = vgit_walls(Q, d; top_dimension=false); map(general_stability, wal
 ```
 """
 function general_stability(cone)
-  out = sum(Oscar.rays(cone))
+  out = Oscar.relative_interior_point(cone)
 
   c = lcm(denominator.(out)...)
   out .*= c
-
   l = gcd(out...)
-  return Int.(out ./ l)
+  out = Int.(out ./ l)
+  return out
 end
 
 function all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false)
