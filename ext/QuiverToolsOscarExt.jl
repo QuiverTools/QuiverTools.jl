@@ -213,6 +213,7 @@ end
       map!(__helper_accelerate, chambers, chambers)
       return filter!(c -> Oscar.dim(c) == sstd_dim, chambers)
     end
+    unique!(top_chambers)
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
   end
 
@@ -235,6 +236,7 @@ end
       map!(__helper_accelerate, chambers, chambers)
       return filter!(c -> Oscar.dim(c) == sstd_dim, chambers)
     end
+    unique!(top_chambers)
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
   end
 
@@ -264,6 +266,7 @@ end
       break
     end
   end
+  unique!(top_chambers)
   verbose &&
     @info "Done. Found $(length(top_chambers)) chambers after removing the fake walls."
   return top_chambers
