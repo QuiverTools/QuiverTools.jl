@@ -241,16 +241,24 @@ end
 
   verbose && @info "Removing fake walls..."
 
-  # remove fake walls that appeared during the previous loop
-  incomplete = true
-  while incomplete
-    incomplete = false
-    for (ch1, ch2) in IterTools.subsets(top_chambers, 2)
-      inters = intersect(ch1, ch2)
+  # Scan the list to find the chambers that must be joined
+  # and classify them with their indices.
+  # Indices are stored in `parent` and updated with root(),
+  # apparently a "union find data structure".
+  n = length(top_chambers)
+  parent = collect(1:n)
+  root(i) = parent[i] == i ? i : (parent[i] = root(parent[i]))
+
+  timed() do
+    for (i, j) in IterTools.subsets(1:n, 2)
+      root(i) == root(j) && continue # already known to be in the same chamber
+
+      inters = intersect(top_chambers[i], top_chambers[j])
       # we are looking for common facets
       Oscar.dim(inters) != sstd_dim - 1 && continue
-      # If the common facet lies on the walls, good.
-      # Note: ch1 \cap ch2 is either in the interior
+
+      # If the common facet lies on a wall W_e we don't merge.
+      # Note: the common facet is either in the interior
       # of a "true" chamber, or it is contained in the intersection C1 \cap C2 of two "true" chambers.
       # Such an intersection is contained in a unique wall W_e for some e,
       # so the error that commit 32179e8b374fa50bf13126a2413c6dbc6b6e5d39
@@ -258,16 +266,17 @@ end
       # We keep this check because it is faster.
       p = Oscar.relative_interior_point(inters)
       any(w -> p in w, int_walls) && continue
-      verbose && @info "Found a fake wall, removing it..."
-      incomplete = true
-      # otherwise, we replace the two chambers in top_chambers by their union
-      push!(top_chambers, Oscar.minkowski_sum(ch1, ch2))
-      top_chambers = filter(ch -> (ch != ch1 && ch != ch2), top_chambers)
-      # the pairs being iterated over belong to the old list, so restart on the new one
-      break
+
+      verbose && @info "Found a fake wall."
+      parent[root(i)] = root(j)
     end
   end
-  unique!(top_chambers)
+
+  verbose && @info "Merging the fake walls now:"
+  groups = [findall(i -> root(i) == r, 1:n) for r in unique(map(root, 1:n))]
+  timed() do
+    top_chambers = map(g -> reduce(Oscar.minkowski_sum, top_chambers[g]), groups)
+  end
   verbose &&
     @info "Done. Found $(length(top_chambers)) chambers after removing the fake walls."
   return top_chambers
