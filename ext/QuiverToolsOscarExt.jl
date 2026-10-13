@@ -128,12 +128,7 @@ end
 function wall_system(Q, d; inner=false, as_cones=true)
   sstd = sst(Q, d)
 
-  all_walls = vgit_walls(Q, d; top_dimension=true)
-  if inner
-    all_walls = filter(
-      w -> !any(issubset(w, f) for f in Oscar.facets(Oscar.Polyhedron, sstd)), all_walls
-    )
-  end
+  all_walls = vgit_walls(Q, d; inner=inner, top_dimension=true)
   # each affine hull contains the defining hyperplanes that cut it out.
   all_walls = map(w -> Oscar.affine_hull(w), all_walls)
   all_walls = map(
