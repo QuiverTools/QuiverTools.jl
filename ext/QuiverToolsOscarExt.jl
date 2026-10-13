@@ -77,9 +77,11 @@ end
 Internal method.
 
 Convert the polyhedron `P` to be spanned by its rays.
-Only works for strongly convex polyhedra.
+Polyhedra with a nontrivial lineality space or without rays are returned unchanged.
 """
 function __helper_accelerate(P::Oscar.Polyhedron)
+  # rays(P) omits the lineality space, so the positive hull would not recover P
+  (Oscar.lineality_dim(P) > 0 || isempty(Oscar.rays(P))) && return P
   newP = Oscar.polyhedron(Oscar.positive_hull(Oscar.rays(P)))
   newP != P && return P
   return newP
