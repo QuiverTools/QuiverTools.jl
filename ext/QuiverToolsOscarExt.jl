@@ -116,6 +116,8 @@ function vgit_walls(Q, d; inner=false, top_dimension=true)
 end
 
 @memoize Dict function __vgit_walls(Q, d)
+if QuiverTools.extended_gcd(d) != 1 || !is_schur_root(Q, d)
+    throw(ArgumentError("The quiver moduli setup $Q, $d does not admit stable representations. This functionality is unsupported for now, see Issue #53. Also see Issue #40 and [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153]."))
   walls_data = map(
     e -> QuiverTools.__vgit_wall_data(Q, d, e),
     QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
@@ -141,6 +143,8 @@ function wall_system(Q, d; inner=false, as_cones=true)
 end
 
 @memoize Dict function vgit_chambers(Q, d; verbose=false)
+  if QuiverTools.extended_gcd(d) != 1 || !is_schur_root(Q, d)
+      throw(ArgumentError("The quiver moduli setup $Q, $d does not admit stable representations. This functionality is unsupported for now, see Issue #53. Also see Issue #40 and [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153]."))
   sstd = __helper_accelerate(sst(Q, d))
 
   sstd_dim = Oscar.dim(sstd)
@@ -165,9 +169,11 @@ end
   function wall_normal(w)
     normals = map(Oscar.normal_vector, Oscar.affine_hull(w))
     k = findfirst(!is_multiple_of_d, normals)
-    k === nothing && error(
-      "One wall spans d^⟂ for d = $d, so it does not cut out a hyperplane of d^⟂"
-    )
+    # k === nothing && error(
+    #   "There is at least one wall that spans d^⟂ for d = $d."
+    # )
+    # under the sanity check above,
+    # this can never happen, see  [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153].
     return normals[k]
   end
   full_normals = map(wall_normal, full_walls)
