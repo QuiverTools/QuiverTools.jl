@@ -115,9 +115,13 @@ end
     top_dim = maximum(dims) # max dimension of WALLS
     out = out[findall(dims .== top_dim)]
   end
-  inner && filter!(
-    w -> !any(issubset(w, f) for f in Oscar.facets(Oscar.Polyhedron, sst(Q, d))), out
-  )
+  if inner
+     sstd = sst(Q, d)
+     facettes = Oscar.facets(Oscar.Polyhedron, sstd)
+      filter!(
+    w -> !any(issubset(w, f) for f in facettes),
+    out
+      )
   return unique!(__helper_accelerate, out)
 end
 
