@@ -179,9 +179,9 @@ end
   function wall_normal(w)
     normals = map(Oscar.normal_vector, Oscar.affine_hull(w))
     k = findfirst(!is_multiple_of_d, normals)
-    # k === nothing && error(
-    #   "There is at least one wall that spans d^⟂ for d = $d."
-    # )
+    k === nothing && error(
+      "There is at least one wall that spans d^⟂ for d = $d."
+    )
     # under the sanity check above,
     # this can never happen, see  [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153].
     return normals[k]
