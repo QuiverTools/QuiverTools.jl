@@ -298,9 +298,9 @@ julia> Q = Quiver("1-2,2-3,3-4,1-4"); d = [1, 1, 1, 1];
 
 julia> map(Oscar.rays, vgit_chambers(Q, d; verbose=false))
 3-element Vector{Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}}:
+ [[1, -1, 0, 0], [1, 0, 0, -1], [0, 1, -1, 0]]
  [[1, -1, 0, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
  [[0, 1, -1, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
- [[1, -1, 0, 0], [1, 0, 0, -1], [0, 1, -1, 0]]
 ```
 
 The following example has three inner walls as well, but one is equal to its wall system
