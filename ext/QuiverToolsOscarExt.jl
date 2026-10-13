@@ -338,7 +338,7 @@ In practice this is a rescaled sum of the rays of the polyhedral cone input.
 
 # Example
 
-```jldoctests
+```jldoctest
 julia> Q = Quiver("1-2---3,1--3"); d = [1, 1, 1];
 
 julia> ch = vgit_chambers(Q, d); map(general_stability, ch)
@@ -349,7 +349,7 @@ julia> ch = vgit_chambers(Q, d); map(general_stability, ch)
 
 This function allows to sample stability parameters from every equivalence class:
 
-```jldoctests
+```jldoctest
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
 julia> walls = vgit_walls(Q, d; top_dimension=false); map(general_stability, walls)
