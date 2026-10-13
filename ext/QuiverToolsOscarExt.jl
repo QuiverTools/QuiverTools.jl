@@ -238,6 +238,8 @@ end
       # otherwise, we replace the two chambers in top_chambers by their union
       push!(top_chambers, Oscar.minkowski_sum(ch1, ch2))
       top_chambers = filter(ch -> (ch != ch1 && ch != ch2), top_chambers)
+      # the pairs being iterated over belong to the old list, so restart on the new one
+      break
     end
   end
   verbose &&
