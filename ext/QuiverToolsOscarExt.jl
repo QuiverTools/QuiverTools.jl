@@ -116,8 +116,13 @@ function vgit_walls(Q, d; inner=false, top_dimension=true)
 end
 
 @memoize Dict function __vgit_walls(Q, d)
-if QuiverTools.extended_gcd(d) != 1 || !is_schur_root(Q, d)
-    throw(ArgumentError("The quiver moduli setup $Q, $d does not admit stable representations. This functionality is unsupported for now, see Issue #53. Also see Issue #40 and [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153]."))
+  if QuiverTools.extended_gcd(d)[1] != 1 || !is_schur_root(Q, d)
+    throw(
+      ArgumentError(
+        "The dimension vector $d is not a primitive Schur root for the quiver $Q. This case is unsupported for now, see Issue #53. Also see Issue #40 and [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153]."
+      ),
+    )
+  end
   walls_data = map(
     e -> QuiverTools.__vgit_wall_data(Q, d, e),
     QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
@@ -143,8 +148,13 @@ function wall_system(Q, d; inner=false, as_cones=true)
 end
 
 @memoize Dict function vgit_chambers(Q, d; verbose=false)
-  if QuiverTools.extended_gcd(d) != 1 || !is_schur_root(Q, d)
-      throw(ArgumentError("The quiver moduli setup $Q, $d does not admit stable representations. This functionality is unsupported for now, see Issue #53. Also see Issue #40 and [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153]."))
+  if QuiverTools.extended_gcd(d)[1] != 1 || !is_schur_root(Q, d)
+    throw(
+      ArgumentError(
+        "The dimension vector $d is not a primitive Schur root for the quiver $Q. This case is unsupported for now, see Issue #53. Also see Issue #40 and [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153]."
+      ),
+    )
+  end
   sstd = __helper_accelerate(sst(Q, d))
 
   sstd_dim = Oscar.dim(sstd)
