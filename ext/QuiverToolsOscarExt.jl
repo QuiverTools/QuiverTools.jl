@@ -116,7 +116,7 @@ function vgit_walls(Q, d; inner=false, top_dimension=true)
 end
 
 @memoize Dict function __vgit_walls(Q, d)
-  if QuiverTools.extended_gcd(d)[1] != 1 || !is_schur_root(Q, d)
+  if gcd(d) != 1 || !is_schur_root(Q, d)
     throw(
       ArgumentError(
         "The dimension vector $d is not a primitive Schur root for the quiver $Q. This case is unsupported for now, see Issue #53. Also see Issue #40 and [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153]."
@@ -148,7 +148,7 @@ function wall_system(Q, d; inner=false, as_cones=true)
 end
 
 @memoize Dict function vgit_chambers(Q, d; verbose=false)
-  if QuiverTools.extended_gcd(d)[1] != 1 || !is_schur_root(Q, d)
+  if gcd(d) != 1 || !is_schur_root(Q, d)
     throw(
       ArgumentError(
         "The dimension vector $d is not a primitive Schur root for the quiver $Q. This case is unsupported for now, see Issue #53. Also see Issue #40 and [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153]."
@@ -160,8 +160,6 @@ end
   sstd_dim = Oscar.dim(sstd)
   # top-dimensional inner walls
   int_walls = vgit_walls(Q, d; inner=true, top_dimension=true)
-
-  # @warn "we must treat the case of a wall W_e of dimension = Oscar.dim(sstd) here!"
 
   # we split the walls into two sets: the ones equal to the wall system hyperplane
   # they lay on, and the ones that are not.
