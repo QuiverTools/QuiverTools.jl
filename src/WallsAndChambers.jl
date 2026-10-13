@@ -9,7 +9,7 @@ function __semistable_cone_data(Q::Quiver, d::AbstractVector{Int})
   return __semistable_cone_data(Q, Vector{Int}(d))
 end
 
-# equalities and inequalities that define sst(d), as in [Theorem 1, arXiv:2506.20568]
+# Equalities and inequalities that define sst(d), as in [Theorem 1, arXiv:2506.20568]
 @memoize Dict function __semistable_cone_data(Q::Quiver, d::Vector{Int})
   inequalities = filter(
     e -> any(!=(0), e) && e != d,
