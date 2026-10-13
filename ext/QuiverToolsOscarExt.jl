@@ -248,8 +248,13 @@ end
       inters = intersect(ch1, ch2)
       # we are looking for common facets
       Oscar.dim(inters) != sstd_dim - 1 && continue
-      # if their intersection (the common facet) lays on a W_e, good.
-      any(issubset(inters, w) for w in int_walls) && continue
+      # If the common facet lies on the walls, good.
+      # If the facet is covered by several walls
+      # on the same hyperplane without lying in any single one, also good.
+      # Since the walls form a fan, the facet lies in their union iff
+      # a point in its relative interior does.
+      p = Oscar.relative_interior_point(inters)
+      any(w -> p in w, int_walls) && continue
       verbose && @info "Found a fake wall, removing it..."
       incomplete = true
       # otherwise, we replace the two chambers in top_chambers by their union
