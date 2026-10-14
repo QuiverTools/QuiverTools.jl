@@ -1,4 +1,4 @@
-using Test, QuiverTools, Documenter
+using Test, QuiverTools, Documenter, Logging
 # To ensure that the version of the tests being run
 # is the latest committed one,
 # the local installation of QuiverTools should be the one developed at path="../."
@@ -663,9 +663,7 @@ end
     QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar, GraphViz)
   )
   # show only Documenter's warnings and errors, which include doctest failures
-  Base.CoreLogging.with_logger(
-    Base.CoreLogging.ConsoleLogger(stderr, Base.CoreLogging.Warn)
-  ) do
+  with_logger(ConsoleLogger(stderr, Logging.Warn)) do
     doctest(QuiverTools; manual=false, testset="Doctests")
   end
 end;
