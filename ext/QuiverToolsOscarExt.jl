@@ -297,7 +297,9 @@ function vgit_fan(Q, d; verbose=false)
   )
 end
 
-function general_stability(cone)
+# internal method that samples a stability parameter
+# from a cone without lineality and rescales it to be integer and coprime.
+function __general_stability(cone)
   out = Oscar.relative_interior_point(cone)
 
   c = lcm(denominator.(out)...)
@@ -331,7 +333,7 @@ function all_stability_parameters(
   dims = (l + 1):Oscar.dim(F)
   generic && (dims = filter(==(Oscar.dim(F)), dims)) # might be empty, can't just =[Oscar.dim(F)] this
   # the empty vector functions as init=[]
-  out = vcat(Vector{Int}[], [map(general_stability, Oscar.cones(F, i)) for i in dims]...)
+  out = vcat(Vector{Int}[], [map(__general_stability, Oscar.cones(F, i)) for i in dims]...)
   # the class of θ = 0 is L; it is a chamber only if L is the whole fan
   if !nonzero && (!generic || Oscar.dim(F) == l)
     pushfirst!(out, zeros(Int, length(d)))
