@@ -1,20 +1,10 @@
 using Test, QuiverTools, Documenter
-import Oscar
 # To ensure that the version of the tests being run
 # is the latest committed one,
 # the local installation of QuiverTools should be the one developed at path="../."
 
 # Tests that have mathematical significance
 # should be in the documentation doctests.
-
-@info "Almost all the tests are in the documentation."
-# `import Oscar` (not `using`) loads Oscar so the walls-and-chambers / VGIT extension
-# activates and its doctests resolve `Oscar.*`, without pulling Oscar's exports into
-# scope (which would clash with QuiverTools names such as `index`, `todd_class`, ...).
-DocMeta.setdocmeta!(
-  QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar, GraphViz)
-)
-doctest(QuiverTools; manual=false, testset="Doctests")
 
 @testset "Oscar-independent VGIT predicates" begin
   # VGIT boolean queries must not load the optional Oscar extension.
@@ -37,6 +27,9 @@ doctest(QuiverTools; manual=false, testset="Doctests")
 
   @test Base.get_extension(QuiverTools, :QuiverToolsOscarExt) === nothing
 end;
+
+# Oscar MUST be imported here to not throw off the previous test set
+import Oscar
 
 @testset "VGIT predicates agree with Oscar" begin
   Q = three_vertex_quiver(2, 3, 4)
@@ -316,6 +309,8 @@ end;
     to_dot(named),
   )
 end;
+
+import GraphViz
 
 @testset "GraphViz extension" begin
   Q = Quiver([0 1; 0 0], "α → β, 日本語: quote \" slash \\ line\nbreak")
@@ -710,5 +705,15 @@ end;
     d4 = [3, 2, 6, 1]
     @test_throws ArgumentError is_taus_minimal(Q4, d4; max_states=1)
     @test is_taus_minimal(Q4, d4; max_states=100) == false
+  end
+
+  @testset "Doctests" begin
+    # `import Oscar` (not `using`) loads Oscar so the walls-and-chambers / VGIT extension
+    # activates and its doctests resolve `Oscar.*`, without pulling Oscar's exports into
+    # scope (which would clash with QuiverTools names such as `index`, `todd_class`, ...).
+    DocMeta.setdocmeta!(
+      QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar, GraphViz)
+    )
+    doctest(QuiverTools; manual=false, testset="Doctests")
   end
 end
