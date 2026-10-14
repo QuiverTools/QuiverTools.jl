@@ -658,6 +658,11 @@ end
 Checks whether the quiver moduli setup `M.Q, M.d` is strongly amply `M.theta`-stable,
 see [[Definition 4.1, doi:10.5802/jep.312](https://doi.org/10.5802/jep.312)].
 
+This notion used to be necessary if one wanted to apply
+the Teleman quantization results, e.g. the vanishing of endomorphisms
+of the universal bundles.
+By [arXiv:2610.03302](https://arxiv.org/abs/2610.03302),
+this is no longer necessary, as ample stability suffices.
 
 # Examples
 
