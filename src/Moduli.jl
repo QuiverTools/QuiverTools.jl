@@ -993,7 +993,7 @@ function __dimension_nilpotent_moduli(
     )
     best = max(best, value)
   end
-  return best
+  return isfinite(best) ? Int(best) : best
 end
 
 """
@@ -1091,8 +1091,7 @@ function __fibre_dimension(Mbar::QuiverModuliSpace, theta::AbstractVector{Int}, 
 
   # a repeated rigid summand is not realized by any representation
   any(<(0), setting.Q.adjacency) && return -Inf
-  f = __dimension_nilpotent_moduli(setting.Q, setting.d, thetaloc, sum)
-  return isfinite(f) ? Int(f) : f
+  return __dimension_nilpotent_moduli(setting.Q, setting.d, thetaloc, sum)
 end
 
 """
