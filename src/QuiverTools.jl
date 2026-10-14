@@ -70,7 +70,8 @@ export all_luna_types, is_luna_type, dimension_of_luna_stratum
 export is_nonempty, codimension_unstable_locus, codimension_singular_locus, dimension,
   fibre_dimension, is_flat, is_semismall,
   is_smooth,
-  is_projective, is_strongly_amply_stable, semistable_equals_stable, semisimple_moduli_space
+  is_projective, is_strongly_amply_stable, local_quiver_setting, semistable_equals_stable,
+  semisimple_moduli_space
 
 # Hodge
 export hodge_diamond, hodge_polynomial, picard_rank, index, betti_numbers
