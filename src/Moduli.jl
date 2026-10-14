@@ -586,7 +586,7 @@ end
 # kappa(d) = sum(d); base vertex i carries C * theta_i - 1. This lies in the framing chamber
 # for every base theta, and for theta = 0 (fibres) reduces to kappa(d) * i_0^* - kappa, e.g.
 # [2, -1, -1] for the local quiver of the first fibre type in arXiv:2607.12895.
-function _framed_stability(
+function __framed_stability(
   theta::AbstractVector{Int}, d::AbstractVector{Int}, coframed::Bool
 )
   kappa_d = sum(d)
@@ -614,7 +614,7 @@ parameter ``\\widehat{\\Theta}``.
 function total_space(X::FramedQuiverModuliSpace)
   Qhat = X.coframed ? coframed_quiver(X.Q, X.n) : framed_quiver(X.Q, X.n)
   dhat = X.coframed ? [X.d; 1] : [1; X.d]
-  theta_hat = _framed_stability(X.theta, X.d, X.coframed)
+  theta_hat = __framed_stability(X.theta, X.d, X.coframed)
   return QuiverModuliSpace(Qhat, dhat, theta_hat, "semistable", X.denom)
 end
 
