@@ -352,6 +352,12 @@ function all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bo
   return map(general_stability, cones) #do we add the semisimple condition?
 end
 
+########################################################################
+# Below lie functions to project all of the objects above to d^{\perp}.
+# This is for user-friendliness and to allow Oscar.visualize()
+# to display 3-dimensional fans in \mathbb{R}^4.
+########################################################################
+
 # The coordinates kept by `project_to_d_perp`: all but `drop`, which needs d[drop] != 0
 # for the projection to be injective on d^⟂.
 function __d_perp_coordinates(d::AbstractVector{Int}, drop::Int)
