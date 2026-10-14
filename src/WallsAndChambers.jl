@@ -362,6 +362,22 @@ julia> F = vgit_fan(Q, d); Oscar.rays(F)
  [1, 2, -2]
  [0, 1, -3//4]
 ```
+
+In the following example, from
+[Issue #40](https://github.com/QuiverTools/QuiverTools.jl/issues/40),
+`sst(Q, d)` is the whole hyperplane ``d^\\perp`` and some of the walls have a nontrivial lineality space, i.e., they are not strongly convex but contain a vector subspace.
+The VGIT fan has 10 three-dimensional maximal cones
+covering ``d^\\perp``.
+
+```jldoctest
+julia> Q = Quiver("1--3,3--1,2--4,4--2,3--4,2-1"); d = [1, 1, 1, 1];
+
+julia> Oscar.lineality_dim(sst(Q, d))
+3
+
+julia> F = vgit_fan(Q, d); Oscar.dim(F), Oscar.n_maximal_cones(F), Oscar.n_rays(F)
+(3, 10, 7)
+```
 """
 function vgit_fan end
 
