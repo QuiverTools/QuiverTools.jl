@@ -708,29 +708,8 @@ end
 # Nullcones
 ########################################################################################
 
-# product of dense integer polynomials, given by their coefficient vectors in
-# ascending degree
-function __polymul(p::Vector{BigInt}, q::Vector{BigInt})
-  r = zeros(BigInt, length(p) + length(q) - 1)
-  for (i, a) in pairs(p), (j, b) in pairs(q)
-    r[i + j - 1] += a * b
-  end
-  return r
-end
-
-# the Gaussian binomial coefficient as a polynomial in the Lefschetz motive, given by
-# its coefficient vector, using the q-Pascal recursion
-@memoize Dict function __gaussian_binomial(n::Int, k::Int)
-  (k == 0 || k == n) && return [big(1)]
-  p, q = __gaussian_binomial(n - 1, k - 1), __gaussian_binomial(n - 1, k)
-  r = zeros(BigInt, max(length(p), k + length(q)))
-  r[eachindex(p)] .+= p
-  r[k .+ eachindex(q)] .+= q
-  return r
-end
-
-# The motive of the nullcone of the setting (A, d) as a polynomial in the Lefschetz
-# motive L, given by its coefficient vector, following the recursion of
+# The motive of the nullcone of the setting (A, d) as an element of the polynomial ring
+# QQ[L] in the Lefschetz motive L, following the recursion of
 # [Corollary 3.1, doi:10.3842/SIGMA.2026.020], which stratifies the nullcone by the
 # dimension vector of the socle:
 #
@@ -738,25 +717,29 @@ end
 #
 # where s(e, d) = \sum_i binomial(d_i - e_i, 2) + \sum_{a: i -> j} e_i (d_j - e_j).
 function __nullcone_motive(A::Matrix{Int}, d::Vector{Int})
+  R, (L,) = polynomial_ring(Singular.QQ, ["L"])
   n = length(d)
-  motives = Dict{Vector{Int},Vector{BigInt}}(zeros(Int, n) => [big(1)])
+
+  # the Gaussian binomial coefficients [m; k]_L, computed once per call
+  gaussian = Dict{Tuple{Int,Int},typeof(L)}()
+  gaussian_binomial(m, k) =
+    get!(gaussian, (m, k)) do
+      Singular.divexact(
+        prod((L^(m - i) - 1 for i in 0:(k - 1)); init=one(R)),
+        prod((L^(i + 1) - 1 for i in 0:(k - 1)); init=one(R)),
+      )
+    end
+
+  motives = Dict{Vector{Int},typeof(L)}(zeros(Int, n) => one(R))
   for e in sort!(all_subdimension_vectors(d; nonzero=true); by=sum)
-    total = BigInt[]
+    total = zero(R)
     for f in all_subdimension_vectors(e; strict=true)
-      term = motives[f]
-      for i in 1:n
-        term = __polymul(term, __gaussian_binomial(e[i], f[i]))
-      end
       shift =
         sum(binomial(e[i] - f[i], 2) for i in 1:n) +
         sum(A[i, j] * f[i] * (e[j] - f[j]) for i in 1:n, j in 1:n)
-      length(total) < shift + length(term) &&
-        append!(total, zeros(BigInt, shift + length(term) - length(total)))
       sign = isodd(sum(e) - sum(f)) ? 1 : -1
-      total[shift .+ eachindex(term)] .+= sign .* term
-    end
-    while length(total) > 1 && iszero(total[end])
-      pop!(total)
+      binomials = prod(gaussian_binomial(e[i], f[i]) for i in 1:n)
+      total += sign * L^shift * binomials * motives[f]
     end
     motives[e] = total
   end
@@ -816,7 +799,7 @@ julia> dimension_nullcone(kronecker_quiver(3), [2, 3])
 @memoize Dict function dimension_nullcone(Q::Quiver, d::AbstractVector{Int})
   __check_dimension_vector(Q, d)
 
-  return length(__nullcone_motive(Matrix{Int}(Q.adjacency), Vector{Int}(d))) - 1
+  return degree(__nullcone_motive(Matrix{Int}(Q.adjacency), Vector{Int}(d)), 1)
 end
 
 """
@@ -864,10 +847,8 @@ L^18
 function nullcone_motive(Q::Quiver, d::AbstractVector{Int})
   __check_dimension_vector(Q, d)
 
-  coefficients = __nullcone_motive(Matrix{Int}(Q.adjacency), Vector{Int}(d))
-  K, L = Singular.FunctionField(Singular.QQ, ["L"])
-  L = L[1]
-  return sum(K(coefficients[k]) * L^(k - 1) for k in eachindex(coefficients))
+  K, (L,) = Singular.FunctionField(Singular.QQ, ["L"])
+  return Singular.evaluate(__nullcone_motive(Matrix{Int}(Q.adjacency), Vector{Int}(d)), [L])
 end
 
 """

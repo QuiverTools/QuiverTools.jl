@@ -432,8 +432,8 @@ end;
   @test dimension_nullcone(Quiver("1-1, 1-2, 2-1"), [2, 3]) == 11
   # the motive of pairs of nilpotent 3x3 matrices is
   # L^9 + 2L^8 - L^6 - 2L^5 + L^3 [Example (4) in Section 3.2, loc. cit.]
-  @test QuiverTools.__nullcone_motive(fill(2, 1, 1), [3]) ==
-    [0, 0, 0, 1, 0, -2, -1, 0, 2, 1]
+  @test string(nullcone_motive(jordan_quiver(2), [3])) ==
+    "L^9 + 2*L^8 - L^6 - 2*L^5 + L^3"
 
   # the defect measures the failure of equidimensionality: it vanishes for cofree
   # settings, and for the settings 2 <=> k it decreases to zero as k grows to 4
