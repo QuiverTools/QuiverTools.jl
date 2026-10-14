@@ -1,3 +1,8 @@
+```@meta
+DocTestSetup = quote
+  using QuiverTools
+end
+```
 # Tutorial
 
 ## Basic functionalities
@@ -10,14 +15,14 @@ julia> using QuiverTools
 
 Quivers can be built by passing the adjacency matrix to the `Quiver()` constructor:
 
-```julia-repl
+```doctest
 julia> Quiver([0 3; 0 0])
 Quiver with adjacency matrix [0 3; 0 0]
 ```
 
 The constructor accepts an optional string for naming the quiver:
 
-```julia-repl
+```doctest
 julia> MyQ = Quiver([0 3; 0 0], "My personal quiver")
 My personal quiver, with adjacency matrix [0 3; 0 0]
 ```
@@ -25,7 +30,7 @@ My personal quiver, with adjacency matrix [0 3; 0 0]
 QuiverTools has several constructors in place for many common examples. See
 [Constructors](@ref) for all the special constructors.
 
-```julia-repl
+```doctest
 julia> kronecker_quiver(4)
 4-Kronecker quiver, with adjacency matrix [0 4; 0 0]
 
@@ -41,7 +46,7 @@ An acyclic 3-vertex quiver, with adjacency matrix [0 1 6; 0 0 7; 0 0 0]
 
 Lastly, there is a handy constructor using strings:
 
-```julia-repl
+```doctest
 julia> Q = Quiver("1--2,1---3,2-4,2--3")
 Quiver with adjacency matrix [0 2 3 0; 0 0 2 1; 0 0 0 0; 0 0 0 0]
 ```
@@ -49,7 +54,7 @@ Quiver with adjacency matrix [0 2 3 0; 0 0 2 1; 0 0 0 0; 0 0 0 0]
 Dimension vectors and stability parameters are represented by `AbstractVector{Int}`
 objects, while under the hood these are encoded using the StaticArrays package.
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3); d = [2,3];
 
 julia> θ = canonical_stability(Q, d)
@@ -67,7 +72,7 @@ proper subdimension vectors ``0 \neq d' \nleq d`` satisfies ``\theta \cdot d' = 
 The bilinear Euler form relative to a quiver Q of any two vectors
 in ``\mathbb{Z}^{Q_0}`` can be computed:
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3); d = [2,2]; e = [3,4];
 
 julia> euler_form(Q, d, e)
@@ -91,7 +96,7 @@ for all vertices i,
 where ``s_i`` is the dimension vector with all entries set to ``0`` and the i-th
 set to ``1``.
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3); d = [2,2];
 
 julia> in_fundamental_domain(Q, d)
@@ -106,7 +111,7 @@ false
 One can check if semistable, respectively stable representations
 exist for a given dimension vector and stability parameter:
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3); d = [2,3]; θ = [3,-2];
 
 julia> has_semistable_representation(Q, d, θ)
@@ -127,7 +132,7 @@ true
 One can also determine whether stable representations exist at all
 for a given dimension vector by checking if it is a Schur root:
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3); d = [2, 2];
 
 julia> is_schur_root(Q, d)
@@ -144,7 +149,7 @@ false
 QuiverTools implements the abstract `QuiverModuli` type and the two concrete types
 `QuiverModuliSpace` and `QuiverModuliStack`.
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3])
@@ -157,7 +162,7 @@ Quiver moduli space defined as follows:
 
 Some special constructors are implemented for Kronecker moduli and subspace moduli.
 
-```julia-repl
+```doctest
 julia> kronecker_moduli(3, 3, 4)
 Quiver moduli space defined as follows:
  - quiver: 3-Kronecker quiver
@@ -184,7 +189,7 @@ See the docstring of each method for more information and examples.
 QuiverTools provides methods to study the Harder-Narasimhan stratification
 of the parameter space ``\mathrm{R}(Q,\mathbf{d})``.
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
 
 julia> all_hn_types(M)
@@ -219,7 +224,7 @@ to apply Teleman quantization on the non-dense strata.
 The output is a dictionary whose keys are the HN types
 and whose values are the weights themselves.
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
 
 julia> all_teleman_bounds(M)
@@ -239,7 +244,7 @@ In the following example, for each ``i,j`` and on each Harder-Narasimhan stratum
 we compute the weight of ``\mathcal{U}_i^\vee \otimes \mathcal{U}_j`` relative to the
 1-PS corresponding to the HN stratum. These are then compared to the Teleman bounds.
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
 
 julia> hn = all_teleman_bounds(M)
@@ -289,7 +294,7 @@ If this is the canonical decomposition of ``d``,
 then the general representation of dimension vector ``d`` is
 a direct sum of indecomposable representations of dimension vector ``\beta_i``.
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3);
 
 julia> canonical_decomposition(Q, [2, 3])
@@ -334,7 +339,7 @@ julia> general_ext(Q, e, d)
 This allows to determine whether a root is real, imaginary isotropic
 or imaginary anisotropic.
 
-```julia-repl
+```doctest
 julia> ds = QuiverTools.all_subdimension_vectors([5, 5])
 6×6 Matrix{Vector{Int64}}:
  [0, 0]  [0, 1]  [0, 2]  [0, 3]  [0, 4]  [0, 5]
@@ -384,7 +389,7 @@ julia> filter(d -> is_imaginary_root(Q, d), ds)
 QuiverTools features an implementation of the Hodge polynomial of quiver moduli,
 if the base field is ``\mathbb{C}`` and the dimension vector is a coprime Schurian root.
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> hodge_polynomial(M)
@@ -418,7 +423,7 @@ QuiverTools allows to compute the Chow ring for a given quiver moduli space, as 
 the point class, the Todd class and the Euler characteristic of a vector bundle, given
 its Chern character or its Chern class.
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> CH = chow_ring(M; chi=[2, -1])
@@ -462,12 +467,9 @@ Bundle of rank 1
 
 julia> euler_characteristic(OO)
 1
-```
 
-As seen in `dual(u1) * u2` in the example above,
-tensor calculus is implemented to some extent:
+julia> # As seen in `dual(u1) * u2` in the example above, tensor calculus is implemented to some extent:
 
-```julia-repl
 julia> Λ = map(n -> exterior_power(u2, n), 0:4)
 5-element Vector{Bundle}:
  Bundle of rank 1
@@ -506,7 +508,7 @@ These are implemented for known bundles, behave well with respect to all
 tensor calculus operations, and streamline the application of the Teleman quantization
 theorem.
 
-```julia-repl
+```doctest
 julia> teleman_weights(u1)
 Dict{HNType{2}, Vector{Int64}} with 7 entries:
   [[2, 2], [0, 1]]         => [-15, -15]
@@ -550,7 +552,7 @@ Dict{HNType{2}, Vector{Int64}} with 7 entries:
 
 
 The ample generator of the Picard group of `M`.
-```julia-repl
+```doctest
 julia> L = Bundle(M, chern_character_line_bundle(M, [3, -2]));
 
 julia> map(i -> euler_characteristic(L^i), 0:5)
@@ -570,7 +572,7 @@ For acyclic quivers, the Hochschild cohomologies are described in
 
 QuiverTools provides a method to compute the only nontrivial one.
 
-```julia-repl
+```doctest
 julia> Q = kronecker_quiver(3);
 
 julia> first_hochschild_cohomology(Q)

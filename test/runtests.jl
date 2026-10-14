@@ -292,7 +292,7 @@ QuiverTools.empty_all_caches!()
 end;
 QuiverTools.empty_all_caches!()
 
-@testset "intersection cohomology" begin
+@testset "intersection cohomology          " begin
   # intersection cohomology agrees with ordinary cohomology on smooth moduli spaces, so
   # route a few of those through the Meinhardt--Reineke branch on purpose
   for (Q, d, theta) in [
@@ -779,6 +779,6 @@ end
   )
   # show only Documenter's warnings and errors, which include doctest failures
   with_logger(ConsoleLogger(stderr, Logging.Warn)) do
-    doctest(QuiverTools; manual=false, testset="Doctests")
+    doctest(QuiverTools; manual=true, testset="Doctests")
   end
 end;
