@@ -660,6 +660,47 @@ nilpotent locus of ``M^{0}(Q_\\tau, \\mathbf{d}_\\tau, \\mathbf{n}_\\tau)``, whe
 and `d_tau` are the local quiver and local dimension vector (see [`local_quiver_setting`](@ref))
 and the local framing datum is
 ``\\mathbf{n}_\\tau = \\sum_k (\\mathbf{n} \\cdot \\mathbf{d}_k)\\, i_k``.
+
+# Examples
+
+The framed affine ``D_4`` quiver with base dimension vector ``2 \\delta``, for
+``\\delta = (1, 1, 1, 1; 2)``, gives the four-dimensional moduli space ``QM_1`` of
+[arXiv:2607.12895](https://arxiv.org/abs/2607.12895), whose five fibre types are described
+in Lemmas 18 to 22 there. For each Luna type we print the local dimension vector, the
+local framing datum and the stability parameter of the framed local quiver, with the
+framing vertex first. The order of the local vertices is not canonical, so the first two
+are sorted.
+
+```jldoctest
+julia> delta = [1, 1, 1, 1, 2];
+
+julia> X = FramedQuiverModuliSpace(subspace_quiver(4), 2 .* delta; n=[0, 0, 0, 0, 1]);
+
+julia> dimension(total_space(X))
+4
+
+julia> eK, eKb = [1, 1, 0, 0, 1], [0, 0, 1, 1, 1];
+
+julia> eL, eLb = [1, 0, 1, 0, 1], [0, 1, 0, 1, 1];
+
+julia> types = [
+         Dict(delta => [1, 1]),                               # Lemma 18
+         Dict(delta => [1], eK => [1], eKb => [1]),           # Lemma 19
+         Dict(eK => [1], eKb => [1], eL => [1], eLb => [1]),  # Lemma 20
+         Dict(delta => [2]),                                  # Lemma 21
+         Dict(eK => [2], eKb => [2]),                         # Lemma 22
+       ];
+
+julia> for tau in types
+         A = ambient(fibre(X, tau))
+         println(sort(A.d), " ", sort(framing_vector(A)), " ", total_space(A).theta)
+       end
+[1, 1] [2, 2] [2, -1, -1]
+[1, 1, 1] [1, 1, 2] [3, -1, -1, -1]
+[1, 1, 1, 1] [1, 1, 1, 1] [4, -1, -1, -1, -1]
+[2] [2] [2, -1]
+[2, 2] [1, 1] [4, -1, -1]
+```
 """
 function fibre(X::FramedQuiverModuliSpace, tau)
   setting = local_quiver_setting(base(X), tau)

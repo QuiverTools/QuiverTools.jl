@@ -496,34 +496,6 @@ QuiverTools.empty_all_caches!()
   @test L.d == [3]
   @test Matrix(L.Q.adjacency) == fill(2, 1, 1)   # one vertex, two loops
   @test L.theta == [0]
-
-  # Proposition 6: fibres of the framed projection for the framed affine-D4 quiver, base
-  # dimension 2*(1,1,1,1;2). This is the four-dimensional QM_1 of arXiv:2607.12895, whose
-  # five fibre types are Lemmas 18-22. The fibre over each stratum is a NilpotentLocus in a
-  # framed moduli of the local quiver, with local framing datum n_tau = sum_k (n.d_k) i_k and
-  # framed stability [sum d_tau, -1, ..., -1] (framing vertex first). Local vertex order is
-  # not canonical, so the framing datum is compared sorted. Rows: (Lemma, tau, d_tau, n_tau).
-  delta = [1, 1, 1, 1, 2]
-  XD4 = FramedQuiverModuliSpace(subspace_quiver(4), 2 .* delta; n=[0, 0, 0, 0, 1])
-  @test dimension(total_space(XD4)) == 4
-  eK, eKb = [1, 1, 0, 0, 1], [0, 0, 1, 1, 1]
-  eL, eLb = [1, 0, 1, 0, 1], [0, 1, 0, 1, 1]
-  types = [
-    (18, Dict(delta => [1, 1]), [1, 1], [2, 2]),
-    (19, Dict(delta => [1], eK => [1], eKb => [1]), [1, 1, 1], [1, 1, 2]),
-    (20, Dict(eK => [1], eKb => [1], eL => [1], eLb => [1]), [1, 1, 1, 1], [1, 1, 1, 1]),
-    (21, Dict(delta => [2]), [2], [2]),
-    (22, Dict(eK => [2], eKb => [2]), [2, 2], [1, 1]),
-  ]
-  for (lemma, tau, dloc, nloc) in types
-    F = fibre(XD4, tau)
-    @test F isa NilpotentLocus
-    A = ambient(F)
-    @test A isa FramedQuiverModuliSpace
-    @test sort(A.d) == dloc
-    @test sort(framing_vector(A)) == nloc
-    @test total_space(A).theta == [sum(dloc); fill(-1, length(dloc))]
-  end
 end;
 QuiverTools.empty_all_caches!()
 
