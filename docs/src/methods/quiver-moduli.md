@@ -27,6 +27,9 @@ is_nonempty
 dimension
 is_smooth
 codimension_singular_locus
+fibre_dimension
+is_flat
+is_semismall
 is_projective
 index
 motive

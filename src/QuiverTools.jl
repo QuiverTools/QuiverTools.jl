@@ -62,11 +62,13 @@ export is_general_subdimension_vector, all_general_subdimension_vectors
 export euler_form, euler_matrix, is_root, is_schur_root, is_real_root, is_imaginary_root,
   is_isotropic_root,
   general_ext, general_hom, canonical_decomposition, in_fundamental_domain,
-  bocklandt_reduction, is_coregular, is_cofree
+  bocklandt_reduction, is_coregular, is_cofree, dimension_nullcone, nullcone_motive,
+  defect
 
 # Moduli
 export all_luna_types, is_luna_type, dimension_of_luna_stratum
 export is_nonempty, codimension_unstable_locus, codimension_singular_locus, dimension,
+  fibre_dimension, is_flat, is_semismall,
   is_smooth,
   is_projective, is_strongly_amply_stable, semistable_equals_stable, semisimple_moduli_space
 
@@ -92,7 +94,9 @@ export chern_character, chern_class, chern_classes, dual, exterior_power, symmet
 
 # Walls and Chambers
 export rays, is_special_subdimension_vector, all_special_subdimension_vectors, sst,
-  vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent, all_stability_parameters
+  vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent,
+  all_stability_parameters,
+  project_to_d_perp
 
 # Domokos reductions
 export is_large, is_small_source, is_small_sink,
@@ -153,13 +157,13 @@ include("Misc.jl")
 include("Stability.jl")
 include("RepresentationTheory.jl")
 include("Constructors.jl")
+include("WallsAndChambers.jl")
 include("Moduli.jl")
 include("Reductions.jl")
 include("Hodge.jl")
 include("Chow.jl")
 include("Teleman.jl")
 include("Bundles.jl")
-include("WallsAndChambers.jl")
 
 # Warm the JIT for the shared Chow/Hodge computation path so the user's first
 # invariant computation is near-instant. Compilation is input-independent, so a
