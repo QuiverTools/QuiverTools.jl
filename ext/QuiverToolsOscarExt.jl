@@ -375,55 +375,6 @@ function project_to_d_perp(
 end
 
 """
-    __sst_cone(Q::Quiver, e::AbstractVector{Int})
-
-Return the exact same polyhedral cone as `sst(Q, e)`
-but seen as an Oscar `Cone` object.
-
-For internal use only for now.
-"""
-function __sst_cone(Q::Quiver, e::AbstractVector{Int})
-  data = QuiverTools.__semistable_cone_data(Q, e)
-  isempty(data.inequalities) &&
-    return Oscar.cone_from_inequalities(vcat(data.equations, .-data.equations))
-  return Oscar.cone_from_inequalities(data.inequalities, data.equations)
-end
-
-"""
-    __walls_cones(Q::Quiver, d::AbstractVector{Int})
-
-Compute the polyhedral cones of the walls `W_e` of the quiver `Q` with dimension vector `d`.
-
-For internal use only for now.
-"""
-function __walls_cones(Q::Quiver, d::AbstractVector{Int})
-  out = map(
-    e -> Oscar.intersect(__sst_cone(Q, e), __sst_cone(Q, d - e)),
-    QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
-  )
-  return unique!(out)
-end
-
-"""
-    __lower_fan(Q::Quiver, d::AbstractVector{Int})
-
-Compute the polyhedral fan from the definition
-using the fan construction via cones.
-
-Does not contain the top dimensional chambers,
-so it cannot be used to iterate over chambers.
-
-It is way faster and more likely to be correct in G.P. opinion.
-
-For internal use only for now.
-"""
-function __lower_fan(Q::Quiver, d::AbstractVector{Int})
-  walls = __walls_cones(Q, d)
-  isempty(walls) && return Oscar.polyhedral_fan(__sst_cone(Q, d)) # I guess
-  return Oscar.polyhedral_fan(walls)
-end
-
-"""
     general_stability(cone)
 
 Given a polyhedral cone of the VGIT fan,
