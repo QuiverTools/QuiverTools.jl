@@ -37,4 +37,5 @@ vgit_chambers
 vgit_fan
 git_equivalent
 all_stability_parameters
+project_to_d_perp
 ```

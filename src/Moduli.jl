@@ -263,13 +263,15 @@ Luna types for a 3-Kronecker quiver:
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
 
-julia> all_luna_types(M)
-5-element Vector{LunaType}:
- Dict([3, 3] => [1])
- Dict([1, 1] => [1], [2, 2] => [1])
- Dict([1, 1] => [3])
- Dict([1, 1] => [1, 2])
- Dict([1, 1] => [1, 1, 1])
+julia> all_luna_types(M) ==
+        [
+             Dict{Vector{Int64}, Vector{Int64}}([3, 3] => [1]),
+             Dict{Vector{Int64}, Vector{Int64}}([1, 1] => [1], [2, 2] => [1]),
+             Dict{Vector{Int64}, Vector{Int64}}([1, 1] => [3]),
+             Dict{Vector{Int64}, Vector{Int64}}([1, 1] => [1, 2]),
+             Dict{Vector{Int64}, Vector{Int64}}([1, 1] => [1, 1, 1]),
+       ]
+true
 ```
 """
 function all_luna_types(M::QuiverModuli; stable::Bool=true)
@@ -307,13 +309,15 @@ Keyword arguments:
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [3, 3]);
 
-julia> all_luna_types(M)
-5-element Vector{LunaType}:
- Dict([3, 3] => [1])
- Dict([1, 1] => [1], [2, 2] => [1])
- Dict([1, 1] => [3])
- Dict([1, 1] => [1, 2])
- Dict([1, 1] => [1, 1, 1])
+julia> all_luna_types(M) ==
+        [
+             Dict{Vector{Int64}, Vector{Int64}}([3, 3] => [1]),
+             Dict{Vector{Int64}, Vector{Int64}}([1, 1] => [1], [2, 2] => [1]),
+             Dict{Vector{Int64}, Vector{Int64}}([1, 1] => [3]),
+             Dict{Vector{Int64}, Vector{Int64}}([1, 1] => [1, 2]),
+             Dict{Vector{Int64}, Vector{Int64}}([1, 1] => [1, 1, 1]),
+       ]
+true
 
 julia> X = QuiverModuliSpace(Q, [2, 3]);
 

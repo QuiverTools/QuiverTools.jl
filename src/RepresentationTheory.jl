@@ -287,8 +287,8 @@ end
 # its cache.
 function __bocklandt_step(A::Matrix{Int}, d::Vector{Int})
   n = length(d)
-  # the vectors of \chi(d, e_v) and \chi(e_v, d), for e_v the unit vector at v
-  chi_in, chi_out = d - A' * d, d - A * d
+  # the vectors of <d, e_v> and <e_v, d>, for e_v the unit vector at v
+  euler_form_in, euler_form_out = d - A' * d, d - A * d
   # The three conditions are mutually exclusive at a fixed vertex, and the final
   # reduced setting is independent of the chosen moves [Theorem 6, arXiv:math/0207250].
   for v in 1:n
@@ -296,7 +296,7 @@ function __bocklandt_step(A::Matrix{Int}, d::Vector{Int})
     # paths carry at most d[v] dimensions, shortcutting every path through it; a lone
     # vertex is kept so that the reduced coregular settings are the three settings of
     # [Theorem 1.1, MR1929191]
-    if A[v, v] == 0 && n > 1 && (chi_in[v] >= 0 || chi_out[v] >= 0)
+    if A[v, v] == 0 && n > 1 && (euler_form_in[v] >= 0 || euler_form_out[v] >= 0)
       keep = setdiff(1:n, v)
       return A[keep, keep] + A[keep, v] * A[v, keep]', d[keep]
     end
@@ -310,10 +310,10 @@ function __bocklandt_step(A::Matrix{Int}, d::Vector{Int})
     # loop and, besides the loop, a single incoming (resp. outgoing) arrow from
     # (resp. to) a vertex of dimension 1, remove the loop and thicken that arrow to
     # k parallel arrows
-    if A[v, v] == 1 && d[v] >= 2 && (chi_in[v] == -1 || chi_out[v] == -1)
+    if A[v, v] == 1 && d[v] >= 2 && (euler_form_in[v] == -1 || euler_form_out[v] == -1)
       B = copy(A)
       B[v, v] = 0
-      if chi_in[v] == -1
+      if euler_form_in[v] == -1
         u = findfirst(w -> w != v && A[w, v] > 0, 1:n)
         B[u, v] = d[v]
       else
@@ -339,12 +339,12 @@ simplified using the three reduction steps of [Section 3, MR1929191], each of wh
 preserves the ring of invariants up to a polynomial factor:
 
 - ``R_I`` [Lemma 3.2, MR1929191]: a vertex ``v`` without loops with
-  ``\\chi(d, e_v) \\geq 0`` or ``\\chi(e_v, d) \\geq 0`` is removed, and every pair of
+  ``\\langle d, e_v\\rangle \\geq 0`` or ``\\langle e_v, d\\rangle \\geq 0`` is removed, and every pair of
   arrows ``u \\to v \\to w`` is replaced by an arrow ``u \\to w``;
 - ``R_{II}`` [Lemma 3.3, MR1929191]: the loops on a vertex of dimension `1` are
   removed;
 - ``R_{III}`` [Lemma 3.4, MR1929191]: the unique loop on a vertex ``v`` of dimension
-  ``k \\geq 2`` with ``\\chi(d, e_v) = -1`` (resp. ``\\chi(e_v, d) = -1``) is removed,
+  ``k \\geq 2`` with ``\\langle d, e_v\\rangle = -1`` (resp. ``\\langle e_v, d\\rangle = -1``) is removed,
   and the unique incoming (resp. outgoing) non-loop arrow is replaced by ``k``
   parallel arrows.
 
@@ -487,11 +487,13 @@ end
 # and 9. Paths and cycles are quasiprimitive throughout: they use every vertex w as a
 # source of at most d[w] arrows.
 
-# The number of quasiprimitive cycles through v, counted with arrow multiplicities and
-# capped to bound the enumeration; only used when every such cycle passes through v
-# exactly once, so that counting closed walks anchored at v is correct.
+# This function enumerates quasiprimitive cycles through v, until it finds at most `cap + 1` of them.
+# If the vertex v has an arrov v -> v, the only paths this method counts contain one arrow, i.e., "v -> v -> v" is not *one* path.
 function __n_quasiprimitive_cycles(A::Matrix{Int}, d::Vector{Int}, v::Int, cap::Int)
   total, budget = Ref(0), copy(d)
+  # each step of the recursion "walks" along arrows and adds to total when it comes across v.
+  # When called starting from v, this counts then cycles through v.
+  # the extra variable `mult` carries the amount of arrows that brought the walk where it is.
   function walk(x::Int, mult::Int)
     (total[] > cap || budget[x] == 0) && return nothing
     budget[x] -= 1
@@ -516,6 +518,7 @@ function __wedge_step(A::Matrix{Int}, d::Vector{Int})
     outs, ins = findall(>(0), A[v, :]), findall(>(0), A[:, v])
     out = length(outs) == 1 && A[v, outs[1]] == 1 && d[outs[1]] == 1
     into = length(ins) == 1 && A[ins[1], v] == 1 && d[ins[1]] == 1
+    # we don't actually care how many quasiprimitive cycles there are, knowing that there are at most d[v] suffices - hence the cap
     ((out || into) && __n_quasiprimitive_cycles(A, d, v, d[v]) <= d[v]) || continue
     B = copy(A)
     out ? (B[:, outs[1]] .+= A[:, v]) : (B[ins[1], :] .+= A[v, :])
@@ -637,7 +640,7 @@ the classification of
 the setting is cofree if and only if all its strongly connected components are, which
 is decided by wedging away vertices (their reduction step ``W``), splitting into prime
 components (the summands of the decomposition as an iterated connected sum at vertices
-of dimension `1`), and comparing against the list of [Theorem 1, loc. cit.].
+of dimension `1`), and comparing against the list of [Theorem 1, op. cit.].
 
 Cofreeness is stronger than coregularity: it moreover makes the quotient map from the
 representation variety to the affine quotient flat.
