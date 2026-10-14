@@ -286,7 +286,7 @@ function vgit_fan(Q, d; verbose=false)
   chambers = vgit_chambers(Q, d; verbose=verbose)
   !all(Oscar.lineality_dim(ch) == 0 for ch in chambers) && throw(
     ArgumentError(
-      """The VGIT fan is not strongly convex.
+      """One of the GIT chambers has a lineality space.
       Unsupported for now, see https://github.com/QuiverTools/QuiverTools.jl/issues/40""",
     ),
   )
