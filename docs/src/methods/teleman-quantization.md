@@ -12,5 +12,6 @@ weights_canonical_bundle
 all_weights_endomorphisms_universal_bundle
 weights_endomorphisms_universal_bundles
 does_rigidity_inequality_hold
+does_teleman_inequality_hold
 set_teleman_weights!
 ```

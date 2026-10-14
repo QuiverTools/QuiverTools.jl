@@ -22,20 +22,6 @@ struct Quiver{T}
   adjacency::AbstractMatrix{Int}
   name::String
 
-  """
-      Quiver(adjacency, name = "")
-
-  Construct a quiver from the adjacency matrix and optionally a name.
-
-  # Examples
-
-  ```jldoctest
-  julia> m = [0 1; 2 0];
-
-  julia> Quiver(m, "my quiver")
-  my quiver
-  ```
-  """
   function Quiver(adjacency::AbstractMatrix{Int}, name::String="")
     size(adjacency, 1) != size(adjacency, 2) &&
       throw(ArgumentError("adjacency matrix must be square"))
@@ -44,43 +30,6 @@ struct Quiver{T}
     return new{T}(adj, name)
   end
 
-  """
-      Quiver(arrows::String)
-
-  Construct a quiver from its arrows encoded in a string.
-
-  The string is a comma-separated list of chains `i-j-k-...`. Within a chain, a run of
-  `r` hyphens between two vertices encodes `r` arrows from the first to the second, and a
-  chain `i-j-k` is read left to right, giving arrows `i → j` and `j → k`.
-
-  Vertices are indexed as follows. If every vertex token is a positive integer, the
-  integers fix the vertex indices: they are sorted and, if they are not already `1, …, n`,
-  relabeled to `1, …, n` (the `k`-th smallest integer becomes vertex `k`) with a warning.
-  So `"1-6,2-6,3-6,4-6,5-6,7--1"` (which uses all of `1` to `7`) keeps those indices, while
-  both `"2--3"` and `"1--3"` are relabeled to `"1--2"`. Otherwise (any non-integer token)
-  the tokens are merely labels, numbered `1, …, n` in order of first appearance.
-  QuiverTools has no notion of vertex labels beyond this index.
-
-  # Examples
-
-  ```jldoctest
-  julia> Quiver("1--2-3")
-  Quiver with adjacency matrix [0 2 0; 0 0 1; 0 0 0]
-
-  julia> Quiver("a---b")
-  Quiver with adjacency matrix [0 3; 0 0]
-
-  julia> Quiver("1--2,1---3,2----3")
-  Quiver with adjacency matrix [0 2 3; 0 0 4; 0 0 0]
-  ```
-
-  Integer tokens index the vertices directly, so the order in the string does not matter:
-
-  ```jldoctest
-  julia> Quiver("2-1")
-  Quiver with adjacency matrix [0 0; 1 0]
-  ```
-  """
   function Quiver(arrows::String)
     arrows = replace(arrows, r"\s" => "")
     chains = split(arrows, ",")
@@ -131,6 +80,61 @@ struct Quiver{T}
     return Quiver(A, "")
   end
 end
+
+"""
+    Quiver(adjacency, name = "")
+
+Construct a quiver from the adjacency matrix and optionally a name.
+
+# Examples
+
+```jldoctest
+julia> m = [0 1; 2 0];
+
+julia> Quiver(m, "my quiver")
+my quiver
+```
+"""
+Quiver(::AbstractMatrix{Int}, ::String)
+
+"""
+    Quiver(arrows::String)
+
+Construct a quiver from its arrows encoded in a string.
+
+The string is a comma-separated list of chains `i-j-k-...`. Within a chain, a run of
+`r` hyphens between two vertices encodes `r` arrows from the first to the second, and a
+chain `i-j-k` is read left to right, giving arrows `i → j` and `j → k`.
+
+Vertices are indexed as follows. If every vertex token is a positive integer, the
+integers fix the vertex indices: they are sorted and, if they are not already `1, …, n`,
+relabeled to `1, …, n` (the `k`-th smallest integer becomes vertex `k`) with a warning.
+So `"1-6,2-6,3-6,4-6,5-6,7--1"` (which uses all of `1` to `7`) keeps those indices, while
+both `"2--3"` and `"1--3"` are relabeled to `"1--2"`. Otherwise (any non-integer token)
+the tokens are merely labels, numbered `1, …, n` in order of first appearance.
+QuiverTools has no notion of vertex labels beyond this index.
+
+# Examples
+
+```jldoctest
+julia> Quiver("1--2-3")
+Quiver with adjacency matrix [0 2 0; 0 0 1; 0 0 0]
+
+julia> Quiver("a---b")
+Quiver with adjacency matrix [0 3; 0 0]
+
+julia> Quiver("1--2,1---3,2----3")
+Quiver with adjacency matrix [0 2 3; 0 0 4; 0 0 0]
+```
+
+Integer tokens index the vertices directly, so the order in the string does not matter:
+
+```jldoctest
+julia> Quiver("2-1")
+Quiver with adjacency matrix [0 0; 1 0]
+```
+"""
+Quiver(::String)
 
 ==(Q1::Quiver, Q2::Quiver) = Q1.adjacency == Q2.adjacency
 hash(Q::Quiver) = hash(Q.adjacency)
@@ -349,6 +353,99 @@ function show(io::IO, M::QuiverModuliStack)
  - condition: $(M.condition)
     ",
   )
+end
+
+"""
+# Summary
+
+`struct FramedQuiverModuliSpace`
+
+The framed quiver moduli space ``M^{\\Theta\\text{-fr}}(Q, \\mathbf{d}, \\mathbf{n})`` of a
+quiver `Q`, base dimension vector `d`, base stability parameter `theta` and framing datum
+`n`. It is realized as the quiver moduli space of the framed quiver ``\\widehat{Q}`` (see
+[`framed_quiver`](@ref) / [`coframed_quiver`](@ref)) for dimension vector
+``\\widehat{\\mathbf{d}}`` and an induced stability parameter ``\\widehat{\\Theta}``; use
+[`total_space`](@ref) to obtain that ordinary [`QuiverModuliSpace`](@ref) and [`base`](@ref)
+to obtain the codomain ``M^{\\Theta}(Q, \\mathbf{d})`` of the projection
+``p\\colon M^{\\Theta\\text{-fr}}(Q, \\mathbf{d}, \\mathbf{n}) \\to M^{\\Theta}(Q, \\mathbf{d})``.
+
+The fibres of `p` over a Luna stratum are described by [`fibre`](@ref); see
+[arXiv:2607.12895](https://arxiv.org/abs/2607.12895).
+
+# Fields
+
+`Q         :: Quiver`                base quiver.\\
+`d         :: AbstractVector{Int}`   base dimension vector.\\
+`theta     :: AbstractVector{Int}`   base stability parameter.\\
+`denom     :: Function`              slope denominator.\\
+`n         :: AbstractVector{Int}`   framing datum.\\
+`coframed  :: Bool`                  `false`: arrows ``i_0 \\to i`` (framing vertex first);
+                                     `true`: arrows ``i \\to i_0`` (coframing vertex last).
+"""
+struct FramedQuiverModuliSpace
+  Q::Quiver
+  d::AbstractVector{Int}
+  theta::AbstractVector{Int}
+  denom::Function
+  n::AbstractVector{Int}
+  coframed::Bool
+end
+function FramedQuiverModuliSpace(
+  Q::Quiver,
+  d::AbstractVector{Int};
+  n::AbstractVector{Int},
+  theta::AbstractVector{Int}=canonical_stability(Q, d),
+  denom::Function=sum,
+  coframed::Bool=false,
+)
+  length(d) == n_vertices(Q) ||
+    throw(ArgumentError("length of d must equal the number of vertices"))
+  length(theta) == n_vertices(Q) ||
+    throw(ArgumentError("length of theta must equal the number of vertices"))
+  length(n) == n_vertices(Q) ||
+    throw(ArgumentError("length of n must equal the number of vertices"))
+  return FramedQuiverModuliSpace(
+    Q, coerce_vector(d), coerce_vector(theta), denom, coerce_vector(n), coframed
+  )
+end
+
+function show(io::IO, X::FramedQuiverModuliSpace)
+  print(
+    io,
+    "$(X.coframed ? "Coframed" : "Framed") quiver moduli space defined as follows:
+ - base quiver: $(X.Q)
+ - base dimension vector: $(X.d)
+ - base stability parameter: $(X.theta)
+ - framing datum: $(X.n)
+    ",
+  )
+end
+
+"""
+# Summary
+
+`struct NilpotentLocus`
+
+A marker for the closed sublocus of nilpotent representations inside a quiver moduli space
+`ambient` (here a [`FramedQuiverModuliSpace`](@ref)): the representations whose underlying
+representation of the quiver (ignoring the framing) is nilpotent.
+
+The nilpotency is recorded, not computed: there is no general routine here for the
+nullcone of a non-acyclic quiver, so `ambient(N)` is the ambient moduli space and the
+nilpotent locus is identified by hand, as in
+[arXiv:2607.12895](https://arxiv.org/abs/2607.12895). It arises as the fibre of the framed
+projection, see [`fibre`](@ref).
+
+# Fields
+
+`ambient :: FramedQuiverModuliSpace`
+"""
+struct NilpotentLocus{M}
+  ambient::M
+end
+
+function show(io::IO, N::NilpotentLocus)
+  print(io, "Nilpotent locus inside\n  ", N.ambient)
 end
 
 """

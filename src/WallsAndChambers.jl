@@ -1,7 +1,148 @@
-# Walls-and-chambers and VGIT functionality relies on Oscar's polyhedral geometry
-# and therefore lives in the Oscar package extension (ext/QuiverToolsOscarExt.jl).
-# The functions below are only method stubs: the extension adds the real methods
-# once Oscar is loaded. Until then, calling any of them raises a clear error.
+# The combinatorial VGIT layer is independent of Oscar. It records the equations and
+# inequalities defining semistable cones and walls, and provides exact point and line
+# segment predicates. The Oscar extension consumes the same data to construct the
+# corresponding polyhedra.
+
+# Equalities and inequalities that define sst(d), as in [Theorem 1, arXiv:2506.20568]
+@memoize Dict function __semistable_cone_data(Q::Quiver, d::AbstractVector{Int})
+  inequalities = filter(
+    e -> any(!=(0), e) && e != d,
+    all_general_subdimension_vectors(Q, d),
+  )
+  return (equations=[d], inequalities=inequalities)
+end
+
+# Equations and inequalities defining W_e = sst(e) ∩ sst(d-e) ∩ sst(d), as in [Theorem 1, arXiv:2506.20568]
+@memoize Dict function __vgit_wall_data(
+  Q::Quiver, d::AbstractVector{Int}, e::AbstractVector{Int}
+)
+  data = __semistable_cone_data.(Ref(Q), (e, d - e, d))
+  equations = unique!(vcat((datum.equations for datum in data)...))
+  inequalities = unique!(vcat((datum.inequalities for datum in data)...))
+  return (equations=equations, inequalities=inequalities)
+end
+
+# Evaluate a scalar product without losing exactness when the parameter is rational.
+function __exact_dot(x::AbstractVector{Int}, y::AbstractVector)
+  length(x) == length(y) || throw(DimensionMismatch("vectors must have equal lengths"))
+  value = big(0) // big(1)
+  for i in eachindex(x, y)
+    value += big(x[i]) * y[i]
+  end
+  return value
+end
+
+function __in_rational_cone(data, theta::AbstractVector)
+  return all(normal -> __exact_dot(normal, theta) == 0, data.equations) &&
+         all(normal -> __exact_dot(normal, theta) <= 0, data.inequalities)
+end
+
+"""Return whether `theta` belongs to the semistable cone `sst(d)`."""
+function __in_semistable_cone(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector,
+)
+  return __in_rational_cone(__semistable_cone_data(Q, d), theta)
+end
+
+"""Return whether `theta` belongs to the VGIT wall `W_e`."""
+function __in_vgit_wall(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  e::AbstractVector{Int},
+  theta::AbstractVector,
+)
+  return __in_rational_cone(__vgit_wall_data(Q, d, e), theta)
+end
+
+# Intersect the segment theta1--theta2 with a rational polyhedral cone. The result is
+# the exact closed interval of parameters t in [0,1] for which
+# (1-t)theta1 + t theta2 belongs to the cone, or nothing when it is empty.
+function __segment_cone_intersection(data, theta1::AbstractVector, theta2::AbstractVector)
+  length(theta1) == length(theta2) ||
+    throw(DimensionMismatch("stability parameters must have equal lengths"))
+  lower = big(0) // big(1)
+  upper = big(1) // big(1)
+
+  for normal in data.equations
+    initial = __exact_dot(normal, theta1)
+    delta = __exact_dot(normal, theta2) - initial
+    if iszero(delta)
+      iszero(initial) || return nothing # if Δ = 0, the segment either lies in the hyperplane or does not touch it
+    else
+      # else, either crossing is the unique value of t between 0 and 1
+      # for which the segment theta1 + t*(theta2 - theta1) crosses the hyperplane,
+      # or there is no crossing.
+      crossing = -initial / delta
+      lower = max(lower, crossing)
+      upper = min(upper, crossing)
+      lower <= upper || return nothing
+    end
+  end
+
+  for normal in data.inequalities
+    initial = __exact_dot(normal, theta1)
+    delta = __exact_dot(normal, theta2) - initial
+    if iszero(delta)
+      initial <= 0 || return nothing # same: if Δ = 0 the segment is on one side of the hyperplane
+    elseif delta > 0
+      # if not, it crosses it and the bound tightens depending on the sign of Δ
+      upper = min(upper, -initial / delta)
+    else
+      lower = max(lower, -initial / delta)
+    end
+    lower <= upper || return nothing
+  end
+
+  return (lower, upper)
+end
+
+"""
+    __is_vgit_chamber_parameter(Q, d, theta)
+
+Return whether `theta` lies in a VGIT chamber rather than on a wall.
+
+In other words, return whether `theta` is a *VGIT-generic* stability parameter.
+"""
+function __is_vgit_chamber_parameter(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector,
+)
+  __in_semistable_cone(Q, d, theta) || return false
+  return all(
+    !__in_vgit_wall(Q, d, e, theta) for
+    e in all_subdimension_vectors(d; nonzero=true, strict=true)
+  )
+end
+
+# This function takes theta and thetabar and, if theta is generic,
+# returns whether thetabar is in a wall adjacent to the chamber of theta.
+# Returns False otherwise.
+# thetabar may meet a wall W_e at the endpoint of the segment, but the segment must not
+# meet any wall earlier. Using complete cone data also handles smaller walls when the
+# whole segment lies in their defining hyperplane.
+function __in_closure_of_vgit_chamber(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector,
+  thetabar::AbstractVector,
+)
+  __is_vgit_chamber_parameter(Q, d, theta) || return false
+  __in_semistable_cone(Q, d, thetabar) || return false
+  endpoint = big(1) // big(1)
+  for e in all_subdimension_vectors(d; nonzero=true, strict=true)
+    intersection = __segment_cone_intersection(__vgit_wall_data(Q, d, e), theta, thetabar)
+    intersection === nothing && continue
+    intersection == (endpoint, endpoint) || return false
+  end
+  return true
+end
+
+# Polyhedral wall and chamber objects rely on Oscar and therefore live in the Oscar
+# package extension (ext/QuiverToolsOscarExt.jl). The declarations below are method
+# stubs which load that extension on demand.
 #
 # To enable them, load Oscar alongside QuiverTools. Use `import Oscar` rather than
 # `using Oscar`: it activates the extension without bringing Oscar's exports into
@@ -134,7 +275,7 @@ If there exit no stable representations,
 
 Requires Oscar: run `import Oscar` to enable this function.
 
-# Example
+# Examples
 
 The following example has three inner walls `W_e`, and all of them are strictly smaller
 than the corresponding `H_e \\cap sst(d)` in the wall system.
@@ -144,9 +285,9 @@ julia> Q = Quiver("1-2,2-3,3-4,1-4"); d = [1, 1, 1, 1];
 
 julia> map(Oscar.rays, vgit_chambers(Q, d; verbose=false))
 3-element Vector{Oscar.SubObjectIterator{Oscar.RayVector{Nemo.QQFieldElem}}}:
+ [[1, -1, 0, 0], [1, 0, 0, -1], [0, 1, -1, 0]]
  [[1, -1, 0, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
  [[0, 1, -1, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
- [[1, -1, 0, 0], [1, 0, 0, -1], [0, 1, -1, 0]]
 ```
 
 The following example has three inner walls as well, but one is equal to its wall system
@@ -161,6 +302,25 @@ julia> map(Oscar.rays, vgit_chambers(Q, d; verbose=false))
  [[1, -1, 0, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
  [[0, 1, -1, 0], [1, 0, 0, -1], [1, 0, -1, 0]]
  [[0, 1, -1, 0], [0, 0, 1, -1], [1, 0, 0, -1]]
+```
+
+If there are no walls, `sst(Q, d)` is the only chamber.
+
+```jldoctest
+julia> Q = subspace_quiver(3); d = [0, 0, 0, 1];
+
+julia> isempty(vgit_walls(Q, d))
+true
+
+julia> vgit_chambers(Q, d) == [sst(Q, d)]
+true
+```
+
+Only primitive Schur roots `d` are currently supported: otherwise a wall can fill all of `sst(Q, d)`.
+
+```jldoctest
+julia> vgit_chambers(kronecker_quiver(3), [2, 2])
+ERROR: ArgumentError: The dimension vector [2, 2] is not a primitive Schur root for the quiver 3-Kronecker quiver. This case is unsupported for now, see Issue #53. Also see Issue #40 and [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153].
 ```
 """
 function vgit_chambers end
@@ -189,8 +349,87 @@ julia> F = vgit_fan(Q, d); Oscar.rays(F)
  [1, 2, -2]
  [0, 1, -3//4]
 ```
+
+The chambers, and hence the cones of the fan, can contain a common linear subspace.
+For instance, if ``d_i = 0`` then the coordinate ``\\theta_i`` plays no role, so every
+chamber contains the ``i``-th coordinate axis.
+
+```jldoctest
+julia> Q = subspace_quiver(4); d = [1, 1, 0, 1, 2];
+
+julia> F = vgit_fan(Q, d); Oscar.dim(F), Oscar.lineality_dim(F), Oscar.n_maximal_cones(F)
+(4, 1, 1)
+```
+
+In the following example, from
+[Issue #40](https://github.com/QuiverTools/QuiverTools.jl/issues/40),
+`sst(Q, d)` is the whole hyperplane ``d^\\perp`` and some of the walls have a nontrivial lineality space, i.e., they are not strongly convex but contain a vector subspace.
+The VGIT fan has 10 three-dimensional maximal cones
+covering ``d^\\perp``.
+
+```jldoctest
+julia> Q = Quiver("1--3,3--1,2--4,4--2,3--4,2-1"); d = [1, 1, 1, 1];
+
+julia> Oscar.lineality_dim(sst(Q, d))
+3
+
+julia> F = vgit_fan(Q, d); Oscar.dim(F), Oscar.n_maximal_cones(F), Oscar.n_rays(F)
+(3, 10, 7)
+```
 """
 function vgit_fan end
+
+"""
+    project_to_d_perp(X, d; drop=findlast(!=(0), d))
+
+Express `X`, which lies in the hyperplane ``d^\\perp \\subset \\mathbb{R}^n``,
+in coordinates of ``d^\\perp \\cong \\mathbb{R}^{n-1}``, by forgetting the coordinate
+`drop`.
+
+`X` can be a polyhedron, a polyhedral cone or a polyhedral fan contained in ``d^\\perp``
+(such as `sst(Q, d)`, the walls from [`vgit_walls`](@ref), the chambers from
+[`vgit_chambers`](@ref) or the fan from [`vgit_fan`](@ref)), a stability parameter
+``\\theta`` with ``\\theta(d) = 0``, or a vector of these.
+An `ArgumentError` is thrown if `X` does not lie in ``d^\\perp``.
+
+The forgotten coordinate ``i`` must satisfy ``d_i \\neq 0``, so that it can be recovered as
+``\\theta_i = -\\frac{1}{d_i} \\sum_{j \\neq i} d_j \\theta_j``.
+The projection is therefore a linear isomorphism ``d^\\perp \\to \\mathbb{R}^{n-1}``:
+it preserves dimensions, faces and incidences, but not lengths or angles.
+Objects projected with the same `d` and `drop` are compatible and can be drawn together.
+
+This is useful for plotting: `Oscar.visualize` only accepts objects in an ambient space
+of dimension at most 3, so for a quiver with 4 vertices the chambers can be drawn with
+
+```julia
+julia> Oscar.visualize(project_to_d_perp(vgit_chambers(Q, d), d))
+```
+
+Requires Oscar: run `import Oscar` to enable this function.
+
+# Example
+
+```jldoctest
+julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
+
+julia> map(Oscar.ambient_dim, project_to_d_perp(vgit_chambers(Q, d), d))
+4-element Vector{Int64}:
+ 3
+ 3
+ 3
+ 3
+
+julia> F = project_to_d_perp(vgit_fan(Q, d), d); Oscar.ambient_dim(F), Oscar.n_maximal_cones(F)
+(3, 4)
+
+julia> project_to_d_perp([2, -1, 0, -1], d)
+3-element Vector{Int64}:
+  2
+ -1
+  0
+```
+"""
+function project_to_d_perp end
 
 """
     git_equivalent(Q, d, theta1, theta2)
@@ -201,7 +440,8 @@ By [[Corollary 4.4, MR5007902](https://mathscinet.ams.org/mathscinet-getitem?mr=
 this is equivalent to their convex hull
 either lying in a wall or not intersecting any of them.
 
-Requires Oscar: run `import Oscar` to enable this function.
+This computation uses the combinatorial equations and inequalities defining the VGIT
+walls and does not require Oscar.
 
 # Example
 
@@ -251,23 +491,37 @@ julia> any(y in w for w in W)
 true
 ```
 """
-function git_equivalent end
+function git_equivalent(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta1::AbstractVector,
+  theta2::AbstractVector,
+)
+  theta1 == theta2 && return true
+  for e in all_subdimension_vectors(d; nonzero=true, strict=true)
+    data = __vgit_wall_data(Q, d, e)
+    __segment_cone_intersection(data, theta1, theta2) === nothing && continue
+    __in_rational_cone(data, theta1) && __in_rational_cone(data, theta2) && continue
+    return false
+  end
+  return true
+end
 
 """
-    all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false)
+    all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false, nonzero::Bool=true)
 
 Compute a list of stability parameters, one for each equivalence class of
 stability parameters for the quiver `Q` and dimension vector `d`.
 
-For now this excludes the semisimple condition,
-which corresponds to the stability parameter `zeros(Int, length(d))`.
+By default the class of ``\\theta = 0`` (the semisimple condition) is excluded;
+pass `nonzero=false` to include it, represented by `zeros(Int, length(d))`.
 
 The `generic` keyword argument only returns stability parameters
 from the top-dimensional chambers of the VGIT fan.
 
 Requires Oscar: run `import Oscar` to enable this function.
 
-```jldoctests
+```jldoctest
 julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
 
 julia> all_stability_parameters(Q, d)
@@ -308,12 +562,38 @@ julia> all_stability_parameters(Q, d; generic=true)
 
 This method behaves well with respect to the trivial case of our favourite quiver, of course:
 
-```jldoctests
+```jldoctest
 julia> Q = kronecker_quiver(3); d = [2, 3];
 
 julia> all_stability_parameters(Q, d)
 1-element Vector{Vector{Int64}}:
  [3, -2]
+```
+
+Including the class of ``\\theta = 0``:
+
+```jldoctest
+julia> Q = kronecker_quiver(3); d = [2, 3];
+
+julia> all_stability_parameters(Q, d; nonzero=false)
+2-element Vector{Vector{Int64}}:
+ [0, 0]
+ [3, -2]
+```
+
+If `d` has a zero entry, the corresponding coordinate of the stability parameter plays no
+role, so the VGIT fan has a nontrivial lineality space; it is the class of ``\\theta = 0``.
+
+```jldoctest
+julia> Q = Quiver([0 3 0; 0 0 0; 0 0 0]); d = [2, 3, 0];
+
+julia> Oscar.lineality_dim(vgit_fan(Q, d))
+1
+
+julia> all_stability_parameters(Q, d; nonzero=false)
+2-element Vector{Vector{Int64}}:
+ [0, 0, 0]
+ [3, -2, 0]
 ```
 """
 function all_stability_parameters end
@@ -356,8 +636,8 @@ end
 # take precedence once Oscar has been loaded.
 for f in (
   :is_special_subdimension_vector, :all_special_subdimension_vectors, :sst,
-  :vgit_walls, :wall_system, :vgit_chambers, :vgit_fan, :git_equivalent,
-  :all_stability_parameters,
+  :vgit_walls, :wall_system, :vgit_chambers, :vgit_fan, :all_stability_parameters,
+  :project_to_d_perp,
 )
   @eval @oscar_stub $f
 end

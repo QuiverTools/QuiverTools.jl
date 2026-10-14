@@ -27,6 +27,7 @@ chern_class_line_bundle
 chern_character_line_bundle
 integral
 euler_characteristic
+chern_numbers
 ```
 
 ## Bundle objects
@@ -54,6 +55,7 @@ QuiverTools.zero_sheaf
 structure_sheaf
 canonical_bundle
 universal_bundle
+tangent_bundle
 ```
 
 ## Tensor calculus

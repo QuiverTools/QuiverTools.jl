@@ -146,15 +146,17 @@ A dictionary with the weights of the 1-PS corresponding to each HN type.
 ```jldoctest
 julia> Q = kronecker_quiver(3);
 
-julia> teleman_bounds(Q, [2, 3], [3, -2])
-Dict{HNType, Int64} with 7 entries:
-  [[2, 2], [0, 1]]         => 20
-  [[2, 1], [0, 2]]         => 50
-  [[1, 0], [1, 2], [0, 1]] => 100
-  [[1, 0], [1, 3]]         => 40
-  [[1, 0], [1, 1], [0, 2]] => 90
-  [[1, 1], [1, 2]]         => 15
-  [[2, 0], [0, 3]]         => 90
+julia> teleman_bounds(Q, [2, 3], [3, -2]) ==
+        Dict{HNType, Int64}(
+             [[2, 2], [0, 1]]         => 20,
+             [[2, 1], [0, 2]]         => 50,
+             [[1, 0], [1, 2], [0, 1]] => 100,
+             [[1, 0], [1, 3]]         => 40,
+             [[1, 0], [1, 1], [0, 2]] => 90,
+             [[1, 1], [1, 2]]         => 15,
+             [[2, 0], [0, 3]]         => 90
+       )
+true
 ```
 """
 function teleman_bounds(
@@ -289,15 +291,17 @@ The weights of the universal bundles on our favourite 6-fold:
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> weights_universal_bundle(M, 1; chi=[2, -1])
-Dict{HNType, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [-5, -5]
-  [[2, 1], [0, 2]]         => [-10, -10]
-  [[1, 0], [1, 2], [0, 1]] => [-15, -25]
-  [[1, 0], [1, 3]]         => [-5, -10]
-  [[1, 0], [1, 1], [0, 2]] => [-15, -20]
-  [[1, 1], [1, 2]]         => [0, -5]
-  [[2, 0], [0, 3]]         => [-15, -15]
+julia> weights_universal_bundle(M, 1; chi=[2, -1]) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [-5, -5],
+             [[2, 1], [0, 2]]         => [-10, -10],
+             [[1, 0], [1, 2], [0, 1]] => [-15, -25],
+             [[1, 0], [1, 3]]         => [-5, -10],
+             [[1, 0], [1, 1], [0, 2]] => [-15, -20],
+             [[1, 1], [1, 2]]         => [0, -5],
+             [[2, 0], [0, 3]]         => [-15, -15]
+       )
+true
 ```
 
 If not specified, the linearization is taken from the moduli space, and
@@ -306,27 +310,31 @@ defaults to `extended_gcd(M.d)[2]` if not defined.
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> weights_universal_bundle(M, 1)
-Dict{HNType, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [5, 5]
-  [[2, 1], [0, 2]]         => [10, 10]
-  [[1, 0], [1, 2], [0, 1]] => [25, 15]
-  [[1, 0], [1, 3]]         => [10, 5]
-  [[1, 0], [1, 1], [0, 2]] => [20, 15]
-  [[1, 1], [1, 2]]         => [5, 0]
-  [[2, 0], [0, 3]]         => [15, 15]
+julia> weights_universal_bundle(M, 1) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [5, 5],
+             [[2, 1], [0, 2]]         => [10, 10],
+             [[1, 0], [1, 2], [0, 1]] => [25, 15],
+             [[1, 0], [1, 3]]         => [10, 5],
+             [[1, 0], [1, 1], [0, 2]] => [20, 15],
+             [[1, 1], [1, 2]]         => [5, 0],
+             [[2, 0], [0, 3]]         => [15, 15]
+       )
+true
 
 julia> QuiverTools.set_linearization!(M, [-4, 3]);
 
-julia> weights_universal_bundle(M, 1)
-Dict{HNType, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [15, 15]
-  [[2, 1], [0, 2]]         => [30, 30]
-  [[1, 0], [1, 2], [0, 1]] => [65, 55]
-  [[1, 0], [1, 3]]         => [25, 20]
-  [[1, 0], [1, 1], [0, 2]] => [55, 50]
-  [[1, 1], [1, 2]]         => [10, 5]
-  [[2, 0], [0, 3]]         => [45, 45]
+julia> weights_universal_bundle(M, 1) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [15, 15],
+             [[2, 1], [0, 2]]         => [30, 30],
+             [[1, 0], [1, 2], [0, 1]] => [65, 55],
+             [[1, 0], [1, 3]]         => [25, 20],
+             [[1, 0], [1, 1], [0, 2]] => [55, 50],
+             [[1, 1], [1, 2]]         => [10, 5],
+             [[2, 0], [0, 3]]         => [45, 45]
+       )
+true
 ```
 """
 function weights_universal_bundle(
@@ -410,7 +418,7 @@ function weights_canonical_bundle(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  has_properly_semistables(Q, d, theta, denom) &&
+  has_properly_semistable_representation(Q, d, theta, denom) &&
     throw(
       ArgumentError(
         "The quiver moduli problem has properly semistables, no description of the canonical bundle is available."
@@ -445,15 +453,17 @@ The canonical bundle of our favourite 6-fold:
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> weights_canonical_bundle(M)
-Dict{HNType, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [30]
-  [[2, 1], [0, 2]]         => [60]
-  [[1, 0], [1, 2], [0, 1]] => [120]
-  [[1, 0], [1, 3]]         => [45]
-  [[1, 0], [1, 1], [0, 2]] => [105]
-  [[1, 1], [1, 2]]         => [15]
-  [[2, 0], [0, 3]]         => [90]
+julia> weights_canonical_bundle(M) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [30],
+             [[2, 1], [0, 2]]         => [60],
+             [[1, 0], [1, 2], [0, 1]] => [120],
+             [[1, 0], [1, 3]]         => [45],
+             [[1, 0], [1, 1], [0, 2]] => [105],
+             [[1, 1], [1, 2]]         => [15],
+             [[2, 0], [0, 3]]         => [90]
+       )
+true
 ```
 """
 function weights_canonical_bundle(M::QuiverModuliSpace)
@@ -532,15 +542,17 @@ The weights of the endomorphisms of the universal bundles on our favourite 6-fol
 ```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> all_weights_endomorphisms_universal_bundle(M)
-Dict{HNType, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [0, 5, -5, 0]
-  [[2, 1], [0, 2]]         => [0, 5, -5, 0]
-  [[1, 0], [1, 2], [0, 1]] => [0, 10, 15, -10, 0, 5, -15, -5, 0]
-  [[1, 0], [1, 3]]         => [0, 5, -5, 0]
-  [[1, 0], [1, 1], [0, 2]] => [0, 5, 10, -5, 0, 5, -10, -5, 0]
-  [[1, 1], [1, 2]]         => [0, 5, -5, 0]
-  [[2, 0], [0, 3]]         => [0, 5, -5, 0]
+julia> all_weights_endomorphisms_universal_bundle(M) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [0, 5, -5, 0],
+             [[2, 1], [0, 2]]         => [0, 5, -5, 0],
+             [[1, 0], [1, 2], [0, 1]] => [0, 10, 15, -10, 0, 5, -15, -5, 0],
+             [[1, 0], [1, 3]]         => [0, 5, -5, 0],
+             [[1, 0], [1, 1], [0, 2]] => [0, 5, 10, -5, 0, 5, -10, -5, 0],
+             [[1, 1], [1, 2]]         => [0, 5, -5, 0],
+             [[2, 0], [0, 3]]         => [0, 5, -5, 0]
+       )
+true
 ```
 """
 function all_weights_endomorphisms_universal_bundle(M::QuiverModuli)

@@ -32,6 +32,10 @@ Black-box methods are provided to study some of their properties.
 is_nonempty
 dimension
 is_smooth
+codimension_singular_locus
+fibre_dimension
+is_flat
+is_semismall
 is_projective
 index
 motive
@@ -43,8 +47,9 @@ codimension_unstable_locus
 ## Stability
 
 ```@docs
-has_semistables
-has_stables
+has_semistable_representation
+has_stable_representation
+has_properly_semistable_representation
 canonical_stability
 is_coprime
 slope
@@ -64,6 +69,7 @@ all_hn_types
 is_hn_type
 codimension_hn_stratum
 is_amply_stable
+is_strongly_amply_stable
 ```
 
 ### Luna types
@@ -91,6 +97,38 @@ all_luna_types
 is_luna_type
 dimension_of_luna_stratum
 semisimple_moduli_space
+local_quiver_setting
+local_structure
+```
+
+## Framed quiver moduli
+
+A framed quiver moduli space ``M^{\Theta\text{-fr}}(Q, \mathbf{d}, \mathbf{n})`` comes
+with a projection ``p`` to the quiver moduli space ``M^{\Theta}(Q, \mathbf{d})``.
+The fibres of ``p`` over each Luna stratum of the base are described as the
+nilpotent locus of a framed moduli space of the local quiver, following
+[arXiv:2607.12895](https://arxiv.org/abs/2607.12895).
+
+QuiverTools realizes it as a `FramedQuiverModuliSpace`,
+which contains exactly the data of a `QuiverModuliSpace`,
+together with a Boolean indicator of whether it is framed or coframed.
+The nilpotent locus itself is wrapped in a `NilpotentLocus` structure.
+
+From both of these new data types one can extract the underlying quiver moduli space,
+respectively via `total_space(X::FramedQuiverModuliSpace)` and `ambient(X::NilpotentLocus)` -- see below.
+
+
+```@docs
+FramedQuiverModuliSpace
+NilpotentLocus
+```
+
+```@docs
+framing_vector
+base
+total_space
+fibre
+ambient
 ```
 
 ## Hodge diamonds
@@ -130,4 +168,27 @@ the answer is then the Poincaré polynomial for cohomology with compact support.
 intersection_poincare_polynomial
 intersection_betti_numbers
 intersection_hodge_diamond
+```
+
+## Domokos reductions
+
+[[Domokos](https://doi.org/10.4171/JCA/97)] introduces two operations on a quiver, a
+dimension vector and a stability parameter which change the triple but preserve the
+moduli space up to isomorphism: [`tau_reduction`](@ref) merges away a *large* vertex,
+and [`sigma_reduction`](@ref) reflects a *small* source or sink. Iterating them
+produces smaller moduli-isomorphic triples, and a pair from which no sequence of
+reductions reaches anything smaller is *τσ-minimal*; this drives the finiteness of
+quiver moduli spaces of a fixed dimension.
+
+Stability parameters are expressed in QuiverTools' sign convention, which is opposite
+to that of the paper; see the docstrings for the precise translation.
+
+```@docs
+is_large
+is_small_source
+is_small_sink
+tau_reduction
+sigma_reduction
+tau_sigma_reduce
+is_taus_minimal
 ```

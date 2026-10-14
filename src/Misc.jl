@@ -2,6 +2,21 @@
 # Misc
 ######
 
+# sanitize input for quiver and dimension vector
+function __check_dimension_vector(Q::Quiver, d::AbstractVector{Int})
+  length(d) == n_vertices(Q) ||
+    throw(ArgumentError("dimension vector must have length $(n_vertices(Q))"))
+  all(>=(0), d) || throw(ArgumentError("dimension vector must be non-negative"))
+  return nothing
+end
+
+# sanitise input for quiver and sincere dimension vector
+function __check_sincere_dimension_vector(Q::Quiver, d::AbstractVector{Int})
+  __check_dimension_vector(Q, d)
+  @assert all(>(0), d) "dimension vector must be sincere"
+  return nothing
+end
+
 """
     identity_matrix(n::Int)
 
@@ -268,3 +283,17 @@ unit_vector(Q::Quiver, i::Int) = unit_vector(n_vertices(Q), i)
 
 coerce_vector(v) = v
 coerce_matrix(m) = SMatrix{size(m, 1),size(m, 1)}(m)
+
+##################################
+# Below lie basic methods that check for overflow errors
+#
+
+function __checked_dot(a::AbstractVector{Int}, b::AbstractVector{Int})
+  length(a) == length(b) || throw(DimensionMismatch("vectors must have equal lengths"))
+  return foldl(eachindex(a); init=0) do total, i
+    Base.Checked.checked_add(total, Base.Checked.checked_mul(a[i], b[i]))
+  end
+end
+
+__checked_sum(a::AbstractVector{Int}) =
+  foldl(Base.Checked.checked_add, a; init=0)

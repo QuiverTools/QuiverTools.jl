@@ -105,6 +105,55 @@ function is_connected(Q::Quiver)
 end
 
 """
+    strongly_connected_components(Q::Quiver)
+
+Compute the strongly connected components of `Q`.
+
+Two vertices belong to the same strongly connected component if and only if
+they are connected by paths in both directions. The reachability relation is
+computed as the reflexive-transitive closure of the adjacency relation, using
+Warshall's Boolean transitive-closure algorithm
+[[Warshall](https://doi.org/10.1145/321105.321107)]; its ``O(n^3)`` running time
+is not an issue for the quivers we consider.
+
+# Input
+
+- `Q::Quiver`: a quiver.
+
+# Output
+
+- a list of the strongly connected components, each given as the list of its vertices.
+
+# Examples
+
+```jldoctest
+julia> strongly_connected_components(cyclic_quiver(4))  # 1 → 4 needs a path of length 3
+1-element Vector{Vector{Int64}}:
+ [1, 2, 3, 4]
+
+julia> strongly_connected_components(kronecker_quiver(3))
+2-element Vector{Vector{Int64}}:
+ [1]
+ [2]
+
+julia> strongly_connected_components(Quiver("1-2,2-1,2-3"))
+2-element Vector{Vector{Int64}}:
+ [1, 2]
+ [3]
+```
+"""
+function strongly_connected_components(Q::Quiver)
+  n = n_vertices(Q)
+  # `reachable[i, j]` records existence of a path, not the number of paths.
+  reachable = [i == j || Q.adjacency[i, j] > 0 for i in 1:n, j in 1:n]
+  # After the kth outer Warshall pass, paths may use any intermediate vertex in 1:k.
+  for k in 1:n, i in 1:n, j in 1:n
+    reachable[i, j] |= reachable[i, k] && reachable[k, j]
+  end
+  return unique([findall(j -> reachable[i, j] && reachable[j, i], 1:n) for i in 1:n])
+end
+
+"""
     indegree(Q::Quiver, j::Int)
 
 Return the number of incoming arrows to the vertex `j`.
@@ -209,6 +258,103 @@ function arrows(Q::Quiver)
     for i in 1:n for j in 1:n if Q.adjacency[i, j] > 0
   )
 end
+
+# Compass ports used to spread self-loops around a vertex: Graphviz stacks
+# multiple loops on the same side otherwise, which reads as a single blob.
+const _LOOP_PORTS = ("n", "s", "e", "w", "ne", "sw", "se", "nw")
+
+function _escape_dot_string(value::AbstractString)
+  return replace(
+    value,
+    '\\' => "\\\\",
+    '"' => "\\\"",
+    '\n' => "\\n",
+    '\r' => "\\r",
+  )
+end
+
+"""
+    to_dot(Q::Quiver)
+
+Return a Graphviz DOT description of `Q` as a `String`.
+
+Every arrow becomes its own `i -> j` line, so parallel arrows and loops (a
+quiver's defining features) are drawn as themselves; self-loops are distributed
+around their vertex with compass ports. Isolated vertices are emitted explicitly.
+Quiver names are preserved as UTF-8 labels; DOT syntax characters and physical
+line breaks are escaped.
+
+Feed the result to Graphviz, e.g. `using GraphViz; GraphViz.Graph(to_dot(Q))`,
+which also makes `Q` render as SVG in notebooks and VS Code once GraphViz is
+loaded. With the DOT string in hand you can equally pipe it to the `dot`
+command line tool.
+
+# Examples
+
+```jldoctest
+julia> print(to_dot(kronecker_quiver(2)))
+digraph {
+  label="2-Kronecker quiver";
+  node [shape=circle];
+  1;
+  2;
+  1 -> 2;
+  1 -> 2;
+}
+
+julia> print(to_dot(loop_quiver(2)))
+digraph {
+  label="2-loop quiver";
+  node [shape=circle];
+  1;
+  1:n -> 1:n;
+  1:s -> 1:s;
+}
+```
+"""
+function to_dot(Q::Quiver)
+  n = n_vertices(Q)
+  io = IOBuffer()
+  println(io, "digraph {")
+  isempty(Q.name) || println(io, "  label=\"", _escape_dot_string(Q.name), "\";")
+  println(io, "  node [shape=circle];")
+  for i in 1:n
+    println(io, "  ", i, ";")
+  end
+  for i in 1:n, j in 1:n
+    if i == j
+      for t in 1:Q.adjacency[i, i]
+        p = _LOOP_PORTS[mod1(t, length(_LOOP_PORTS))]
+        println(io, "  ", i, ":", p, " -> ", i, ":", p, ";")
+      end
+    else
+      for _ in 1:Q.adjacency[i, j]
+        println(io, "  ", i, " -> ", j, ";")
+      end
+    end
+  end
+  println(io, "}")
+  return String(take!(io))
+end
+
+"""
+    draw(Q::Quiver)
+
+Render `Q` with Graphviz and open the drawing in the system's default viewer
+(browser or image application). Writes a temporary SVG file and returns its path.
+
+Requires GraphViz: run `using GraphViz` to enable this method. In notebooks and
+VS Code you do not need `draw`, evaluating `Q` displays the drawing inline.
+
+# Example
+
+```julia
+using QuiverTools, GraphViz
+
+draw(loop_quiver(2))   # opens the drawing; returns the temporary file path
+```
+"""
+function draw end
 
 """
     first_hochschild_cohomology(Q::Quiver)
