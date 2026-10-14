@@ -599,3 +599,51 @@ To use it, one must
 If `import Oscar` is not run, `QuiverTools` will run it automatically,
 but it may trigger recompilation and produce unwanted output.
 For non-interactive workflows, it is best to run it at the beginning of the session.
+
+### Displaying GIT fans
+
+A stability parameter ``\theta`` for which there are semistable representations of
+dimension vector ``d`` satisfies ``\theta \cdot d = 0``, so the GIT fan of a quiver with
+``n`` vertices lies in the hyperplane ``d^\perp \subset \mathbb{R}^n`` of dimension ``n - 1``.
+`Oscar.visualize` only draws objects in an ambient space of dimension at most 3.
+The method [`project_to_d_perp`](@ref) rewrites the fan in coordinates of
+``d^\perp \cong \mathbb{R}^{n-1}`` by forgetting one coordinate, which gives a picture in
+the plane for quivers with 3 vertices and in space for quivers with 4 vertices.
+This projection is a linear isomorphism, so it preserves the cones and how they meet,
+but not lengths or angles.
+
+For a quiver with 3 vertices, the GIT fan is drawn in the plane:
+
+```julia-repl
+julia> import Oscar
+
+julia> Q = three_vertex_quiver(2, 3, 4); d = [1, 2, 2];
+
+julia> F = project_to_d_perp(vgit_fan(Q, d), d);
+
+julia> Oscar.ambient_dim(F), Oscar.n_maximal_cones(F)
+(2, 3)
+
+julia> Oscar.visualize(F)
+```
+
+For a quiver with 4 vertices, the GIT fan is drawn in space:
+
+```julia-repl
+julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
+
+julia> F = project_to_d_perp(vgit_fan(Q, d), d);
+
+julia> Oscar.ambient_dim(F), Oscar.n_maximal_cones(F)
+(3, 4)
+
+julia> Oscar.visualize(F)
+```
+
+The same works for the chambers and the walls, which are drawn together as a list:
+
+```julia-repl
+julia> Oscar.visualize(project_to_d_perp(vgit_chambers(Q, d), d))
+
+julia> Oscar.visualize(project_to_d_perp(vgit_walls(Q, d), d))
+```
