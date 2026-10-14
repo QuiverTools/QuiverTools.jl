@@ -148,7 +148,7 @@ function chow_ring(
 )
   chi' * d != 1 && throw(ArgumentError("``chi`` is not a linearization"))
   if !unsafe
-    has_properly_semistables(Q, d, theta) &&
+    has_properly_semistable_representation(Q, d, theta) &&
       throw(
         ArgumentError(
           "The quiver moduli problem has properly semistable representations, no description of the Chow ring is available."
@@ -329,7 +329,7 @@ function chow_ring(
 )
   # `unsafe` asserts the stable locus is nonempty, so seed the dimension cache with the
   # cheap `1 - <d, d>` before any bundle is built. This stops downstream `dimension(M)`
-  # calls from triggering the expensive `has_stables` check (issue #20).
+  # calls from triggering the expensive `has_stable_representation` check (issue #20).
   if unsafe && M.chow._dimension === nothing
     setfield!(M.chow, :_dimension, 1 - euler_form(M.Q, M.d, M.d))
   end

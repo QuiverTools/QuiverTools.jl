@@ -132,8 +132,8 @@ end
 function is_amply_stable_fast(M::QuiverModuliSpace)
   # we only need to enumerate HN types of length 2
   for e in QuiverTools.all_destabilizing_subdimension_vectors(M.d, M.theta)
-    !has_semistables(M.Q, e, M.theta, M.denom) && continue
-    !has_semistables(M.Q, M.d - e, M.theta, M.denom) && continue
+    !has_semistable_representation(M.Q, e, M.theta, M.denom) && continue
+    !has_semistable_representation(M.Q, M.d - e, M.theta, M.denom) && continue
     hn = HNType([e, M.d - e])
     QuiverTools.codimension_hn_stratum(M.Q, hn) == 1 && return false
   end

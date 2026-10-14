@@ -41,9 +41,9 @@ codimension_unstable_locus
 ## Stability
 
 ```@docs
-has_semistables
-has_stables
-has_properly_semistables
+has_semistable_representation
+has_stable_representation
+has_properly_semistable_representation
 canonical_stability
 is_coprime
 slope

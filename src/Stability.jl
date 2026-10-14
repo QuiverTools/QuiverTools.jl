@@ -172,7 +172,7 @@ function all_destabilizing_subdimension_vectors(
 end
 
 """
-    has_semistables(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum)
+    has_semistable_representation(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum)
 
 Check if `Q` admits a `theta`-semistable representation of dimension vector `d`.
 
@@ -199,16 +199,16 @@ for all of its subrepresentations ``W`` with ``dim(W) < dim(V)``, we have
 ```jldoctest
 julia> A2 = kronecker_quiver(1); theta = [1,-1];
 
-julia> has_semistables(A2, [1,1], theta)
+julia> has_semistable_representation(A2, [1,1], theta)
 true
 
-julia> has_semistables(A2, [2,2], theta)
+julia> has_semistable_representation(A2, [2,2], theta)
 true
 
-julia> has_semistables(A2, [1,2], theta)
+julia> has_semistable_representation(A2, [1,2], theta)
 false
 
-julia> has_semistables(A2, [0,0], theta)
+julia> has_semistable_representation(A2, [0,0], theta)
 true
 ```
 The 3-Kronecker quiver:
@@ -216,14 +216,14 @@ The 3-Kronecker quiver:
 ```jldoctest
 julia> K3 = kronecker_quiver(3); theta = [3,-2];
 
-julia> has_semistables(K3, [2,3], theta)
+julia> has_semistable_representation(K3, [2,3], theta)
 true
 
-julia> has_semistables(K3, [1,4], theta)
+julia> has_semistable_representation(K3, [1,4], theta)
 false
 ```
 """
-@memoize Dict function has_semistables(
+@memoize Dict function has_semistable_representation(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
@@ -244,7 +244,7 @@ false
 end
 
 """
-    has_stables(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum)
+    has_stable_representation(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum)
 
 Check if Q admits a `theta`-stable representation of dimension vector `d`.
 
@@ -271,15 +271,15 @@ for all of its subrepresentations ``W`` with ``dim(W) < dim(V)``, we have
 ```jldoctest
 julia> Q = kronecker_quiver(3); d = [2, 3]; theta = [3, -2];
 
-julia> has_stables(Q, d, theta)
+julia> has_stable_representation(Q, d, theta)
 true
 
 julia> Q = kronecker_quiver(2); d = [2,2]; theta = [1,-1];
 
-julia> has_stables(Q, d, theta)
+julia> has_stable_representation(Q, d, theta)
 false
 
-julia> has_semistables(Q, d, theta)
+julia> has_semistable_representation(Q, d, theta)
 true
 ```
 
@@ -287,11 +287,11 @@ The zero dimension vector has no stables:
 ```jldoctest
 julia> Q = kronecker_quiver(3); d = [0,0];
 
-julia> has_stables(Q, d)
+julia> has_stable_representation(Q, d)
 false
 ```
 """
-@memoize Dict function has_stables(
+@memoize Dict function has_stable_representation(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
@@ -340,7 +340,7 @@ julia> is_schur_root(Q, d)
 true
 ```
 """
-is_schur_root(Q::Quiver, d::AbstractVector{Int}) = has_stables(
+is_schur_root(Q::Quiver, d::AbstractVector{Int}) = has_stable_representation(
   Q, d, canonical_stability(Q, d)
 )
 
@@ -542,7 +542,7 @@ julia> length(all_hn_types(Q, d, theta; ordered=true))
   # representation and for which μ(e) > μ(d)
   # Note that we also eliminate d by the following
   subdimensions = all_destabilizing_subdimension_vectors(d, theta, denom)
-  filter!(e -> has_semistables(Q, e, theta, denom), subdimensions)
+  filter!(e -> has_semistable_representation(Q, e, theta, denom), subdimensions)
 
   # We sort the subdimension vectors by slope because that will return the list of
   # all HN types in ascending order with respect to the partial order from
@@ -564,7 +564,7 @@ julia> length(all_hn_types(Q, d, theta; ordered=true))
 
   # Possibly add d again, at the beginning, because it is smallest
   # with respect to the partial order from Definition 3.6
-  if !unstable && has_semistables(Q, d, theta, denom)
+  if !unstable && has_semistable_representation(Q, d, theta, denom)
     pushfirst!(alltypes, HNType([d]))
   end
   return alltypes
@@ -615,7 +615,7 @@ function is_hn_type(
     return false
   end
 
-  if !all(has_semistables(Q, dstari, theta, denom) for dstari in dstar)
+  if !all(has_semistable_representation(Q, dstari, theta, denom) for dstari in dstar)
     return false
   end
   return true
@@ -745,10 +745,10 @@ function is_strongly_amply_stable(
 end
 
 """
-    has_properly_semistables(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denom::Function=sum)
+    has_properly_semistable_representation(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denom::Function=sum)
 
 """
-function has_properly_semistables(
+function has_properly_semistable_representation(
   Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum
 )
   is_coprime(d, theta) && return false

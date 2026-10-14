@@ -418,7 +418,7 @@ function weights_canonical_bundle(
   theta::AbstractVector{Int},
   denom::Function=sum,
 )
-  has_properly_semistables(Q, d, theta, denom) &&
+  has_properly_semistable_representation(Q, d, theta, denom) &&
     throw(
       ArgumentError(
         "The quiver moduli problem has properly semistables, no description of the canonical bundle is available."

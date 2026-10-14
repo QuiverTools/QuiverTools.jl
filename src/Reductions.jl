@@ -17,8 +17,8 @@
 #
 # SIGN CONVENTION. Domokos follows King: a representation is θ-semistable when
 # θ·dim(S) ≥ 0 for every subrepresentation S, so destabilizing means θ·dim(S) < 0.
-# QuiverTools' `slope`/`has_stables` declare subdimension vectors of strictly larger
-# slope destabilizing, which for θ·d = 0 means θ·dim(S) > 0. Hence
+# QuiverTools' `slope`/`has_stable_representation` declare subdimension vectors of
+# strictly larger slope destabilizing, which for θ·d = 0 means θ·dim(S) > 0. Hence
 # θ_QuiverTools = −θ_paper. Every weight
 # formula below is *linear* in θ, so multiplying by -1 commutes with it and the formulas
 # are written directly in QuiverTools' convention. The one visible consequence is in
@@ -35,7 +35,7 @@ function __check_domokos_weight(
     throw(ArgumentError("stability parameter must have length $(n_vertices(Q))"))
   __checked_dot(theta, d) == 0 ||
     throw(ArgumentError("the stability parameter theta must satisfy theta . d = 0"))
-  has_semistables(Q, d, theta) ||
+  has_semistable_representation(Q, d, theta) ||
     throw(ArgumentError("the dimension vector must be theta-semistable"))
   return nothing
 end

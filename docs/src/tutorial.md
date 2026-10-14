@@ -109,18 +109,18 @@ exist for a given dimension vector and stability parameter:
 ```julia-repl
 julia> Q = kronecker_quiver(3); d = [2,3]; θ = [3,-2];
 
-julia> has_semistables(Q, d, θ)
+julia> has_semistable_representation(Q, d, θ)
 true
 
-julia> has_stables(Q, d, θ)
+julia> has_stable_representation(Q, d, θ)
 true
 
 julia> K2 = kronecker_quiver(2);
 
-julia> has_stables(K2, [2,2], [1,-1])
+julia> has_stable_representation(K2, [2,2], [1,-1])
 false
 
-julia> has_semistables(K2, [2,2], [1,-1])
+julia> has_semistable_representation(K2, [2,2], [1,-1])
 true
 ```
 

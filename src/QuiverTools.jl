@@ -54,8 +54,8 @@ export kronecker_moduli, subspace_quiver_moduli
 # Stability
 export canonical_stability, is_coprime, slope
 export all_hn_types,
-  is_hn_type, has_semistables, has_stables, has_properly_semistables,
-  codimension_hn_stratum, is_amply_stable
+  is_hn_type, has_semistable_representation, has_stable_representation,
+  has_properly_semistable_representation, codimension_hn_stratum, is_amply_stable
 export is_general_subdimension_vector, all_general_subdimension_vectors
 
 # Representation theory
@@ -165,6 +165,7 @@ include("Hodge.jl")
 include("Chow.jl")
 include("Teleman.jl")
 include("Bundles.jl")
+include("Deprecated.jl")
 
 # Warm the JIT for the shared Chow/Hodge computation path so the user's first
 # invariant computation is near-instant. Compilation is input-independent, so a

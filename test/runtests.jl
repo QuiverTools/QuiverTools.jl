@@ -109,15 +109,15 @@ QuiverTools.empty_all_caches!()
   d = [2, 2]
   theta = [1, -1]
 
-  @test has_semistables(Q, d, theta) == true
-  @test has_stables(Q, d, theta) == false
+  @test has_semistable_representation(Q, d, theta) == true
+  @test has_stable_representation(Q, d, theta) == false
   Q = kronecker_quiver(3)
-  @test has_stables(Q, [1, 0], [0, -1]) == true
-  @test has_stables(Q, [0, 1], [1, 0]) == true
-  @test has_stables(Q, [3, 0], [0, -1]) == false
-  @test has_stables(Q, [0, 3], [1, 0]) == false
-  @test has_semistables(Q, [3, 0], [0, -1]) == true
-  @test has_semistables(Q, [0, 3], [1, 0]) == true
+  @test has_stable_representation(Q, [1, 0], [0, -1]) == true
+  @test has_stable_representation(Q, [0, 1], [1, 0]) == true
+  @test has_stable_representation(Q, [3, 0], [0, -1]) == false
+  @test has_stable_representation(Q, [0, 3], [1, 0]) == false
+  @test has_semistable_representation(Q, [3, 0], [0, -1]) == true
+  @test has_semistable_representation(Q, [0, 3], [1, 0]) == true
 end;
 QuiverTools.empty_all_caches!()
 

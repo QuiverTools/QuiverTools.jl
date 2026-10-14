@@ -33,9 +33,9 @@ false
 """
 function is_nonempty(M::QuiverModuli)
   if M.condition == "stable"
-    return has_stables(M.Q, M.d, M.theta)
+    return has_stable_representation(M.Q, M.d, M.theta)
   elseif M.condition == "semistable"
-    return has_semistables(M.Q, M.d, M.theta)
+    return has_semistable_representation(M.Q, M.d, M.theta)
   end
 end
 
@@ -341,7 +341,7 @@ julia> all_luna_types(X)
   μ = slope(d, theta, denom)
   same_slope = all_subdimension_vectors(d; nonzero=true, strict=true)
   filter!(e -> slope(e, theta, denom) == μ, same_slope)
-  filter!(e -> has_stables(Q, e, theta, denom), same_slope)
+  filter!(e -> has_stable_representation(Q, e, theta, denom), same_slope)
 
   luna_types = LunaType[]
   for e in same_slope
@@ -363,7 +363,7 @@ julia> all_luna_types(X)
     end
   end
 
-  stable && has_stables(Q, d, theta, denom) &&
+  stable && has_stable_representation(Q, d, theta, denom) &&
     pushfirst!(luna_types, LunaType(Dict(d => [1])))
 
   # sort the multiplicities vectors, so that we can apply `unique!` to remove duplicates
@@ -485,7 +485,7 @@ function is_luna_type(M::QuiverModuli, tau)
     return false
   end
 
-  if !all(has_stables(M.Q, e, M.theta, M.denom) for e in ks)
+  if !all(has_stable_representation(M.Q, e, M.theta, M.denom) for e in ks)
     return false
   end
   # A rigid stable representation is unique up to isomorphism, so its dimension
@@ -616,7 +616,7 @@ false
 ```
 """
 function semistable_equals_stable(M::QuiverModuli)
-  if is_coprime(M.d, M.theta) || !has_semistables(M.Q, M.d, M.theta, M.denom)
+  if is_coprime(M.d, M.theta) || !has_semistable_representation(M.Q, M.d, M.theta, M.denom)
     return true
   end
   return length(all_luna_types(M; stable=false)) == 0
@@ -743,8 +743,9 @@ julia> dimension(M)
 function dimension(M::QuiverModuliSpace)
   # dimension is independent of the linearization, so cache it on `M.chow`. In `unsafe`
   # mode this cache is pre-seeded with `1 - <d, d>`, so we never run the expensive
-  # `has_stables` check (issue #20). Only a finite dimension is cached; the empty case
-  # returns the `-Inf` sentinel, which is cheap to recompute and stays uncached.
+  # `has_stable_representation` check (issue #20). Only a finite dimension is cached;
+  # the empty case returns the `-Inf` sentinel, which is cheap to recompute and stays
+  # uncached.
   cached = M.chow._dimension
   cached !== nothing && return cached
   n = _dimension(M)
@@ -766,7 +767,7 @@ function _dimension(M::QuiverModuliSpace)
   end
 
   # if the stable locus is nonempty then the dimension is 1 - <d, d>
-  if has_stables(M.Q, M.d, M.theta, M.denom)
+  if has_stable_representation(M.Q, M.d, M.theta, M.denom)
     return 1 - euler_form(M.Q, M.d, M.d)
   end
 
@@ -775,7 +776,7 @@ function _dimension(M::QuiverModuliSpace)
   if M.condition == "stable"
     return -Inf
   elseif M.condition == "semistable"
-    if has_semistables(M.Q, M.d, M.theta, M.denom)
+    if has_semistable_representation(M.Q, M.d, M.theta, M.denom)
       return maximum(
         dimension_of_luna_stratum(M, tau) for
         tau in all_luna_types(M.Q, M.d, M.theta, M.denom)
@@ -841,7 +842,7 @@ true
 function is_smooth(M::QuiverModuliSpace)
   if M.condition == "stable"
     return true
-  elseif !has_properly_semistables(M.Q, M.d, M.theta, M.denom)
+  elseif !has_properly_semistable_representation(M.Q, M.d, M.theta, M.denom)
     return true
   end
 
@@ -932,9 +933,9 @@ function __validate_wall_projection(
   subdimensions = all_subdimension_vectors(dvec; nonzero=true)
   all(e -> denom(e) > 0, subdimensions) ||
     throw(ArgumentError("denom must be positive on every nonzero subdimension of d"))
-  has_semistables(Q, dvec, theta_vec, denom) ||
+  has_semistable_representation(Q, dvec, theta_vec, denom) ||
     throw(ArgumentError("theta must admit semistable representations of dimension d"))
-  has_semistables(Q, dvec, thetabar_vec, denom) ||
+  has_semistable_representation(Q, dvec, thetabar_vec, denom) ||
     throw(ArgumentError("thetabar must admit semistable representations of dimension d"))
   __is_vgit_chamber_parameter(Q, dvec, theta_vec) ||
     throw(ArgumentError("theta must lie in a VGIT chamber, not on a wall"))
@@ -954,7 +955,7 @@ end
 @memoize Dict function __dimension_stable_nilpotent_moduli(
   Q::Quiver, beta::AbstractVector{Int}, theta::AbstractVector{Int}, denom
 )
-  has_stables(Q, beta, theta, denom) || return -Inf
+  has_stable_representation(Q, beta, theta, denom) || return -Inf
   N = dimension_nullcone(Q, beta)
   # if the zero representation is the only nilpotent one, it is stable iff simple
   N == 0 && return sum(beta) == 1 ? 0 : -Inf
@@ -1284,14 +1285,16 @@ true
 function is_projective(M::QuiverModuli)
   if is_acyclic(M.Q)
     M.condition == "semistable" && return true
-    M.condition == "stable" && return !has_properly_semistables(M.Q, M.d, M.theta, M.denom)
+    M.condition == "stable" &&
+      return !has_properly_semistable_representation(M.Q, M.d, M.theta, M.denom)
   end
 
   SSP = semisimple_moduli_space(M)
   M.condition == "semistable" && return dimension(SSP) in [0, -Inf]
   M.condition == "stable" &&
     return (
-      dimension(SSP) in [1, -Inf] && !has_properly_semistables(M.Q, M.d, M.theta, M.denom)
+      dimension(SSP) in [1, -Inf] &&
+      !has_properly_semistable_representation(M.Q, M.d, M.theta, M.denom)
     )
 end
 

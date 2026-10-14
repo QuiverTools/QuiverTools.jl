@@ -652,7 +652,7 @@ true
 """
 function canonical_bundle(M::QuiverModuliSpace; teleman::Bool=true, unsafe::Bool=false)
   if !unsafe
-    has_properly_semistables(M.Q, M.d, M.theta, M.denom) &&
+    has_properly_semistable_representation(M.Q, M.d, M.theta, M.denom) &&
       throw(
         ArgumentError(
           "The quiver moduli problem has properly semistables, no description of the canonical bundle is available."

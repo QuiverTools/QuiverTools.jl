@@ -133,7 +133,7 @@ BenchmarkTools.Trial: 10000 samples with 4 evaluations.
 
  Memory estimate: 4.09 KiB, allocs estimate: 66.
 ```
-## Benchmarking `has_semistables`
+## Benchmarking `has_semistable_representation`
 
 ### Datum: (3-Kronecker quiver, with adjacency matrix [0 3; 0 0], [2, 3], [3, -2])
 
