@@ -43,6 +43,7 @@ codimension_unstable_locus
 ```@docs
 has_semistables
 has_stables
+has_properly_semistables
 canonical_stability
 is_coprime
 slope
@@ -62,6 +63,7 @@ all_hn_types
 is_hn_type
 codimension_hn_stratum
 is_amply_stable
+is_strongly_amply_stable
 ```
 
 ### Luna types

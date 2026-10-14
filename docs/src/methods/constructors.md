@@ -54,6 +54,7 @@ jordan_quiver
 subspace_quiver
 generalized_subspace_quiver
 thickened_subspace_quiver
+star_quiver
 three_vertex_quiver
 cyclic_quiver
 bipartite_quiver
