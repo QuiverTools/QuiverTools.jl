@@ -952,7 +952,7 @@ end
 # which fibres over the flag with nilpotent sub, nilpotent quotient and an extension
 # block. If certification fails an ArgumentError is thrown.
 @memoize Dict function __dimension_stable_nilpotent_moduli(
-  Q::Quiver, beta::Vector{Int}, theta::Vector{Int}, denom
+  Q::Quiver, beta::AbstractVector{Int}, theta::AbstractVector{Int}, denom
 )
   has_stables(Q, beta, theta, denom) || return -Inf
   N = dimension_nullcone(Q, beta)
@@ -964,7 +964,7 @@ end
     slope(e, theta, denom) >= slope(beta, theta, denom) || continue
     bound =
       sum(e .* (beta .- e)) +
-      dimension_nullcone(Q, Vector{Int}(e)) +
+      dimension_nullcone(Q, e) +
       dimension_nullcone(Q, beta .- e) +
       (beta .- e)' * A * e
     bound < N || throw(
@@ -980,13 +980,15 @@ end
 # The dimension of the moduli space of nilpotent theta-semistable representations,
 # maximized over its polystable types: a polystable representation is determined by
 # its distinct stable nilpotent summands.
-function __dimension_nilpotent_moduli(Q::Quiver, d::Vector{Int}, theta::Vector{Int}, denom)
+function __dimension_nilpotent_moduli(
+  Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom
+)
   all(d .== 0) && return 0
   best = -Inf
   for tau in all_luna_types(Q, d, theta, denom)
     value = sum(
       length(tau[e]) *
-      __dimension_stable_nilpotent_moduli(Q, Vector{Int}(e), theta, denom) for
+      __dimension_stable_nilpotent_moduli(Q, e, theta, denom) for
       e in keys(tau)
     )
     best = max(best, value)
@@ -1080,9 +1082,9 @@ function fibre_dimension(
 end
 
 # Fibre calculation after the wall-projection data have been validated. The local
-# stability is King-normalized, and hence uses `sum` independently of the denominator
+# stability is in the sense of King, so it uses `sum` independently of the denominator
 # chosen on the original quiver.
-function __fibre_dimension(Mbar::QuiverModuliSpace, theta::Vector{Int}, tau)
+function __fibre_dimension(Mbar::QuiverModuliSpace, theta::AbstractVector{Int}, tau)
   # the local quiver setting of tau, with the stability induced by theta
   setting = local_quiver_setting(Mbar, tau)
   thetaloc = [theta' * e for e in setting.summands]

@@ -285,7 +285,7 @@ end
 # parameter, so the repeated resizing done here would allocate a new type at every
 # step, and calling the memoized euler_form on such throwaway quivers would pollute
 # its cache.
-function __bocklandt_step(A::Matrix{Int}, d::Vector{Int})
+function __bocklandt_step(A::AbstractMatrix{Int}, d::AbstractVector{Int})
   n = length(d)
   # the vectors of <d, e_v> and <e_v, d>, for e_v the unit vector at v
   euler_form_in, euler_form_out = d - A' * d, d - A * d
@@ -404,7 +404,7 @@ function bocklandt_reduction(Q::Quiver, d::AbstractVector{Int})
   components = strongly_connected_components(Quiver(A[vertices, vertices]))
 
   reduced = map(components) do c
-    B, e = A[vertices[c], vertices[c]], Vector{Int}(d[vertices[c]])
+    B, e = A[vertices[c], vertices[c]], d[vertices[c]]
     while (step = __bocklandt_step(B, e)) !== nothing
       B, e = step
     end
@@ -489,7 +489,9 @@ end
 
 # This function enumerates quasiprimitive cycles through v, until it finds at most `cap + 1` of them.
 # If the vertex v has an arrov v -> v, the only paths this method counts contain one arrow, i.e., "v -> v -> v" is not *one* path.
-function __n_quasiprimitive_cycles(A::Matrix{Int}, d::Vector{Int}, v::Int, cap::Int)
+function __n_quasiprimitive_cycles(
+  A::AbstractMatrix{Int}, d::AbstractVector{Int}, v::Int, cap::Int
+)
   total, budget = Ref(0), copy(d)
   # each step of the recursion "walks" along arrows and adds to total when it comes across v.
   # When called starting from v, this counts then cycles through v.
@@ -512,7 +514,7 @@ end
 # (resp. starts) at a vertex of dimension 1: v is removed and its other arrows are
 # redirected to that vertex, provided d[v] is at least the number of quasiprimitive
 # cycles through v. Wedging preserves cofreeness in both directions [Lemma 3].
-function __wedge_step(A::Matrix{Int}, d::Vector{Int})
+function __wedge_step(A::AbstractMatrix{Int}, d::AbstractVector{Int})
   n = length(d)
   for v in findall(v -> d[v] >= 2 && A[v, v] == 0, 1:n)
     outs, ins = findall(>(0), A[v, :]), findall(>(0), A[:, v])
@@ -530,13 +532,13 @@ end
 
 # the weakly connected components of the quiver with adjacency matrix A, as the
 # strongly connected components of its double
-__weakly_connected_components(A::Matrix{Int}) =
+__weakly_connected_components(A::AbstractMatrix{Int}) =
   strongly_connected_components(Quiver(A + A'))
 
 # Split a strongly connected quiver setting into its prime components, i.e., the
 # summands of its decomposition as an iterated connected sum at vertices of
 # dimension 1; a setting is cofree iff its prime components are [Lemma 3].
-function __prime_components(A::Matrix{Int}, d::Vector{Int})
+function __prime_components(A::AbstractMatrix{Int}, d::AbstractVector{Int})
   n = length(d)
   for v in findall(==(1), d)
     # the summands at v are the weakly connected components of the quiver minus v,
@@ -559,7 +561,7 @@ end
 
 # Decide cofreeness of a prime strongly connected setting by recognizing the members
 # of the list of [Theorem 1, doi:10.1016/j.jalgebra.2007.08.019].
-function __is_cofree_prime(A::Matrix{Int}, d::Vector{Int})
+function __is_cofree_prime(A::AbstractMatrix{Int}, d::AbstractVector{Int})
   n = length(d)
   # a single vertex: no arrows, a cyclic quiver (one loop), any number of loops on a
   # vertex of dimension 1, or the setting Q_2 (two loops on a vertex of dimension 2)
@@ -691,7 +693,7 @@ function is_cofree(Q::Quiver, d::AbstractVector{Int})
   A = Matrix{Int}(Q.adjacency)
   vertices = support(d)
   for c in strongly_connected_components(Quiver(A[vertices, vertices]))
-    Ac, dc = A[vertices[c], vertices[c]], Vector{Int}(d[vertices[c]])
+    Ac, dc = A[vertices[c], vertices[c]], d[vertices[c]]
     # wedge the vertices of dimension at least 2 first, then split into prime
     # components; wedges at vertices of dimension 1 only occur for cyclic quivers,
     # which are cofree anyway [Remark 2]
@@ -716,7 +718,7 @@ end
 #   [N_d] = -\sum_{e < d} (-1)^{|d| - |e|} L^{s(e, d)} [d; e]_L [N_e],
 #
 # where s(e, d) = \sum_i binomial(d_i - e_i, 2) + \sum_{a: i -> j} e_i (d_j - e_j).
-function __nullcone_motive(A::Matrix{Int}, d::Vector{Int})
+function __nullcone_motive(A::AbstractMatrix{Int}, d::AbstractVector{Int})
   R, (L,) = polynomial_ring(Singular.QQ, ["L"])
   n = length(d)
 
@@ -776,7 +778,7 @@ and ``j``.
 
 The nullcone of the Jordan quiver consists of the nilpotent matrices; for pairs of
 ``2 \\times 2`` or ``4 \\times 4`` matrices it consists of the pairs that are
-simultaneously strictly triangularizable:
+simultaneously strictly triangularisable:
 
 ```jldoctest
 julia> dimension_nullcone(jordan_quiver(1), [3])
@@ -799,7 +801,7 @@ julia> dimension_nullcone(kronecker_quiver(3), [2, 3])
 @memoize Dict function dimension_nullcone(Q::Quiver, d::AbstractVector{Int})
   __check_dimension_vector(Q, d)
 
-  return degree(__nullcone_motive(Matrix{Int}(Q.adjacency), Vector{Int}(d)), 1)
+  return degree(__nullcone_motive(Q.adjacency, d), 1)
 end
 
 """
@@ -848,7 +850,7 @@ function nullcone_motive(Q::Quiver, d::AbstractVector{Int})
   __check_dimension_vector(Q, d)
 
   K, (L,) = Singular.FunctionField(Singular.QQ, ["L"])
-  return Singular.evaluate(__nullcone_motive(Matrix{Int}(Q.adjacency), Vector{Int}(d)), [L])
+  return Singular.evaluate(__nullcone_motive(Q.adjacency, d), [L])
 end
 
 """
@@ -907,7 +909,7 @@ function __dimension_affine_quotient(Q::Quiver, d::AbstractVector{Int})
   return sum(
     Int(
       dimension(
-        QuiverModuliSpace(Quiver(A[c, c]), Vector{Int}(d[keep[c]]), zeros(Int, length(c)))
+        QuiverModuliSpace(Quiver(A[c, c]), d[keep[c]], zeros(Int, length(c)))
       ),
     )
     for c in __weakly_connected_components(A);

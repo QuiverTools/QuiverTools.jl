@@ -3,14 +3,8 @@
 # segment predicates. The Oscar extension consumes the same data to construct the
 # corresponding polyhedra.
 
-# Equations and inequalities defining sst(d). The inequalities are Schofield's general
-# subdimension vectors; zero and d impose no inequalities and are omitted.
-function __semistable_cone_data(Q::Quiver, d::AbstractVector{Int})
-  return __semistable_cone_data(Q, Vector{Int}(d))
-end
-
 # Equalities and inequalities that define sst(d), as in [Theorem 1, arXiv:2506.20568]
-@memoize Dict function __semistable_cone_data(Q::Quiver, d::Vector{Int})
+@memoize Dict function __semistable_cone_data(Q::Quiver, d::AbstractVector{Int})
   inequalities = filter(
     e -> any(!=(0), e) && e != d,
     all_general_subdimension_vectors(Q, d),
@@ -18,17 +12,10 @@ end
   return (equations=[d], inequalities=inequalities)
 end
 
-# Equations and inequalities defining W_e = sst(e) ∩ sst(d-e) ∩ sst(d).
-function __vgit_wall_data(
-  Q::Quiver,
-  d::AbstractVector{Int},
-  e::AbstractVector{Int},
+# Equations and inequalities defining W_e = sst(e) ∩ sst(d-e) ∩ sst(d), as in [Theorem 1, arXiv:2506.20568]
+@memoize Dict function __vgit_wall_data(
+  Q::Quiver, d::AbstractVector{Int}, e::AbstractVector{Int}
 )
-  return __vgit_wall_data(Q, Vector{Int}(d), Vector{Int}(e))
-end
-
-# Equalities and inequalities that define the VGIT wall W_e, as in [Theorem 1, arXiv:2506.20568]
-@memoize Dict function __vgit_wall_data(Q::Quiver, d::Vector{Int}, e::Vector{Int})
   data = __semistable_cone_data.(Ref(Q), (e, d - e, d))
   equations = unique!(vcat((datum.equations for datum in data)...))
   inequalities = unique!(vcat((datum.inequalities for datum in data)...))
