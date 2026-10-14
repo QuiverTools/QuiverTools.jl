@@ -366,6 +366,58 @@ julia> F = vgit_fan(Q, d); Oscar.rays(F)
 function vgit_fan end
 
 """
+    project_to_d_perp(X, d; drop=findlast(!=(0), d))
+
+Express `X`, which lies in the hyperplane ``d^\\perp \\subset \\mathbb{R}^n``,
+in coordinates of ``d^\\perp \\cong \\mathbb{R}^{n-1}``, by forgetting the coordinate
+`drop`.
+
+`X` can be a polyhedron, a polyhedral cone or a polyhedral fan contained in ``d^\\perp``
+(such as `sst(Q, d)`, the walls from [`vgit_walls`](@ref), the chambers from
+[`vgit_chambers`](@ref) or the fan from [`vgit_fan`](@ref)), a stability parameter
+``\\theta`` with ``\\theta(d) = 0``, or a vector of these.
+An `ArgumentError` is thrown if `X` does not lie in ``d^\\perp``.
+
+The forgotten coordinate ``i`` must satisfy ``d_i \\neq 0``, so that it can be recovered as
+``\\theta_i = -\\frac{1}{d_i} \\sum_{j \\neq i} d_j \\theta_j``.
+The projection is therefore a linear isomorphism ``d^\\perp \\to \\mathbb{R}^{n-1}``:
+it preserves dimensions, faces and incidences, but not lengths or angles.
+Objects projected with the same `d` and `drop` are compatible and can be drawn together.
+
+This is useful for plotting: `Oscar.visualize` only accepts objects in an ambient space
+of dimension at most 3, so for a quiver with 4 vertices the chambers can be drawn with
+
+```julia
+julia> Oscar.visualize(project_to_d_perp(vgit_chambers(Q, d), d))
+```
+
+Requires Oscar: run `import Oscar` to enable this function.
+
+# Example
+
+```jldoctest
+julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
+
+julia> map(Oscar.ambient_dim, project_to_d_perp(vgit_chambers(Q, d), d))
+4-element Vector{Int64}:
+ 3
+ 3
+ 3
+ 3
+
+julia> F = project_to_d_perp(vgit_fan(Q, d), d); Oscar.ambient_dim(F), Oscar.n_maximal_cones(F)
+(3, 4)
+
+julia> project_to_d_perp([2, -1, 0, -1], d)
+3-element Vector{Int64}:
+  2
+ -1
+  0
+```
+"""
+function project_to_d_perp end
+
+"""
     git_equivalent(Q, d, theta1, theta2)
 
 Check if the two stability parameters `theta1` and `theta2` are equivalent.
@@ -545,6 +597,7 @@ end
 for f in (
   :is_special_subdimension_vector, :all_special_subdimension_vectors, :sst,
   :vgit_walls, :wall_system, :vgit_chambers, :vgit_fan, :all_stability_parameters,
+  :project_to_d_perp,
 )
   @eval @oscar_stub $f
 end

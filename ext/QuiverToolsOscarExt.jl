@@ -16,7 +16,8 @@ using IterTools: IterTools
 import Memoization: @memoize
 import QuiverTools:
   is_special_subdimension_vector, all_special_subdimension_vectors, sst,
-  vgit_walls, wall_system, vgit_chambers, vgit_fan, all_stability_parameters
+  vgit_walls, wall_system, vgit_chambers, vgit_fan, all_stability_parameters,
+  project_to_d_perp
 
 # Disambiguate between Singular's and Oscar's overloads of `(::PolyRing)(::spoly)`,
 # which collide once both packages are loaded.
@@ -295,6 +296,83 @@ function vgit_fan(Q, d; verbose=false)
       vgit_chambers(Q, d; verbose=verbose),
     ),
   )
+end
+
+# The coordinates kept by `project_to_d_perp`: all but `drop`, which needs d[drop] != 0
+# for the projection to be injective on d^⟂.
+function __d_perp_coordinates(d::AbstractVector{Int}, drop::Int)
+  drop in eachindex(d) && d[drop] != 0 || throw(
+    ArgumentError("cannot drop coordinate $drop of d = $d: it must be a nonzero entry")
+  )
+  return [j for j in eachindex(d) if j != drop]
+end
+
+function __check_in_d_perp(generators, d::AbstractVector{Int}, X)
+  for v in generators
+    sum(d[j] * v[j] for j in eachindex(d)) == 0 ||
+      throw(ArgumentError("$X does not lie in the hyperplane orthogonal to d = $d"))
+  end
+end
+
+# the generators as the rows of a matrix, keeping only the coordinates `keep`
+__rows(generators, keep) = [v[j] for v in generators, j in keep]
+
+function project_to_d_perp(
+  P::Oscar.Polyhedron, d::AbstractVector{Int}; drop::Int=findlast(!=(0), d)
+)
+  keep = __d_perp_coordinates(d, drop)
+  K = Oscar.coefficient_field(P)
+  # an infeasible inequality: the empty polyhedron
+  Oscar.is_feasible(P) || return Oscar.polyhedron(K, zeros(Int, 1, length(keep)), [-1])
+  # P = conv(V) + cone(R) + span(L); `vertices` and `rays` would be empty if P has lineality
+  V, L = Oscar.minimal_faces(P)
+  R = Oscar.rays_modulo_lineality(P).rays_modulo_lineality
+  __check_in_d_perp(Iterators.flatten((V, R, L)), d, P)
+  return Oscar.convex_hull(
+    K,
+    __rows(V, keep),
+    isempty(R) ? nothing : __rows(R, keep),
+    isempty(L) ? nothing : __rows(L, keep),
+  )
+end
+
+function project_to_d_perp(
+  C::Oscar.Cone, d::AbstractVector{Int}; drop::Int=findlast(!=(0), d)
+)
+  keep = __d_perp_coordinates(d, drop)
+  # C = cone(R) + span(L); `rays` would be empty if C has lineality
+  R, L = Oscar.rays_modulo_lineality(C)
+  __check_in_d_perp(Iterators.flatten((R, L)), d, C)
+  return Oscar.positive_hull(
+    Oscar.coefficient_field(C),
+    isempty(R) ? zeros(Int, 1, length(keep)) : __rows(R, keep), # the zero cone if no rays
+    isempty(L) ? nothing : __rows(L, keep),
+  )
+end
+
+function project_to_d_perp(
+  F::Oscar.PolyhedralFan, d::AbstractVector{Int}; drop::Int=findlast(!=(0), d)
+)
+  return Oscar.polyhedral_fan(
+    map(C -> project_to_d_perp(C, d; drop=drop), Oscar.maximal_cones(F))
+  )
+end
+
+# a stability parameter
+function project_to_d_perp(
+  theta::AbstractVector{<:Union{Real,Oscar.FieldElem}}, d::AbstractVector{Int};
+  drop::Int=findlast(!=(0), d),
+)
+  keep = __d_perp_coordinates(d, drop)
+  __check_in_d_perp((theta,), d, theta)
+  return theta[keep]
+end
+
+# a list of any of the above, e.g. the output of `vgit_chambers`
+function project_to_d_perp(
+  X::AbstractVector, d::AbstractVector{Int}; drop::Int=findlast(!=(0), d)
+)
+  return map(x -> project_to_d_perp(x, d; drop=drop), X)
 end
 
 """
