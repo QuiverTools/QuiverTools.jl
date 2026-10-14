@@ -521,13 +521,13 @@ function git_equivalent(
 end
 
 """
-    all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false)
+    all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false, nonzero::Bool=true)
 
 Compute a list of stability parameters, one for each equivalence class of
 stability parameters for the quiver `Q` and dimension vector `d`.
 
-For now this excludes the semisimple condition,
-which corresponds to the stability parameter `zeros(Int, length(d))`.
+By default the class of ``\\theta = 0`` (the semisimple condition) is excluded;
+pass `nonzero=false` to include it, represented by `zeros(Int, length(d))`.
 
 The `generic` keyword argument only returns stability parameters
 from the top-dimensional chambers of the VGIT fan.
@@ -581,6 +581,32 @@ julia> Q = kronecker_quiver(3); d = [2, 3];
 julia> all_stability_parameters(Q, d)
 1-element Vector{Vector{Int64}}:
  [3, -2]
+```
+
+Including the class of ``\\theta = 0``:
+
+```jldoctest
+julia> Q = kronecker_quiver(3); d = [2, 3];
+
+julia> all_stability_parameters(Q, d; nonzero=false)
+2-element Vector{Vector{Int64}}:
+ [0, 0]
+ [3, -2]
+```
+
+If `d` has a zero entry, the corresponding coordinate of the stability parameter plays no
+role, so the VGIT fan has a nontrivial lineality space; it is the class of ``\\theta = 0``.
+
+```jldoctest
+julia> Q = Quiver([0 3 0; 0 0 0; 0 0 0]); d = [2, 3, 0];
+
+julia> Oscar.lineality_dim(vgit_fan(Q, d))
+1
+
+julia> all_stability_parameters(Q, d; nonzero=false)
+2-element Vector{Vector{Int64}}:
+ [0, 0, 0]
+ [3, -2, 0]
 ```
 """
 function all_stability_parameters end
