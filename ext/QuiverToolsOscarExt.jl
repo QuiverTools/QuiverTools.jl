@@ -108,9 +108,9 @@ function vgit_walls(Q, d; inner=false, top_dimension=true)
     out = out[findall(dims .== top_dim)]
   end
   if inner
-    facettes = Oscar.facets(Oscar.Polyhedron, sst(Q, d))
+    facets = Oscar.facets(Oscar.Polyhedron, sst(Q, d))
     filter!(
-      w -> !any(issubset(w, f) for f in facettes),
+      w -> !any(issubset(w, f) for f in facets),
       out,
     )
   end
