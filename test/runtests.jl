@@ -27,11 +27,12 @@ using Test, QuiverTools, Documenter
 
   @test Base.get_extension(QuiverTools, :QuiverToolsOscarExt) === nothing
 end;
+QuiverTools.empty_all_caches!()
 
-# Oscar MUST be imported here to not throw off the previous test set
+# Oscar has to be imported here to not throw off the previous test set
 import Oscar
 
-@testset "VGIT predicates agree with Oscar" begin
+@testset "VGIT predicates agree with Oscar " begin
   Q = three_vertex_quiver(2, 3, 4)
   d = [1, 2, 2]
   parameters = [
@@ -68,8 +69,9 @@ import Oscar
       oscar_git_equivalent(theta1, theta2)
   end
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "vgit_chambers edge cases" begin
+@testset "vgit_chambers edge cases         " begin
   # a single vertex with d = [1] is a primitive Schur root and must not be rejected;
   # fixed in 15b4405
   @test length(vgit_chambers(Quiver(zeros(Int, 1, 1)), [1])) == 1
@@ -86,8 +88,9 @@ end;
   Q = Quiver([0 0 1 0 2; 0 0 2 0 1; 0 0 0 2 0; 0 0 0 0 1; 0 0 0 0 0])
   @test length(vgit_chambers(Q, [1, 2, 1, 1, 2])) == 21
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "vgit_fan with lineality spaces" begin
+@testset "vgit_fan with lineality spaces   " begin
   # vgit_fan used to reject chambers with a nontrivial lineality space
 
   # d has a zero entry, so the chamber contains a line
@@ -98,8 +101,9 @@ end;
   F = vgit_fan(subspace_quiver(3), [0, 0, 0, 1])
   @test (Oscar.dim(F), Oscar.lineality_dim(F), Oscar.n_maximal_cones(F)) == (3, 3, 1)
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "strict sst" begin
+@testset "strict sst                       " begin
   # proper-semistability
   Q = kronecker_quiver(2)
   d = [2, 2]
@@ -115,8 +119,9 @@ end;
   @test has_semistables(Q, [3, 0], [0, -1]) == true
   @test has_semistables(Q, [0, 3], [1, 0]) == true
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "HN types" begin
+@testset "HN types                         " begin
   # all_HN_types()
 
   Q = three_vertex_quiver(3, 4, 5)
@@ -131,8 +136,9 @@ end;
 
   @test string(all_hn_types(Q, d, theta; ordered=true)) == expected
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "Constructors" begin
+@testset "Constructors                     " begin
   # equivalences from the Sage docstrings; == compares adjacency matrices only
   @test thickened_subspace_quiver(2, 6) == three_vertex_quiver(0, 6, 6)
   @test generalized_subspace_quiver(2, [2, 3]) == three_vertex_quiver(0, 2, 3)
@@ -143,8 +149,9 @@ end;
   @test n_vertices(U) == 4
   @test n_arrows(U) == 7
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "string constructor" begin
+@testset "string constructor               " begin
   # chain semantics: a run of r hyphens is r arrows, chains are read left to right.
   # integer tokens index vertices directly (so "1-6" is an arrow 1 -> 6); non-integer
   # tokens are labels numbered 1, ..., n in order of first appearance.
@@ -173,8 +180,9 @@ end;
   @test (@test_logs (:warn,) Quiver("1--3")) == Quiver([0 2; 0 0])
   @test_throws ArgumentError Quiver("0-1")
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "Luna types and local quivers" begin
+@testset "Luna types and local quivers     " begin
   # is_luna_type must weight each key by the sum of its multiplicities (regression:
   # it previously summed the keys unweighted, wrongly rejecting any type with a
   # multiplicity list summing to more than one).
@@ -240,8 +248,9 @@ end;
   # ξ5 = (e_K^2, e_Kbar^2): two vertices, a 2-cycle, local dimension (2, 2)
   @test fingerprint(Dict(eK => [2], eKb => [2])) == ([2, 2], [0, 0], [0, 0, 1, 1], true)
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "Betti numbers" begin
+@testset "Betti numbers                    " begin
   # betti_numbers is the coefficient vector of the Poincaré polynomial, indexed
   # by ascending cohomological degree, always a Vector{Int} (regression: for
   # non-palindromic Poincaré polynomials, which occur for quivers with oriented
@@ -257,8 +266,9 @@ end;
   M = QuiverModuliSpace(kronecker_quiver(3), [2, 3])
   @test betti_numbers(M) == [1, 0, 1, 0, 3, 0, 3, 0, 3, 0, 1, 0, 1]
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "motive/poincare sign" begin
+@testset "motive/poincare sign             " begin
   # The two branches of motive must agree in sign: the HN recursion returns the
   # honest stack motive [M]/(L-1), and the trivial-stability branch returns the
   # full-stack motive; poincare_polynomial recovers [M] = (L-1)*[stack motive].
@@ -280,8 +290,9 @@ end;
   @test string(poincare_polynomial(M)) ==
     "L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1"
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "to_dot" begin
+@testset "to_dot                           " begin
   # the exact string for the happy path is locked by the doctests; here we check
   # arrow bookkeeping and the edge cases they don't show.
 
@@ -309,10 +320,11 @@ end;
     to_dot(named),
   )
 end;
+QuiverTools.empty_all_caches!()
 
 import GraphViz
 
-@testset "GraphViz extension" begin
+@testset "GraphViz extension               " begin
   Q = Quiver([0 1; 0 0], "α → β, 日本語: quote \" slash \\ line\nbreak")
   svg = sprint(show, MIME("image/svg+xml"), Q)
   @test occursin("<svg", svg)
@@ -327,8 +339,9 @@ import GraphViz
     @test occursin("<svg", read(path, String))
   end
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "Bocklandt reduction" begin
+@testset "Bocklandt reduction              " begin
   # The public quiver-setting routines enforce the dimension-vector contract.
   for f in (bocklandt_reduction, is_coregular, is_cofree)
     @test_throws ArgumentError f(jordan_quiver(1), [1, 1])
@@ -408,8 +421,9 @@ end;
   @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [2, 2])) == Inf
   @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [3, 3])) == 3
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "cofree quiver settings" begin
+@testset "cofree quiver settings           " begin
   # cyclic quiver settings and matrix invariants: pairs of 2x2 matrices are cofree,
   # pairs of 3x3 matrices and triples of 2x2 matrices are not; any number of loops on
   # a vertex of dimension 1 is cofree
@@ -452,8 +466,9 @@ end;
   @test is_cofree(wedged, [2, 3, 4, 1, 3])
   @test !is_cofree(wedged, [2, 3, 4, 1, 1])
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "nullcones and defect" begin
+@testset "nullcones and defect             " begin
   # The public nullcone routines enforce the dimension-vector contract.
   for f in (dimension_nullcone, nullcone_motive, defect)
     @test_throws ArgumentError f(jordan_quiver(1), [1, 1])
@@ -492,8 +507,9 @@ end;
     @test is_cofree(Q, d) == (is_coregular(Q, d) && defect(Q, d) == 0)
   end
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "projections to walls" begin
+@testset "projections to walls             " begin
   # the projection of the 6-subspace quiver moduli with d = (1^5, 2; 3) from the
   # canonical chamber to the wall (1^5, 2; -3), whose target is Gr(2, 4): birational,
   # with fibres P^1 over five surfaces and P^1 x P^1 over ten points, hence semismall
@@ -547,8 +563,9 @@ end;
     S, d, theta, thetabar, Dict(d => [1]); denom=_e -> 0
   )
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "Domokos reductions" begin
+@testset "Domokos reductions               " begin
   # M. Domokos, Quiver moduli spaces of a given dimension, https://doi.org/10.4171/JCA/97
   # τ and σ reductions preserve the moduli space up to isomorphism (Theorem 2.5), which we
   # witness through the Hodge diamond. The stability sign is QuiverTools' (opposite King),
@@ -626,13 +643,29 @@ end;
   @test_throws ArgumentError is_taus_minimal(Q4, d4; max_states=1)
   @test is_taus_minimal(Q4, d4; max_states=100) == false
 end;
+QuiverTools.empty_all_caches!()
 
-@testset "Doctests" begin
+# The number of `jldoctest` blocks in the docstrings of `mod`. `doctest` runs them all
+# as a single test, so the number is shown in the name of the testset instead.
+function count_doctests(mod::Module)
+  return sum(values(Base.Docs.meta(mod)); init=0) do multidoc
+    sum(values(multidoc.docs); init=0) do docstr
+      count("```jldoctest", join(docstr.text))
+    end
+  end
+end
+
+@testset "$(rpad("Doctests ($(count_doctests(QuiverTools)) blocks)", 33))" begin
   # `import Oscar` (not `using`) loads Oscar so the walls-and-chambers / VGIT extension
   # activates and its doctests resolve `Oscar.*`, without pulling Oscar's exports into
   # scope (which would clash with QuiverTools names such as `index`, `todd_class`, ...).
   DocMeta.setdocmeta!(
     QuiverTools, :DocTestSetup, :(using QuiverTools; import Oscar, GraphViz)
   )
-  doctest(QuiverTools; manual=false, testset="Doctests")
+  # show only Documenter's warnings and errors, which include doctest failures
+  Base.CoreLogging.with_logger(
+    Base.CoreLogging.ConsoleLogger(stderr, Base.CoreLogging.Warn)
+  ) do
+    doctest(QuiverTools; manual=false, testset="Doctests")
+  end
 end;
