@@ -91,6 +91,38 @@ all_luna_types
 is_luna_type
 dimension_of_luna_stratum
 semisimple_moduli_space
+local_quiver_setting
+local_structure
+```
+
+## Framed quiver moduli
+
+A framed quiver moduli space ``M^{\Theta\text{-fr}}(Q, \mathbf{d}, \mathbf{n})`` comes
+with a projection ``p`` to the quiver moduli space ``M^{\Theta}(Q, \mathbf{d})``.
+The fibres of ``p`` over each Luna stratum of the base are described as the
+nilpotent locus of a framed moduli space of the local quiver, following
+[arXiv:2607.12895](https://arxiv.org/abs/2607.12895).
+
+QuiverTools realizes it as a `FramedQuiverModuliSpace`,
+which contains exactly the data of a `QuiverModuliSpace`,
+together with a Boolean indicator of whether it is framed or coframed.
+The nilpotent locus itself is wrapped in a `NilpotentLocus` structure.
+
+From both of these new data types one can extract the underlying quiver moduli space,
+respectively via `total_space(X::FramedQuiverModuliSpace)` and `ambient(X::NilpotentLocus)` -- see below.
+
+
+```@docs
+FramedQuiverModuliSpace
+NilpotentLocus
+```
+
+```@docs
+framing_vector
+base
+total_space
+fibre
+ambient
 ```
 
 ## Hodge diamonds

@@ -32,7 +32,6 @@ QuiverTools.identity_matrix
 QuiverTools.teleman_bound_on_stratum
 QuiverTools._chern_characters_wedge
 QuiverTools.weights_universal_bundle_on_stratum
-QuiverTools.local_quiver_setting
 QuiverTools.thin_dimension_vector
 QuiverTools.solve
 QuiverTools.todd_Q

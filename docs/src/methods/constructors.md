@@ -70,4 +70,6 @@ New quivers can also be built from existing ones.
 opposite_quiver
 double_quiver
 disjoint_union
+framed_quiver
+coframed_quiver
 ```
