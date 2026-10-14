@@ -78,7 +78,7 @@ end;
 
 @testset "vgit_chambers edge cases" begin
   # a single vertex with d = [1] is a primitive Schur root and must not be rejected;
-  # fixed in 15b4405 (`extended_gcd(d)[1]` is `[1]`, not `1`, for one vertex)
+  # fixed in 15b4405
   @test length(vgit_chambers(Quiver(zeros(Int, 1, 1)), [1])) == 1
 
   # splitting along earlier walls cuts some of the smaller walls into several pieces,
