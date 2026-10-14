@@ -468,7 +468,7 @@ QuiverTools.empty_all_caches!()
 end;
 QuiverTools.empty_all_caches!()
 
-@testset "framed quiver moduli" begin
+@testset "framed quiver moduli             " begin
   # Quiver-level framing (Sage parity): the framing vertex is prepended (arrows i0 -> i),
   # the coframing vertex appended (arrows i -> i0). See arXiv:2607.12895.
   kro = kronecker_quiver(2)
