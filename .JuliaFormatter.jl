@@ -1,27 +1,7 @@
 using JuliaFormatter
 
-files = [
-  "src/Bundles.jl",
-  "src/Chow.jl",
-  "src/Constructors.jl",
-  "src/Hodge.jl",
-  "src/Misc.jl",
-  "src/Moduli.jl",
-  "src/Quivers.jl",
-  "src/QuiverTools.jl",
-  "src/Reductions.jl",
-  "src/RepresentationTheory.jl",
-  "src/Stability.jl",
-  "src/Teleman.jl",
-  "src/Types.jl",
-  "src/WallsAndChambers.jl",
-  "ext/QuiverToolsGraphVizExt.jl",
-  "ext/QuiverToolsOscarExt.jl",
-  "docs/docs.jl",
-  "benchmark/benchmarks.jl",
-  "test/runtests.jl",
-  ".JuliaFormatter.jl",
-]
+# every Julia file that is tracked, or untracked but not ignored by .gitignore
+files = readlines(`git ls-files --cached --others --exclude-standard -- '*.jl'`)
 
 clean = map(format, files)
 all(clean) && exit(0)
