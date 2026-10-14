@@ -85,6 +85,13 @@ end;
   # each of which must still split the chamber it meets (this used to give 5 chambers);
   # fixed in 783271c
   @test length(vgit_chambers(Quiver("1-2,1-3,1--4,2--3,2-4,3-4"), [1, 1, 1, 1])) == 7
+
+  # here one chamber is split into several pieces by fake walls; after merging two of
+  # them, the fake-wall loop kept iterating over the old list of pieces, so a piece could
+  # be merged a second time, giving overlapping chambers (23 instead of 21);
+  # fixed in 24b4a9b
+  Q = Quiver([0 0 1 0 2; 0 0 2 0 1; 0 0 0 2 0; 0 0 0 0 1; 0 0 0 0 0])
+  @test length(vgit_chambers(Q, [1, 2, 1, 1, 2])) == 21
 end;
 
 @testset "strict sst" begin
