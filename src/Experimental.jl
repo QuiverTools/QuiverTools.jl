@@ -45,11 +45,16 @@ function mutation(Q::Quiver, i::Int; keep_name::Bool=false)
   @assert (i >= 1 && i <= n) "Index i must be between 1 and n_vertices(Q)"
 
   # entry (j, k) is # of paths j -> i -> k
-  paths_through_i = map(jk -> Q.adjacency[jk[1], i] * Q.adjacency[i, jk[2]], Iterators.product(1:n, 1:n))
+  paths_through_i = map(
+    jk -> Q.adjacency[jk[1], i] * Q.adjacency[i, jk[2]], Iterators.product(1:n, 1:n)
+  )
 
   # copy() returns an immutable object, we must built it anew
   new_adjacency = zeros(Int, size(Q.adjacency))
-  map(ij -> new_adjacency[ij[1], ij[2]] = Q.adjacency[ij[1], ij[2]], Iterators.product(1:n, 1:n))
+  map(
+    ij -> new_adjacency[ij[1], ij[2]] = Q.adjacency[ij[1], ij[2]],
+    Iterators.product(1:n, 1:n),
+  )
 
   for j in 1:n
     if j != i
@@ -62,13 +67,13 @@ function mutation(Q::Quiver, i::Int; keep_name::Bool=false)
   # add paths through i
   for j in 1:n, k in 1:n
     if j != i && k != i
-        new_adjacency[j, k] += paths_through_i[j, k]
+      new_adjacency[j, k] += paths_through_i[j, k]
     end
   end
 
   # remove 2-cycles
-  for j in 1:(n-1)
-    for k in (j+1):n
+  for j in 1:(n - 1)
+    for k in (j + 1):n
       if new_adjacency[j, k] > new_adjacency[k, j]
         new_adjacency[j, k] -= new_adjacency[k, j]
         new_adjacency[k, j] = 0
@@ -82,7 +87,6 @@ function mutation(Q::Quiver, i::Int; keep_name::Bool=false)
   !keep_name && return Quiver(new_adjacency)
   return Quiver(new_adjacency, "mutation of " * Q.name * " at vertex $i")
 end
-
 
 """
     mutation(Q::Quiver, d::AbstractVector{Int}, i::Int; keep_name::Bool=false)
@@ -113,20 +117,26 @@ julia> Q1, d1 = mutation(Q, d, 3)
 function mutation(Q::Quiver, d::AbstractVector{Int}, i::Int; keep_name::Bool=false)
   new_Q = mutation(Q, i; keep_name=keep_name)
   new_d = copy(d)
-  new_d[i] = maximum([sum(Q.adjacency[j, i] * d[j] for j in 1:n_vertices(Q)), sum(Q.adjacency[i, j] * d[j] for j in 1:n_vertices(Q))]) - d[i]
+  new_d[i] =
+    maximum([
+      sum(Q.adjacency[j, i] * d[j] for j in 1:n_vertices(Q)),
+      sum(Q.adjacency[i, j] * d[j] for j in 1:n_vertices(Q)),
+    ]) - d[i]
   return new_Q, new_d
 end
-
-
 
 function mori_mukai_invariant(M::QuiverModuliSpace)
   Kb_dual = dual(canonical_bundle(M))
 
   K = chern_class(Kb_dual)
-  D = [QuiverTools.Oscar.gens(chow_ring(M))[i] for i in accumulate(+, [1; M.d])[1:end-1]];
+  D = [
+    QuiverTools.Oscar.gens(chow_ring(M))[i] for i in accumulate(+, [1; M.d])[1:(end - 1)]
+  ]
   deleteat!(D, findfirst(x -> x != 0, M.chow.chi))
 
-  return LinearAlgebraX.cofactor_det([div(-K * Di * Dj, point_class(M)) for Di in D, Dj in D])
+  return LinearAlgebraX.cofactor_det([
+    div(-K * Di * Dj, point_class(M)) for Di in D, Dj in D
+  ])
 end
 
 function is_amply_stable_fast(M::QuiverModuliSpace)
@@ -140,21 +150,21 @@ function is_amply_stable_fast(M::QuiverModuliSpace)
   return true
 end
 
-
-
 function framing(Q::Quiver; n::AbstractVector{Int}=ones(Int, n_vertices(Q)))
   @assert length(n) == n_vertices(Q) "Framing `n` must be of length `n_vertices(Q)`."
   A = zeros(Int, n_vertices(Q) + 1, n_vertices(Q) + 1)
   A[2:end, 2:end] = Q.adjacency
   for j in 1:n_vertices(Q)
-    A[1, j+1] = n[j]
+    A[1, j + 1] = n[j]
   end
 
   Q.name == "" && return Quiver(A)
   return Quiver(A, "framing of " * Q.name * " by " * string(n))
 end
 
-function framing(Q::Quiver, d::AbstractVector{Int}; n::AbstractVector{Int}= ones(Int, n_vertices(Q)))
+function framing(
+  Q::Quiver, d::AbstractVector{Int}; n::AbstractVector{Int}=ones(Int, n_vertices(Q))
+)
   new_Q = framing(Q; n=n)
   new_d = vcat(1, d)
   return new_Q, new_d
@@ -178,13 +188,13 @@ function general_stability(chamber)
   return Int.(out ./ l)
 end
 
-
-
-
 function framing_stability(Q, d, theta)
-  throw(NotImplementedError("The stability parameter for smooth models needs to be implemented as in doi:10.1007/s00209-008-0401-y"))
+  throw(
+    NotImplementedError(
+      "The stability parameter for smooth models needs to be implemented as in doi:10.1007/s00209-008-0401-y"
+    ),
+  )
 end
-
 
 """
     is_QFV(Q::Quiver, d::AbstractVector{Int}, n::AbstractVector{Int})
@@ -208,4 +218,3 @@ function find_framing(Q, d; bound::Int=10)
   end
   return "try larger"
 end
-
