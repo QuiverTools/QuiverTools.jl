@@ -34,18 +34,18 @@ true
 julia&gt; in_fundamental_domain(Q, [1,3])
 false</code></pre><h2 id="Stable-and-semistable-dimension-vectors"><a class="docs-heading-anchor" href="#Stable-and-semistable-dimension-vectors">Stable and semistable dimension vectors</a><a id="Stable-and-semistable-dimension-vectors-1"></a><a class="docs-heading-anchor-permalink" href="#Stable-and-semistable-dimension-vectors" title="Permalink"></a></h2><p>One can check if semistable, respectively stable representations exist for a given dimension vector and stability parameter:</p><pre><code class="language-julia-repl hljs">julia&gt; Q = kronecker_quiver(3); d = [2,3]; θ = [3,-2];
 
-julia&gt; has_semistables(Q, d, θ)
+julia&gt; has_semistable_representation(Q, d, θ)
 true
 
-julia&gt; has_stables(Q, d, θ)
+julia&gt; has_stable_representation(Q, d, θ)
 true
 
 julia&gt; K2 = kronecker_quiver(2);
 
-julia&gt; has_stables(K2, [2,2], [1,-1])
+julia&gt; has_stable_representation(K2, [2,2], [1,-1])
 false
 
-julia&gt; has_semistables(K2, [2,2], [1,-1])
+julia&gt; has_semistable_representation(K2, [2,2], [1,-1])
 true</code></pre><p>One can also determine whether stable representations exist at all for a given dimension vector by checking if it is a Schur root:</p><pre><code class="language-julia-repl hljs">julia&gt; Q = kronecker_quiver(3); d = [2, 2];
 
 julia&gt; is_schur_root(Q, d)
@@ -350,4 +350,4 @@ julia&gt; Oscar.ambient_dim(F), Oscar.n_maximal_cones(F)
 
 julia&gt; Oscar.visualize(F)</code></pre><p>The same works for the chambers and the walls, which are drawn together as a list:</p><pre><code class="language-julia-repl hljs">julia&gt; Oscar.visualize(project_to_d_perp(vgit_chambers(Q, d), d))
 
-julia&gt; Oscar.visualize(project_to_d_perp(vgit_walls(Q, d), d))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« QuiverTools</a><a class="docs-footer-nextpage" href="../methods/quivers/">Quivers »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Wednesday 14 October 2026 12:33">Wednesday 14 October 2026</span>. Using Julia version 1.13.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+julia&gt; Oscar.visualize(project_to_d_perp(vgit_walls(Q, d), d))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« QuiverTools</a><a class="docs-footer-nextpage" href="../methods/quivers/">Quivers »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Wednesday 14 October 2026 12:59">Wednesday 14 October 2026</span>. Using Julia version 1.13.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
