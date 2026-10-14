@@ -94,6 +94,18 @@ end;
   @test length(vgit_chambers(Q, [1, 2, 1, 1, 2])) == 21
 end;
 
+@testset "vgit_fan with lineality spaces" begin
+  # vgit_fan used to reject chambers with a nontrivial lineality space
+
+  # d has a zero entry, so the chamber contains a line
+  F = vgit_fan(Quiver([0 3 0; 0 0 0; 0 0 0]), [2, 3, 0])
+  @test (Oscar.dim(F), Oscar.lineality_dim(F), Oscar.n_maximal_cones(F)) == (2, 1, 1)
+
+  # there are no walls and the only chamber, sst(Q, d), is a linear space
+  F = vgit_fan(subspace_quiver(3), [0, 0, 0, 1])
+  @test (Oscar.dim(F), Oscar.lineality_dim(F), Oscar.n_maximal_cones(F)) == (3, 3, 1)
+end;
+
 @testset "strict sst" begin
   # proper-semistability
   Q = kronecker_quiver(2)

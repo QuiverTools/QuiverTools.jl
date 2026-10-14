@@ -285,16 +285,15 @@ end
 
 function vgit_fan(Q, d; verbose=false)
   chambers = vgit_chambers(Q, d; verbose=verbose)
-  !all(Oscar.lineality_dim(ch) == 0 for ch in chambers) && throw(
-    ArgumentError(
-      """One of the GIT chambers has a lineality space.
-      Unsupported for now, see https://github.com/QuiverTools/QuiverTools.jl/issues/40""",
-    ),
-  )
+  # Chambers can have a nontrivial lineality space, e.g. when d has a zero entry.
+  # `Oscar.rays` would then be empty, so we must rebuild each chamber as cone(R) + span(L).
   return Oscar.polyhedral_fan(
-    map(ch -> Oscar.positive_hull(Oscar.rays(ch)),
-      vgit_chambers(Q, d; verbose=verbose),
-    ),
+    map(chambers) do ch
+      R, L = Oscar.rays_modulo_lineality(ch)
+      # if the chamber is a vector space, add the zero vector as its only ray
+      isempty(R) && (R = zeros(Int, 1, Oscar.ambient_dim(ch)))
+      Oscar.positive_hull(R, L)
+    end,
   )
 end
 

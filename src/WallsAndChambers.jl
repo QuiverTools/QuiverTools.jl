@@ -363,6 +363,17 @@ julia> F = vgit_fan(Q, d); Oscar.rays(F)
  [0, 1, -3//4]
 ```
 
+The chambers, and hence the cones of the fan, can contain a common linear subspace.
+For instance, if ``d_i = 0`` then the coordinate ``\\theta_i`` plays no role, so every
+chamber contains the ``i``-th coordinate axis.
+
+```jldoctest
+julia> Q = subspace_quiver(4); d = [1, 1, 0, 1, 2];
+
+julia> F = vgit_fan(Q, d); Oscar.dim(F), Oscar.lineality_dim(F), Oscar.n_maximal_cones(F)
+(4, 1, 1)
+```
+
 In the following example, from
 [Issue #40](https://github.com/QuiverTools/QuiverTools.jl/issues/40),
 `sst(Q, d)` is the whole hyperplane ``d^\\perp`` and some of the walls have a nontrivial lineality space, i.e., they are not strongly convex but contain a vector subspace.
