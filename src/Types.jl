@@ -22,20 +22,6 @@ struct Quiver{T}
   adjacency::AbstractMatrix{Int}
   name::String
 
-  """
-      Quiver(adjacency, name = "")
-
-  Construct a quiver from the adjacency matrix and optionally a name.
-
-  # Examples
-
-  ```jldoctest
-  julia> m = [0 1; 2 0];
-
-  julia> Quiver(m, "my quiver")
-  my quiver
-  ```
-  """
   function Quiver(adjacency::AbstractMatrix{Int}, name::String="")
     size(adjacency, 1) != size(adjacency, 2) &&
       throw(ArgumentError("adjacency matrix must be square"))
@@ -44,43 +30,6 @@ struct Quiver{T}
     return new{T}(adj, name)
   end
 
-  """
-      Quiver(arrows::String)
-
-  Construct a quiver from its arrows encoded in a string.
-
-  The string is a comma-separated list of chains `i-j-k-...`. Within a chain, a run of
-  `r` hyphens between two vertices encodes `r` arrows from the first to the second, and a
-  chain `i-j-k` is read left to right, giving arrows `i → j` and `j → k`.
-
-  Vertices are indexed as follows. If every vertex token is a positive integer, the
-  integers fix the vertex indices: they are sorted and, if they are not already `1, …, n`,
-  relabeled to `1, …, n` (the `k`-th smallest integer becomes vertex `k`) with a warning.
-  So `"1-6,2-6,3-6,4-6,5-6,7--1"` (which uses all of `1` to `7`) keeps those indices, while
-  both `"2--3"` and `"1--3"` are relabeled to `"1--2"`. Otherwise (any non-integer token)
-  the tokens are merely labels, numbered `1, …, n` in order of first appearance.
-  QuiverTools has no notion of vertex labels beyond this index.
-
-  # Examples
-
-  ```jldoctest
-  julia> Quiver("1--2-3")
-  Quiver with adjacency matrix [0 2 0; 0 0 1; 0 0 0]
-
-  julia> Quiver("a---b")
-  Quiver with adjacency matrix [0 3; 0 0]
-
-  julia> Quiver("1--2,1---3,2----3")
-  Quiver with adjacency matrix [0 2 3; 0 0 4; 0 0 0]
-  ```
-
-  Integer tokens index the vertices directly, so the order in the string does not matter:
-
-  ```jldoctest
-  julia> Quiver("2-1")
-  Quiver with adjacency matrix [0 0; 1 0]
-  ```
-  """
   function Quiver(arrows::String)
     arrows = replace(arrows, r"\s" => "")
     chains = split(arrows, ",")
@@ -131,6 +80,61 @@ struct Quiver{T}
     return Quiver(A, "")
   end
 end
+
+"""
+    Quiver(adjacency, name = "")
+
+Construct a quiver from the adjacency matrix and optionally a name.
+
+# Examples
+
+```jldoctest
+julia> m = [0 1; 2 0];
+
+julia> Quiver(m, "my quiver")
+my quiver
+```
+"""
+Quiver(::AbstractMatrix{Int}, ::String)
+
+"""
+    Quiver(arrows::String)
+
+Construct a quiver from its arrows encoded in a string.
+
+The string is a comma-separated list of chains `i-j-k-...`. Within a chain, a run of
+`r` hyphens between two vertices encodes `r` arrows from the first to the second, and a
+chain `i-j-k` is read left to right, giving arrows `i → j` and `j → k`.
+
+Vertices are indexed as follows. If every vertex token is a positive integer, the
+integers fix the vertex indices: they are sorted and, if they are not already `1, …, n`,
+relabeled to `1, …, n` (the `k`-th smallest integer becomes vertex `k`) with a warning.
+So `"1-6,2-6,3-6,4-6,5-6,7--1"` (which uses all of `1` to `7`) keeps those indices, while
+both `"2--3"` and `"1--3"` are relabeled to `"1--2"`. Otherwise (any non-integer token)
+the tokens are merely labels, numbered `1, …, n` in order of first appearance.
+QuiverTools has no notion of vertex labels beyond this index.
+
+# Examples
+
+```jldoctest
+julia> Quiver("1--2-3")
+Quiver with adjacency matrix [0 2 0; 0 0 1; 0 0 0]
+
+julia> Quiver("a---b")
+Quiver with adjacency matrix [0 3; 0 0]
+
+julia> Quiver("1--2,1---3,2----3")
+Quiver with adjacency matrix [0 2 3; 0 0 4; 0 0 0]
+```
+
+Integer tokens index the vertices directly, so the order in the string does not matter:
+
+```jldoctest
+julia> Quiver("2-1")
+Quiver with adjacency matrix [0 0; 1 0]
+```
+"""
+Quiver(::String)
 
 ==(Q1::Quiver, Q2::Quiver) = Q1.adjacency == Q2.adjacency
 hash(Q::Quiver) = hash(Q.adjacency)

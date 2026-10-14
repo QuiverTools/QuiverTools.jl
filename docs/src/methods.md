@@ -44,5 +44,16 @@ QuiverTools.is_subdimension_vector
 QuiverTools.zero_vector
 QuiverTools.__add_and_return_new
 QuiverTools.__add_and_return
+QuiverTools.__add_and_return_noniso
 QuiverTools.__projection_to_quotient_ring
+QuiverTools._weighted_monomials
+QuiverTools._degree1_vector
+QuiverTools._universal_chern_generators
+QuiverTools.__homogeneous_components
+QuiverTools.__simplify
+QuiverTools.support_subquiver
+QuiverTools.__in_semistable_cone
+QuiverTools.__in_vgit_wall
+QuiverTools.__is_vgit_chamber_parameter
+QuiverTools.@oscar_stub
 ```

@@ -53,7 +53,7 @@ functions_batch_1 = [
   all_HN_types,
   all_Teleman_bounds,
   Euler_form,
-  has_semistables,
+  has_semistable_representation,
 ];
 
 functions_batch_2 = [

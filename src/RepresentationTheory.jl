@@ -285,10 +285,10 @@ end
 # parameter, so the repeated resizing done here would allocate a new type at every
 # step, and calling the memoized euler_form on such throwaway quivers would pollute
 # its cache.
-function __bocklandt_step(A::Matrix{Int}, d::Vector{Int})
+function __bocklandt_step(A::AbstractMatrix{Int}, d::AbstractVector{Int})
   n = length(d)
-  # the vectors of \chi(d, e_v) and \chi(e_v, d), for e_v the unit vector at v
-  chi_in, chi_out = d - A' * d, d - A * d
+  # the vectors of <d, e_v> and <e_v, d>, for e_v the unit vector at v
+  euler_form_in, euler_form_out = d - A' * d, d - A * d
   # The three conditions are mutually exclusive at a fixed vertex, and the final
   # reduced setting is independent of the chosen moves [Theorem 6, arXiv:math/0207250].
   for v in 1:n
@@ -296,7 +296,7 @@ function __bocklandt_step(A::Matrix{Int}, d::Vector{Int})
     # paths carry at most d[v] dimensions, shortcutting every path through it; a lone
     # vertex is kept so that the reduced coregular settings are the three settings of
     # [Theorem 1.1, MR1929191]
-    if A[v, v] == 0 && n > 1 && (chi_in[v] >= 0 || chi_out[v] >= 0)
+    if A[v, v] == 0 && n > 1 && (euler_form_in[v] >= 0 || euler_form_out[v] >= 0)
       keep = setdiff(1:n, v)
       return A[keep, keep] + A[keep, v] * A[v, keep]', d[keep]
     end
@@ -310,10 +310,10 @@ function __bocklandt_step(A::Matrix{Int}, d::Vector{Int})
     # loop and, besides the loop, a single incoming (resp. outgoing) arrow from
     # (resp. to) a vertex of dimension 1, remove the loop and thicken that arrow to
     # k parallel arrows
-    if A[v, v] == 1 && d[v] >= 2 && (chi_in[v] == -1 || chi_out[v] == -1)
+    if A[v, v] == 1 && d[v] >= 2 && (euler_form_in[v] == -1 || euler_form_out[v] == -1)
       B = copy(A)
       B[v, v] = 0
-      if chi_in[v] == -1
+      if euler_form_in[v] == -1
         u = findfirst(w -> w != v && A[w, v] > 0, 1:n)
         B[u, v] = d[v]
       else
@@ -339,12 +339,12 @@ simplified using the three reduction steps of [Section 3, MR1929191], each of wh
 preserves the ring of invariants up to a polynomial factor:
 
 - ``R_I`` [Lemma 3.2, MR1929191]: a vertex ``v`` without loops with
-  ``\\chi(d, e_v) \\geq 0`` or ``\\chi(e_v, d) \\geq 0`` is removed, and every pair of
+  ``\\langle d, e_v\\rangle \\geq 0`` or ``\\langle e_v, d\\rangle \\geq 0`` is removed, and every pair of
   arrows ``u \\to v \\to w`` is replaced by an arrow ``u \\to w``;
 - ``R_{II}`` [Lemma 3.3, MR1929191]: the loops on a vertex of dimension `1` are
   removed;
 - ``R_{III}`` [Lemma 3.4, MR1929191]: the unique loop on a vertex ``v`` of dimension
-  ``k \\geq 2`` with ``\\chi(d, e_v) = -1`` (resp. ``\\chi(e_v, d) = -1``) is removed,
+  ``k \\geq 2`` with ``\\langle d, e_v\\rangle = -1`` (resp. ``\\langle e_v, d\\rangle = -1``) is removed,
   and the unique incoming (resp. outgoing) non-loop arrow is replaced by ``k``
   parallel arrows.
 
@@ -404,7 +404,7 @@ function bocklandt_reduction(Q::Quiver, d::AbstractVector{Int})
   components = strongly_connected_components(Quiver(A[vertices, vertices]))
 
   reduced = map(components) do c
-    B, e = A[vertices[c], vertices[c]], Vector{Int}(d[vertices[c]])
+    B, e = A[vertices[c], vertices[c]], d[vertices[c]]
     while (step = __bocklandt_step(B, e)) !== nothing
       B, e = step
     end
@@ -487,11 +487,15 @@ end
 # and 9. Paths and cycles are quasiprimitive throughout: they use every vertex w as a
 # source of at most d[w] arrows.
 
-# The number of quasiprimitive cycles through v, counted with arrow multiplicities and
-# capped to bound the enumeration; only used when every such cycle passes through v
-# exactly once, so that counting closed walks anchored at v is correct.
-function __n_quasiprimitive_cycles(A::Matrix{Int}, d::Vector{Int}, v::Int, cap::Int)
+# This function enumerates quasiprimitive cycles through v, until it finds at most `cap + 1` of them.
+# If the vertex v has an arrov v -> v, the only paths this method counts contain one arrow, i.e., "v -> v -> v" is not *one* path.
+function __n_quasiprimitive_cycles(
+  A::AbstractMatrix{Int}, d::AbstractVector{Int}, v::Int, cap::Int
+)
   total, budget = Ref(0), copy(d)
+  # each step of the recursion "walks" along arrows and adds to total when it comes across v.
+  # When called starting from v, this counts then cycles through v.
+  # the extra variable `mult` carries the amount of arrows that brought the walk where it is.
   function walk(x::Int, mult::Int)
     (total[] > cap || budget[x] == 0) && return nothing
     budget[x] -= 1
@@ -510,12 +514,13 @@ end
 # (resp. starts) at a vertex of dimension 1: v is removed and its other arrows are
 # redirected to that vertex, provided d[v] is at least the number of quasiprimitive
 # cycles through v. Wedging preserves cofreeness in both directions [Lemma 3].
-function __wedge_step(A::Matrix{Int}, d::Vector{Int})
+function __wedge_step(A::AbstractMatrix{Int}, d::AbstractVector{Int})
   n = length(d)
   for v in findall(v -> d[v] >= 2 && A[v, v] == 0, 1:n)
     outs, ins = findall(>(0), A[v, :]), findall(>(0), A[:, v])
     out = length(outs) == 1 && A[v, outs[1]] == 1 && d[outs[1]] == 1
     into = length(ins) == 1 && A[ins[1], v] == 1 && d[ins[1]] == 1
+    # we don't actually care how many quasiprimitive cycles there are, knowing that there are at most d[v] suffices - hence the cap
     ((out || into) && __n_quasiprimitive_cycles(A, d, v, d[v]) <= d[v]) || continue
     B = copy(A)
     out ? (B[:, outs[1]] .+= A[:, v]) : (B[ins[1], :] .+= A[v, :])
@@ -527,13 +532,13 @@ end
 
 # the weakly connected components of the quiver with adjacency matrix A, as the
 # strongly connected components of its double
-__weakly_connected_components(A::Matrix{Int}) =
+__weakly_connected_components(A::AbstractMatrix{Int}) =
   strongly_connected_components(Quiver(A + A'))
 
 # Split a strongly connected quiver setting into its prime components, i.e., the
 # summands of its decomposition as an iterated connected sum at vertices of
 # dimension 1; a setting is cofree iff its prime components are [Lemma 3].
-function __prime_components(A::Matrix{Int}, d::Vector{Int})
+function __prime_components(A::AbstractMatrix{Int}, d::AbstractVector{Int})
   n = length(d)
   for v in findall(==(1), d)
     # the summands at v are the weakly connected components of the quiver minus v,
@@ -556,7 +561,7 @@ end
 
 # Decide cofreeness of a prime strongly connected setting by recognizing the members
 # of the list of [Theorem 1, doi:10.1016/j.jalgebra.2007.08.019].
-function __is_cofree_prime(A::Matrix{Int}, d::Vector{Int})
+function __is_cofree_prime(A::AbstractMatrix{Int}, d::AbstractVector{Int})
   n = length(d)
   # a single vertex: no arrows, a cyclic quiver (one loop), any number of loops on a
   # vertex of dimension 1, or the setting Q_2 (two loops on a vertex of dimension 2)
@@ -637,7 +642,7 @@ the classification of
 the setting is cofree if and only if all its strongly connected components are, which
 is decided by wedging away vertices (their reduction step ``W``), splitting into prime
 components (the summands of the decomposition as an iterated connected sum at vertices
-of dimension `1`), and comparing against the list of [Theorem 1, loc. cit.].
+of dimension `1`), and comparing against the list of [Theorem 1, op. cit.].
 
 Cofreeness is stronger than coregularity: it moreover makes the quotient map from the
 representation variety to the affine quotient flat.
@@ -688,7 +693,7 @@ function is_cofree(Q::Quiver, d::AbstractVector{Int})
   A = Matrix{Int}(Q.adjacency)
   vertices = support(d)
   for c in strongly_connected_components(Quiver(A[vertices, vertices]))
-    Ac, dc = A[vertices[c], vertices[c]], Vector{Int}(d[vertices[c]])
+    Ac, dc = A[vertices[c], vertices[c]], d[vertices[c]]
     # wedge the vertices of dimension at least 2 first, then split into prime
     # components; wedges at vertices of dimension 1 only occur for cyclic quivers,
     # which are cofree anyway [Remark 2]
@@ -699,4 +704,215 @@ function is_cofree(Q::Quiver, d::AbstractVector{Int})
       return false
   end
   return true
+end
+
+########################################################################################
+# Nullcones
+########################################################################################
+
+# The motive of the nullcone of the setting (A, d) as an element of the polynomial ring
+# QQ[L] in the Lefschetz motive L, following the recursion of
+# [Corollary 3.1, doi:10.3842/SIGMA.2026.020], which stratifies the nullcone by the
+# dimension vector of the socle:
+#
+#   [N_d] = -\sum_{e < d} (-1)^{|d| - |e|} L^{s(e, d)} [d; e]_L [N_e],
+#
+# where s(e, d) = \sum_i binomial(d_i - e_i, 2) + \sum_{a: i -> j} e_i (d_j - e_j).
+function __nullcone_motive(A::AbstractMatrix{Int}, d::AbstractVector{Int})
+  R, (L,) = polynomial_ring(Singular.QQ, ["L"])
+  n = length(d)
+
+  # the Gaussian binomial coefficients [m; k]_L, computed once per call
+  gaussian = Dict{Tuple{Int,Int},typeof(L)}()
+  gaussian_binomial(m, k) =
+    get!(gaussian, (m, k)) do
+      Singular.divexact(
+        prod((L^(m - i) - 1 for i in 0:(k - 1)); init=one(R)),
+        prod((L^(i + 1) - 1 for i in 0:(k - 1)); init=one(R)),
+      )
+    end
+
+  motives = Dict{Vector{Int},typeof(L)}(zeros(Int, n) => one(R))
+  for e in sort!(all_subdimension_vectors(d; nonzero=true); by=sum)
+    total = zero(R)
+    for f in all_subdimension_vectors(e; strict=true)
+      shift =
+        sum(binomial(e[i] - f[i], 2) for i in 1:n) +
+        sum(A[i, j] * f[i] * (e[j] - f[j]) for i in 1:n, j in 1:n)
+      sign = isodd(sum(e) - sum(f)) ? 1 : -1
+      binomials = prod(gaussian_binomial(e[i], f[i]) for i in 1:n)
+      total += sign * L^shift * binomials * motives[f]
+    end
+    motives[e] = total
+  end
+  return motives[d]
+end
+
+"""
+    dimension_nullcone(Q::Quiver, d::AbstractVector{Int})
+
+Compute the dimension of the nullcone of the quiver setting `(Q, d)`.
+
+The nullcone is the fibre of the quotient map to the affine quotient over the image of
+the zero representation; it consists of the nilpotent representations, i.e., those
+admitting a filtration by the vertex simples, or equivalently those on which the trace
+of every oriented cycle vanishes. Its class in the Grothendieck ring of varieties is a
+polynomial in the Lefschetz motive, computed here by the recursion of
+[[Corollary 3.1, Gösmann--Reineke](https://doi.org/10.3842/SIGMA.2026.020)], which
+stratifies the nullcone by the dimension vector of the socle; the dimension of the
+nullcone is the degree of this polynomial. For a symmetric quiver it is given by the
+closed formula ``\\sum_i (r_{ii} + 1)\\binom{d_i}{2} + \\sum_{i < j} r_{ij} d_i d_j``
+of [Remark 3.6, loc. cit.], where ``r_{ij}`` is the number of arrows between ``i``
+and ``j``.
+
+# Input
+
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+
+# Output
+
+- the dimension of the nullcone of the setting `(Q, d)`.
+
+# Examples
+
+The nullcone of the Jordan quiver consists of the nilpotent matrices; for pairs of
+``2 \\times 2`` or ``4 \\times 4`` matrices it consists of the pairs that are
+simultaneously strictly triangularisable:
+
+```jldoctest
+julia> dimension_nullcone(jordan_quiver(1), [3])
+6
+
+julia> dimension_nullcone(jordan_quiver(2), [2])
+3
+
+julia> dimension_nullcone(jordan_quiver(2), [4])
+18
+```
+
+For an acyclic quiver there are no invariants, so the nullcone is everything:
+
+```jldoctest
+julia> dimension_nullcone(kronecker_quiver(3), [2, 3])
+18
+```
+"""
+@memoize Dict function dimension_nullcone(Q::Quiver, d::AbstractVector{Int})
+  __check_dimension_vector(Q, d)
+
+  return degree(__nullcone_motive(Q.adjacency, d), 1)
+end
+
+"""
+    nullcone_motive(Q::Quiver, d::AbstractVector{Int})
+
+Compute the motive of the nullcone of the quiver setting `(Q, d)`.
+
+The class of the nullcone in the Grothendieck ring of varieties is a polynomial in the
+Lefschetz motive ``\\mathbb{L}``, computed by the recursion of
+[[Corollary 3.1, Gösmann--Reineke](https://doi.org/10.3842/SIGMA.2026.020)], which
+stratifies the nullcone by the dimension vector of the socle. It is returned as an
+element of the field ``\\mathbb{Q}(L)``, as for [`motive`](@ref), and its degree is
+[`dimension_nullcone`](@ref).
+
+# Input
+
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+
+# Output
+
+- the motive of the nullcone of the setting `(Q, d)`, as a polynomial in the Lefschetz
+  motive `L`.
+
+# Examples
+
+The variety of nilpotent ``d \\times d`` matrices has motive ``\\mathbb{L}^{d(d-1)}``,
+whilst for tuples of matrices the motive is no longer a single power:
+
+```jldoctest
+julia> nullcone_motive(jordan_quiver(1), [3])
+L^6
+
+julia> nullcone_motive(jordan_quiver(2), [2])
+L^3 + L^2 - L
+```
+
+For an acyclic quiver the nullcone is the whole representation variety:
+
+```jldoctest
+julia> nullcone_motive(kronecker_quiver(3), [2, 3])
+L^18
+```
+"""
+function nullcone_motive(Q::Quiver, d::AbstractVector{Int})
+  __check_dimension_vector(Q, d)
+
+  K, (L,) = Singular.FunctionField(Singular.QQ, ["L"])
+  return Singular.evaluate(__nullcone_motive(Q.adjacency, d), [L])
+end
+
+"""
+    defect(Q::Quiver, d::AbstractVector{Int})
+
+Compute the defect of the quiver setting `(Q, d)`, i.e., the difference between the
+dimension of the nullcone and the dimension of the generic fibre of the quotient map
+to the affine quotient,
+
+```math
+\\operatorname{def}(Q, d) =
+\\dim\\operatorname{Null}(Q, d) - \\dim\\operatorname{Rep}(Q, d) +
+\\dim\\operatorname{iss}(Q, d),
+```
+
+as in [[Definition 3, Bocklandt--Van de Weyer]
+(https://doi.org/10.1016/j.jalgebra.2007.08.019)]. The defect is non-negative, and it
+vanishes if and only if the quotient map is equidimensional. By a criterion of Popov,
+the setting is cofree if and only if it is coregular and has defect zero, which gives
+an independent verification of [`is_cofree`](@ref).
+
+# Input
+
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+
+# Output
+
+- the defect of the setting `(Q, d)`.
+
+# Examples
+
+Cyclic quiver settings are cofree, so their defect vanishes; for pairs of
+``3 \\times 3`` matrices the nullcone is too large:
+
+```jldoctest
+julia> defect(jordan_quiver(1), [4])
+0
+
+julia> defect(jordan_quiver(2), [3])
+1
+```
+"""
+function defect(Q::Quiver, d::AbstractVector{Int})
+  __check_dimension_vector(Q, d)
+  A = Matrix{Int}(Q.adjacency)
+  dim_rep = sum(A .* (Vector(d) * Vector(d)'))
+  return dimension_nullcone(Q, d) - dim_rep + __dimension_affine_quotient(Q, d)
+end
+
+# The dimension of the affine quotient iss(Q, d), i.e., of the moduli space for the
+# zero stability parameter, computed one connected component of the support at a time.
+function __dimension_affine_quotient(Q::Quiver, d::AbstractVector{Int})
+  keep = support(d)
+  A = Matrix{Int}(Q.adjacency)[keep, keep]
+  return sum(
+    Int(
+      dimension(
+        QuiverModuliSpace(Quiver(A[c, c]), d[keep[c]], zeros(Int, length(c)))
+      ),
+    )
+    for c in __weakly_connected_components(A);
+    init=0,
+  )
 end

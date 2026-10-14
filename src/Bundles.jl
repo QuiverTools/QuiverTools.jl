@@ -549,15 +549,17 @@ julia> H = line_bundle(M, [3, -2]);
 julia> chern_class(H)
 -x21
 
-julia> teleman_weights(H)
-Dict{HNType, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [-10]
-  [[2, 1], [0, 2]]         => [-20]
-  [[1, 0], [1, 2], [0, 1]] => [-40]
-  [[1, 0], [1, 3]]         => [-15]
-  [[1, 0], [1, 1], [0, 2]] => [-35]
-  [[1, 1], [1, 2]]         => [-5]
-  [[2, 0], [0, 3]]         => [-30]
+julia> teleman_weights(H) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [-10],
+             [[2, 1], [0, 2]]         => [-20],
+             [[1, 0], [1, 2], [0, 1]] => [-40],
+             [[1, 0], [1, 3]]         => [-15],
+             [[1, 0], [1, 1], [0, 2]] => [-35],
+             [[1, 1], [1, 2]]         => [-5],
+             [[2, 0], [0, 3]]         => [-30]
+       )
+true
 ```
 
 The 7-subspace quiver moduli space:
@@ -635,20 +637,22 @@ julia> omega = canonical_bundle(M);
 julia> chern_class(omega)
 3*x21
 
-julia> QuiverTools.teleman_weights(omega)
-Dict{HNType, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [30]
-  [[2, 1], [0, 2]]         => [60]
-  [[1, 0], [1, 2], [0, 1]] => [120]
-  [[1, 0], [1, 3]]         => [45]
-  [[1, 0], [1, 1], [0, 2]] => [105]
-  [[1, 1], [1, 2]]         => [15]
-  [[2, 0], [0, 3]]         => [90]
+julia> QuiverTools.teleman_weights(omega) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [30],
+             [[2, 1], [0, 2]]         => [60],
+             [[1, 0], [1, 2], [0, 1]] => [120],
+             [[1, 0], [1, 3]]         => [45],
+             [[1, 0], [1, 1], [0, 2]] => [105],
+             [[1, 1], [1, 2]]         => [15],
+             [[2, 0], [0, 3]]         => [90]
+       )
+true
 ```
 """
 function canonical_bundle(M::QuiverModuliSpace; teleman::Bool=true, unsafe::Bool=false)
   if !unsafe
-    has_properly_semistables(M.Q, M.d, M.theta, M.denom) &&
+    has_properly_semistable_representation(M.Q, M.d, M.theta, M.denom) &&
       throw(
         ArgumentError(
           "The quiver moduli problem has properly semistables, no description of the canonical bundle is available."
@@ -725,25 +729,29 @@ julia> map(chern_character, [u1, u2])
 
 julia> w = map(teleman_weights, [u1, u2]);
 
-julia> w[1]
-Dict{HNType, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [5, 5]
-  [[2, 1], [0, 2]]         => [10, 10]
-  [[1, 0], [1, 2], [0, 1]] => [25, 15]
-  [[1, 0], [1, 3]]         => [10, 5]
-  [[1, 0], [1, 1], [0, 2]] => [20, 15]
-  [[1, 1], [1, 2]]         => [5, 0]
-  [[2, 0], [0, 3]]         => [15, 15]
+julia> w[1] ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [5, 5],
+             [[2, 1], [0, 2]]         => [10, 10],
+             [[1, 0], [1, 2], [0, 1]] => [25, 15],
+             [[1, 0], [1, 3]]         => [10, 5],
+             [[1, 0], [1, 1], [0, 2]] => [20, 15],
+             [[1, 1], [1, 2]]         => [5, 0],
+             [[2, 0], [0, 3]]         => [15, 15]
+       )
+true
 
-julia> w[2]
-Dict{HNType, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [5, 5, 0]
-  [[2, 1], [0, 2]]         => [10, 5, 5]
-  [[1, 0], [1, 2], [0, 1]] => [15, 15, 10]
-  [[1, 0], [1, 3]]         => [5, 5, 5]
-  [[1, 0], [1, 1], [0, 2]] => [15, 10, 10]
-  [[1, 1], [1, 2]]         => [5, 0, 0]
-  [[2, 0], [0, 3]]         => [10, 10, 10]
+julia> w[2] ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [5, 5, 0],
+             [[2, 1], [0, 2]]         => [10, 5, 5],
+             [[1, 0], [1, 2], [0, 1]] => [15, 15, 10],
+             [[1, 0], [1, 3]]         => [5, 5, 5],
+             [[1, 0], [1, 1], [0, 2]] => [15, 10, 10],
+             [[1, 1], [1, 2]]         => [5, 0, 0],
+             [[2, 0], [0, 3]]         => [10, 10, 10]
+       )
+true
 ```
 """
 function universal_bundle(

@@ -42,6 +42,7 @@ export base, total_space, framing_vector, fibre, ambient, local_structure
 # Quivers
 export n_vertices,
   n_arrows, arrows, indegree, outdegree, is_acyclic, is_connected, is_sink, is_source,
+  underlying_graph, first_hochschild_cohomology, to_dot, draw,
   strongly_connected_components, underlying_graph, first_hochschild_cohomology
 
 # Constructors
@@ -55,21 +56,24 @@ export kronecker_moduli, subspace_quiver_moduli
 # Stability
 export canonical_stability, is_coprime, slope
 export all_hn_types,
-  is_hn_type, has_semistables, has_stables, has_properly_semistables,
-  codimension_hn_stratum, is_amply_stable
+  is_hn_type, has_semistable_representation, has_stable_representation,
+  has_properly_semistable_representation, codimension_hn_stratum, is_amply_stable
 export is_general_subdimension_vector, all_general_subdimension_vectors
 
 # Representation theory
 export euler_form, euler_matrix, is_root, is_schur_root, is_real_root, is_imaginary_root,
   is_isotropic_root,
   general_ext, general_hom, canonical_decomposition, in_fundamental_domain,
-  bocklandt_reduction, is_coregular, is_cofree
+  bocklandt_reduction, is_coregular, is_cofree, dimension_nullcone, nullcone_motive,
+  defect
 
 # Moduli
 export all_luna_types, is_luna_type, dimension_of_luna_stratum, local_quiver_setting
 export is_nonempty, codimension_unstable_locus, codimension_singular_locus, dimension,
+  fibre_dimension, is_flat, is_semismall,
   is_smooth,
-  is_projective, is_strongly_amply_stable, semistable_equals_stable, semisimple_moduli_space
+  is_projective, is_strongly_amply_stable, local_quiver_setting, semistable_equals_stable,
+  semisimple_moduli_space
 
 # Hodge
 export hodge_diamond, hodge_polynomial, picard_rank, index, betti_numbers
@@ -93,7 +97,13 @@ export chern_character, chern_class, chern_classes, dual, exterior_power, symmet
 
 # Walls and Chambers
 export rays, is_special_subdimension_vector, all_special_subdimension_vectors, sst,
-  vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent, all_stability_parameters
+  vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent,
+  all_stability_parameters,
+  project_to_d_perp
+
+# Domokos reductions
+export is_large, is_small_source, is_small_sink,
+  tau_reduction, sigma_reduction, tau_sigma_reduce, is_taus_minimal
 
 import Pkg
 
@@ -128,6 +138,15 @@ function __init__()
     _print_banner()
   end
 
+  # `draw` only gets a method from the GraphViz extension; without it the bare
+  # MethodError does not tell the user what is missing.
+  Base.Experimental.register_error_hint(MethodError) do io, exc, argtypes, kwargs
+    if exc.f === draw &&
+      isnothing(Base.get_extension(QuiverTools, :QuiverToolsGraphVizExt))
+      print(io, "\n`draw` requires GraphViz: run `using GraphViz` to enable it.")
+    end
+  end
+
   return nothing
 end
 
@@ -141,12 +160,14 @@ include("Misc.jl")
 include("Stability.jl")
 include("RepresentationTheory.jl")
 include("Constructors.jl")
+include("WallsAndChambers.jl")
 include("Moduli.jl")
+include("Reductions.jl")
 include("Hodge.jl")
 include("Chow.jl")
 include("Teleman.jl")
 include("Bundles.jl")
-include("WallsAndChambers.jl")
+include("Deprecated.jl")
 
 # Warm the JIT for the shared Chow/Hodge computation path so the user's first
 # invariant computation is near-instant. Compilation is input-independent, so a
@@ -157,6 +178,7 @@ PrecompileTools.@compile_workload begin
   hodge_diamond(M)
   chow_ring(M)
   chern_numbers(M; unsafe=true)
+  empty_all_caches!()
 end
 
 ######################

@@ -16,7 +16,8 @@ using IterTools: IterTools
 import Memoization: @memoize
 import QuiverTools:
   is_special_subdimension_vector, all_special_subdimension_vectors, sst,
-  vgit_walls, wall_system, vgit_chambers, vgit_fan, git_equivalent, all_stability_parameters
+  vgit_walls, wall_system, vgit_chambers, vgit_fan, all_stability_parameters,
+  project_to_d_perp
 
 # Disambiguate between Singular's and Oscar's overloads of `(::PolyRing)(::spoly)`,
 # which collide once both packages are loaded.
@@ -77,70 +78,90 @@ end
 Internal method.
 
 Convert the polyhedron `P` to be spanned by its rays.
-Only works for strongly convex polyhedra.
+Polyhedra with a nontrivial lineality space or without rays are returned unchanged.
 """
 function __helper_accelerate(P::Oscar.Polyhedron)
+  # rays(P) omits the lineality space, so the positive hull would not recover P
+  (Oscar.lineality_dim(P) > 0 || isempty(Oscar.rays(P))) && return P
   newP = Oscar.polyhedron(Oscar.positive_hull(Oscar.rays(P)))
   newP != P && return P
   return newP
 end
 
 @memoize Dict function sst(Q, e)
-  e_perp = Oscar.polyhedron([e, -e], [0, 0]) #e^{\perp}
-  all_gen = filter(
-    eprime -> !all(ei == 0 for ei in eprime) && eprime != e,
-    all_general_subdimension_vectors(Q, e),
+  data = QuiverTools.__semistable_cone_data(Q, e)
+  equations = vcat(data.equations, .-data.equations)
+  e_perp = Oscar.polyhedron(equations, zeros(Int, length(equations)))
+  isempty(data.inequalities) && return e_perp
+  return intersect(
+    e_perp,
+    Oscar.polyhedron(data.inequalities, zeros(Int, length(data.inequalities))),
   )
-  isempty(all_gen) && return e_perp
-  return intersect(e_perp, Oscar.polyhedron(all_gen, zeros(Int, length(all_gen))))
 end
 
-@memoize Dict function vgit_walls(Q, d; inner=false, top_dimension=true)
-  all_subd = QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true)
-  out = map(
-    e -> reduce(intersect, [sst(Q, e), sst(Q, d - e), sst(Q, d)]), # definition of W_{e}
-    all_subd)
-  top_dim = maximum(Oscar.dim(w) for w in out) # max dimension of WALLS
-  top_dimension && filter!(w -> Oscar.dim(w) == top_dim, out)
-  inner && filter!(
-    w -> !any(issubset(w, f) for f in Oscar.facets(Oscar.Polyhedron, sst(Q, d))), out
+function vgit_walls(Q, d; inner=false, top_dimension=true)
+  out = __vgit_walls(Q, d)
+  isempty(out) && return out
+  if top_dimension
+    dims = map(w -> Oscar.dim(w), out)
+    top_dim = maximum(dims) # max dimension of WALLS
+    out = out[findall(dims .== top_dim)]
+  end
+  if inner
+    facets = Oscar.facets(Oscar.Polyhedron, sst(Q, d))
+    filter!(
+      w -> !any(issubset(w, f) for f in facets),
+      out,
+    )
+  end
+  return out
+end
+
+@memoize Dict function __vgit_walls(Q, d)
+  if gcd(d) != 1 || !is_schur_root(Q, d)
+    throw(
+      ArgumentError(
+        "The dimension vector $d is not a primitive Schur root for the quiver $Q. This case is unsupported for now, see Issue #53. Also see Issue #40 and [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153]."
+      ),
+    )
+  end
+  walls_data = map(
+    e -> QuiverTools.__vgit_wall_data(Q, d, e),
+    QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
   )
+  out = map(
+    wall_datum ->
+      Oscar.polyhedron(
+        vcat(wall_datum.equations, .-wall_datum.equations, wall_datum.inequalities),
+        zeros(Int, 2 * length(wall_datum.equations) + length(wall_datum.inequalities)),
+      ),
+    walls_data)
   return unique!(__helper_accelerate, out)
 end
 
 function wall_system(Q, d; inner=false, as_cones=true)
   sstd = sst(Q, d)
 
-  all_walls = vgit_walls(Q, d; top_dimension=true)
-  if inner
-    all_walls = filter(
-      w -> !any(issubset(w, f) for f in Oscar.facets(Oscar.Polyhedron, sstd)), all_walls
-    )
+  all_walls = map(vgit_walls(Q, d; inner=inner, top_dimension=true)) do w
+    Oscar.polyhedron(nothing, Oscar.affine_hull(w))   # only pass to the polyhedron constructor the affine hull's equations
   end
-  # each affine hull contains the defining hyperplanes that cut it out.
-  all_walls = map(w -> Oscar.affine_hull(w), all_walls)
-  all_walls = map(
-    AH -> Oscar.polyhedron(
-      vcat([hyp.a[1, :] for hyp in AH], [-hyp.a[1, :] for hyp in AH]),
-      zeros(Int, 2 * length(AH)),
-    ),
-    all_walls,
-  )
-  as_cones && return map(w -> intersect(w, sstd), all_walls)
-  return all_walls
+  as_cones && (all_walls = map(w -> intersect(w, sstd), all_walls))
+  return unique!(all_walls)
 end
 
 @memoize Dict function vgit_chambers(Q, d; verbose=false)
+  if gcd(d) != 1 || !is_schur_root(Q, d)
+    throw(
+      ArgumentError(
+        "The dimension vector $d is not a primitive Schur root for the quiver $Q. This case is unsupported for now, see Issue #53. Also see Issue #40 and [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153]."
+      ),
+    )
+  end
   sstd = __helper_accelerate(sst(Q, d))
 
   sstd_dim = Oscar.dim(sstd)
   # top-dimensional inner walls
-  int_walls = vgit_walls(Q, d; top_dimension=true)
-  int_walls = filter(
-    w -> !any(issubset(w, f) for f in Oscar.facets(Oscar.Polyhedron, sstd)), int_walls
-  )
-
-  # @warn "we must treat the case of a wall W_e of dimension = Oscar.dim(sstd) here!"
+  int_walls = vgit_walls(Q, d; inner=true, top_dimension=true)
 
   # we split the walls into two sets: the ones equal to the wall system hyperplane
   # they lay on, and the ones that are not.
@@ -149,21 +170,28 @@ end
   full_walls = filter(w -> w in wallsyst, int_walls)
   smaller_walls = filter(w -> !(w in wallsyst), int_walls)
 
-  full_walls = map(w -> Oscar.affine_hull(w), full_walls)
-  smaller_walls_ah = map(w -> Oscar.affine_hull(w), smaller_walls)
+  # n is a multiple of d iff all 2x2 minors of the matrix with rows n and d vanish
+  is_multiple_of_d(n) =
+    all(n[i] * d[j] == n[j] * d[i] for i in eachindex(d), j in eachindex(d))
 
-  # find a vector not equal to d that cuts out the wall
-  full_walls = map(AH -> AH[findfirst(hyp -> (hyp.a[1, :] != d), AH)].a[1, :], full_walls)
-  smaller_walls_ah = map(
-    AH -> AH[findfirst(hyp -> (hyp.a[1, :] != d), AH)].a[1, :], smaller_walls_ah
-  )
-
-  full_walls_iterate = eachindex(full_walls)
-  smaller_walls_iterate = eachindex(smaller_walls_ah)
+  # a normal vector not proportional to d of a hyperplane in the affine hull of the wall;
+  # together with d^⟂ it cuts out the hyperplane of d^⟂ spanned by the wall
+  function wall_normal(w)
+    normals = map(Oscar.normal_vector, Oscar.affine_hull(w))
+    k = findfirst(!is_multiple_of_d, normals)
+    k === nothing && error(
+      "There is at least one wall that spans d^⟂ for d = $d."
+    )
+    # under the sanity check above,
+    # this can never happen, see  [Theorem 5.1, https://doi.org/10.1016/j.jpaa.2025.108153].
+    return normals[k]
+  end
+  full_normals = map(wall_normal, full_walls)
+  smaller_normals = map(wall_normal, smaller_walls)
 
   top_chambers = [sstd]
 
-  # helper function
+  # splits a top dimensional cone in two along an hyperplane
   function helper_split(wall, chamber)
     return [
       intersect(chamber, Oscar.polyhedron([wall], [0])),
@@ -173,92 +201,82 @@ end
   verbose &&
     @info "There are $(length(full_walls)) full walls and $(length(smaller_walls)) smaller walls."
 
+  # run `f`, timing it when verbose, so that both modes execute the same code
+  timed(f) = verbose ? (@time f()) : f()
+
   verbose && @info "Treating the full walls..."
-  for i in full_walls_iterate
-    if verbose
-      @time begin
-        # in-place
-        n = length(top_chambers)
-        for j in 1:n
-          push!(top_chambers,
-            helper_split(full_walls[i], top_chambers[j])...,
-          )
-        end
-        deleteat!(top_chambers, 1:n)
-
-        map!(__helper_accelerate, top_chambers, top_chambers)
-        filter!(c -> Oscar.dim(c) == sstd_dim, top_chambers)
-      end
-    else
-      # in-place
-      n = length(top_chambers)
-      for j in 1:n
-        push!(top_chambers,
-          helper_split(full_walls[i], top_chambers[j])...,
-        )
-      end
-      deleteat!(top_chambers, 1:n)
-
-      map!(__helper_accelerate, top_chambers, top_chambers)
-      filter!(c -> Oscar.dim(c) == sstd_dim, top_chambers)
+  for i in eachindex(full_normals)
+    top_chambers = timed() do
+      chambers = vcat(
+        map(chamber -> helper_split(full_normals[i], chamber), top_chambers)...
+      )
+      map!(__helper_accelerate, chambers, chambers)
+      return filter!(c -> Oscar.dim(c) == sstd_dim, chambers)
     end
+    unique!(top_chambers)
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
   end
 
   length(smaller_walls) == 0 && return top_chambers
 
   verbose && @info "Treating the smaller walls..."
-  for i in smaller_walls_iterate
-    if verbose
-      @time begin
-        top_chambers = vcat(
-          map(
-            chamber -> if issubset(smaller_walls[i], chamber)
-              helper_split(smaller_walls_ah[i], chamber)
-            else
-              [chamber]
-            end,
-            top_chambers,
-          )...,
-        )
-        map!(__helper_accelerate, top_chambers, top_chambers)
-        filter!(c -> Oscar.dim(c) == length(d) - 1, top_chambers)
-      end
-    else
-      top_chambers = vcat(
+  for i in eachindex(smaller_walls)
+    top_chambers = timed() do
+      chambers = vcat(
         map(
-          chamber -> if issubset(smaller_walls[i], chamber)
-            helper_split(smaller_walls_ah[i], chamber)
+          # split when the wall meets the chamber in codimension 1
+          chamber -> if Oscar.dim(intersect(smaller_walls[i], chamber)) == sstd_dim - 1
+            helper_split(smaller_normals[i], chamber)
           else
             [chamber]
           end,
           top_chambers,
         )...,
       )
-      map!(__helper_accelerate, top_chambers, top_chambers)
-      filter!(c -> Oscar.dim(c) == sstd_dim, top_chambers)
+      map!(__helper_accelerate, chambers, chambers)
+      return filter!(c -> Oscar.dim(c) == sstd_dim, chambers)
     end
+    unique!(top_chambers)
     verbose && @info "Found $(length(top_chambers)) unique chambers after $(i) steps.\n"
   end
 
   verbose && @info "Removing fake walls..."
 
-  # remove fake walls that appeared during the previous loop
-  incomplete = true
-  while incomplete
-    incomplete = false
-    for (ch1, ch2) in IterTools.subsets(top_chambers, 2)
-      inters = intersect(ch1, ch2)
+  # Scan the list to find the chambers that must be joined
+  # and classify them with their indices.
+  # Indices are stored in `parent` and updated with root(),
+  # apparently a "union find data structure".
+  n = length(top_chambers)
+  parent = collect(1:n)
+  root(i) = parent[i] == i ? i : (parent[i] = root(parent[i]))
+
+  timed() do
+    for (i, j) in IterTools.subsets(1:n, 2)
+      root(i) == root(j) && continue # already known to be in the same chamber
+
+      inters = intersect(top_chambers[i], top_chambers[j])
       # we are looking for common facets
       Oscar.dim(inters) != sstd_dim - 1 && continue
-      # if their intersection (the common facet) lays on a W_e, good.
-      any(issubset(inters, w) for w in int_walls) && continue
-      verbose && @info "Found a fake wall, removing it..."
-      incomplete = true
-      # otherwise, we replace the two chambers in top_chambers by their union
-      push!(top_chambers, Oscar.minkowski_sum(ch1, ch2))
-      top_chambers = filter(ch -> (ch != ch1 && ch != ch2), top_chambers)
+
+      # If the common facet lies on a wall W_e we don't merge.
+      # Note: the common facet is either in the interior
+      # of a "true" chamber, or it is contained in the intersection C1 \cap C2 of two "true" chambers.
+      # Such an intersection is contained in a unique wall W_e for some e,
+      # so the error that commit 32179e8b374fa50bf13126a2413c6dbc6b6e5d39
+      # "fixed" could not happen.
+      # We keep this check because it is faster.
+      p = Oscar.relative_interior_point(inters)
+      any(w -> p in w, int_walls) && continue
+
+      verbose && @info "Found a fake wall."
+      parent[root(i)] = root(j)
     end
+  end
+
+  verbose && @info "Merging the fake walls now:"
+  groups = [findall(i -> root(i) == r, 1:n) for r in unique(map(root, 1:n))]
+  timed() do
+    top_chambers = map(g -> reduce(Oscar.minkowski_sum, top_chambers[g]), groups)
   end
   verbose &&
     @info "Done. Found $(length(top_chambers)) chambers after removing the fake walls."
@@ -267,136 +285,143 @@ end
 
 function vgit_fan(Q, d; verbose=false)
   chambers = vgit_chambers(Q, d; verbose=verbose)
-  !all(Oscar.lineality_dim(ch) == 0 for ch in chambers) && throw(
-    ArgumentError(
-      """The VGIT fan is not strongly convex.
-      Unsupported for now, see https://github.com/QuiverTools/QuiverTools.jl/issues/40""",
-    ),
-  )
+  # Chambers can have a nontrivial lineality space, e.g. when d has a zero entry.
+  # `Oscar.rays` would then be empty, so we must rebuild each chamber as cone(R) + span(L).
   return Oscar.polyhedral_fan(
-    map(ch -> Oscar.positive_hull(Oscar.rays(ch)),
-      vgit_chambers(Q, d; verbose=verbose),
-    ),
+    map(chambers) do ch
+      R, L = Oscar.rays_modulo_lineality(ch)
+      # if the chamber is a vector space, add the zero vector as its only ray
+      isempty(R) && (R = zeros(Int, 1, Oscar.ambient_dim(ch)))
+      Oscar.positive_hull(R, L)
+    end,
   )
 end
 
-function git_equivalent(Q, d, theta1, theta2)
-  theta1 == theta2 && return true
-  line = Oscar.convex_hull([theta1, theta2]) # 1-dimensional iif theta1 != theta2
-
-  # either the line lies in a wall or it intersects none of them
-  for w in vgit_walls(Q, d; top_dimension=false)
-    if !Oscar.issubset(line, w) && Oscar.is_feasible(Oscar.intersect(line, w))
-      return false
-    end
-  end
-  return true
-end
-
-"""
-    __sst_cone(Q::Quiver, e::AbstractVector{Int})
-
-Return the exact same polyhedral cone as `sst(Q, e)`
-but seen as an Oscar `Cone` object.
-
-For internal use only for now.
-"""
-function __sst_cone(Q::Quiver, e::AbstractVector{Int})
-  all_gen = filter(
-    eprime -> !all(ei == 0 for ei in eprime) && eprime != e,
-    all_general_subdimension_vectors(Q, e),
-  )
-  isempty(all_gen) && return Oscar.cone_from_inequalities([e, -e])
-  return Oscar.cone_from_inequalities(all_gen, [e])
-end
-
-"""
-    __walls_cones(Q::Quiver, d::AbstractVector{Int})
-
-Compute the polyhedral cones of the walls `W_e` of the quiver `Q` with dimension vector `d`.
-
-For internal use only for now.
-"""
-function __walls_cones(Q::Quiver, d::AbstractVector{Int})
-  out = map(
-    e -> Oscar.intersect(__sst_cone(Q, e), __sst_cone(Q, d - e)),
-    QuiverTools.all_subdimension_vectors(d; nonzero=true, strict=true),
-  )
-  return unique!(out)
-end
-
-"""
-    __lower_fan(Q::Quiver, d::AbstractVector{Int})
-
-Compute the polyhedral fan from the definition
-using the fan construction via cones.
-
-Does not contain the top dimensional chambers,
-so it cannot be used to iterate over chambers.
-
-It is way faster and more likely to be correct in G.P. opinion.
-
-For internal use only for now.
-"""
-function __lower_fan(Q::Quiver, d::AbstractVector{Int})
-  walls = __walls_cones(Q, d)
-  isempty(walls) && return Oscar.polyhedral_fan(__sst_cone(Q, d)) # I guess
-  return Oscar.polyhedral_fan(walls)
-end
-
-"""
-    general_stability(cone)
-
-Given a polyhedral cone of the VGIT fan,
-return a stability parameter in its relative interior.
-
-In practice this is a rescaled sum of the rays of the polyhedral cone input.
-
-# Example
-
-```jldoctests
-julia> Q = Quiver("1-2---3,1--3"); d = [1, 1, 1];
-
-julia> ch = vgit_chambers(Q, d); map(general_stability, ch)
-2-element Vector{Vector{Int64}}:
- [2, -1, -1]
- [1, 1, -2]
-```
-
-This function allows to sample stability parameters from every equivalence class:
-
-```jldoctests
-julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
-
-julia> walls = vgit_walls(Q, d; top_dimension=false); map(general_stability, walls)
-7-element Vector{Vector{Int64}}:
- [0, 1, 0, -1]
- [1, 0, 0, -1]
- [1, -1, 1, -1]
- [2, -1, 0, -1]
- [1, 0, -1, 0]
- [1, 1, -1, -1]
- [1, 0, -1, 0]
-```
-"""
-function general_stability(cone)
-  out = sum(Oscar.rays(cone))
+# internal method that samples a stability parameter
+# from a cone without lineality and rescales it to be integer and coprime.
+function __general_stability(cone)
+  out = Oscar.relative_interior_point(cone)
 
   c = lcm(denominator.(out)...)
   out .*= c
-
   l = gcd(out...)
-  return Int.(out ./ l)
+  out = Int.(out ./ l)
+  return out
 end
 
-function all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false)
+# The GIT equivalence classes are exactly the relative interiors
+# of each cone in the fan.
+# Note on the class of 0: a priori, one can show that
+# the equivalence class of 0 is
+# Z = {θ : θᵢ = 0 for every i with dᵢ > 0}.
+# By knowing that the lineality space of the fan is its smallest
+# cone, and relint(V) = V for a vector space V,
+# we conclude that Z = the entire lineality space.
+# A corollary is that a honest primitive Schur root
+#  cannot have lineality space in the GIT fan.
+function all_stability_parameters(
+  Q::Quiver, d::AbstractVector{Int}; generic::Bool=false, nonzero::Bool=true
+)
   F = vgit_fan(Q, d)
-  if generic
-    cones = Oscar.cones(F, Oscar.dim(F))
-  else
-    cones = vcat([collect(Oscar.cones(F, i)) for i in 1:Oscar.dim(F)]...)
+  # The smallest cone of the fan is its lineality space L. It always contains
+  # Z = {θ : θ_i = 0 whenever d_i > 0}, which is the GIT class of θ = 0;
+  l = Oscar.lineality_dim(F)
+  # should never happen by the explanation above, but just in case
+  l == count(iszero, d) || error("unexpected lineality space of dimension $l for d = $d")
+
+  # dimensions on which we iterate
+  dims = (l + 1):Oscar.dim(F)
+  generic && (dims = filter(==(Oscar.dim(F)), dims)) # might be empty, can't just =[Oscar.dim(F)] this
+  # the empty vector functions as init=[]
+  out = vcat(Vector{Int}[], [map(__general_stability, Oscar.cones(F, i)) for i in dims]...)
+  # the class of θ = 0 is L; it is a chamber only if L is the whole fan
+  if !nonzero && (!generic || Oscar.dim(F) == l)
+    pushfirst!(out, zeros(Int, length(d)))
   end
-  return map(general_stability, cones) #do we add the semisimple condition?
+  return out
+end
+
+########################################################################
+# Below lie functions to project all of the objects above to d^{\perp}.
+# This is for user-friendliness and to allow Oscar.visualize()
+# to display 3-dimensional fans in \mathbb{R}^4.
+########################################################################
+
+# The coordinates kept by `project_to_d_perp`: all but `drop`, which needs d[drop] != 0
+# for the projection to be injective on d^⟂.
+function __d_perp_coordinates(d::AbstractVector{Int}, drop::Int)
+  drop in eachindex(d) && d[drop] != 0 || throw(
+    ArgumentError("cannot drop coordinate $drop of d = $d: it must be a nonzero entry")
+  )
+  return [j for j in eachindex(d) if j != drop]
+end
+
+function __check_in_d_perp(generators, d::AbstractVector{Int}, X)
+  for v in generators
+    sum(d[j] * v[j] for j in eachindex(d)) == 0 ||
+      throw(ArgumentError("$X does not lie in the hyperplane orthogonal to d = $d"))
+  end
+end
+
+# the generators as the rows of a matrix, keeping only the coordinates `keep`
+__rows(generators, keep) = [v[j] for v in generators, j in keep]
+
+function project_to_d_perp(
+  P::Oscar.Polyhedron, d::AbstractVector{Int}; drop::Int=findlast(!=(0), d)
+)
+  keep = __d_perp_coordinates(d, drop)
+  K = Oscar.coefficient_field(P)
+  # an infeasible inequality: the empty polyhedron
+  Oscar.is_feasible(P) || return Oscar.polyhedron(K, zeros(Int, 1, length(keep)), [-1])
+  # P = conv(V) + cone(R) + span(L); `vertices` and `rays` would be empty if P has lineality
+  V, L = Oscar.minimal_faces(P)
+  R = Oscar.rays_modulo_lineality(P).rays_modulo_lineality
+  __check_in_d_perp(Iterators.flatten((V, R, L)), d, P)
+  return Oscar.convex_hull(
+    K,
+    __rows(V, keep),
+    isempty(R) ? nothing : __rows(R, keep),
+    isempty(L) ? nothing : __rows(L, keep),
+  )
+end
+
+function project_to_d_perp(
+  C::Oscar.Cone, d::AbstractVector{Int}; drop::Int=findlast(!=(0), d)
+)
+  keep = __d_perp_coordinates(d, drop)
+  # C = cone(R) + span(L); `rays` would be empty if C has lineality
+  R, L = Oscar.rays_modulo_lineality(C)
+  __check_in_d_perp(Iterators.flatten((R, L)), d, C)
+  return Oscar.positive_hull(
+    Oscar.coefficient_field(C),
+    isempty(R) ? zeros(Int, 1, length(keep)) : __rows(R, keep), # the zero cone if no rays
+    isempty(L) ? nothing : __rows(L, keep),
+  )
+end
+
+function project_to_d_perp(
+  F::Oscar.PolyhedralFan, d::AbstractVector{Int}; drop::Int=findlast(!=(0), d)
+)
+  return Oscar.polyhedral_fan(
+    map(C -> project_to_d_perp(C, d; drop=drop), Oscar.maximal_cones(F))
+  )
+end
+
+# a stability parameter
+function project_to_d_perp(
+  theta::AbstractVector{<:Union{Real,Oscar.FieldElem}}, d::AbstractVector{Int};
+  drop::Int=findlast(!=(0), d),
+)
+  keep = __d_perp_coordinates(d, drop)
+  __check_in_d_perp((theta,), d, theta)
+  return theta[keep]
+end
+
+# a list of any of the above, e.g. the output of `vgit_chambers`
+function project_to_d_perp(
+  X::AbstractVector, d::AbstractVector{Int}; drop::Int=findlast(!=(0), d)
+)
+  return map(x -> project_to_d_perp(x, d; drop=drop), X)
 end
 
 # NB: no `@compile_workload` here. The VGIT functions return polymake C++ objects
