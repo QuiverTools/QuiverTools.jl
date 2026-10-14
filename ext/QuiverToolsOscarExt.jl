@@ -297,6 +297,61 @@ function vgit_fan(Q, d; verbose=false)
   )
 end
 
+"""
+    general_stability(cone)
+
+Given a polyhedral cone of the VGIT fan,
+return a stability parameter in its relative interior.
+
+In practice this is a rescaled sum of the rays of the polyhedral cone input.
+
+# Example
+
+```jldoctest
+julia> Q = Quiver("1-2---3,1--3"); d = [1, 1, 1];
+
+julia> ch = vgit_chambers(Q, d); map(general_stability, ch)
+2-element Vector{Vector{Int64}}:
+ [2, -1, -1]
+ [1, 1, -2]
+```
+
+This function allows to sample stability parameters from every equivalence class:
+
+```jldoctest
+julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
+
+julia> walls = vgit_walls(Q, d; top_dimension=false); map(general_stability, walls)
+7-element Vector{Vector{Int64}}:
+ [0, 1, 0, -1]
+ [1, 0, 0, -1]
+ [1, -1, 1, -1]
+ [2, -1, 0, -1]
+ [1, 0, -1, 0]
+ [1, 1, -1, -1]
+ [1, 0, -1, 0]
+```
+"""
+function general_stability(cone)
+  out = Oscar.relative_interior_point(cone)
+
+  c = lcm(denominator.(out)...)
+  out .*= c
+  l = gcd(out...)
+  out = Int.(out ./ l)
+  return out
+end
+
+function all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false)
+  F = vgit_fan(Q, d)
+  if generic
+    cones = Oscar.cones(F, Oscar.dim(F))
+  else
+    cones = vcat([collect(Oscar.cones(F, i)) for i in 1:Oscar.dim(F)]...)
+  end
+  return map(general_stability, cones) #do we add the semisimple condition?
+end
+
 # The coordinates kept by `project_to_d_perp`: all but `drop`, which needs d[drop] != 0
 # for the projection to be injective on d^⟂.
 function __d_perp_coordinates(d::AbstractVector{Int}, drop::Int)
@@ -372,61 +427,6 @@ function project_to_d_perp(
   X::AbstractVector, d::AbstractVector{Int}; drop::Int=findlast(!=(0), d)
 )
   return map(x -> project_to_d_perp(x, d; drop=drop), X)
-end
-
-"""
-    general_stability(cone)
-
-Given a polyhedral cone of the VGIT fan,
-return a stability parameter in its relative interior.
-
-In practice this is a rescaled sum of the rays of the polyhedral cone input.
-
-# Example
-
-```jldoctest
-julia> Q = Quiver("1-2---3,1--3"); d = [1, 1, 1];
-
-julia> ch = vgit_chambers(Q, d); map(general_stability, ch)
-2-element Vector{Vector{Int64}}:
- [2, -1, -1]
- [1, 1, -2]
-```
-
-This function allows to sample stability parameters from every equivalence class:
-
-```jldoctest
-julia> Q = Quiver("1-2,2-3,3-4,1-3,1-4"); d = [1, 1, 1, 1];
-
-julia> walls = vgit_walls(Q, d; top_dimension=false); map(general_stability, walls)
-7-element Vector{Vector{Int64}}:
- [0, 1, 0, -1]
- [1, 0, 0, -1]
- [1, -1, 1, -1]
- [2, -1, 0, -1]
- [1, 0, -1, 0]
- [1, 1, -1, -1]
- [1, 0, -1, 0]
-```
-"""
-function general_stability(cone)
-  out = Oscar.relative_interior_point(cone)
-
-  c = lcm(denominator.(out)...)
-  out .*= c
-  l = gcd(out...)
-  out = Int.(out ./ l)
-  return out
-end
-
-function all_stability_parameters(Q::Quiver, d::AbstractVector{Int}; generic::Bool=false)
-  F = vgit_fan(Q, d)
-  if generic
-    cones = Oscar.cones(F, Oscar.dim(F))
-  else
-    cones = vcat([collect(Oscar.cones(F, i)) for i in 1:Oscar.dim(F)]...)
-  end
-  return map(general_stability, cones) #do we add the semisimple condition?
 end
 
 # NB: no `@compile_workload` here. The VGIT functions return polymake C++ objects
