@@ -448,190 +448,190 @@ end;
     @test is_cofree(theta_quiver, [3, 3, 2, 1])
     @test !is_cofree(theta_quiver, [2, 2, 3, 1])
 
-  # a reduced setting is returned unchanged
-  setting = bocklandt_reduction(Quiver("1--2, 2--1"), [1, 1])
-  @test Matrix(setting.Q.adjacency) == [0 2; 2 0]
-  @test setting.d == [1, 1]
+    # a reduced setting is returned unchanged
+    setting = bocklandt_reduction(Quiver("1--2, 2--1"), [1, 1])
+    @test Matrix(setting.Q.adjacency) == [0 2; 2 0]
+    @test setting.d == [1, 1]
 
-  # vertices of dimension 0 and arrows between strongly connected components are dropped
-  @test bocklandt_reduction(kronecker_quiver(3), [2, 0]).d == [2]
-  @test is_coregular(Quiver("1-1, 1-2, 2-2"), [2, 2])
-  @test is_coregular(kronecker_quiver(3), [0, 0])
+    # vertices of dimension 0 and arrows between strongly connected components are dropped
+    @test bocklandt_reduction(kronecker_quiver(3), [2, 0]).d == [2]
+    @test is_coregular(Quiver("1-1, 1-2, 2-2"), [2, 2])
+    @test is_coregular(kronecker_quiver(3), [0, 0])
 
-  # smoothness of moduli spaces with properly semistable representations: for the
-  # 2-Kronecker quiver and d = (2, 2) one gets P^2, and for the 3-Kronecker quiver
-  # both d = (2, 2) and d = (2, 4) give P^5: the deepest local quiver setting is two
-  # loops on a vertex of dimension 2, the reduced coregular setting C1 of [MR1929191];
-  # for d = (3, 3) that setting has dimension 3 instead, so the space is singular
-  @test is_smooth(QuiverModuliSpace(kronecker_quiver(2), [2, 2]))
-  @test is_smooth(QuiverModuliSpace(kronecker_quiver(3), [2, 2]))
-  @test is_smooth(QuiverModuliSpace(kronecker_quiver(3), [2, 4]))
-  @test !is_smooth(QuiverModuliSpace(kronecker_quiver(3), [3, 3]))
+    # smoothness of moduli spaces with properly semistable representations: for the
+    # 2-Kronecker quiver and d = (2, 2) one gets P^2, and for the 3-Kronecker quiver
+    # both d = (2, 2) and d = (2, 4) give P^5: the deepest local quiver setting is two
+    # loops on a vertex of dimension 2, the reduced coregular setting C1 of [MR1929191];
+    # for d = (3, 3) that setting has dimension 3 instead, so the space is singular
+    @test is_smooth(QuiverModuliSpace(kronecker_quiver(2), [2, 2]))
+    @test is_smooth(QuiverModuliSpace(kronecker_quiver(3), [2, 2]))
+    @test is_smooth(QuiverModuliSpace(kronecker_quiver(3), [2, 4]))
+    @test !is_smooth(QuiverModuliSpace(kronecker_quiver(3), [3, 3]))
 
-  # the 6-subspace quiver with d = (1^5, 2; 3) and stability parameters on a wall:
-  # for theta = (1^5, 2; -3) the moduli space is accidentally isomorphic to Gr(2, 4),
-  # hence smooth despite the eleven Luna strata, whereas for theta = (2^5, 1; -4)
-  # there are ten isolated singular points, one for each two-element subset of the
-  # five thin subspace vertices
-  S = subspace_quiver(6)
-  d = [1, 1, 1, 1, 1, 2, 3]
-  @test is_smooth(QuiverModuliSpace(S, d, [1, 1, 1, 1, 1, 2, -3]))
-  @test !is_smooth(QuiverModuliSpace(S, d, [2, 2, 2, 2, 2, 1, -4]))
-  # for d = (1^4, 2^2; 3) the analogous first wall crossing has smooth target too
-  @test is_smooth(QuiverModuliSpace(S, [1, 1, 1, 1, 2, 2, 3], [2, 2, 2, 2, 1, 1, -4]))
+    # the 6-subspace quiver with d = (1^5, 2; 3) and stability parameters on a wall:
+    # for theta = (1^5, 2; -3) the moduli space is accidentally isomorphic to Gr(2, 4),
+    # hence smooth despite the eleven Luna strata, whereas for theta = (2^5, 1; -4)
+    # there are ten isolated singular points, one for each two-element subset of the
+    # five thin subspace vertices
+    S = subspace_quiver(6)
+    d = [1, 1, 1, 1, 1, 2, 3]
+    @test is_smooth(QuiverModuliSpace(S, d, [1, 1, 1, 1, 1, 2, -3]))
+    @test !is_smooth(QuiverModuliSpace(S, d, [2, 2, 2, 2, 2, 1, -4]))
+    # for d = (1^4, 2^2; 3) the analogous first wall crossing has smooth target too
+    @test is_smooth(QuiverModuliSpace(S, [1, 1, 1, 1, 2, 2, 3], [2, 2, 2, 2, 1, 1, -4]))
 
-  # the Segre cubic threefold, as the moduli space for the 6-subspace quiver with
-  # d = (1^6; 2) and canonical stability: it has ten nodes, one for each splitting
-  # of the six thin subspace vertices into complementary triples
-  @test !is_smooth(QuiverModuliSpace(S, [1, 1, 1, 1, 1, 1, 2]))
+    # the Segre cubic threefold, as the moduli space for the 6-subspace quiver with
+    # d = (1^6; 2) and canonical stability: it has ten nodes, one for each splitting
+    # of the six thin subspace vertices into complementary triples
+    @test !is_smooth(QuiverModuliSpace(S, [1, 1, 1, 1, 1, 1, 2]))
 
-  # codimension of the singular locus: the ten nodes of the Segre cubic; for the
-  # 3-Kronecker quiver and d = (2, 2) the properly semistable locus is non-empty
-  # while the singular locus is empty, and for d = (3, 3) the largest singular
-  # Luna stratum has codimension 3 in the 10-dimensional moduli space
-  @test codimension_singular_locus(QuiverModuliSpace(S, [1, 1, 1, 1, 1, 1, 2])) == 3
-  @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [2, 2])) == Inf
-  @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [3, 3])) == 3
-end;
-
-@testset "cofree quiver settings" begin
-  # cyclic quiver settings and matrix invariants: pairs of 2x2 matrices are cofree,
-  # pairs of 3x3 matrices and triples of 2x2 matrices are not; any number of loops on
-  # a vertex of dimension 1 is cofree
-  @test all(is_cofree(cyclic_quiver(n), fill(k, n)) for n in 1:3, k in 1:3)
-  @test is_cofree(cyclic_quiver(3), [1, 2, 3])
-  @test is_cofree(jordan_quiver(2), [2])
-  @test !is_cofree(jordan_quiver(2), [3])
-  @test !is_cofree(jordan_quiver(3), [2])
-  @test is_cofree(jordan_quiver(3), [1])
-
-  # acyclic settings are trivially cofree, as the invariants are constants
-  @test is_cofree(kronecker_quiver(3), [2, 3])
-  @test is_cofree(subspace_quiver(4), [1, 1, 1, 1, 2])
-
-  # settings with all cycles through a vertex of dimension 1: the k arrows back and
-  # forth give 2k - 1 as the bound on the other dimension
-  @test is_cofree(Quiver("1-2, 2-1"), [1, 5])
-  @test is_cofree(Quiver("1--2, 2--1"), [1, 3])
-  @test !is_cofree(Quiver("1--2, 2--1"), [1, 2])
-
-  # two cycles sharing a path: cofree iff exactly one shared dimension is 2 and the
-  # others are at least 4, so coregularity does not suffice
-  @test is_coregular(Quiver("1--2, 2-1"), [2, 2])
-  @test !is_cofree(Quiver("1--2, 2-1"), [2, 2])
-  @test !is_cofree(Quiver("1--2, 2-1"), [2, 3])
-  @test is_cofree(Quiver("1--2, 2-1"), [2, 4])
-
-  # two cycles sharing a path through a vertex of dimension 1: cofree iff the minimal
-  # dimension along the big cycle is attained exactly once in the shared path, or not
-  # there but exactly once in the other branch
-  theta_quiver = Quiver("1-2, 2-3, 3-1, 2-4, 4-1")
-  @test is_cofree(theta_quiver, [2, 3, 4, 1])
-  @test is_cofree(theta_quiver, [3, 3, 2, 1])
-  @test !is_cofree(theta_quiver, [2, 2, 3, 1])
-
-  # wedging removes the vertex of dimension 3 on the path to the central vertex,
-  # reducing to the setting [2, 3, 4, 1] above; with dimension 1 instead there are two
-  # vertices of dimension 1 on a common cycle, which is never cofree
-  wedged = Quiver("1-2, 2-3, 3-1, 2-5, 5-4, 4-1")
-  @test is_cofree(wedged, [2, 3, 4, 1, 3])
-  @test !is_cofree(wedged, [2, 3, 4, 1, 1])
-end;
-
-@testset "nullcones and defect" begin
-  # The public nullcone routines enforce the dimension-vector contract.
-  for f in (dimension_nullcone, nullcone_motive, defect)
-    @test_throws ArgumentError f(jordan_quiver(1), [1, 1])
-    @test_throws ArgumentError f(jordan_quiver(1), [-1])
+    # codimension of the singular locus: the ten nodes of the Segre cubic; for the
+    # 3-Kronecker quiver and d = (2, 2) the properly semistable locus is non-empty
+    # while the singular locus is empty, and for d = (3, 3) the largest singular
+    # Luna stratum has codimension 3 in the 10-dimensional moduli space
+    @test codimension_singular_locus(QuiverModuliSpace(S, [1, 1, 1, 1, 1, 1, 2])) == 3
+    @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [2, 2])) == Inf
+    @test codimension_singular_locus(QuiverModuliSpace(kronecker_quiver(3), [3, 3])) == 3
   end
 
-  # nilpotent matrices, and pairs of matrices with a common complete flag
-  @test dimension_nullcone(jordan_quiver(1), [3]) == 6
-  @test dimension_nullcone(jordan_quiver(2), [2]) == 3
-  # acyclic settings have no invariants, so the nullcone is everything
-  @test dimension_nullcone(kronecker_quiver(3), [2, 3]) == 18
-  # the motivic recursion reaches larger settings, and for symmetric quivers it
-  # matches the closed formula of [Remark 3.6, doi:10.3842/SIGMA.2026.020]
-  @test dimension_nullcone(jordan_quiver(2), [4]) == 18
-  @test dimension_nullcone(jordan_quiver(3), [2]) == 4
-  @test dimension_nullcone(Quiver("1-1, 1-2, 2-1"), [2, 3]) == 11
-  # the motive of pairs of nilpotent 3x3 matrices is
-  # L^9 + 2L^8 - L^6 - 2L^5 + L^3 [Example (4) in Section 3.2, loc. cit.]
-  @test string(nullcone_motive(jordan_quiver(2), [3])) ==
-    "L^9 + 2*L^8 - L^6 - 2*L^5 + L^3"
+  @testset "cofree quiver settings" begin
+    # cyclic quiver settings and matrix invariants: pairs of 2x2 matrices are cofree,
+    # pairs of 3x3 matrices and triples of 2x2 matrices are not; any number of loops on
+    # a vertex of dimension 1 is cofree
+    @test all(is_cofree(cyclic_quiver(n), fill(k, n)) for n in 1:3, k in 1:3)
+    @test is_cofree(cyclic_quiver(3), [1, 2, 3])
+    @test is_cofree(jordan_quiver(2), [2])
+    @test !is_cofree(jordan_quiver(2), [3])
+    @test !is_cofree(jordan_quiver(3), [2])
+    @test is_cofree(jordan_quiver(3), [1])
 
-  # the defect measures the failure of equidimensionality: it vanishes for cofree
-  # settings, and for the settings 2 <=> k it decreases to zero as k grows to 4
-  @test defect(jordan_quiver(1), [4]) == 0
-  @test defect(jordan_quiver(2), [2]) == 0
-  @test defect(jordan_quiver(2), [3]) == 1
-  @test [defect(Quiver("1--2, 2-1"), [2, k]) for k in 2:4] == [2, 1, 0]
-  @test defect(cyclic_quiver(3), [2, 3, 4]) == 0
+    # acyclic settings are trivially cofree, as the invariants are constants
+    @test is_cofree(kronecker_quiver(3), [2, 3])
+    @test is_cofree(subspace_quiver(4), [1, 1, 1, 1, 2])
 
-  # Popov: cofree iff coregular with vanishing defect, as an independent check of
-  # the classification-based is_cofree against the independently computed defect
-  for a in 0:2, b in 0:2, l1 in 0:1, l2 in 0:1, d1 in 1:2, d2 in 1:2
-    a + b + l1 + l2 <= 3 || continue
-    Q = Quiver([l1 a; b l2])
-    d = [d1, d2]
-    @test is_cofree(Q, d) == (is_coregular(Q, d) && defect(Q, d) == 0)
+    # settings with all cycles through a vertex of dimension 1: the k arrows back and
+    # forth give 2k - 1 as the bound on the other dimension
+    @test is_cofree(Quiver("1-2, 2-1"), [1, 5])
+    @test is_cofree(Quiver("1--2, 2--1"), [1, 3])
+    @test !is_cofree(Quiver("1--2, 2--1"), [1, 2])
+
+    # two cycles sharing a path: cofree iff exactly one shared dimension is 2 and the
+    # others are at least 4, so coregularity does not suffice
+    @test is_coregular(Quiver("1--2, 2-1"), [2, 2])
+    @test !is_cofree(Quiver("1--2, 2-1"), [2, 2])
+    @test !is_cofree(Quiver("1--2, 2-1"), [2, 3])
+    @test is_cofree(Quiver("1--2, 2-1"), [2, 4])
+
+    # two cycles sharing a path through a vertex of dimension 1: cofree iff the minimal
+    # dimension along the big cycle is attained exactly once in the shared path, or not
+    # there but exactly once in the other branch
+    theta_quiver = Quiver("1-2, 2-3, 3-1, 2-4, 4-1")
+    @test is_cofree(theta_quiver, [2, 3, 4, 1])
+    @test is_cofree(theta_quiver, [3, 3, 2, 1])
+    @test !is_cofree(theta_quiver, [2, 2, 3, 1])
+
+    # wedging removes the vertex of dimension 3 on the path to the central vertex,
+    # reducing to the setting [2, 3, 4, 1] above; with dimension 1 instead there are two
+    # vertices of dimension 1 on a common cycle, which is never cofree
+    wedged = Quiver("1-2, 2-3, 3-1, 2-5, 5-4, 4-1")
+    @test is_cofree(wedged, [2, 3, 4, 1, 3])
+    @test !is_cofree(wedged, [2, 3, 4, 1, 1])
   end
-end;
 
-@testset "projections to walls" begin
-  # the projection of the 6-subspace quiver moduli with d = (1^5, 2; 3) from the
-  # canonical chamber to the wall (1^5, 2; -3), whose target is Gr(2, 4): birational,
-  # with fibres P^1 over five surfaces and P^1 x P^1 over ten points, hence semismall
-  # but not flat
-  S = subspace_quiver(6)
-  d = [1, 1, 1, 1, 1, 2, 3]
-  theta = [3, 3, 3, 3, 3, 3, -7]
-  thetabar = [1, 1, 1, 1, 1, 2, -3]
-  @test fibre_dimension(S, d, theta, thetabar, Dict(d => [1])) == 0
-  e1, e3 = [1, 0, 0, 0, 0, 1, 1], [0, 1, 1, 1, 1, 1, 2]
-  @test fibre_dimension(S, d, theta, thetabar, Dict(e1 => [1], e3 => [1])) == 1
-  e2, f2 = [0, 1, 0, 0, 0, 1, 1], [0, 0, 1, 1, 1, 0, 1]
-  @test fibre_dimension(S, d, theta, thetabar, Dict(e1 => [1], e2 => [1], f2 => [1])) == 2
-  @test !is_flat(S, d, theta, thetabar)
-  @test is_semismall(S, d, theta, thetabar)
+  @testset "nullcones and defect" begin
+    # The public nullcone routines enforce the dimension-vector contract.
+    for f in (dimension_nullcone, nullcone_motive, defect)
+      @test_throws ArgumentError f(jordan_quiver(1), [1, 1])
+      @test_throws ArgumentError f(jordan_quiver(1), [-1])
+    end
 
-  # the projection to the other wall is a semismall resolution of the ten isolated
-  # singularities, with fibres P^2; the target is singular so flatness would need more
-  # than miracle flatness
-  @test is_semismall(S, d, theta, [2, 2, 2, 2, 2, 1, -4])
-  @test_throws ArgumentError is_flat(S, d, theta, [2, 2, 2, 2, 2, 1, -4])
+    # nilpotent matrices, and pairs of matrices with a common complete flag
+    @test dimension_nullcone(jordan_quiver(1), [3]) == 6
+    @test dimension_nullcone(jordan_quiver(2), [2]) == 3
+    # acyclic settings have no invariants, so the nullcone is everything
+    @test dimension_nullcone(kronecker_quiver(3), [2, 3]) == 18
+    # the motivic recursion reaches larger settings, and for symmetric quivers it
+    # matches the closed formula of [Remark 3.6, doi:10.3842/SIGMA.2026.020]
+    @test dimension_nullcone(jordan_quiver(2), [4]) == 18
+    @test dimension_nullcone(jordan_quiver(3), [2]) == 4
+    @test dimension_nullcone(Quiver("1-1, 1-2, 2-1"), [2, 3]) == 11
+    # the motive of pairs of nilpotent 3x3 matrices is
+    # L^9 + 2L^8 - L^6 - 2L^5 + L^3 [Example (4) in Section 3.2, loc. cit.]
+    @test string(nullcone_motive(jordan_quiver(2), [3])) ==
+      "L^9 + 2*L^8 - L^6 - 2*L^5 + L^3"
 
-  # the identity projection is flat
-  @test is_flat(kronecker_quiver(3), [2, 3], [3, -2], [3, -2])
+    # the defect measures the failure of equidimensionality: it vanishes for cofree
+    # settings, and for the settings 2 <=> k it decreases to zero as k grows to 4
+    @test defect(jordan_quiver(1), [4]) == 0
+    @test defect(jordan_quiver(2), [2]) == 0
+    @test defect(jordan_quiver(2), [3]) == 1
+    @test [defect(Quiver("1--2, 2-1"), [2, k]) for k in 2:4] == [2, 1, 0]
+    @test defect(cyclic_quiver(3), [2, 3, 4]) == 0
 
-  # the source stability parameter must be King-normalized
-  @test_throws ArgumentError fibre_dimension(
-    S, d, [1, 1, 1, 1, 1, 1, -7], thetabar, Dict(d => [1])
-  )
+    # Popov: cofree iff coregular with vanishing defect, as an independent check of
+    # the classification-based is_cofree against the independently computed defect
+    for a in 0:2, b in 0:2, l1 in 0:1, l2 in 0:1, d1 in 1:2, d2 in 1:2
+      a + b + l1 + l2 <= 3 || continue
+      Q = Quiver([l1 a; b l2])
+      d = [d1, d2]
+      @test is_cofree(Q, d) == (is_coregular(Q, d) && defect(Q, d) == 0)
+    end
+  end
 
-  # The target must also be King-normalized, and the source must be a chamber point.
-  @test_throws ArgumentError fibre_dimension(
-    S, d, theta, thetabar .+ [1, 0, 0, 0, 0, 0, 0], Dict(d => [1])
-  )
-  @test_throws ArgumentError fibre_dimension(S, d, thetabar, thetabar, Dict(d => [1]))
+  @testset "projections to walls" begin
+    # the projection of the 6-subspace quiver moduli with d = (1^5, 2; 3) from the
+    # canonical chamber to the wall (1^5, 2; -3), whose target is Gr(2, 4): birational,
+    # with fibres P^1 over five surfaces and P^1 x P^1 over ten points, hence semismall
+    # but not flat
+    S = subspace_quiver(6)
+    d = [1, 1, 1, 1, 1, 2, 3]
+    theta = [3, 3, 3, 3, 3, 3, -7]
+    thetabar = [1, 1, 1, 1, 1, 2, -3]
+    @test fibre_dimension(S, d, theta, thetabar, Dict(d => [1])) == 0
+    e1, e3 = [1, 0, 0, 0, 0, 1, 1], [0, 1, 1, 1, 1, 1, 2]
+    @test fibre_dimension(S, d, theta, thetabar, Dict(e1 => [1], e3 => [1])) == 1
+    e2, f2 = [0, 1, 0, 0, 0, 1, 1], [0, 0, 1, 1, 1, 0, 1]
+    @test fibre_dimension(S, d, theta, thetabar, Dict(e1 => [1], e2 => [1], f2 => [1])) == 2
+    @test !is_flat(S, d, theta, thetabar)
+    @test is_semismall(S, d, theta, thetabar)
 
-  # Parameters in different VGIT chambers do not define a projection to a wall.
-  T = three_vertex_quiver(2, 3, 4)
-  @test_throws ArgumentError fibre_dimension(
-    T, [1, 2, 2], [4, -1, -1], [4, 1, -3], Dict([1, 2, 2] => [1])
-  )
+    # the projection to the other wall is a semismall resolution of the ten isolated
+    # singularities, with fibres P^2; the target is singular so flatness would need more
+    # than miracle flatness
+    @test is_semismall(S, d, theta, [2, 2, 2, 2, 2, 1, -4])
+    @test_throws ArgumentError is_flat(S, d, theta, [2, 2, 2, 2, 2, 1, -4])
 
-  # A custom denominator belongs to the original quiver only. This closure accepts
-  # seven-component vectors and would fail if reused on the two-vertex local quiver.
-  weights = collect(1:7)
-  weighted_denom = e -> sum(weights .* e)
-  @test fibre_dimension(
-    S, d, theta, thetabar, Dict(e1 => [1], e3 => [1]); denom=weighted_denom
-  ) == 1
-  @test_throws ArgumentError fibre_dimension(
-    S, d, theta, thetabar, Dict(d => [1]); denom=_e -> 0
-  )
-end;
+    # the identity projection is flat
+    @test is_flat(kronecker_quiver(3), [2, 3], [3, -2], [3, -2])
+
+    # the source stability parameter must be King-normalized
+    @test_throws ArgumentError fibre_dimension(
+      S, d, [1, 1, 1, 1, 1, 1, -7], thetabar, Dict(d => [1])
+    )
+
+    # The target must also be King-normalized, and the source must be a chamber point.
+    @test_throws ArgumentError fibre_dimension(
+      S, d, theta, thetabar .+ [1, 0, 0, 0, 0, 0, 0], Dict(d => [1])
+    )
+    @test_throws ArgumentError fibre_dimension(S, d, thetabar, thetabar, Dict(d => [1]))
+
+    # Parameters in different VGIT chambers do not define a projection to a wall.
+    T = three_vertex_quiver(2, 3, 4)
+    @test_throws ArgumentError fibre_dimension(
+      T, [1, 2, 2], [4, -1, -1], [4, 1, -3], Dict([1, 2, 2] => [1])
+    )
+
+    # A custom denominator belongs to the original quiver only. This closure accepts
+    # seven-component vectors and would fail if reused on the two-vertex local quiver.
+    weights = collect(1:7)
+    weighted_denom = e -> sum(weights .* e)
+    @test fibre_dimension(
+      S, d, theta, thetabar, Dict(e1 => [1], e3 => [1]); denom=weighted_denom
+    ) == 1
+    @test_throws ArgumentError fibre_dimension(
+      S, d, theta, thetabar, Dict(d => [1]); denom=_e -> 0
+    )
+  end
 
   @testset "Domokos reductions" begin
     # M. Domokos, Quiver moduli spaces of a given dimension, https://doi.org/10.4171/JCA/97
