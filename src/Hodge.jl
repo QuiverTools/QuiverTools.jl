@@ -785,6 +785,9 @@ function intersection_poincare_polynomial(M::QuiverModuliSpace)
       "so intersection cohomology is out of reach",
     ),
   )
+  has_stable_representation(Q, d, theta, denom) || throw(
+    ArgumentError("there are no stable representations of dimension vector $(Vector(d))")
+  )
 
   R, ws = polynomial_ring(Singular.QQ, ["w"])
   w = ws[1]
@@ -841,8 +844,11 @@ function intersection_poincare_polynomial(M::QuiverModuliSpace)
 
   # ``DT_d = (L^{1/2} - L^{-1/2}) [Log Q]_{t^d}``, then ``E(IH^*) = L^{\dim/2} DT_d``
   result = power(root, 1 - euler_form(Q, d, d)) * (root - inv(root)) * total
-  iszero(result) && throw(
-    ArgumentError("there are no stable representations of dimension vector $(Vector(d))")
+  # by [MR4000572] this is the intersection cohomology of a nonempty variety, so it
+  # cannot vanish once stable representations exist
+  iszero(result) && error(
+    "the Donaldson--Thomas invariant of $(Vector(d)) vanishes although stable " *
+    "representations exist; this contradicts [MR4000572] and is a bug, please report it",
   )
   isone(denominator(result)) ||
     throw(DomainError("intersection cohomology is not polynomial"))
