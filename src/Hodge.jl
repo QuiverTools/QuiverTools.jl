@@ -1,138 +1,60 @@
 ########################################################################################
-# Below lie methods to compute Hodge diamonds translated from the Hodge diamond cutter.
-# In turn, these are based on M. Reineke's paper
+# Below lie methods to compute the cohomology of quiver moduli spaces from the motive of
+# the stack of semistable representations, computed by the Harder--Narasimhan recursion of
+# M. Reineke's paper
 # "The Harder-Narasimhan system in quantum groups and cohomology of quiver moduli",
 # https://doi.org/10.1007/s00222-002-0273-4
 ########################################################################################
 
-###################################################
-# auxiliary functions for hodge_polynomial() below
 """
-    solve(A, b)
+    hodge_polynomial(M::QuiverModuliSpace; verbose::Bool=false)
 
-Solve ``A\\cdot x = b`` for ``A`` upper triangular via back substitution.
-
-This is an internal method only used in the implementation of the Hodge polynomial
-and to compute motives.
-
+Compute the Hodge polynomial of the moduli space `M`.
 
 # Input
 
-- `A::AbstractMatrix`: an upper triangular matrix.
-- `b::AbstractVector`: a vector.
+- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
+  support, which happens when the quiver has oriented cycles.
 
 # Output
 
-- the solution `x` to the equation.
+- the Hodge polynomial of the moduli space.
 
 # Examples
 
+The Hodge polynomial of our favourite 6-fold:
 ```jldoctest
-julia> A = [1 2 3; 0 4 5; 0 0 6];
+julia> Q = kronecker_quiver(3);
 
-julia> b = [1, 2, 3];
+julia> M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> QuiverTools.solve(A, b)
-3-element Vector{Any}:
- -0.25
- -0.125
-  0.5
+julia> hodge_polynomial(M)
+x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 ```
 """
-function solve(A, b)
-  n = length(b)
-  x = Vector{Any}(zeros(n))
-
-  x[n] = b[n] / A[n, n]
-
-  for i in (n - 1):-1:1
-    x[i] = (b[i] - sum(A[i, j] * x[j] for j in (i + 1):n)) / A[i, i]
-  end
-  return x
+function hodge_polynomial(M::QuiverModuliSpace; verbose::Bool=false)
+  return hodge_polynomial(M.Q, M.d, M.theta, M.denom; verbose=verbose)
 end
 
 """
-Cardinality of general linear group ``\\mathrm{GL}_n(\\mathbb{F}_v)``.
-"""
-@memoize Dict function CardinalGl(n::Int, q)
-  if n == 0
-    return 1
-  else
-    out = q^n - 1
-    for i in 1:(n - 1)
-      out *= q^n - q^i
-    end
-    return out
-  end
-end
-
-"""
-Cardinality of representation space ``\\mathrm{R}(Q,d), over \\mathbb{F}_q``.
-"""
-function CardinalRd(Q::Quiver, d::AbstractVector{Int}, q)
-  return q^sum(
-    d[i] * d[j] * Q.adjacency[i, j] for i in 1:n_vertices(Q), j in 1:n_vertices(Q); init=0
-  )
-end
-
-"""
-Cardinality of product of general linear groups ``\\mathrm{GL}_{d}(\\mathbb{F}_q)``.
-"""
-@memoize Dict function CardinalGd(d::AbstractVector{Int}, q)
-  return prod(CardinalGl(di, q) for di in d)
-end
-
-"""
-Entry of the transfer matrix, as per Corollary 6.9 of
-[[MR1974891](https://doi.org/10.1007/s00222-002-0273-4)].
-"""
-function TransferMatrixEntry(Q, e, f, q)
-  fe = f - e
-
-  if all(fei >= 0 for fei in fe)
-    return q^euler_form(Q, -fe, e) * CardinalRd(Q, fe, q) / CardinalGd(fe, q)
-  else
-    return 0
-  end
-end
-
-function Td(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, q)
-  # indexing set for the transfer matrix
-  I = filter(
-    e -> slope(e, theta) > slope(d, theta),
-    all_subdimension_vectors(d; nonzero=true, strict=true),
-  )
-  I = vcat([zero_vector(Q)], I, [d])
-
-  l = length(I)
-  T = Matrix{Any}(zeros(l, l))
-
-  for (i, Ii) in enumerate(I)
-    for j in i:l  # upper triangular
-      T[i, j] = TransferMatrixEntry(Q, Ii, I[j], q)
-    end
-  end
-  return T
-end
-
-# auxiliary functions for hodge_polynomial() above
-###################################################
-
-"""
-    hodge_polynomial(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d))
+    hodge_polynomial(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum; verbose::Bool=false)
 
 Return the Hodge polynomial of the moduli space of `theta`-semistable
 representations of `Q` with dimension vector `d`.
 
-The algorithm is based on [[]MR1974891](https://doi.org/10.1007/s00222-002-0273-4)],
-and the current implementation is translated from the [Hodge diamond cutter]
-(https://zenodo.org/doi/10.5281/zenodo.3893509).
+The cohomology of these moduli spaces is of Hodge--Tate type, so this is the Poincaré
+polynomial computed by [`poincare_polynomial`](@ref), with `L` replaced by `x * y`; see
+there for the hypotheses.
 
 # Input
 
 - `Q::Quiver`: a quiver.
 - `d::AbstractVector{Int}`: a dimension vector.
 - `theta::AbstractVector{Int}`: a stability parameter. Default is `canonical_stability(Q, d)`.
+- `denom::Function`: the denominator of the slope. Default is `sum`.
+- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
+  support, which happens when the quiver has oriented cycles.
 
 # Output
 
@@ -163,71 +85,62 @@ julia> Q = Quiver([0 1 0 1 0; 0 0 1 0 2; 0 0 0 1 0; 0 0 0 0 0; 0 0 0 0 0]); d = 
 
 julia> hodge_polynomial(Q, d)
 x^3*y^3 + 4*x^2*y^2 + 4*x*y + 1
-
+```
 """
 function hodge_polynomial(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
+  denom::Function=sum;
+  verbose::Bool=false,
 )
-
-  # safety checks
-  !is_acyclic(Q) && throw(ArgumentError("Q is not acyclic."))
-  has_properly_semistable_representation(Q, d, theta) && throw(
-    ArgumentError(
-      "The quiver moduli problem has properly semistable representations, no description of the Hodge polynomial is known."
-    ),
-  )
-
-  R, q = polynomial_ring(Singular.QQ, ["q"])
-  F = fraction_field(R)
-
-  v = F(q[1]) # worsens performance by ~8%. Necessary?
-
-  T = Td(Q, d, theta, v)
-
-  one_at_the_end = unit_vector(size(T, 1), size(T, 1))
-
-  # @warn "result needs to be a polynomial, otherwise the moduli space is singular."
-  solution = solve(T, one_at_the_end)[1] * (1 - v)
-  denominator(solution) != 1 && throw(DomainError("Moduli space is singular!"))
-  result = numerator(solution)
-
+  P = poincare_polynomial(Q, d, theta, denom; verbose=verbose)
+  # the cohomology is of Hodge--Tate type, so L^k contributes x^k * y^k
   S, (x, y) = polynomial_ring(Singular.QQ, ["x", "y"])
-  return S(result(x * y))
+  terms = zip(Singular.coefficients(P), Singular.exponent_vectors(P))
+  return sum((S(c) * (x * y)^e[1] for (c, e) in terms); init=zero(S))
 end
 
 """
-    hodge_polynomial(M::QuiverModuliSpace)
+    hodge_diamond(M::QuiverModuliSpace; verbose::Bool=false)
 
-Compute the Hodge polynomial of the moduli space `M`.
+Compute the Hodge diamond of the moduli space `M`.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
+  support, which happens when the quiver has oriented cycles.
 
 # Output
 
-- the Hodge polynomial of the moduli space.
+- the Hodge diamond of the moduli space.
 
 # Examples
 
-The Hodge polynomial of our favourite 6-fold:
+The Hodge diamond of our favourite 6-fold:
 ```jldoctest
 julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
-julia> hodge_polynomial(M)
-x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
+julia> hodge_diamond(M)
+7×7 Matrix{Int64}:
+ 1  0  0  0  0  0  0
+ 0  1  0  0  0  0  0
+ 0  0  3  0  0  0  0
+ 0  0  0  3  0  0  0
+ 0  0  0  0  3  0  0
+ 0  0  0  0  0  1  0
+ 0  0  0  0  0  0  1
 ```
 """
-function hodge_polynomial(M::QuiverModuliSpace)
-  return hodge_polynomial(M.Q, M.d, M.theta)
+function hodge_diamond(M::QuiverModuliSpace; verbose::Bool=false)
+  return hodge_diamond(M.Q, M.d, M.theta, M.denom; verbose=verbose)
 end
 
 """
-    hodge_diamond(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d))
+    hodge_diamond(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum; verbose::Bool=false)
 
 Compute the Hodge diamond of the moduli space of
 `theta`-semistable representations of `Q` with dimension vector `d`.
@@ -237,6 +150,9 @@ Compute the Hodge diamond of the moduli space of
 - `Q::Quiver`: a quiver.
 - `d::AbstractVector{Int}`: a dimension vector.
 - `theta::AbstractVector{Int}`: a stability parameter. Default is the canonical stability.
+- `denom::Function`: the denominator of the slope. Default is `sum`.
+- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
+  support, which happens when the quiver has oriented cycles.
 
 # Output
 
@@ -271,57 +187,31 @@ function hodge_diamond(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
+  denom::Function=sum;
+  verbose::Bool=false,
 )
-  g = hodge_polynomial(Q, d, theta)
+  g = hodge_polynomial(Q, d, theta, denom; verbose=verbose)
+  iszero(g) && return zeros(Int, 0, 0)
 
-  # collects the coefficients of the polynomial, converts them to integers
-  # and returns them in the diagonal of a matrix.
-  return Matrix{Int}(diagonal(Int.(numerator.(collect(Singular.coefficients(g))))))
-end
-"""
-    hodge_diamond(M::QuiverModuliSpace)
-
-Compute the Hodge diamond of the moduli space `M`.
-
-# Input
-
-- `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-
-# Output
-
-- the Hodge diamond of the moduli space.
-
-# Examples
-
-The Hodge diamond of our favourite 6-fold:
-```jldoctest
-julia> Q = kronecker_quiver(3);
-
-julia> M = QuiverModuliSpace(Q, [2, 3]);
-
-julia> hodge_diamond(M)
-7×7 Matrix{Int64}:
- 1  0  0  0  0  0  0
- 0  1  0  0  0  0  0
- 0  0  3  0  0  0  0
- 0  0  0  3  0  0  0
- 0  0  0  0  3  0  0
- 0  0  0  0  0  1  0
- 0  0  0  0  0  0  1
-```
-"""
-function hodge_diamond(M::QuiverModuliSpace)
-  return hodge_diamond(M.Q, M.d, M.theta)
+  # h^{p,p} is the coefficient of x^p * y^p; place the coefficients by exponent, as some
+  # of them vanish for cohomology with compact support (quivers with cycles)
+  h = zeros(Int, Singular.degree(g, 1) + 1)
+  for (c, e) in zip(Singular.coefficients(g), Singular.exponent_vectors(g))
+    h[e[1] + 1] = Int(numerator(c))
+  end
+  return Matrix{Int}(diagonal(h))
 end
 
 """
-    picard_rank(M::QuiverModuliSpace)
+    picard_rank(M::QuiverModuliSpace; verbose::Bool=false)
 
 Compute the Picard rank of the moduli space `M`.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
+  support, which happens when the quiver has oriented cycles.
 
 # Output
 
@@ -339,10 +229,10 @@ julia> picard_rank(M)
 1
 ```
 """
-function picard_rank(M::QuiverModuliSpace)
+function picard_rank(M::QuiverModuliSpace; verbose::Bool=false)
   !(is_smooth(M) && is_projective(M)) &&
     throw(ArgumentError("Moduli space is not smooth and projective"))
-  return betti_numbers(M)[3]
+  return betti_numbers(M; verbose=verbose)[3]
 end
 
 """
@@ -403,13 +293,15 @@ function index(M::QuiverModuliSpace)
 end
 
 """
-    betti_numbers(M::QuiverModuliSpace)
+    betti_numbers(M::QuiverModuliSpace; verbose::Bool=false)
 
 Compute the Betti numbers of the moduli space `M`.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
+  support, which happens when the quiver has oriented cycles.
 
 # Output
 
@@ -453,14 +345,11 @@ julia> betti_numbers(M)
  1
 ```
 """
-function betti_numbers(M::QuiverModuliSpace)
-  !is_coprime(M.d, M.theta) && throw(ArgumentError("d and theta are not coprime"))
-
-  N = dimension(M)
-  P = poincare_polynomial(M)
+function betti_numbers(M::QuiverModuliSpace; verbose::Bool=false)
+  P = poincare_polynomial(M; verbose=verbose)
   # entry 2k + 1 is the coefficient of L^k in P, i.e., the Betti number
   # in cohomological degree 2k; all odd Betti numbers vanish
-  betti = zeros(Int, 2 * N + 1)
+  betti = zeros(Int, 2 * dimension(M) + 1)
   for (c, e) in zip(Singular.coefficients(P), Singular.exponent_vectors(P))
     betti[2 * e[1] + 1] = Int(numerator(c))
   end
@@ -468,17 +357,26 @@ function betti_numbers(M::QuiverModuliSpace)
 end
 
 """
-    poincare_polynomial(M::QuiverModuliSpace)
+    poincare_polynomial(M::QuiverModuliSpace; verbose::Bool=false)
 
 Compute the Poincaré polynomial of the moduli space `M`.
+
+If the quiver has oriented cycles the moduli space is in general not projective, and this
+computes the Poincaré polynomial of its cohomology with compact support instead; with
+`verbose = true` this is pointed out by a warning.
+As the moduli space is smooth, Poincaré duality relates the two: in dimension
+``n`` the compactly supported one is ``L^n P(1/L)`` for the ordinary one ``P(L)``.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
+- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
+  support, which happens when the quiver has oriented cycles.
 
 # Output
 
-- the Poincaré polynomial of the moduli space.
+- the Poincaré polynomial of the moduli space, with compact support if the quiver has
+  oriented cycles.
 
 # Examples
 
@@ -501,11 +399,73 @@ julia> M = QuiverModuliSpace(Q, [2, 3]);
 julia> poincare_polynomial(M)
 L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1
 ```
-"""
-function poincare_polynomial(M::QuiverModuliSpace)
-  !is_coprime(M.d, M.theta) && throw(ArgumentError("d and theta are not coprime"))
 
-  m = motive(M.Q, M.d, M.theta, M.denom)
+With one vertex, two loops and dimension vector `[1]` the moduli space is the affine
+plane, whose only compactly supported class sits in degree 4:
+```jldoctest; filter = r"└ @ QuiverTools .*"
+julia> M = QuiverModuliSpace(loop_quiver(2), [1], [0]);
+
+julia> poincare_polynomial(M; verbose=true)
+┌ Warning: the quiver is not acyclic, so this function actually computes the cohomology with compact support.
+└ @ QuiverTools src/Hodge.jl
+L^2
+```
+"""
+function poincare_polynomial(M::QuiverModuliSpace; verbose::Bool=false)
+  return poincare_polynomial(M.Q, M.d, M.theta, M.denom; verbose=verbose)
+end
+
+"""
+    poincare_polynomial(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum; verbose::Bool=false)
+
+Compute the Poincaré polynomial of the moduli space of `theta`-semistable representations
+of `Q` with dimension vector `d`.
+
+As for the method taking a [`QuiverModuliSpace`](@ref), for a quiver with oriented cycles
+this is the Poincaré polynomial of the cohomology with compact support.
+
+# Input
+
+- `Q::Quiver`: a quiver.
+- `d::AbstractVector{Int}`: a dimension vector.
+- `theta::AbstractVector{Int}`: a stability parameter. Default is `canonical_stability(Q, d)`.
+- `denom::Function`: the denominator of the slope. Default is `sum`.
+- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
+  support, which happens when the quiver has oriented cycles.
+
+# Output
+
+- the Poincaré polynomial of the moduli space, with compact support if the quiver has
+  oriented cycles.
+
+# Examples
+
+The Poincaré polynomial of our favourite 6-fold:
+```jldoctest
+julia> poincare_polynomial(kronecker_quiver(3), [2, 3])
+L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1
+```
+"""
+function poincare_polynomial(
+  Q::Quiver,
+  d::AbstractVector{Int},
+  theta::AbstractVector{Int}=canonical_stability(Q, d),
+  denom::Function=sum;
+  verbose::Bool=false,
+)
+  verbose &&
+    !is_acyclic(Q) &&
+    @warn(
+      "the quiver is not acyclic, so this function actually computes the cohomology with compact support."
+    )
+  has_properly_semistable_representation(Q, d, theta, denom) &&
+    throw(
+      ArgumentError(
+        "the moduli space has properly semistable representations, so the stack is not a G_m-gerbe over it and we cannot use the motive."
+      ),
+    )
+
+  m = motive(Q, d, theta, denom)
   v = Singular.transcendence_basis(Singular.parent(m))[1]
   # the stack of stable representations is a G_m-gerbe over the moduli space, so
   # [M] = (L - 1) * [stack motive]
@@ -525,7 +485,16 @@ function power(x, n::Int)
 end
 
 function motive(M::QuiverModuliStack)
-  M.condition != "stable" && throw(ArgumentError("Motive unknown if not stable"))
+  # the motive below is that of the semistable stack, which is the stable one exactly when
+  # there are no properly semistable representations
+  if M.condition == "stable"
+    has_properly_semistable_representation(M.Q, M.d, M.theta, M.denom) && throw(
+      ArgumentError(
+        "the motive of the stable stack is unknown when there are properly semistable " *
+        "representations",
+      ),
+    )
+  end
   return motive(M.Q, M.d, M.theta)
 end
 
@@ -560,49 +529,81 @@ function motive(
   theta::AbstractVector{Int}=canonical_stability(Q, d),
   denom::Function=sum,
 )
-  K, L = Singular.FunctionField(Singular.QQ, ["L"])
-  L = L[1]
+  # the computation runs in the fraction field of Q[L], which for answers of high degree
+  # is much faster than the function field Q(L); the result is converted at the end
+  R, (L,) = polynomial_ring(Singular.QQ, ["L"])
+  F = fraction_field(R)
+  L = F(L)
 
-  if all(ti == 0 for ti in theta)
-    out = power(L, -euler_form(Q, d, d))
-    den = one(K)
-    for i in support(d)
-      den *= prod(one(K) - power(L, -nu) for nu in 1:d[i]; init=one(K))
-    end
-    return out / den
-  end
+  all(ti == 0 for ti in theta) && return __to_function_field(__trivial_motive(Q, d, L))
 
   ds = all_destabilizing_subdimension_vectors(d, theta, denom)
 
   push!(ds, zero_vector(Q), d)
   sort!(ds; by=e -> deglex_key(Q, e))
 
+  # the trivial-stability motive of a difference ds[j] - ds[i] occurs for many pairs
+  trivial = Dict{Vector{Int},typeof(L)}()
   T = Matrix{typeof(L)}(undef, length(ds), length(ds))
   for (i, j) in Iterators.product(1:length(ds), 1:length(ds))
     if is_subdimension_vector(ds[i], ds[j])
+      e = Vector(ds[j] - ds[i])
       T[i, j] =
         power(L, euler_form(Q, ds[i] - ds[j], ds[i])) *
-        motive(Q, ds[j] - ds[i], zero_vector(Q))
+        get!(() -> __trivial_motive(Q, e, L), trivial, e)
     else
-      T[i, j] = zero(K)
+      T[i, j] = zero(F)
     end
   end
 
-  y = [zero(K) for _ in 1:length(ds)]
-  y[end] = one(K)
-  y = coerce_vector(y)
-
   # the HN recursion produces the negative of the honest stack motive; negate so
   # this branch agrees with the trivial-stability branch above (see issue #36)
-  return -solve(T, y)[1]
+  return __to_function_field(-__first_entry_of_solution(T))
+end
+
+# The motive of the stack of all representations of dimension vector `d`, as an element
+# of the parent of `L`.
+function __trivial_motive(Q::Quiver, d::AbstractVector{Int}, L)
+  out = power(L, -euler_form(Q, d, d))
+  for i in support(d), nu in 1:d[i]
+    out = out // (one(L) - power(L, -nu))
+  end
+  return out
+end
+
+# The first entry of the solution `x` of `T * x = e_n`, for `T` upper triangular. Zero
+# entries are skipped, since arithmetic with them is not free in a fraction field.
+function __first_entry_of_solution(T::AbstractMatrix)
+  n = size(T, 1)
+  x = Vector{eltype(T)}(undef, n)
+  x[n] = inv(T[n, n])
+  for i in (n - 1):-1:1
+    s = zero(T[i, i])
+    for j in (i + 1):n
+      iszero(T[i, j]) || (s += T[i, j] * x[j])
+    end
+    x[i] = -s // T[i, i]
+  end
+  return x[1]
+end
+
+# Convert a rational function in the fraction field of Q[L] to the function field Q(L),
+# in which `motive` returns its result.
+function __to_function_field(x)
+  K, (L,) = Singular.FunctionField(Singular.QQ, ["L"])
+  function to_K(p)
+    terms = zip(Singular.coefficients(p), Singular.exponent_vectors(p))
+    return sum((K(c) * L^e[1] for (c, e) in terms); init=zero(K))
+  end
+  return to_K(numerator(x)) // to_K(denominator(x))
 end
 
 ########################################################################################
 # Intersection cohomology of quiver moduli spaces.
 #
 # When `d` and `theta` admit properly semistable representations the moduli space is
-# singular and its ordinary cohomology is not determined by the Harder--Narasimhan
-# recursion. Meinhardt--Reineke
+# often singular, and in any case its ordinary cohomology is not determined by the
+# Harder--Narasimhan recursion. Meinhardt--Reineke
 # [[MR4000572](https://mathscinet.ams.org/mathscinet-getitem?mr=4000572)] identify the
 # Donaldson--Thomas invariants of the quiver with the intersection cohomology of the
 # moduli space, which makes it computable from the motives of the semistable stacks.
@@ -676,9 +677,11 @@ the Donaldson--Thomas invariants of the quiver with the intersection cohomology 
 `M.d`, meaning that the antisymmetrized Euler form vanishes on the dimension vectors of
 that slope, and it needs stable representations to exist; both are checked.
 
-The moduli space is smooth exactly when no proper subdimension vector has the slope of
-`M.d`, and there intersection cohomology is ordinary cohomology, so this agrees with
-[`poincare_polynomial`](@ref).
+If no proper subdimension vector has the slope of `M.d` there are no properly semistable
+representations, so the moduli space is smooth, its intersection cohomology is ordinary
+cohomology, and this agrees with [`poincare_polynomial`](@ref). The converse fails: the
+moduli space can be smooth although there are properly semistable representations, see
+[`is_smooth`](@ref).
 
 The quiver need not be acyclic, but then the moduli space is affine rather than
 projective and, as for [`poincare_polynomial`](@ref), the answer is the Poincaré
@@ -694,8 +697,10 @@ polynomial for cohomology with compact support.
 
 # Examples
 
-The moduli space for the 3-Kronecker quiver and dimension vector `[2, 2]` is singular,
-as `[1, 1]` has the same slope, and it has the intersection cohomology of ``\\mathbb{P}^5``:
+For the 3-Kronecker quiver and dimension vector `[2, 2]` there are properly semistable
+representations, as `[1, 1]` has the same slope, so [`poincare_polynomial`](@ref) does
+not apply. The moduli space is nonetheless smooth, as it is ``\\mathbb{P}^5``, and this
+computes its cohomology:
 ```jldoctest
 julia> Q = kronecker_quiver(3);
 
@@ -723,7 +728,8 @@ julia> intersection_poincare_polynomial(M) == intersection_poincare_polynomial(N
 true
 ```
 
-In the smooth case this is the ordinary Poincaré polynomial:
+When there are no properly semistable representations this is the ordinary Poincaré
+polynomial:
 ```jldoctest
 julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
 
@@ -885,8 +891,9 @@ See [`intersection_poincare_polynomial`](@ref) for the algorithm and its hypothe
 
 # Examples
 
-The singular moduli space for the 3-Kronecker quiver and dimension vector `[2, 2]` has
-the intersection cohomology of ``\\mathbb{P}^5``:
+For the 3-Kronecker quiver and dimension vector `[2, 2]` there are properly semistable
+representations, but the moduli space is smooth: it is ``\\mathbb{P}^5``,
+so we get the expected Betti numbers:
 ```jldoctest
 julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
 
@@ -933,7 +940,8 @@ julia> betti[1:2:end]
  1
 ```
 
-In the smooth case these are the ordinary Betti numbers:
+When there are no properly semistable representations these are the ordinary Betti
+numbers:
 ```jldoctest
 julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
 
@@ -971,24 +979,34 @@ diagonal.
 
 # Examples
 
-The singular moduli space for the 3-Kronecker quiver and dimension vector `[2, 2]` has
-the intersection cohomology of ``\\mathbb{P}^5``:
+The singular moduli space for the 4-Kronecker quiver and dimension vector `[2, 2]`.
 ```jldoctest
-julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
+julia> M = QuiverModuliSpace(kronecker_quiver(4), [2, 2]);
 
 julia> intersection_hodge_diamond(M)
-6×6 Matrix{Int64}:
- 1  0  0  0  0  0
- 0  1  0  0  0  0
- 0  0  1  0  0  0
- 0  0  0  1  0  0
- 0  0  0  0  1  0
- 0  0  0  0  0  1
+10×10 Matrix{Int64}:
+ 1  0  0  0  0  0  0  0  0  0
+ 0  1  0  0  0  0  0  0  0  0
+ 0  0  2  0  0  0  0  0  0  0
+ 0  0  0  2  0  0  0  0  0  0
+ 0  0  0  0  2  0  0  0  0  0
+ 0  0  0  0  0  2  0  0  0  0
+ 0  0  0  0  0  0  2  0  0  0
+ 0  0  0  0  0  0  0  2  0  0
+ 0  0  0  0  0  0  0  0  1  0
+ 0  0  0  0  0  0  0  0  0  1
 ```
 
-A quiver on a wall, where the moduli space is a singular 5-fold:
+A case where the canonical stability parameter is on a wall; the moduli space is a 5-fold
+with finitely many singular points.
 ```jldoctest
-julia> Q = Quiver("1-2,1-3,2--3"); M = QuiverModuliSpace(Q, [2, 2, 2]);
+julia> Q = Quiver("1--2,2--3"); M = QuiverModuliSpace(Q, [2, 2, 2]);
+
+julia> is_smooth(M)
+false
+
+julia> codimension_singular_locus(M)
+5
 
 julia> intersection_hodge_diamond(M)
 6×6 Matrix{Int64}:
@@ -1000,7 +1018,51 @@ julia> intersection_hodge_diamond(M)
  0  0  0  0  0  1
 ```
 
-In the smooth case this is the ordinary Hodge diamond:
+The moduli space can be smooth even when there are properly semistable representations.
+Then [`hodge_diamond`](@ref) does not apply, but the intersection cohomology agrees with the
+ordinary cohomology. For the 3-Kronecker quiver and dimension vector `[2, 2]` the moduli
+space is ``\\mathbb{P}^5``:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
+
+julia> is_smooth(M)
+true
+
+julia> hodge_diamond(M)
+ERROR: ArgumentError: the moduli space has properly semistable representations, so the stack is not a G_m-gerbe over it and we cannot use the motive.
+
+julia> intersection_hodge_diamond(M)
+6×6 Matrix{Int64}:
+ 1  0  0  0  0  0
+ 0  1  0  0  0  0
+ 0  0  1  0  0  0
+ 0  0  0  1  0  0
+ 0  0  0  0  1  0
+ 0  0  0  0  0  1
+```
+
+Likewise here the canonical stability parameter is on a wall, yet the moduli space is a
+smooth 5-fold:
+```jldoctest
+julia> Q = Quiver("1-2,1-3,2--3"); d = [2, 2, 2]; M = QuiverModuliSpace(Q, d);
+
+julia> QuiverTools.__is_vgit_chamber_parameter(Q, d, M.theta)
+false
+
+julia> is_smooth(M)
+true
+
+julia> intersection_hodge_diamond(M)
+6×6 Matrix{Int64}:
+ 1  0  0  0  0  0
+ 0  2  0  0  0  0
+ 0  0  3  0  0  0
+ 0  0  0  3  0  0
+ 0  0  0  0  2  0
+ 0  0  0  0  0  1
+```
+
+When there are no properly semistable representations this is the ordinary Hodge diamond:
 ```jldoctest
 julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
 
