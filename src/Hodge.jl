@@ -565,9 +565,9 @@ function motive(
 
   if all(ti == 0 for ti in theta)
     out = power(L, -euler_form(Q, d, d))
-    den = 1
+    den = one(K)
     for i in support(d)
-      den *= prod(1 - power(L, -nu) for nu in 1:d[i])
+      den *= prod(one(K) - power(L, -nu) for nu in 1:d[i]; init=one(K))
     end
     return out / den
   end
@@ -577,19 +577,19 @@ function motive(
   push!(ds, zero_vector(Q), d)
   sort!(ds; by=e -> deglex_key(Q, e))
 
-  T = Matrix{Any}(undef, length(ds), length(ds))
+  T = Matrix{typeof(L)}(undef, length(ds), length(ds))
   for (i, j) in Iterators.product(1:length(ds), 1:length(ds))
     if is_subdimension_vector(ds[i], ds[j])
       T[i, j] =
         power(L, euler_form(Q, ds[i] - ds[j], ds[i])) *
         motive(Q, ds[j] - ds[i], zero_vector(Q))
     else
-      T[i, j] = 0
+      T[i, j] = zero(K)
     end
   end
 
-  y = [0 for i in 1:length(ds)]
-  y[end] = 1
+  y = [zero(K) for _ in 1:length(ds)]
+  y[end] = one(K)
   y = coerce_vector(y)
 
   # the HN recursion produces the negative of the honest stack motive; negate so
