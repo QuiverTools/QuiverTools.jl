@@ -259,12 +259,10 @@ QuiverTools.empty_all_caches!()
   # The round-trip quiver with d = (1, 1) has moduli space A^1, so P = L.
   Q = Quiver([0 1; 1 0])
   M = QuiverModuliSpace(Q, [1, 1], [1, -1])
-  # the quiver has a cycle, so this is cohomology with compact support; only with
-  # `verbose = true` a warning says so
+  # the quiver has a cycle, so this is cohomology with compact support
   betti = @test_logs betti_numbers(M)
   @test betti isa Vector{Int}
   @test betti == [0, 0, 1]
-  @test_logs (:warn, r"not acyclic") betti_numbers(M; verbose=true)
 
   # the smooth projective (palindromic) case is unchanged: our favourite 6-fold
   M = QuiverModuliSpace(kronecker_quiver(3), [2, 3])
@@ -433,11 +431,9 @@ QuiverTools.empty_all_caches!()
     poincare_polynomial(QuiverModuliSpace(K3, [2, 3]))
 
   # two loops and d = [2]: matrix invariants of pairs of 2x2 matrices, which is A^5, so
-  # cohomology with compact support, pointed out in verbose mode
+  # cohomology with compact support
   C = QuiverModuliSpace(loop_quiver(2), [2], [0])
   @test is_smooth(C)
-  @test string(@test_logs (:warn, r"not acyclic") poincare_polynomial(C; verbose=true)) ==
-    "L^5"
   @test string(@test_logs poincare_polynomial(C)) == "L^5"
 end;
 QuiverTools.empty_all_caches!()

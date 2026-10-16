@@ -7,15 +7,13 @@
 ########################################################################################
 
 """
-    hodge_polynomial(M::QuiverModuliSpace; verbose::Bool=false)
+    hodge_polynomial(M::QuiverModuliSpace)
 
 Compute the Hodge polynomial of the moduli space `M`.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
-  support, which happens when the quiver has oriented cycles.
 
 # Output
 
@@ -33,13 +31,13 @@ julia> hodge_polynomial(M)
 x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 ```
 """
-function hodge_polynomial(M::QuiverModuliSpace; verbose::Bool=false)
+function hodge_polynomial(M::QuiverModuliSpace)
   __check_semistable_moduli_space(M)
-  return hodge_polynomial(M.Q, M.d, M.theta, M.denom; verbose=verbose)
+  return hodge_polynomial(M.Q, M.d, M.theta, M.denom)
 end
 
 """
-    hodge_polynomial(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum; verbose::Bool=false)
+    hodge_polynomial(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum)
 
 Return the Hodge polynomial of the moduli space of `theta`-semistable
 representations of `Q` with dimension vector `d`.
@@ -54,8 +52,6 @@ there for the hypotheses.
 - `d::AbstractVector{Int}`: a dimension vector.
 - `theta::AbstractVector{Int}`: a stability parameter. Default is `canonical_stability(Q, d)`.
 - `denom::Function`: the denominator of the slope. Default is `sum`.
-- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
-  support, which happens when the quiver has oriented cycles.
 
 # Output
 
@@ -92,10 +88,9 @@ function hodge_polynomial(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
-  denom::Function=sum;
-  verbose::Bool=false,
+  denom::Function=sum,
 )
-  P = poincare_polynomial(Q, d, theta, denom; verbose=verbose)
+  P = poincare_polynomial(Q, d, theta, denom)
   # the cohomology is of Hodge--Tate type, so L^k contributes x^k * y^k
   S, (x, y) = polynomial_ring(Singular.QQ, ["x", "y"])
   terms = zip(Singular.coefficients(P), Singular.exponent_vectors(P))
@@ -103,15 +98,13 @@ function hodge_polynomial(
 end
 
 """
-    hodge_diamond(M::QuiverModuliSpace; verbose::Bool=false)
+    hodge_diamond(M::QuiverModuliSpace)
 
 Compute the Hodge diamond of the moduli space `M`.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
-  support, which happens when the quiver has oriented cycles.
 
 # Output
 
@@ -136,13 +129,13 @@ julia> hodge_diamond(M)
  0  0  0  0  0  0  1
 ```
 """
-function hodge_diamond(M::QuiverModuliSpace; verbose::Bool=false)
+function hodge_diamond(M::QuiverModuliSpace)
   __check_semistable_moduli_space(M)
-  return hodge_diamond(M.Q, M.d, M.theta, M.denom; verbose=verbose)
+  return hodge_diamond(M.Q, M.d, M.theta, M.denom)
 end
 
 """
-    hodge_diamond(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum; verbose::Bool=false)
+    hodge_diamond(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum)
 
 Compute the Hodge diamond of the moduli space of
 `theta`-semistable representations of `Q` with dimension vector `d`.
@@ -153,8 +146,6 @@ Compute the Hodge diamond of the moduli space of
 - `d::AbstractVector{Int}`: a dimension vector.
 - `theta::AbstractVector{Int}`: a stability parameter. Default is the canonical stability.
 - `denom::Function`: the denominator of the slope. Default is `sum`.
-- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
-  support, which happens when the quiver has oriented cycles.
 
 # Output
 
@@ -189,10 +180,9 @@ function hodge_diamond(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
-  denom::Function=sum;
-  verbose::Bool=false,
+  denom::Function=sum,
 )
-  g = hodge_polynomial(Q, d, theta, denom; verbose=verbose)
+  g = hodge_polynomial(Q, d, theta, denom)
   iszero(g) && return zeros(Int, 0, 0)
 
   # h^{p,p} is the coefficient of x^p * y^p; place the coefficients by exponent, as some
@@ -205,15 +195,13 @@ function hodge_diamond(
 end
 
 """
-    picard_rank(M::QuiverModuliSpace; verbose::Bool=false)
+    picard_rank(M::QuiverModuliSpace)
 
 Compute the Picard rank of the moduli space `M`.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
-  support, which happens when the quiver has oriented cycles.
 
 # Output
 
@@ -231,12 +219,12 @@ julia> picard_rank(M)
 1
 ```
 """
-function picard_rank(M::QuiverModuliSpace; verbose::Bool=false)
+function picard_rank(M::QuiverModuliSpace)
   !(is_smooth(M) && is_projective(M)) &&
     throw(ArgumentError("The moduli space is not smooth and projective"))
   # a point, or the empty moduli space, has trivial Picard group
   dimension(M) <= 0 && return 0
-  return betti_numbers(M; verbose=verbose)[3]
+  return betti_numbers(M)[3]
 end
 
 """
@@ -297,15 +285,13 @@ function index(M::QuiverModuliSpace)
 end
 
 """
-    betti_numbers(M::QuiverModuliSpace; verbose::Bool=false)
+    betti_numbers(M::QuiverModuliSpace)
 
 Compute the Betti numbers of the moduli space `M`.
 
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
-  support, which happens when the quiver has oriented cycles.
 
 # Output
 
@@ -349,12 +335,12 @@ julia> betti_numbers(M)
  1
 ```
 """
-function betti_numbers(M::QuiverModuliSpace; verbose::Bool=false)
+function betti_numbers(M::QuiverModuliSpace)
   # the empty moduli space has no cohomology
   n = dimension(M)
   n == -Inf && return Int[]
 
-  P = poincare_polynomial(M; verbose=verbose)
+  P = poincare_polynomial(M)
   # entry 2k + 1 is the coefficient of L^k in P, i.e., the Betti number
   # in cohomological degree 2k; all odd Betti numbers vanish
   betti = zeros(Int, 2 * n + 1)
@@ -365,13 +351,12 @@ function betti_numbers(M::QuiverModuliSpace; verbose::Bool=false)
 end
 
 """
-    poincare_polynomial(M::QuiverModuliSpace; verbose::Bool=false)
+    poincare_polynomial(M::QuiverModuliSpace)
 
 Compute the Poincaré polynomial of the moduli space `M`.
 
 If the quiver has oriented cycles the moduli space is in general not projective, and this
-computes the Poincaré polynomial of its cohomology with compact support instead; with
-`verbose = true` this is pointed out by a warning.
+computes the Poincaré polynomial of its cohomology with compact support instead.
 As the moduli space is smooth, Poincaré duality relates the two: in dimension
 ``n`` the compactly supported one is ``L^n P(1/L)`` for the ordinary one ``P(L)``.
 
@@ -384,8 +369,6 @@ for the slope of `M.d` and stable representations to exist. Otherwise an error i
 # Input
 
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
-- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
-  support, which happens when the quiver has oriented cycles.
 
 # Output
 
@@ -425,18 +408,16 @@ L^5 + L^4 + L^3 + L^2 + L + 1
 
 With one vertex, two loops and dimension vector `[1]` the moduli space is the affine
 plane, whose only compactly supported class sits in degree 4:
-```jldoctest; filter = r"└ @ QuiverTools .*"
+```jldoctest
 julia> M = QuiverModuliSpace(loop_quiver(2), [1], [0]);
 
-julia> poincare_polynomial(M; verbose=true)
-┌ Warning: The quiver is not acyclic, so this function actually computes the cohomology with compact support.
-└ @ QuiverTools src/Hodge.jl
+julia> poincare_polynomial(M)
 L^2
 ```
 """
-function poincare_polynomial(M::QuiverModuliSpace; verbose::Bool=false)
+function poincare_polynomial(M::QuiverModuliSpace)
   __check_semistable_moduli_space(M)
-  return poincare_polynomial(M.Q, M.d, M.theta, M.denom; verbose=verbose)
+  return poincare_polynomial(M.Q, M.d, M.theta, M.denom)
 end
 
 # The methods taking `(Q, d, theta, denom)` describe the semistable moduli space, which is
@@ -453,7 +434,7 @@ function __check_semistable_moduli_space(M::QuiverModuliSpace)
 end
 
 """
-    poincare_polynomial(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum; verbose::Bool=false)
+    poincare_polynomial(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d), denom::Function=sum)
 
 Compute the Poincaré polynomial of the moduli space of `theta`-semistable representations
 of `Q` with dimension vector `d`.
@@ -469,8 +450,6 @@ space is smooth.
 - `d::AbstractVector{Int}`: a dimension vector.
 - `theta::AbstractVector{Int}`: a stability parameter. Default is `canonical_stability(Q, d)`.
 - `denom::Function`: the denominator of the slope. Default is `sum`.
-- `verbose::Bool=false`: whether to warn that the result is for cohomology with compact
-  support, which happens when the quiver has oriented cycles.
 
 # Output
 
@@ -489,14 +468,8 @@ function poincare_polynomial(
   Q::Quiver,
   d::AbstractVector{Int},
   theta::AbstractVector{Int}=canonical_stability(Q, d),
-  denom::Function=sum;
-  verbose::Bool=false,
+  denom::Function=sum,
 )
-  verbose &&
-    !is_acyclic(Q) &&
-    @warn(
-      "The quiver is not acyclic, so this function actually computes the cohomology with compact support."
-    )
   if has_properly_semistable_representation(Q, d, theta, denom)
     # the stack is then not a G_m-gerbe over the moduli space, so the motive does not give
     # its cohomology; if the moduli space is smooth, its intersection cohomology does
