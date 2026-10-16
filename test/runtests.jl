@@ -259,8 +259,12 @@ QuiverTools.empty_all_caches!()
   # The round-trip quiver with d = (1, 1) has moduli space A^1, so P = L.
   Q = Quiver([0 1; 1 0])
   M = QuiverModuliSpace(Q, [1, 1], [1, -1])
-  @test betti_numbers(M) isa Vector{Int}
-  @test betti_numbers(M) == [0, 0, 1]
+  # the quiver has a cycle, so this is cohomology with compact support; only with
+  # `verbose = true` a warning says so
+  betti = @test_logs betti_numbers(M)
+  @test betti isa Vector{Int}
+  @test betti == [0, 0, 1]
+  @test_logs (:warn, r"not acyclic") betti_numbers(M; verbose=true)
 
   # the smooth projective (palindromic) case is unchanged: our favourite 6-fold
   M = QuiverModuliSpace(kronecker_quiver(3), [2, 3])
@@ -280,7 +284,7 @@ QuiverTools.empty_all_caches!()
   # loop_quiver(g), d = [1]: moduli space is A^g, so P = L^g and motive = L^g/(L-1)
   for (g, p) in ((1, "L"), (2, "L^2"), (3, "L^3"))
     M = QuiverModuliSpace(loop_quiver(g), [1], [0])
-    @test string(poincare_polynomial(M)) == p
+    @test string(@test_logs poincare_polynomial(M)) == p
     @test string(motive(QuiverModuliStack(loop_quiver(g), [1], [0], "stable"))) ==
       "$p//(L - 1)"
   end
@@ -292,13 +296,36 @@ QuiverTools.empty_all_caches!()
 end;
 QuiverTools.empty_all_caches!()
 
+@testset "theta outside d^perp             " begin
+  # theta and theta + c * (1, ..., 1) define the same stability for denom = sum, so a
+  # stability parameter need not lie in d^perp;
+
+  K2, K3 = kronecker_quiver(2), kronecker_quiver(3)
+
+  # [2, 1] = [1, -1] + 3/2 * (1, 1) for K2 and d = [2, 2]: properly semistable
+  @test has_properly_semistable_representation(K2, [2, 2], [2, 1])
+  @test !semistable_equals_stable(QuiverModuliSpace(K2, [2, 2], [2, 1]))
+  @test_throws ArgumentError poincare_polynomial(K2, [2, 2], [2, 1])
+
+  # [4, -1] = [3, -2] + (1, 1) for K3 and d = [2, 3]: our favourite 6-fold
+  M, N = QuiverModuliSpace(K3, [2, 3], [4, -1]), QuiverModuliSpace(K3, [2, 3])
+  @test !has_properly_semistable_representation(K3, [2, 3], [4, -1])
+  @test semistable_equals_stable(M)
+  @test poincare_polynomial(M) == poincare_polynomial(N)
+  @test hodge_diamond(M) == hodge_diamond(N)
+  @test betti_numbers(M) == betti_numbers(N)
+  @test picard_rank(M) == 1
+  @test index(M) == 3
+end;
+QuiverTools.empty_all_caches!()
+
 @testset "intersection cohomology          " begin
   # intersection cohomology agrees with ordinary cohomology on smooth moduli spaces, so
   # route a few of those through the Meinhardt--Reineke branch on purpose
   for (Q, d, theta) in [
     (kronecker_quiver(2), [1, 1], [1, -1]),
     (kronecker_quiver(5), [1, 1], nothing),
-    (kronecker_quiver(4), [1, 2], [2, 1]),
+    (kronecker_quiver(4), [1, 2], [2, -1]),
     (kronecker_quiver(5), [2, 3], nothing),
     (Quiver([0 1 1; 0 0 2; 0 0 0]), [1, 1, 1], nothing),
   ]
