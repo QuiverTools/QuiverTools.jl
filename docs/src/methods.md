@@ -11,7 +11,6 @@ and are not intended to be accessed directly by the user.
 QuiverTools.__chow_ring_monomial_grading
 QuiverTools.symmetric_polynomial
 QuiverTools._chern_characters_symmetric
-QuiverTools.CardinalGd
 QuiverTools.weight_canonical_on_stratum
 QuiverTools.poincare_polynomial
 QuiverTools.all_destabilizing_subdimension_vectors
@@ -20,12 +19,9 @@ QuiverTools.weights_endomorphisms_universal_bundles_on_stratum
 QuiverTools.weights_endomorphism_universal_bundle_on_stratum
 QuiverTools.__chow_degrees
 QuiverTools.product_lists
-QuiverTools.CardinalGl
 QuiverTools.weight_line_bundle_on_stratum
-QuiverTools.CardinalRd
 QuiverTools.extended_gcd
 QuiverTools.weights_line_bundle
-QuiverTools.TransferMatrixEntry
 QuiverTools.diagonal
 QuiverTools.adams
 QuiverTools.identity_matrix
@@ -33,7 +29,6 @@ QuiverTools.teleman_bound_on_stratum
 QuiverTools._chern_characters_wedge
 QuiverTools.weights_universal_bundle_on_stratum
 QuiverTools.thin_dimension_vector
-QuiverTools.solve
 QuiverTools._mobius
 QuiverTools.todd_Q
 QuiverTools.is_root

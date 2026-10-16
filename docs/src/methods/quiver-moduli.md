@@ -141,23 +141,40 @@ betti_numbers
 
 ## Intersection cohomology
 
-If some proper subdimension vector has the slope of ``\mathbf{d}`` there are properly
-semistable representations and the moduli space is singular, so the methods above no
-longer apply. Its intersection cohomology is still computable, by the theorem of
+If there are properly semistable representations, which needs some proper subdimension
+vector to have the slope of ``\mathbf{d}``, the methods above no longer apply, and the
+moduli space is often singular. Its intersection cohomology is still computable, by the
+theorem of
 [Meinhardt--Reineke](https://mathscinet.ams.org/mathscinet-getitem?mr=4000572)
 identifying the Donaldson--Thomas invariants of the quiver with it. This needs the
 stability parameter to be generic for the slope of ``\mathbf{d}``, and stable
 representations to exist.
 
-For instance, the 3-Kronecker quiver with dimension vector ``(2,2)`` has the ``(1,1)``'s
-of the same slope, so its moduli space is singular. It turns out to have the intersection
-cohomology of ``\mathbb{P}^5``:
+For instance, for the 3-Kronecker quiver with dimension vector ``(2,2)`` the vector
+``(1,1)`` has the same slope, and there are properly semistable representations. The
+moduli space is nonetheless smooth, as it is ``\mathbb{P}^5``, and this recovers its
+cohomology:
 
 ```jldoctest
 julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
 
+julia> is_smooth(M)
+true
+
 julia> intersection_poincare_polynomial(M)
 L^5 + L^4 + L^3 + L^2 + L + 1
+```
+
+With dimension vector ``(3,3)`` the moduli space is a singular 10-fold:
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [3, 3]);
+
+julia> is_smooth(M)
+false
+
+julia> intersection_poincare_polynomial(M)
+L^10 + L^9 + 2*L^8 + 2*L^7 + 2*L^6 + 2*L^5 + 2*L^4 + 2*L^3 + 2*L^2 + L + 1
 ```
 
 The quiver need not be acyclic. With one vertex, ``m`` loops and the trivial stability
