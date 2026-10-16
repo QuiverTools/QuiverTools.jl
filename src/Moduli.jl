@@ -750,7 +750,10 @@ false
 ```
 """
 function semistable_equals_stable(M::QuiverModuli)
-  if is_coprime(M.d, M.theta) || !has_semistable_representation(M.Q, M.d, M.theta, M.denom)
+  # the coprimality shortcut tests theta . e != 0, which is the slope condition only when
+  # theta . d = 0
+  coprime = __checked_dot(M.d, M.theta) == 0 && is_coprime(M.d, M.theta)
+  if coprime || !has_semistable_representation(M.Q, M.d, M.theta, M.denom)
     return true
   end
   return length(all_luna_types(M; stable=false)) == 0
