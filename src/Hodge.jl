@@ -34,6 +34,7 @@ x^6*y^6 + x^5*y^5 + 3*x^4*y^4 + 3*x^3*y^3 + 3*x^2*y^2 + x*y + 1
 ```
 """
 function hodge_polynomial(M::QuiverModuliSpace; verbose::Bool=false)
+  __check_semistable_moduli_space(M)
   return hodge_polynomial(M.Q, M.d, M.theta, M.denom; verbose=verbose)
 end
 
@@ -136,6 +137,7 @@ julia> hodge_diamond(M)
 ```
 """
 function hodge_diamond(M::QuiverModuliSpace; verbose::Bool=false)
+  __check_semistable_moduli_space(M)
   return hodge_diamond(M.Q, M.d, M.theta, M.denom; verbose=verbose)
 end
 
@@ -231,7 +233,9 @@ julia> picard_rank(M)
 """
 function picard_rank(M::QuiverModuliSpace; verbose::Bool=false)
   !(is_smooth(M) && is_projective(M)) &&
-    throw(ArgumentError("Moduli space is not smooth and projective"))
+    throw(ArgumentError("The moduli space is not smooth and projective"))
+  # a point, or the empty moduli space, has trivial Picard group
+  dimension(M) <= 0 && return 0
   return betti_numbers(M; verbose=verbose)[3]
 end
 
@@ -346,10 +350,14 @@ julia> betti_numbers(M)
 ```
 """
 function betti_numbers(M::QuiverModuliSpace; verbose::Bool=false)
+  # the empty moduli space has no cohomology
+  n = dimension(M)
+  n == -Inf && return Int[]
+
   P = poincare_polynomial(M; verbose=verbose)
   # entry 2k + 1 is the coefficient of L^k in P, i.e., the Betti number
   # in cohomological degree 2k; all odd Betti numbers vanish
-  betti = zeros(Int, 2 * dimension(M) + 1)
+  betti = zeros(Int, 2 * n + 1)
   for (c, e) in zip(Singular.coefficients(P), Singular.exponent_vectors(P))
     betti[2 * e[1] + 1] = Int(numerator(c))
   end
@@ -366,6 +374,12 @@ computes the Poincaré polynomial of its cohomology with compact support instead
 `verbose = true` this is pointed out by a warning.
 As the moduli space is smooth, Poincaré duality relates the two: in dimension
 ``n`` the compactly supported one is ``L^n P(1/L)`` for the ordinary one ``P(L)``.
+
+If there are properly semistable representations the stack is not a ``\\mathbb{G}_m``-gerbe
+over the moduli space, and its motive does not give the cohomology. If the moduli space
+is nonetheless smooth, its cohomology is its intersection cohomology, which is then
+computed by [`intersection_poincare_polynomial`](@ref); this needs `M.theta` to be generic
+for the slope of `M.d` and stable representations to exist. Otherwise an error is thrown.
 
 # Input
 
@@ -400,19 +414,42 @@ julia> poincare_polynomial(M)
 L^6 + L^5 + 3*L^4 + 3*L^3 + 3*L^2 + L + 1
 ```
 
+For dimension vector `[2, 2]` there are properly semistable representations, but the
+moduli space is smooth, as it is ``\\mathbb{P}^5``, so its intersection cohomology is used:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
+
+julia> poincare_polynomial(M)
+L^5 + L^4 + L^3 + L^2 + L + 1
+```
+
 With one vertex, two loops and dimension vector `[1]` the moduli space is the affine
 plane, whose only compactly supported class sits in degree 4:
 ```jldoctest; filter = r"└ @ QuiverTools .*"
 julia> M = QuiverModuliSpace(loop_quiver(2), [1], [0]);
 
 julia> poincare_polynomial(M; verbose=true)
-┌ Warning: the quiver is not acyclic, so this function actually computes the cohomology with compact support.
+┌ Warning: The quiver is not acyclic, so this function actually computes the cohomology with compact support.
 └ @ QuiverTools src/Hodge.jl
 L^2
 ```
 """
 function poincare_polynomial(M::QuiverModuliSpace; verbose::Bool=false)
+  __check_semistable_moduli_space(M)
   return poincare_polynomial(M.Q, M.d, M.theta, M.denom; verbose=verbose)
+end
+
+# The methods taking `(Q, d, theta, denom)` describe the semistable moduli space, which is
+# the stable one only when there are no properly semistable representations.
+function __check_semistable_moduli_space(M::QuiverModuliSpace)
+  M.condition == "stable" &&
+    !semistable_equals_stable(M) &&
+    throw(
+      ArgumentError(
+        "The stable moduli space differs from the semistable one, and its cohomology is not known."
+      ),
+    )
+  return nothing
 end
 
 """
@@ -422,7 +459,9 @@ Compute the Poincaré polynomial of the moduli space of `theta`-semistable repre
 of `Q` with dimension vector `d`.
 
 As for the method taking a [`QuiverModuliSpace`](@ref), for a quiver with oriented cycles
-this is the Poincaré polynomial of the cohomology with compact support.
+this is the Poincaré polynomial of the cohomology with compact support, and with properly
+semistable representations it is computed from intersection cohomology if the moduli
+space is smooth.
 
 # Input
 
@@ -456,14 +495,19 @@ function poincare_polynomial(
   verbose &&
     !is_acyclic(Q) &&
     @warn(
-      "the quiver is not acyclic, so this function actually computes the cohomology with compact support."
+      "The quiver is not acyclic, so this function actually computes the cohomology with compact support."
     )
-  has_properly_semistable_representation(Q, d, theta, denom) &&
-    throw(
+  if has_properly_semistable_representation(Q, d, theta, denom)
+    # the stack is then not a G_m-gerbe over the moduli space, so the motive does not give
+    # its cohomology; if the moduli space is smooth, its intersection cohomology does
+    M = QuiverModuliSpace(Q, d, theta, "semistable", denom)
+    is_smooth(M) || throw(
       ArgumentError(
-        "the moduli space has properly semistable representations, so the stack is not a G_m-gerbe over it and we cannot use the motive."
+        "The moduli space has properly semistable representations and is singular, so its cohomology is not known; intersection_poincare_polynomial computes its intersection cohomology."
       ),
     )
+    return intersection_poincare_polynomial(M)
+  end
 
   m = motive(Q, d, theta, denom)
   v = Singular.transcendence_basis(Singular.parent(m))[1]
@@ -471,7 +515,7 @@ function poincare_polynomial(
   # [M] = (L - 1) * [stack motive]
   P = (v - 1) * m
 
-  denominator(P) != 1 && throw(DomainError("must be a polynomial"))
+  denominator(P) != 1 && throw(DomainError("Must be a polynomial"))
   # returns a polynomial object instead of a FunctionField element.
   return Singular.n_transExt_to_spoly(numerator(P))
 end
@@ -490,7 +534,7 @@ function motive(M::QuiverModuliStack)
   if M.condition == "stable"
     has_properly_semistable_representation(M.Q, M.d, M.theta, M.denom) && throw(
       ArgumentError(
-        "the motive of the stable stack is unknown when there are properly semistable " *
+        "The motive of the stable stack is unknown when there are properly semistable " *
         "representations",
       ),
     )
@@ -698,9 +742,9 @@ polynomial for cohomology with compact support.
 # Examples
 
 For the 3-Kronecker quiver and dimension vector `[2, 2]` there are properly semistable
-representations, as `[1, 1]` has the same slope, so [`poincare_polynomial`](@ref) does
-not apply. The moduli space is nonetheless smooth, as it is ``\\mathbb{P}^5``, and this
-computes its cohomology:
+representations, as `[1, 1]` has the same slope, so the motive does not give the
+cohomology. The moduli space is nonetheless smooth, as it is ``\\mathbb{P}^5``, so this
+computes its cohomology, and [`poincare_polynomial`](@ref) uses it:
 ```jldoctest
 julia> Q = kronecker_quiver(3);
 
@@ -761,7 +805,7 @@ There is nothing to compute if no representation of dimension vector `M.d` is st
 julia> M = QuiverModuliSpace(kronecker_quiver(2), [2, 2]);
 
 julia> intersection_poincare_polynomial(M)
-ERROR: ArgumentError: there are no stable representations of dimension vector [2, 2]
+ERROR: ArgumentError: There are no stable representations of dimension vector [2, 2]
 ```
 
 Nor is there anything to compute if the stability parameter is not generic for the slope
@@ -770,12 +814,12 @@ of `M.d`, which happens on a fake wall:
 julia> Q = Quiver([0 1 1 0; 0 0 1 0; 0 0 0 1; 0 0 0 0]);
 
 julia> intersection_poincare_polynomial(QuiverModuliSpace(Q, [3, 3, 4, 1]))
-ERROR: ArgumentError: the stability parameter is not generic for the slope of [3, 3, 4, 1], so intersection cohomology is out of reach
+ERROR: ArgumentError: The stability parameter is not generic for the slope of [3, 3, 4, 1], so intersection cohomology is out of reach
 ```
 """
 function intersection_poincare_polynomial(M::QuiverModuliSpace)
   M.condition == "semistable" || throw(
-    ArgumentError("intersection cohomology is computed for the semistable moduli space")
+    ArgumentError("Intersection cohomology is computed for the semistable moduli space")
   )
   Q, d, theta, denom = M.Q, M.d, M.theta, M.denom
   mu = slope(d, theta, denom)
@@ -787,12 +831,12 @@ function intersection_poincare_polynomial(M::QuiverModuliSpace)
   )
   all(euler_form(Q, e, f) == euler_form(Q, f, e) for e in lattice, f in lattice) || throw(
     ArgumentError(
-      "the stability parameter is not generic for the slope of $(Vector(d)), " *
+      "The stability parameter is not generic for the slope of $(Vector(d)), " *
       "so intersection cohomology is out of reach",
     ),
   )
   has_stable_representation(Q, d, theta, denom) || throw(
-    ArgumentError("there are no stable representations of dimension vector $(Vector(d))")
+    ArgumentError("There are no stable representations of dimension vector $(Vector(d))")
   )
 
   R, ws = polynomial_ring(Singular.QQ, ["w"])
@@ -853,11 +897,11 @@ function intersection_poincare_polynomial(M::QuiverModuliSpace)
   # by [MR4000572] this is the intersection cohomology of a nonempty variety, so it
   # cannot vanish once stable representations exist
   iszero(result) && error(
-    "the Donaldson--Thomas invariant of $(Vector(d)) vanishes although stable " *
+    "The Donaldson--Thomas invariant of $(Vector(d)) vanishes although stable " *
     "representations exist; this contradicts [MR4000572] and is a bug, please report it",
   )
   isone(denominator(result)) ||
-    throw(DomainError("intersection cohomology is not polynomial"))
+    throw(DomainError("Intersection cohomology is not polynomial"))
 
   # intersection cohomology of these moduli spaces is concentrated in even degree, so the
   # answer has to be a polynomial in `w^2`; that is a real check on the whole computation
@@ -867,7 +911,7 @@ function intersection_poincare_polynomial(M::QuiverModuliSpace)
   P = zero(S)
   for (c, e) in
       zip(Singular.coefficients(invariant), Singular.exponent_vectors(invariant))
-    isodd(e[1]) && throw(DomainError("intersection cohomology in odd degree"))
+    isodd(e[1]) && throw(DomainError("Intersection cohomology in odd degree"))
     P += S(c) * L^(e[1] ÷ 2)
   end
   return P
@@ -1019,17 +1063,14 @@ julia> intersection_hodge_diamond(M)
 ```
 
 The moduli space can be smooth even when there are properly semistable representations.
-Then [`hodge_diamond`](@ref) does not apply, but the intersection cohomology agrees with the
-ordinary cohomology. For the 3-Kronecker quiver and dimension vector `[2, 2]` the moduli
-space is ``\\mathbb{P}^5``:
+Its intersection cohomology is then its ordinary cohomology, which is how
+[`hodge_diamond`](@ref) computes it. For the 3-Kronecker quiver and dimension vector
+`[2, 2]` the moduli space is ``\\mathbb{P}^5``:
 ```jldoctest
 julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
 
 julia> is_smooth(M)
 true
-
-julia> hodge_diamond(M)
-ERROR: ArgumentError: the moduli space has properly semistable representations, so the stack is not a G_m-gerbe over it and we cannot use the motive.
 
 julia> intersection_hodge_diamond(M)
 6×6 Matrix{Int64}:
@@ -1039,6 +1080,9 @@ julia> intersection_hodge_diamond(M)
  0  0  0  1  0  0
  0  0  0  0  1  0
  0  0  0  0  0  1
+
+julia> hodge_diamond(M) == intersection_hodge_diamond(M)
+true
 ```
 
 Likewise here the canonical stability parameter is on a wall, yet the moduli space is a

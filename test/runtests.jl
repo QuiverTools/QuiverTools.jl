@@ -403,6 +403,45 @@ QuiverTools.empty_all_caches!()
 end;
 QuiverTools.empty_all_caches!()
 
+@testset "poincare via intersection        " begin
+  # with properly semistable representations poincare_polynomial falls back on
+  # intersection cohomology, which is ordinary cohomology when the moduli space is smooth
+  K2, K3 = kronecker_quiver(2), kronecker_quiver(3)
+
+  # K3 with d = [2, 2] is P^5
+  M = QuiverModuliSpace(K3, [2, 2])
+  identity = QuiverTools.identity_matrix(6)
+  @test string(poincare_polynomial(M)) == "L^5 + L^4 + L^3 + L^2 + L + 1"
+  @test betti_numbers(M) == [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
+  @test picard_rank(M) == 1
+  @test hodge_diamond(M) == identity
+  @test hodge_diamond(K3, [2, 2]) == identity
+  @test hodge_polynomial(K3, [2, 2]) == hodge_polynomial(M)
+
+  # singular, and smooth (P^2) without stable representations: still refused
+  @test_throws ArgumentError poincare_polynomial(QuiverModuliSpace(K3, [3, 3]))
+  @test_throws ArgumentError poincare_polynomial(QuiverModuliSpace(K2, [2, 2]))
+
+  # the stable moduli space is not the semistable one, so the fallback does not apply
+  S = QuiverModuliSpace(K3, [2, 2], canonical_stability(K3, [2, 2]), "stable")
+  @test_throws ArgumentError poincare_polynomial(S)
+  @test_throws ArgumentError hodge_polynomial(S)
+  @test_throws ArgumentError hodge_diamond(S)
+  @test_throws ArgumentError betti_numbers(S)
+  # unless there are no properly semistable representations
+  @test poincare_polynomial(QuiverModuliSpace(K3, [2, 3], [3, -2], "stable")) ==
+    poincare_polynomial(QuiverModuliSpace(K3, [2, 3]))
+
+  # two loops and d = [2]: matrix invariants of pairs of 2x2 matrices, which is A^5, so
+  # cohomology with compact support, pointed out in verbose mode
+  C = QuiverModuliSpace(loop_quiver(2), [2], [0])
+  @test is_smooth(C)
+  @test string(@test_logs (:warn, r"not acyclic") poincare_polynomial(C; verbose=true)) ==
+    "L^5"
+  @test string(@test_logs poincare_polynomial(C)) == "L^5"
+end;
+QuiverTools.empty_all_caches!()
+
 @testset "to_dot                           " begin
   # the exact string for the happy path is locked by the doctests; here we check
   # arrow bookkeeping and the edge cases they don't show.

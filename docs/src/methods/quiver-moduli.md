@@ -142,8 +142,9 @@ betti_numbers
 ## Intersection cohomology
 
 If there are properly semistable representations, which needs some proper subdimension
-vector to have the slope of ``\mathbf{d}``, the methods above no longer apply, and the
-moduli space is often singular. Its intersection cohomology is still computable, by the
+vector to have the slope of ``\mathbf{d}``, the motive of the stack no longer gives the
+cohomology of the moduli space, which is often singular. Its intersection cohomology is
+still computable, by the
 theorem of
 [Meinhardt--Reineke](https://mathscinet.ams.org/mathscinet-getitem?mr=4000572)
 identifying the Donaldson--Thomas invariants of the quiver with it. This needs the
@@ -153,7 +154,7 @@ representations to exist.
 For instance, for the 3-Kronecker quiver with dimension vector ``(2,2)`` the vector
 ``(1,1)`` has the same slope, and there are properly semistable representations. The
 moduli space is nonetheless smooth, as it is ``\mathbb{P}^5``, and this recovers its
-cohomology:
+cohomology. The methods above fall back on it whenever the moduli space is smooth:
 
 ```jldoctest
 julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 2]);
@@ -163,6 +164,9 @@ true
 
 julia> intersection_poincare_polynomial(M)
 L^5 + L^4 + L^3 + L^2 + L + 1
+
+julia> poincare_polynomial(M) == intersection_poincare_polynomial(M)
+true
 ```
 
 With dimension vector ``(3,3)`` the moduli space is a singular 10-fold:
