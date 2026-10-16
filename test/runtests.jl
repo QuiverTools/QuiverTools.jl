@@ -83,10 +83,10 @@ QuiverTools.empty_all_caches!()
 
   # here one chamber is split into several pieces by fake walls; after merging two of
   # them, the fake-wall loop kept iterating over the old list of pieces, so a piece could
-  # be merged a second time, giving overlapping chambers (23 instead of 21);
+  # be merged a second time, giving overlapping chambers (11 instead of 9);
   # fixed in 24b4a9b
-  Q = Quiver([0 0 1 0 2; 0 0 2 0 1; 0 0 0 2 0; 0 0 0 0 1; 0 0 0 0 0])
-  @test length(vgit_chambers(Q, [1, 2, 1, 1, 2])) == 21
+  Q = Quiver("1--4,2-3,3-4,5--3")
+  @test length(vgit_chambers(Q, [1, 1, 2, 2, 2])) == 9
 end;
 QuiverTools.empty_all_caches!()
 
