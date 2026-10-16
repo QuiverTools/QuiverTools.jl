@@ -757,6 +757,6 @@ end
 function has_properly_semistable_representation(
   Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}, denom::Function=sum
 )
-  is_coprime(d, theta) && return false
+  __checked_dot(d, theta) == 0 && is_coprime(d, theta) && return false
   return !isempty(all_luna_types(Q, d, theta, denom; stable=false))
 end
