@@ -188,32 +188,32 @@ function chow_ring(
 
   verbose && @info "base has $(length(base)) elements"
 
-  # build the permutation group W
-  W = Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
+  # the variables xi(i, 1), ..., xi(i, d[i]) of each vertex i in the support of d
+  offsets = [sum(d[1:(i - 1)]; init=0) for i in 1:n_vertices(Q)]
+  blocks = [(offsets[i] + 1):(offsets[i] + d[i]) for i in support(d)]
 
-  # sign for the product of symmetric groups
-  sign_product(w) = prod(sign(Singular.perm(wi)) for wi in w; init=1)
+  # the group W, product of the symmetric groups on the blocks. Each element is stored as
+  # its sign and the permutation it induces on the indices of the variables.
+  W = [
+    (
+      prod(sign(Singular.perm(wi)) for wi in w; init=1),
+      Int[offsets[i] + w[i][j] for i in support(d) for j in 1:d[i]],
+    ) for
+    w in Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
+  ]
 
-  # caching the indices of the variables after each permutation
-  permuted_indices = Dict{Tuple,Vector{Int64}}(
-    sigma =>
-      reduce(
-        vcat,
-        map(
-          i -> Int64[sum(d[1:(i - 1)]; init=0) + sigma[i][j] for j in 1:d[i]], support(d)
-        ),
-      )
-    for sigma in W
-  )
-  permute_vector(e, sigma) = e[permuted_indices[sigma]]
-
-  # constructor of the permuted polynomial. This is much faster than f(permuted_vars[sigma]...)
-  function permute(f::Singular.spoly{Singular.n_Q}, sigma::Tuple)
-    context = Singular.MPolyBuildCtx(parent(f))
-    for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
-      Singular.push_term!(context, c, permute_vector(e, sigma))
+  # Sort the exponents of each block decreasingly, in place, and return the sign of the
+  # sorting permutation. Return 0 if a block has a repeated exponent.
+  function sort_blocks!(e::Vector{Int})
+    s = 1
+    for b in blocks
+      for k in b, l in (k + 1):last(b)
+        e[k] == e[l] && return 0
+        e[k] < e[l] && (s = -s)
+      end
+      sort!(view(e, b); rev=true)
     end
-    return Singular.finish(context)
+    return s
   end
 
   # The discriminant in the definition of the antisymmetrization.
@@ -222,16 +222,31 @@ function chow_ring(
     init=R(1),
   )
 
+  # The antisymmetrization A(f) of f, divided by delta.
+  # If e = b ∘ tau then A(x^e) = sign(tau) A(x^b), and A(x^e) = 0 if a block of e has a
+  # repeated exponent. So it suffices to collect the coefficients of f on each W-orbit of
+  # exponents, represented by its decreasing rearrangement b, and to expand A(x^b) only for
+  # the orbits whose coefficient is nonzero.
   function antisymmetrize(f::Singular.spoly{Singular.n_Q})
-    out = zero(R)
-    for sigma in W
-      if sign_product(sigma) == 1
-        out += permute(f, sigma)
-      else # sign_product(sigma) == -1 # this is the only possibility
-        out -= permute(f, sigma)
+    orbits = Dict{Vector{Int},Singular.n_Q}()
+    for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
+      s = sort_blocks!(e)
+      s == 0 && continue
+      orbits[e] = get(orbits, e, zero(c)) + (s == 1 ? c : -c)
+    end
+    # distinct orbits give distinct monomials, so the context has no terms to merge
+    context = Singular.MPolyBuildCtx(R)
+    exponents = Vector{Int}(undef, length(vars))
+    for (b, c) in orbits
+      iszero(c) && continue
+      for (s, indices) in W
+        for k in eachindex(indices)
+          exponents[k] = b[indices[k]]
+        end
+        Singular.push_term!(context, s == 1 ? c : -c, exponents)
       end
     end
-    return div(out, delta)
+    return div(Singular.finish(context), delta)
   end
 
   # All the destabilizing subdimension vectors of `d` with respect to the slope
@@ -630,19 +645,15 @@ function point_class(
 end
 
 """
-We call the series ``Q(t) = t/(1-e^{-t})`` the Todd generating series.
-The function computes the terms of this series up to degree n.
-We use this instead of the more conventional notation `Q` to avoid a
-clash with the notation for the quiver.
-"""
-function todd_Q(t, n)
-  return sum((-1)^i * (Singular.bernoulli(i) * t^i) / factorial(big(i)) for i in 0:n)
-end
-
-"""
     todd_class(M::QuiverModuliSpace)
 
 Compute the Todd class of the moduli space `M`.
+
+The Todd class is computed from the Chern character of the tangent bundle, as
+```math
+\\operatorname{td}(T_M) = \\exp\\Big(\\frac{1}{2}\\operatorname{ch}_1(T_M)
+- \\sum_{m \\geq 1} \\frac{B_{2m}}{2m} \\operatorname{ch}_{2m}(T_M)\\Big).
+```
 
 # Input
 
@@ -670,53 +681,30 @@ function todd_class(
     return M.chow.todd
   end
 
+  CH = chow_ring(M; unsafe=unsafe)
   N = dimension(M)
-  # consider these constructors: https://nemocas.github.io/AbstractAlgebra.jl/latest/mpolynomial/#Polynomial-functions
-  A = chow_ring(M; unsafe=unsafe)
-  R, inclusion = M.chow._R, M.chow._inclusion
-  Rvars = gens(R)
-  proj = __projection_to_quotient_ring(A)
 
-  function xi(i, p)
-    return Rvars[sum(M.d[1:(i - 1)]) + p]
+  # The Todd class is multiplicative: td(E) = prod_j Q(t_j) over the Chern roots t_j of E,
+  # with Q(t) = t/(1 - e^{-t}). Since log Q(t) = t/2 - sum_{m >= 1} B_{2m}/(2m (2m)!) t^{2m}
+  # and sum_j t_j^k = k! ch_k(E), this gives
+  # log td(E) = ch_1(E)/2 - sum_{m >= 1} B_{2m}/(2m) ch_{2m}(E).
+  ch = __homogeneous_components(
+    M, chern_character(tangent_bundle(M; unsafe=unsafe)); unsafe=unsafe
+  ) # ch[k + 1] = ch_k(T_M)
+  y = N >= 1 ? CH(1//2) * ch[2] : CH(0)
+  for m in 1:div(N, 2)
+    y -= CH(Singular.bernoulli(2m) // (2m)) * ch[2m + 1]
   end
 
-  num = R(1)
-  den = R(1)
-
-  for a in arrows(M.Q)
-    i, j = a
-    for p in 1:M.d[i]
-      for q in 1:M.d[j]
-        Singular.mul!(num, num, todd_Q(xi(j, q) - xi(i, p), N))
-        num = Singular.jet(num, N)
-      end
-    end
+  # y has no constant term and the Chow ring vanishes above degree N,
+  # so exp(y) = sum_{k = 0}^N y^k / k!
+  td = CH(1)
+  term = CH(1)
+  for k in 1:N
+    term = __simplify(CH(1//k) * term * y)
+    td += term
   end
-
-  for i in 1:n_vertices(M.Q)
-    for p in 1:M.d[i]
-      for q in 1:M.d[i]
-        Singular.mul!(den, den, todd_Q(xi(i, q) - xi(i, p), N))
-        den = Singular.jet(den, N)
-      end
-    end
-  end
-
-  # this is because Singular does not have a method to get the preimage
-  # of a given element, only ideals.
-  # In Singular's implementation this does not result in a loss of time anyways...
-  num = gens(preimage(inclusion, Singular.Ideal(R, num)))[1]
-  den = gens(preimage(inclusion, Singular.Ideal(R, den)))[1]
-
-  # renormalizing the constant term because it should be 1,
-  #  but Singular does not keep it fixed.
-  num /= constant_coefficient(num)
-  den /= constant_coefficient(den)
-
-  quot = div(proj(num), proj(den))
-  quot = __simplify(quot)
-  setfield!(M.chow, :todd, quot)
+  setfield!(M.chow, :todd, __simplify(td))
   return M.chow.todd
 end
 

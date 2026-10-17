@@ -30,7 +30,6 @@ QuiverTools._chern_characters_wedge
 QuiverTools.weights_universal_bundle_on_stratum
 QuiverTools.thin_dimension_vector
 QuiverTools._mobius
-QuiverTools.todd_Q
 QuiverTools.is_root
 QuiverTools.total_chern_class_universal
 QuiverTools.all_subdimension_vectors
