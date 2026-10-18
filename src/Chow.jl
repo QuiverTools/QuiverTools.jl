@@ -268,6 +268,7 @@ function chow_ring(
     out = R(1)
     for (i, j) in Iterators.product(1:n_vertices(Q), 1:n_vertices(Q))
       for r in 1:e[i], s in (e[j] + 1):d[j]
+        Q.adjacency[i, j] == 0 && continue
         Singular.mul!(out, out, (xi(j, s) - xi(i, r))^Q.adjacency[i, j])
       end
     end
@@ -525,7 +526,14 @@ function chern_character_line_bundle(
   eta::AbstractVector{Int},
 )
   x = chern_class_line_bundle(M, eta)
-  return sum(x^i / factorial(big(i)) for i in 0:dimension(M))
+  CH = parent(x)
+  ch = CH(1)
+  term = CH(1)
+  for i in 1:dimension(M)
+    term *= x / big(i) # x^i / i!
+    ch += term
+  end
+  return ch
 end
 
 """
