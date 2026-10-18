@@ -29,30 +29,31 @@ __simplify(f) = div(f, one(parent(f)))
 
 """
     __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
+    __homogeneous_components(M::QuiverModuliSpace, x, k::Int)
 
 # Input
 
 - `M::QuiverModuliSpace`: a quiver moduli space.
 - `x`: an element of the Chow ring of `M`.
+- `k::Int`: a degree.
 - `unsafe::Bool=false`: whether to compute the dimension of `M` using
   the faster Euler form instead of `dimension()`. Default is `false`.
 
 Decompose a Chow ring element `x` into its homogeneous components.
+If the degree `k` is given, return only the homogeneous component of degree `k`.
 
 For internal use only.
 """
 function __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
   unsafe ? (n = 1 - euler_form(M.Q, M.d, M.d)) : (n = dimension(M))
+  return [__homogeneous_components(M, x, i) for i in 0:n]
+end
 
-  CH = parent(x)
-
-  return [
-    sum(
-      t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) == i; init=CH(0)
-    )
-    for
-    i in 0:n
-  ]
+function __homogeneous_components(M::QuiverModuliSpace, x, k::Int)
+  return sum(
+    t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) == k;
+    init=parent(x)(0),
+  )
 end
 
 """
@@ -733,10 +734,7 @@ julia> integral(M, H^3)
 """
 function integral(M::QuiverModuliSpace, x; unsafe::Bool=false)
   n = dimension(M)
-  top = Singular.div(
-    __homogeneous_components(M, x; unsafe=unsafe)[n + 1],
-    point_class(M; unsafe=unsafe),
-  )
+  top = Singular.div(__homogeneous_components(M, x, n), point_class(M; unsafe=unsafe))
   return Singular.constant_coefficient(top)
 end
 
