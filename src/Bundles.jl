@@ -113,7 +113,7 @@ function tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
   chT = CH(1)
   chT += sum(ch_dual[i] * ch[j] for (i, j) in arrows(M.Q); init=CH(0))
   chT -= sum(ch_dual[i] * ch[i] for i in 1:n_vertices(M.Q); init=CH(0))
-  return Bundle(M, chT)
+  return Bundle(M, __simplify(chT))
 end
 
 ##############################
@@ -210,7 +210,16 @@ function ^(F::Bundle, n::Int)
   new = Bundle()
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, (F.rank)^n)
-  _has_chern_data(F) && setfield!(new, :chern_character, chern_character(F)^n)
+  if _has_chern_data(F)
+    # the terms above the dimension vanish in the Chow ring, so drop them at each step
+    M = variety(F)
+    x = chern_character(F)
+    out = x
+    for _ in 2:n
+      out = truncate(M, out * x, dimension(M))
+    end
+    setfield!(new, :chern_character, out)
+  end
   if isdefined(F, :teleman_weights)
     pow_weights = Dict(
       hn_type =>
@@ -264,8 +273,15 @@ function *(F::Bundle, G::Bundle)
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, F.rank * G.rank)
 
-  _has_chern_data(F) &&
-    setfield!(new, :chern_character, chern_character(F) * chern_character(G))
+  if _has_chern_data(F)
+    # the terms above the dimension vanish in the Chow ring
+    M = variety(F)
+    setfield!(
+      new,
+      :chern_character,
+      truncate(M, chern_character(F) * chern_character(G), dimension(M)),
+    )
+  end
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
       hn_type =>
