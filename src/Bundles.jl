@@ -102,7 +102,7 @@ julia> T = tangent_bundle(M)
 Bundle of rank 3
 
 julia> chern_class(T, 1)
--4*x11
+-4*x1_1
 ```
 """
 function tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
@@ -146,7 +146,7 @@ julia> td = Bundle(M, todd_class(M))
 Bundle of rank 1
 
 julia> chern_character(dual(td))
--x21 + 1
+-x2_1 + 1
 ```
 
 On our favourite 6-fold:
@@ -159,14 +159,14 @@ julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=[-1, 1]);
 julia> td = Bundle(M, todd_class(M));
 
 julia> chern_character(td)
--17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
+-17//8*x1_2*x2_1 + x2_1^2 + 823//360*x1_2*x2_2 - 823//1080*x2_2^2 + 553//1080*x2_1*x2_3 - 77//60*x2_2*x2_3 + x2_3^2 + 5//12*x1_2 - 3//2*x2_1 + 9//8*x2_3 + 1
 
 
 julia> tdd = dual(td)
 Bundle of rank 1
 
 julia> chern_character(tdd)
-17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 + 77//60*x22*x23 + x23^2 + 5//12*x12 + 3//2*x21 - 9//8*x23 + 1
+17//8*x1_2*x2_1 + x2_1^2 + 823//360*x1_2*x2_2 - 823//1080*x2_2^2 + 553//1080*x2_1*x2_3 + 77//60*x2_2*x2_3 + x2_3^2 + 5//12*x1_2 + 3//2*x2_1 - 9//8*x2_3 + 1
 ```
 """
 function dual(F::Bundle)
@@ -307,16 +307,16 @@ julia> F = 3*td
 Bundle of rank 3
 
 julia> chern_character(F)
-3*x21 + 3
+3*x2_1 + 3
 
 julia> W = map(i -> exterior_power(F, i), 0:4);
 
 julia> map(w -> (rank(w), chern_character(w)), W)
 5-element Vector{Tuple{Int64, Singular.spoly{Singular.n_Q}}}:
  (1, 1)
- (3, 3*x21 + 3)
- (3, 6*x21 + 3)
- (1, 3*x21 + 1)
+ (3, 3*x2_1 + 3)
+ (3, 6*x2_1 + 3)
+ (1, 3*x2_1 + 1)
  (0, 0)
 ```
 """
@@ -374,17 +374,17 @@ julia> F = 3*td
 Bundle of rank 3
 
 julia> chern_character(F)
-3*x21 + 3
+3*x2_1 + 3
 
 julia> W = map(i -> symmetric_power(F, i), 0:4);
 
 julia> map(w -> (rank(w), chern_character(w)), W)
 5-element Vector{Tuple{Int64, Singular.spoly{Singular.n_Q}}}:
  (1, 1)
- (3, 3*x21 + 3)
- (6, 12*x21 + 6)
- (10, 30*x21 + 10)
- (15, 60*x21 + 15)
+ (3, 3*x2_1 + 3)
+ (6, 12*x2_1 + 6)
+ (10, 30*x2_1 + 10)
+ (15, 60*x2_1 + 15)
 ```
 """
 function symmetric_power(F::Bundle, k::Int)
@@ -547,7 +547,7 @@ julia> chow_ring(M; chi=[-1, 1]);
 julia> H = line_bundle(M, [3, -2]);
 
 julia> chern_class(H)
--x21
+-x2_1
 
 julia> teleman_weights(H) ==
         Dict{HNType, Vector{Int64}}(
@@ -567,7 +567,7 @@ The 7-subspace quiver moduli space:
 julia> Q = subspace_quiver(7); d = push!(ones(Int, 7), 2); M = QuiverModuliSpace(Q, d);
 
 julia> K_dual = line_bundle(M, canonical_stability(Q, d); unsafe=true, teleman=false); K_dual.chern_class[1]
--2*x11 - 2*x21 - 2*x31 - 2*x41 - 2*x51 - 2*x61 + 7*x81
+-2*x1_1 - 2*x2_1 - 2*x3_1 - 2*x4_1 - 2*x5_1 - 2*x6_1 + 7*x8_1
 ```
 """
 function line_bundle(
@@ -612,11 +612,11 @@ julia> omega = map(canonical_bundle, Pn);
 
 julia> map(chern_class, omega)
 5-element Vector{Singular.spoly{Singular.n_Q}}:
- 2*x11
- 3*x11
- 4*x11
- 5*x11
- 6*x11
+ 2*x1_1
+ 3*x1_1
+ 4*x1_1
+ 5*x1_1
+ 6*x1_1
 
 julia> map(teleman_weights, omega)
 5-element Vector{Dict{HNType, Vector{Int64}}}:
@@ -635,7 +635,7 @@ julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 julia> omega = canonical_bundle(M);
 
 julia> chern_class(omega)
-3*x21
+3*x2_1
 
 julia> QuiverTools.teleman_weights(omega) ==
         Dict{HNType, Vector{Int64}}(
@@ -704,8 +704,8 @@ julia> u1, u2 = universal_bundle(M, 1), universal_bundle(M, 2);
 
 julia> map(chern_class, [u1, u2])
 2-element Vector{Singular.spoly{Singular.n_Q}}:
- x11 + 1
- x21 + 1
+ x1_1 + 1
+ x2_1 + 1
 
 julia> map(teleman_weights, [u1, u2])
 2-element Vector{Dict{HNType, Vector{Int64}}}:
@@ -724,8 +724,8 @@ julia> u1, u2 = universal_bundle(M, 1), universal_bundle(M, 2);
 
 julia> map(chern_character, [u1, u2])
 2-element Vector{Singular.spoly{Singular.n_Q}}:
- 1//6*x12*x21 + 1//2*x21^2 + 1//12*x12*x22 - 1//36*x22^2 - 7//72*x21*x23 - 1//120*x22*x23 - 1//720*x23^2 - x12 + x21 - 1//2*x23 + 2
- 2//3*x12*x21 + 1//2*x21^2 - 1//6*x12*x22 - 1//2*x21*x22 + 1//12*x22^2 + 1//24*x21*x23 + 1//180*x22*x23 + x21 - x22 + 3
+ 1//6*x1_2*x2_1 + 1//2*x2_1^2 + 1//12*x1_2*x2_2 - 1//36*x2_2^2 - 7//72*x2_1*x2_3 - 1//120*x2_2*x2_3 - 1//720*x2_3^2 - x1_2 + x2_1 - 1//2*x2_3 + 2
+ 2//3*x1_2*x2_1 + 1//2*x2_1^2 - 1//6*x1_2*x2_2 - 1//2*x2_1*x2_2 + 1//12*x2_2^2 + 1//24*x2_1*x2_3 + 1//180*x2_2*x2_3 + x2_1 - x2_2 + 3
 
 julia> w = map(teleman_weights, [u1, u2]);
 
@@ -813,7 +813,7 @@ julia> F = dual(canonical_bundle(M))
 Bundle of rank 1
 
 julia> chern_class(F)
-2*x31 + 1
+2*x3_1 + 1
 
 julia> degree(F)
 56

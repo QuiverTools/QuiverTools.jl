@@ -126,8 +126,8 @@ julia> CH = chow_ring(kronecker_quiver(2), [1, 1])[1][1];
 
 julia> QuiverTools.gens(QuiverTools.quotient_ideal(CH))
 2-element Vector{Singular.spoly{Singular.n_Q}}:
- x21
- x11^2
+ x2_1
+ x1_1^2
 ```
 
 The Chow ring for our favourite 6-fold has, in this implementation, 16 generators:
@@ -164,7 +164,7 @@ function chow_ring(
   end
 
   # j varies first, then i
-  varnames = ["xi$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
+  varnames = ["xi$(i)_$(j)" for i in 1:n_vertices(Q) for j in 1:d[i]]
   R, vars = Singular.polynomial_ring(Singular.QQ, varnames)
 
   # Shorthand to address the variable `xi_{i,j}`.
@@ -274,7 +274,7 @@ function chow_ring(
     new_forbidden(e) for e in minimal_forbidden
   ]
 
-  varnames2 = ["x$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
+  varnames2 = ["x$(i)_$(j)" for i in 1:n_vertices(Q) for j in 1:d[i]]
   A, Avars = polynomial_ring(Singular.QQ, varnames2)
 
   # Shorthand to address the variables of A `x_{i,j}`.
@@ -454,7 +454,7 @@ The line bundles ``\\mathcal{O}(i)`` on the projective line:
 julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
 julia> l = chern_class_line_bundle(M, [1, -1])
--x11
+-x1_1
 ```
 
 The line bundle corresponding to the canonical stability condition on our favourite
@@ -463,7 +463,7 @@ The line bundle corresponding to the canonical stability condition on our favour
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> chern_class_line_bundle(M, [9, -6])
--3*x21
+-3*x2_1
 ```
 """
 function chern_class_line_bundle(
@@ -505,7 +505,7 @@ Some line bundles on the projective line:
 julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
 julia> chern_character_line_bundle(M, [1, -1])
--x11 + 1
+-x1_1 + 1
 ```
 
 Some Chern characters for our favourite 6-fold:
@@ -513,7 +513,7 @@ Some Chern characters for our favourite 6-fold:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> chern_character_line_bundle(M, [3, -2])
-1//720*x21^6 - 1//120*x21^5 + 1//24*x21^4 - 1//6*x21^3 + 1//2*x21^2 - x21 + 1
+1//720*x2_1^6 - 1//120*x2_1^5 + 1//24*x2_1^4 - 1//6*x2_1^3 + 1//2*x2_1^2 - x2_1 + 1
 ```
 """
 function chern_character_line_bundle(
@@ -545,10 +545,10 @@ The universal Chern classes on both vertices of our favourite 3-Kronecker quiver
 julia> Q  = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> total_chern_class_universal(M, 1)
-x11 + x12 + 1
+x1_1 + x1_2 + 1
 
 julia> total_chern_class_universal(M, 2)
-x21 + x22 + x23 + 1
+x2_1 + x2_2 + x2_3 + 1
 ```
 """
 function total_chern_class_universal(
@@ -585,7 +585,7 @@ julia> Q = kronecker_quiver(8);
 julia> M = QuiverModuliSpace(Q, [1, 1]);
 
 julia> chow_ring(M; chi=[1, 0]); point_class(M)
-x21^7
+x2_1^7
 ```
 
 Our favourite 6-fold:
@@ -595,7 +595,7 @@ julia> Q = kronecker_quiver(3);
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> point_class(M)
-x23^2
+x2_3^2
 ```
 
 The 7-subspace quiver:
@@ -603,7 +603,7 @@ The 7-subspace quiver:
 julia> Q = subspace_quiver(7); d = push!(ones(Int, 7), 2); M = QuiverModuliSpace(Q, d);
 
 julia> point_class(M; unsafe=true)
-1//10*x81^4
+1//10*x8_1^4
 ```
 """
 function point_class(
@@ -670,7 +670,7 @@ The Todd class of our favourite 3-Kronecker quiver moduli:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> todd_class(M)
--17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
+-17//8*x1_2*x2_1 + x2_1^2 + 823//360*x1_2*x2_2 - 823//1080*x2_2^2 + 553//1080*x2_1*x2_3 - 77//60*x2_2*x2_3 + x2_3^2 + 5//12*x1_2 - 3//2*x2_1 + 9//8*x2_3 + 1
 ```
 """
 function todd_class(
