@@ -489,14 +489,12 @@ julia> map(chern_character, Λ)
  8*x1_2^2 - 4//3*x1_2*x2_1 + 1//2*x2_1^2 + x2_1*x2_2 - 2//3*x2_2^2 + 5//3*x2_1*x2_3 + 76//165*x2_2*x2_3 + 76//135*x2_3^2 + x2_1 - 2*x2_3 + 1
  0
 
-julia> ⨂ = map(n -> symmetric_power(u2, n), 0:5)
-6-element Vector{Bundle}:
+julia> ⨂ = map(n -> symmetric_power(u2, n), 0:3)
+4-element Vector{Bundle}:
  Bundle of rank 1
  Bundle of rank 3
  Bundle of rank 6
  Bundle of rank 10
- Bundle of rank 15
- Bundle of rank 21
 
 julia> map(chern_character, ⨂)
 4-element Vector{Singular.spoly{Singular.n_Q}}:
