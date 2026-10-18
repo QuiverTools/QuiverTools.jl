@@ -179,14 +179,12 @@ function chow_ring(
 
   # build a base of R as an A-module.
   bounds = UnitRange{Int64}[0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
+  # the exponent of xi(i, nu) is lambda[var_indices[i] + nu], so `lambda` is the exponent
+  # vector of the monomial
   function build_elem(lambda::NTuple)
-    out = R(1)
-    for i in support(d)
-      for nu in 1:d[i]
-        Singular.mul!(out, out, xi(i, nu)^lambda[sum(d[1:(i - 1)]; init=0) + nu])
-      end
-    end
-    return out
+    context = Singular.MPolyBuildCtx(R)
+    Singular.push_term!(context, Singular.QQ(1), collect(lambda))
+    return Singular.finish(context)
   end
   base = map(build_elem, Iterators.product(bounds...))
 
