@@ -167,10 +167,13 @@ function chow_ring(
   varnames = ["xi$(i)_$(j)" for i in 1:n_vertices(Q) for j in 1:d[i]]
   R, vars = Singular.polynomial_ring(Singular.QQ, varnames)
 
+  # the variable `xi_{i,j}` has index var_indices[i] + j
+  var_indices = __var_indices(d)
+
   # Shorthand to address the variable `xi_{i,j}`.
   function xi(i, j)
     d[i] == 0 && throw(ArgumentError("i is not in the support of d."))
-    return vars[sum(d[1:(i - 1)]; init=0) + j]
+    return vars[var_indices[i] + j]
   end
 
   # build a base of R as an A-module.
@@ -189,15 +192,14 @@ function chow_ring(
   verbose && @info "base has $(length(base)) elements"
 
   # the variables xi(i, 1), ..., xi(i, d[i]) of each vertex i in the support of d
-  offsets = [sum(d[1:(i - 1)]; init=0) for i in 1:n_vertices(Q)]
-  blocks = [(offsets[i] + 1):(offsets[i] + d[i]) for i in support(d)]
+  blocks = [(var_indices[i] + 1):(var_indices[i] + d[i]) for i in support(d)]
 
   # the group W, product of the symmetric groups on the blocks. Each element is stored as
   # its sign and the permutation it induces on the indices of the variables.
   W = [
     (
       prod(sign(Singular.perm(wi)) for wi in w; init=1),
-      Int[offsets[i] + w[i][j] for i in support(d) for j in 1:d[i]],
+      Int[var_indices[i] + w[i][j] for i in support(d) for j in 1:d[i]],
     ) for
     w in Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
   ]
@@ -280,7 +282,7 @@ function chow_ring(
   # Shorthand to address the variables of A `x_{i,j}`.
   function xs(i, j)
     d[i] == 0 && throw(ArgumentError("i is not in the support of d."))
-    return Avars[sum(d[1:(i - 1)]; init=0) + j]
+    return Avars[var_indices[i] + j]
   end
 
   symm_polys = [symmetric_polynomial(k) for k in 1:maximum(d)]
@@ -476,9 +478,10 @@ function chern_class_line_bundle(
   Rvars = gens(R)
   proj = __projection_to_quotient_ring(A)
 
+  var_indices = __var_indices(M.d)
   chern_class = R(0)
   for i in support(M.d)
-    Singular.add!(chern_class, chern_class, eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])])
+    Singular.add!(chern_class, chern_class, eta[i] * Rvars[var_indices[i] + 1])
   end
 
   return __simplify(proj(- chern_class))
@@ -558,7 +561,8 @@ function total_chern_class_universal(
 )
   CH = chow_ring(M; unsafe=unsafe)
   CHvars = gens(CH)
-  return sum(CHvars[sum(M.d[1:(i - 1)]) + r] for r in 1:M.d[i]; init=CH(0)) + CH(1)
+  var_indices = __var_indices(M.d)
+  return sum(CHvars[var_indices[i] + r] for r in 1:M.d[i]; init=CH(0)) + CH(1)
 end
 
 """
@@ -830,4 +834,17 @@ For internal use only.
 """
 function __chow_degrees(d::AbstractVector{Int})
   return vcat([collect(1:di) for di in d if di > 0]...)
+end
+
+"""
+    __var_indices(d)
+
+Compute the vector whose `i`-th entry is the number of variables of a Chow ring
+attached to the vertices before `i`, so that the variable ``x_{i,j}`` has index
+`__var_indices(d)[i] + j`.
+
+For internal use only.
+"""
+function __var_indices(d::AbstractVector{Int})
+  return [sum(d[1:(i - 1)]; init=0) for i in eachindex(d)]
 end
