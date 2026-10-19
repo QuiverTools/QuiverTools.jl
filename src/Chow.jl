@@ -46,14 +46,23 @@ For internal use only.
 """
 function __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
   unsafe ? (n = 1 - euler_form(M.Q, M.d, M.d)) : (n = dimension(M))
-  return [__homogeneous_components(M, x, i) for i in 0:n]
+
+  degrees = __chow_degrees(M.d)
+  contexts = [Singular.MPolyBuildCtx(parent(x)) for _ in 0:n]
+  for (c, e) in zip(Singular.coefficients(x), Singular.exponent_vectors(x))
+    k = e' * degrees
+    k <= n && Singular.push_term!(contexts[k + 1], c, e)
+  end
+  return map(Singular.finish, contexts)
 end
 
 function __homogeneous_components(M::QuiverModuliSpace, x, k::Int)
-  return sum(
-    t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) == k;
-    init=parent(x)(0),
-  )
+  degrees = __chow_degrees(M.d)
+  context = Singular.MPolyBuildCtx(parent(x))
+  for (c, e) in zip(Singular.coefficients(x), Singular.exponent_vectors(x))
+    e' * degrees == k && Singular.push_term!(context, c, e)
+  end
+  return Singular.finish(context)
 end
 
 """

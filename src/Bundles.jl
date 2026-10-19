@@ -424,10 +424,12 @@ function symmetric_power(F::Bundle, k::Int)
 end
 
 function truncate(M::QuiverModuliSpace, x, n)
-  return sum(
-    (t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) <= n);
-    init=parent(x)(0),
-  )
+  degrees = __chow_degrees(M.d)
+  context = Singular.MPolyBuildCtx(parent(x))
+  for (c, e) in zip(Singular.coefficients(x), Singular.exponent_vectors(x))
+    e' * degrees <= n && Singular.push_term!(context, c, e)
+  end
+  return Singular.finish(context)
 end
 
 """
