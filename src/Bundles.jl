@@ -188,8 +188,8 @@ julia> chern_character(tdd)
 ```
 """
 function dual(F::Bundle)
-  if _has_chern_data(F)
-    new = Bundle(F.parent, adams(F, -1))
+  if __has_chern_data(F)
+    new = Bundle(F.parent, dual(variety(F), chern_character(F)))
   else
     new = Bundle()
     setfield!(new, :parent, F.parent)
@@ -447,29 +447,8 @@ end
 Compute the exterior powers of `F` up to degree `k`.
 For internal use only.
 """
-function _chern_characters_wedge(F::Bundle, k)
-  CH = chow_ring(F)
-  k == 0 && return [CH(1)]
-  x = chern_character(F)
-  M = variety(F)
-  n = dimension(M)
-
-  # init as CH(0) for type stability
-  wedges = [CH(0) for _ in 1:(k + 1)]
-  wedges[1], wedges[2] = CH(1), x
-
-  for j in 2:k
-    wedges[j + 1] =
-      CH(1//j) * truncate(M,
-        sum(
-          (-CH(1))^(j - i + 1) * wedges[i + 1] * adams(F, j - i) for i in 0:(j - 1);
-          init=CH(0),
-        ),
-        n)
-    wedges[j + 1] = __simplify(wedges[j + 1])
-  end
-  return wedges
-end
+__chern_characters_wedge(F::Bundle, k) =
+  __chern_characters_wedge(variety(F), chern_character(F), k)
 
 """
     _chern_characters_symmetric(F::Bundle, k)
@@ -477,30 +456,8 @@ end
 Compute the symmetric powers of `F` up to degree `k`.
 For internal use only.
 """
-function _chern_characters_symmetric(F::Bundle, k)
-  CH = chow_ring(F)
-  k == 0 && return [CH(1)]
-  x = chern_character(F)
-  M = variety(F)
-  n = dimension(M)
-  r = rank(F)
-
-  wedges = _chern_characters_wedge(F, r)
-  # init as CH(0) for type stability
-  syms = [CH(0) for _ in 1:(k + 1)]
-  syms[1], syms[2] = CH(1), x
-
-  for j in 2:k
-    syms[j + 1] = truncate(M,
-      sum(
-        (-CH(1))^(i + 1) * wedges[i + 1] * syms[j - i + 1] for i in 1:min(j, r);
-        init=CH(0),
-      ),
-      n)
-    syms[j + 1] = __simplify(syms[j + 1])
-  end
-  return syms
-end
+__chern_characters_symmetric(F::Bundle, k) =
+  __chern_characters_symmetric(variety(F), chern_character(F), rank(F), k)
 
 """
     adams(F::Bundle, k)
@@ -508,41 +465,13 @@ end
 Compute the Adams operation ``\\Phi^k`` on the Chern character of `F`.
 For internal use only.
 """
-function adams(F::Bundle, k)
-  M = variety(F)
-  n = dimension(M)
-  x = chern_character(F)
+adams(F::Bundle, k) = adams(variety(F), chern_character(F), k)
 
-  return [k^i for i in 0:n]' * __homogeneous_components(M, x)
-end
+__chern_classes_from_character(F::Bundle) =
+  __chern_classes_from_character(variety(F), chern_character(F))
 
-function _chern_classes_from_character(F::Bundle)
-  CH = chow_ring(F)
-  M = variety(F)
-  n = dimension(M)
-  comps = __homogeneous_components(M, chern_character(F))
-  p = [(CH(-1))^i * CH(factorial(big(i))) * comps[i + 1] for i in 0:n]
-  e = [CH(0) for _ in 1:(n + 1)]
-  e[1] = CH(1)
-  for i in 1:n
-    e[i + 1] = CH(-1//i) * sum(p[j + 1] * e[i - j + 1] for j in 1:i)
-    e[i + 1] = __simplify(e[i + 1])
-  end
-  return Dict(i => e[i + 1] for i in 0:n)
-end
-
-function _chern_character_from_classes(F::Bundle)
-  CH = F.parent.ring
-  M = variety(F)
-  n = dimension(M)
-  n == 0 && return CH(0)
-  e = chern_classes(F)
-  p = vcat([-e[1]], [CH(0) for _ in 1:(n - 1)])
-  for i in 1:(n - 1)
-    p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i)
-  end
-  return __simplify(sum(CH((-1)^i//factorial(big(i))) * p[i] for i in 1:n) + rank(F))
-end
+__chern_character_from_classes(F::Bundle) =
+  __chern_character_from_classes(variety(F), chern_classes(F), rank(F))
 
 """
     line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int}; unsafe::Bool=false, teleman::Bool=true)

@@ -678,6 +678,127 @@ function segre_class(M::QuiverModuliSpace, c; unsafe::Bool=false)
 end
 
 """
+    adams(M::QuiverModuliSpace, x, k)
+
+Compute the Adams operation ``\\Phi^k`` on the Chern character `x`, i.e. multiply its part
+of degree ``i`` by ``k^i``.
+For internal use only.
+"""
+function adams(M::QuiverModuliSpace, x, k)
+  n = dimension(M)
+  # k^n overflows an Int already for k = n = 16
+  return [big(k)^i for i in 0:n]' * __homogeneous_components(M, x)
+end
+
+"""
+    dual(M::QuiverModuliSpace, x)
+
+Compute the Chern character of the dual of a bundle with Chern character `x`, i.e. the
+Adams operation ``\\Phi^{-1}`` on `x`.
+
+# Example
+
+On the projective line:
+
+```jldoctest
+julia> Q = kronecker_quiver(2); d = [1, 1]; a = [1, 0];
+
+julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=a);
+
+julia> dual(M, todd_class(M))
+-x2_1 + 1
+```
+"""
+dual(M::QuiverModuliSpace, x) = adams(M, x, -1)
+
+# The Chern classes of a bundle with Chern character `x`, as a dictionary from the degree
+# to the class, computed with the Newton identities.
+function __chern_classes_from_character(M::QuiverModuliSpace, x)
+  CH = parent(x)
+  n = dimension(M)
+  comps = __homogeneous_components(M, x)
+  p = [(CH(-1))^i * CH(factorial(big(i))) * comps[i + 1] for i in 0:n]
+  e = [CH(0) for _ in 1:(n + 1)]
+  e[1] = CH(1)
+  for i in 1:n
+    e[i + 1] = CH(-1//i) * sum(p[j + 1] * e[i - j + 1] for j in 1:i)
+    e[i + 1] = __simplify(e[i + 1])
+  end
+  return Dict(i => e[i + 1] for i in 0:n)
+end
+
+# The Chern character of a bundle of rank `r` with Chern classes `e`, a dictionary from the
+# degree to the class, computed with the Newton identities.
+function __chern_character_from_classes(M::QuiverModuliSpace, e, r)
+  CH = parent(e[0])
+  n = dimension(M)
+  n == 0 && return CH(0)
+  p = vcat([-e[1]], [CH(0) for _ in 1:(n - 1)])
+  for i in 1:(n - 1)
+    p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i)
+  end
+  return __simplify(sum(CH((-1)^i//factorial(big(i))) * p[i] for i in 1:n) + r)
+end
+
+"""
+    __chern_characters_wedge(M::QuiverModuliSpace, x, k)
+
+Compute the Chern characters of the exterior powers, up to degree `k`, of a bundle with
+Chern character `x`.
+For internal use only.
+"""
+function __chern_characters_wedge(M::QuiverModuliSpace, x, k)
+  CH = parent(x)
+  k == 0 && return [CH(1)]
+  n = dimension(M)
+
+  # init as CH(0) for type stability
+  wedges = [CH(0) for _ in 1:(k + 1)]
+  wedges[1], wedges[2] = CH(1), x
+
+  for j in 2:k
+    wedges[j + 1] =
+      CH(1//j) * __truncate(M,
+        sum(
+          (-CH(1))^(j - i + 1) * wedges[i + 1] * adams(M, x, j - i) for i in 0:(j - 1);
+          init=CH(0),
+        ),
+        n)
+    wedges[j + 1] = __simplify(wedges[j + 1])
+  end
+  return wedges
+end
+
+"""
+    __chern_characters_symmetric(M::QuiverModuliSpace, x, r, k)
+
+Compute the Chern characters of the symmetric powers, up to degree `k`, of a bundle of
+rank `r` with Chern character `x`.
+For internal use only.
+"""
+function __chern_characters_symmetric(M::QuiverModuliSpace, x, r, k)
+  CH = parent(x)
+  k == 0 && return [CH(1)]
+  n = dimension(M)
+
+  wedges = __chern_characters_wedge(M, x, r)
+  # init as CH(0) for type stability
+  syms = [CH(0) for _ in 1:(k + 1)]
+  syms[1], syms[2] = CH(1), x
+
+  for j in 2:k
+    syms[j + 1] = __truncate(M,
+      sum(
+        (-CH(1))^(i + 1) * wedges[i + 1] * syms[j - i + 1] for i in 1:min(j, r);
+        init=CH(0),
+      ),
+      n)
+    syms[j + 1] = __simplify(syms[j + 1])
+  end
+  return syms
+end
+
+"""
     point_class(M::QuiverModuliSpace; unsafe::Bool=false)
 
 Compute the point class of the moduli space `M`.
