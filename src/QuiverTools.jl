@@ -97,9 +97,10 @@ export teleman_bounds, weights_hn_type, weights_universal_bundle, weights_canoni
   does_rigidity_inequality_hold, does_teleman_inequality_hold, set_teleman_weights!
 
 # Bundles
-export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
-  det, line_bundle, canonical_bundle, universal_bundle, tangent_bundle, chern_numbers,
-  degree, rank, teleman_weights, structure_sheaf
+export chern_character, chern_class, chern_classes, segre_class, dual, exterior_power,
+  symmetric_power, det, line_bundle, canonical_bundle, universal_bundle, tangent_bundle,
+  chern_character_tangent_bundle, chern_numbers, degree, rank, teleman_weights,
+  structure_sheaf
 
 # Walls and Chambers
 export rays, is_special_subdimension_vector, all_special_subdimension_vectors, sst,
