@@ -642,7 +642,7 @@ function point_class(
     for k in 1:(M.d' * M.Q.adjacency[:, i])
       Singular.mul!(num, num, c)
       num = __simplify(num)
-      num = Singular.jet(num, N)
+      num = truncate(M, num, N)
     end
   end
   # dividing at once is very slow, iteratively is much faster.
