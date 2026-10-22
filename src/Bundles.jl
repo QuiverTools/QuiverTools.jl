@@ -1181,15 +1181,14 @@ function chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false, universal::Bool
   generator_degrees = Int[chern_degree for (_, chern_degree) in generator_labels]
 
   for exponents in _weighted_monomials(generator_degrees, dimension(M))
-    monomial = prod(
-      (
-        generators[generator_indices[g]]^exponents[g] for
-        g in eachindex(exponents) if exponents[g] > 0
-      );
-      init=CH(1),
-    )
+    # the monomial is a single term in the variables of the Chow ring, so build it directly
+    full_exponents = zeros(Int, length(generators))
+    full_exponents[generator_indices] = exponents
+    context = Singular.MPolyBuildCtx(CH)
+    Singular.push_term!(context, one(Singular.base_ring(CH)), full_exponents)
+    monomial = Singular.finish(context)
 
-    out[_format_universal_monomial(generator_labels, exponents)] = Int(
+    out[_format_universal_monomial(generator_labels, exponents)] = BigInt(
       Singular.numerator(integral(M, monomial; unsafe=unsafe))
     )
   end
