@@ -234,7 +234,7 @@ function ^(F::Bundle, n::Int)
     x = chern_character(F)
     out = x
     for _ in 2:n
-      out = truncate(M, out * x, dimension(M))
+      out = __truncate(M, out * x, dimension(M))
     end
     setfield!(new, :chern_character, out)
   end
@@ -297,7 +297,7 @@ function *(F::Bundle, G::Bundle)
     setfield!(
       new,
       :chern_character,
-      truncate(M, chern_character(F) * chern_character(G), dimension(M)),
+      __truncate(M, chern_character(F) * chern_character(G), dimension(M)),
     )
   end
   if isdefined(F, :teleman_weights)

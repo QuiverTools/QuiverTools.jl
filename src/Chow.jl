@@ -27,14 +27,14 @@ For internal use only.
 __simplify(f) = Singular.reduce(f, Singular.Ideal(parent(f), zero(f)))
 
 """
-    truncate(M::QuiverModuliSpace, x, n)
+    __truncate(M::QuiverModuliSpace, x, n)
 
 Truncate a polynomial in the Chow ring,
 discarding terms of degree higher than n.
 
 For internal use only.
 """
-function truncate(M::QuiverModuliSpace, x, n)
+function __truncate(M::QuiverModuliSpace, x, n)
   degrees = __chow_degrees(M.d)
   context = Singular.MPolyBuildCtx(parent(x))
   for (c, e) in zip(Singular.coefficients(x), Singular.exponent_vectors(x))
@@ -863,7 +863,7 @@ function point_class(
     c = total_chern_class_universal(M, i; unsafe=unsafe)
     factor = m[i] > 0 ? c : segre_class(M, c; unsafe=unsafe)
     for _ in 1:abs(m[i])
-      num = __simplify(truncate(M, num * factor, N))
+      num = __simplify(__truncate(M, num * factor, N))
     end
   end
 
