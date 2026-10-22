@@ -13,7 +13,8 @@ using Singular: Singular
 using PrecompileTools: PrecompileTools
 
 import Base:
-  show, ==, hash, convert, getindex, setindex!, length, iterate, keys, haskey, *, +, -, ^
+  show, ==, hash, convert, copy, getindex, setindex!, length, iterate, keys, haskey, *, +,
+  -, ^
 import Memoization: @memoize, empty_all_caches!, empty_cache!
 import IterTools: subsets
 import LinearAlgebraX: rankx
