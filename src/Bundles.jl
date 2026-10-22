@@ -105,16 +105,8 @@ julia> chern_class(T, 1)
 -4*x1_1
 ```
 """
-function tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
-  U = [universal_bundle(M, i; teleman=false, unsafe=unsafe) for i in 1:n_vertices(M.Q)]
-  ch = [chern_character(F) for F in U]
-  ch_dual = [adams(F, -1) for F in U]
-  CH = chow_ring(M; unsafe=unsafe)
-  chT = CH(1)
-  chT += sum(ch_dual[i] * ch[j] for (i, j) in arrows(M.Q); init=CH(0))
-  chT -= sum(ch_dual[i] * ch[i] for i in 1:n_vertices(M.Q); init=CH(0))
-  return Bundle(M, __simplify(chT))
-end
+tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false) =
+  Bundle(M, chern_character_tangent_bundle(M; unsafe=unsafe))
 
 ##############################
 # Operations on Bundle objects
@@ -422,7 +414,6 @@ function symmetric_power(F::Bundle, k::Int)
   end
   return new
 end
-
 
 """
     _chern_characters_wedge(F::Bundle, k)

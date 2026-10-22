@@ -560,6 +560,38 @@ function chern_character_line_bundle(
 end
 
 """
+    chern_character_tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
+
+Compute the Chern character of the tangent bundle of the quiver moduli space `M`.
+
+Uses the identity
+``[\\mathrm{T}_M] = \\sum_{a: i \\to j} [U_i^\\vee \\otimes U_j] - \\sum_i [U_i^\\vee \\otimes U_i] + [\\mathcal{O}_M]``
+in the Grothendieck group of `M`.
+
+# Example
+
+The Chern character of the tangent bundle of `P^3`, realized as the moduli space of the
+generalized Kronecker quiver with 4 arrows and dimension vector `(1, 1)`:
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(4), [1, 1]); chow_ring(M);
+
+julia> chern_character_tangent_bundle(M)
+-2//3*x1_1^3 + 2*x1_1^2 - 4*x1_1 + 3
+```
+"""
+function chern_character_tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
+  U = [universal_bundle(M, i; teleman=false, unsafe=unsafe) for i in 1:n_vertices(M.Q)]
+  ch = [chern_character(F) for F in U]
+  ch_dual = [adams(F, -1) for F in U]
+  CH = chow_ring(M; unsafe=unsafe)
+  chT = CH(1)
+  chT += sum(ch_dual[i] * ch[j] for (i, j) in arrows(M.Q); init=CH(0))
+  chT -= sum(ch_dual[i] * ch[i] for i in 1:n_vertices(M.Q); init=CH(0))
+  return __simplify(chT)
+end
+
+"""
     total_chern_class_universal(M::QuiverModuliSpace, i::Int; unsafe::Bool=false)
 
 Compute the total Chern class of the universal bundle `U_i`.
@@ -725,7 +757,7 @@ function todd_class(
   # and sum_j t_j^k = k! ch_k(E), this gives
   # log td(E) = ch_1(E)/2 - sum_{m >= 1} B_{2m}/(2m) ch_{2m}(E).
   ch = __homogeneous_components(
-    M, chern_character(tangent_bundle(M; unsafe=unsafe)); unsafe=unsafe
+    M, chern_character_tangent_bundle(M; unsafe=unsafe); unsafe=unsafe
   ) # ch[k + 1] = ch_k(T_M)
   y = N >= 1 ? CH(1//2) * ch[2] : CH(0)
   for m in 1:div(N, 2)
