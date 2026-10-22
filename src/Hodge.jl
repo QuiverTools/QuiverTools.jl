@@ -548,9 +548,9 @@ function motive(
 )
   # the computation runs in the fraction field of Q[L], which for answers of high degree
   # is much faster than the function field Q(L); the result is converted at the end
-  R, (L,) = polynomial_ring(Singular.QQ, ["L"])
+  R, (x,) = polynomial_ring(Singular.QQ, ["L"])
   F = fraction_field(R)
-  L = F(L)
+  L = F(x)
 
   all(ti == 0 for ti in theta) && return __to_function_field(__trivial_motive(Q, d, L))
 

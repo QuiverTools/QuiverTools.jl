@@ -905,26 +905,37 @@ generators whose individual degrees are given by `weights`. Used to list every
 monomial of a fixed codimension in a graded ring. For internal use only.
 """
 function _weighted_monomials(degrees::AbstractVector{Int}, total_degree::Int)
-  n_generators = length(degrees)
   monomials = Vector{Int}[]
-  exponents = zeros(Int, n_generators)
-  # assign an exponent to generator `gen`, then recurse on the remaining
-  # generators, spending `remaining_degree` of the total budget across them
-  function extend(gen::Int, remaining_degree::Int)
-    if gen > n_generators
-      # all exponents assigned; keep this monomial iff the budget is exactly spent
-      remaining_degree == 0 && push!(monomials, copy(exponents))
-      return nothing
-    end
-    for exponent in 0:(remaining_degree ÷ degrees[gen])
-      exponents[gen] = exponent
-      extend(gen + 1, remaining_degree - exponent * degrees[gen])
-    end
-    exponents[gen] = 0  # reset before unwinding to the caller
+  exponents = zeros(Int, length(degrees))
+  _extend_weighted_monomials!(monomials, exponents, degrees, 1, total_degree)
+  return monomials
+end
+
+# assign an exponent to generator `gen`, then recurse on the remaining
+# generators, spending `remaining_degree` of the total budget across them.
+# This is a top-level function rather than a closure inside `_weighted_monomials`,
+# because a recursive closure is stored in a `Core.Box` and every call to it dispatches
+# at run time.
+function _extend_weighted_monomials!(
+  monomials::Vector{Vector{Int}},
+  exponents::Vector{Int},
+  degrees::AbstractVector{Int},
+  gen::Int,
+  remaining_degree::Int,
+)
+  if gen > length(degrees)
+    # all exponents assigned; keep this monomial iff the budget is exactly spent
+    remaining_degree == 0 && push!(monomials, copy(exponents))
     return nothing
   end
-  extend(1, total_degree)
-  return monomials
+  for exponent in 0:(remaining_degree ÷ degrees[gen])
+    exponents[gen] = exponent
+    _extend_weighted_monomials!(
+      monomials, exponents, degrees, gen + 1, remaining_degree - exponent * degrees[gen]
+    )
+  end
+  exponents[gen] = 0  # reset before unwinding to the caller
+  return nothing
 end
 
 """
