@@ -93,6 +93,7 @@ variety(F::Bundle) = F.parent.parent
 
 """    structure_sheaf(M::QuiverModuliSpace)"""
 function structure_sheaf(M::QuiverModuliSpace)
+  chow_ring(M)
   new = Bundle(M, 1)
   HN = all_hn_types(M; unstable=true, ordered=false)
   set_teleman_weights!(new, Dict(hn_type => [0] for hn_type in HN))
@@ -101,6 +102,7 @@ end
 
 """    zero_sheaf(M::QuiverModuliSpace)"""
 function zero_sheaf(M::QuiverModuliSpace)
+  chow_ring(M)
   new = Bundle(M, 0)
   HN = all_hn_types(M; unstable=true, ordered=false)
   set_teleman_weights!(new, Dict(hn_type => Int[] for hn_type in HN))
