@@ -27,6 +27,23 @@ For internal use only.
 __simplify(f) = Singular.reduce(f, Singular.Ideal(parent(f), zero(f)))
 
 """
+    truncate(M::QuiverModuliSpace, x, n)
+
+Truncate a polynomial in the Chow ring,
+discarding terms of degree higher than n.
+
+For internal use only.
+"""
+function truncate(M::QuiverModuliSpace, x, n)
+  degrees = __chow_degrees(M.d)
+  context = Singular.MPolyBuildCtx(parent(x))
+  for (c, e) in zip(Singular.coefficients(x), Singular.exponent_vectors(x))
+    e' * degrees <= n && Singular.push_term!(context, c, e)
+  end
+  return Singular.finish(context)
+end
+
+"""
     __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
     __homogeneous_components(M::QuiverModuliSpace, x, k::Int)
 

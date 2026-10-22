@@ -423,14 +423,6 @@ function symmetric_power(F::Bundle, k::Int)
   return new
 end
 
-function truncate(M::QuiverModuliSpace, x, n)
-  degrees = __chow_degrees(M.d)
-  context = Singular.MPolyBuildCtx(parent(x))
-  for (c, e) in zip(Singular.coefficients(x), Singular.exponent_vectors(x))
-    e' * degrees <= n && Singular.push_term!(context, c, e)
-  end
-  return Singular.finish(context)
-end
 
 """
     _chern_characters_wedge(F::Bundle, k)
