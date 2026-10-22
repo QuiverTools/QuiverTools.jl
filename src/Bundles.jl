@@ -103,7 +103,7 @@ end
 function zero_sheaf(M::QuiverModuliSpace)
   new = Bundle(M, 0)
   HN = all_hn_types(M; unstable=true, ordered=false)
-  set_teleman_weights!(new, Dict(hn_type => [] for hn_type in HN))
+  set_teleman_weights!(new, Dict(hn_type => Int[] for hn_type in HN))
   return new
 end
 
