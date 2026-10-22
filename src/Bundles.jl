@@ -51,6 +51,32 @@ function chern_class(F::Bundle, k)
     setfield!(F, :chern_class, _chern_classes_from_character(F))
   return chern_classes(F)[k]
 end
+
+"""
+    segre_class(F::Bundle)
+
+Compute the total Segre class of the bundle `F`, i.e. the inverse of its total Chern
+class in the Chow ring, from [`chern_class(F)`](@ref chern_class).
+
+# Examples
+
+The tangent bundle of the projective plane has total Chern class ``1 + 3H + 3H^2``,
+hence Segre class ``1 - 3H + 6H^2``. Here the hyperplane class is ``H = -x_{1,1}``:
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [1, 1]);
+
+julia> T = tangent_bundle(M);
+
+julia> chern_class(T)
+3*x1_1^2 - 3*x1_1 + 1
+
+julia> segre_class(T)
+6*x1_1^2 + 3*x1_1 + 1
+```
+"""
+segre_class(F::Bundle) = segre_class(variety(F), chern_class(F))
+
 """    teleman_weights(F::Bundle)"""
 function teleman_weights(F::Bundle)
   !isdefined(F, :teleman_weights) && throw(ArgumentError("Bundle has no weights."))

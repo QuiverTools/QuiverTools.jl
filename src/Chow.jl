@@ -630,6 +630,46 @@ function total_chern_class_universal(
 end
 
 """
+    segre_class(M::QuiverModuliSpace, c; unsafe::Bool=false)
+
+Compute the total Segre class with total Chern class `c`, i.e. the inverse of `c` in the
+Chow ring of `M`.
+
+Writing ``c_j`` for the part of degree ``j`` of `c`, which must have ``c_0 = 1``, the part
+``s_k`` of degree ``k`` of the Segre class is given by ``s_0 = 1`` and
+```math
+s_k = -\\sum_{j=1}^{k} c_j s_{k-j}
+```
+for ``k \\geq 1``, which is the part of degree ``k`` of ``c \\cdot s = 1``.
+
+# Examples
+
+The Segre class of the universal bundle ``U_1`` on the projective plane:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [1, 1]);
+
+julia> c = total_chern_class_universal(M, 1)
+x1_1 + 1
+
+julia> segre_class(M, c)
+x1_1^2 - x1_1 + 1
+```
+"""
+function segre_class(M::QuiverModuliSpace, c; unsafe::Bool=false)
+  unsafe ? (n = 1 - euler_form(M.Q, M.d, M.d)) : (n = dimension(M))
+  cs = __homogeneous_components(M, c; unsafe=unsafe)
+  isone(cs[1]) ||
+    throw(ArgumentError("the total Chern class must have constant term 1"))
+  CH = parent(c)
+  s = [one(CH)]
+  for k in 1:n
+    s_k = -sum(cs[j + 1] * s[k - j + 1] for j in 1:k if !iszero(cs[j + 1]); init=zero(CH))
+    push!(s, __simplify(s_k))
+  end
+  return sum(s)
+end
+
+"""
     point_class(M::QuiverModuliSpace; unsafe::Bool=false)
 
 Compute the point class of the moduli space `M`.
