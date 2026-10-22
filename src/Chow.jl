@@ -20,12 +20,11 @@ end
 """
     __simplify(f)
 
-Force some Gröbner basis simplification of the polynomial `f`
-by dividing it by 1.
+Force some Gröbner basis simplification of the polynomial `f`.
 
 For internal use only.
 """
-__simplify(f) = div(f, one(parent(f)))
+__simplify(f) = Singular.reduce(f, Singular.Ideal(parent(f), zero(f)))
 
 """
     __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
