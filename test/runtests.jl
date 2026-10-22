@@ -408,7 +408,7 @@ QuiverTools.empty_all_caches!()
 
   # K3 with d = [2, 2] is P^5
   M = QuiverModuliSpace(K3, [2, 2])
-  identity = QuiverTools.identity_matrix(6)
+  identity = one(zeros(Int, (6, 6)))
   @test string(poincare_polynomial(M)) == "L^5 + L^4 + L^3 + L^2 + L + 1"
   @test betti_numbers(M) == [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
   @test picard_rank(M) == 1

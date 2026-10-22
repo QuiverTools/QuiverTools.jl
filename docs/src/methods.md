@@ -25,7 +25,6 @@ QuiverTools.extended_gcd
 QuiverTools.weights_line_bundle
 QuiverTools.diagonal
 QuiverTools.adams
-QuiverTools.identity_matrix
 QuiverTools.teleman_bound_on_stratum
 QuiverTools._chern_characters_wedge
 QuiverTools.weights_universal_bundle_on_stratum

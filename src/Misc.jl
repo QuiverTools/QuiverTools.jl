@@ -18,19 +18,6 @@ function __check_sincere_dimension_vector(Q::Quiver, d::AbstractVector{Int})
 end
 
 """
-    identity_matrix(n::Int)
-
-Return the identity matrix of size `n`.
-"""
-@memoize function identity_matrix(n::Int)
-  out = zeros(Int, n, n)
-  for i in 1:n
-    out[i, i] = 1
-  end
-  return coerce_matrix(out)
-end
-
-"""
     diagonal(m::AbstractMatrix{Int})
 
 Return the diagonal matrix with the diagonal of `m` as its diagonal.

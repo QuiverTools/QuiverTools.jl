@@ -31,7 +31,7 @@ julia> euler_matrix(Q) == [1 -4; 0 1]
 true
 ```
 """
-@memoize Dict euler_matrix(Q::Quiver) = identity_matrix(n_vertices(Q)) - Q.adjacency
+@memoize Dict euler_matrix(Q::Quiver) = one(Q.adjacency) - Q.adjacency
 
 """
     euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int})
