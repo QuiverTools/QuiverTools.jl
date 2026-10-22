@@ -376,8 +376,32 @@ end
     det(F::Bundle)
 
 Compute the determinant of `F`. This is the top exterior power of `F`.
+
+The determinant is the line bundle with total Chern class ``1 + c_1(F)``, so it is
+built from the first Chern class of `F` rather than as an exterior power.
 """
-det(F::Bundle) = exterior_power(F, rank(F))
+function det(F::Bundle)
+  new = Bundle()
+  setfield!(new, :parent, F.parent)
+  setfield!(new, :rank, 1)
+
+  if __has_chern_data(F)
+    CH = F.parent.ring
+    n = dimension(variety(F))
+    classes = Dict{Int,Singular.spoly{Singular.n_Q}}(i => CH(0) for i in 0:n)
+    classes[0] = CH(1)
+    n >= 1 && (classes[1] = chern_class(F, 1))
+    setfield!(new, :chern_class, classes)
+  end
+  if isdefined(F, :teleman_weights)
+    new_weights = Dict(
+      hn_type => [sum(teleman_weights(F)[hn_type]; init=0)]
+      for hn_type in keys(teleman_weights(F))
+    )
+    set_teleman_weights!(new, new_weights)
+  end
+  return new
+end
 
 """
     symmetric_power(F::Bundle, k::Int)
