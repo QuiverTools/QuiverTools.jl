@@ -91,7 +91,35 @@ chow_ring(F::Bundle) = F.parent.ring
 """    variety(F::Bundle)"""
 variety(F::Bundle) = F.parent.parent
 
-"""    structure_sheaf(M::QuiverModuliSpace)"""
+"""
+    structure_sheaf(M::QuiverModuliSpace)
+
+Construct the structure sheaf of `M`, i.e. the trivial line bundle, with Teleman weight
+``0`` on every HN stratum.
+
+# Example
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
+
+julia> O = structure_sheaf(M);
+
+julia> rank(O), chern_character(O)
+(1, 1)
+
+julia> teleman_weights(O) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [0],
+             [[2, 1], [0, 2]]         => [0],
+             [[1, 0], [1, 2], [0, 1]] => [0],
+             [[1, 0], [1, 3]]         => [0],
+             [[1, 0], [1, 1], [0, 2]] => [0],
+             [[1, 1], [1, 2]]         => [0],
+             [[2, 0], [0, 3]]         => [0]
+       )
+true
+```
+"""
 function structure_sheaf(M::QuiverModuliSpace)
   chow_ring(M)
   new = Bundle(M, 1)
@@ -100,7 +128,34 @@ function structure_sheaf(M::QuiverModuliSpace)
   return new
 end
 
-"""    zero_sheaf(M::QuiverModuliSpace)"""
+"""
+    zero_sheaf(M::QuiverModuliSpace)
+
+Construct the zero sheaf on `M`, of rank ``0`` and without Teleman weights.
+
+# Example
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
+
+julia> Z = QuiverTools.zero_sheaf(M);
+
+julia> rank(Z), chern_character(Z)
+(0, 0)
+
+julia> teleman_weights(Z) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [],
+             [[2, 1], [0, 2]]         => [],
+             [[1, 0], [1, 2], [0, 1]] => [],
+             [[1, 0], [1, 3]]         => [],
+             [[1, 0], [1, 1], [0, 2]] => [],
+             [[1, 1], [1, 2]]         => [],
+             [[2, 0], [0, 3]]         => []
+       )
+true
+```
+"""
 function zero_sheaf(M::QuiverModuliSpace)
   chow_ring(M)
   new = Bundle(M, 0)
