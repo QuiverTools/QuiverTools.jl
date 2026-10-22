@@ -581,10 +581,18 @@ julia> chern_character_tangent_bundle(M)
 ```
 """
 function chern_character_tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
-  U = [universal_bundle(M, i; teleman=false, unsafe=unsafe) for i in 1:n_vertices(M.Q)]
-  ch = [chern_character(F) for F in U]
-  ch_dual = [adams(F, -1) for F in U]
   CH = chow_ring(M; unsafe=unsafe)
+  # the Chern characters of the universal bundles, from their Chern classes
+  classes = [
+    __homogeneous_components(
+      M, total_chern_class_universal(M, i; unsafe=unsafe); unsafe=unsafe
+    ) for i in 1:n_vertices(M.Q)
+  ]
+  ch = [
+    __chern_character_from_classes(M, Dict(k - 1 => c[k] for k in eachindex(c)), M.d[i])
+    for (i, c) in enumerate(classes)
+  ]
+  ch_dual = [dual(M, x) for x in ch]
   chT = CH(1)
   chT += sum(ch_dual[i] * ch[j] for (i, j) in arrows(M.Q); init=CH(0))
   chT -= sum(ch_dual[i] * ch[i] for i in 1:n_vertices(M.Q); init=CH(0))
