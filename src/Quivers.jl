@@ -263,7 +263,7 @@ end
 # multiple loops on the same side otherwise, which reads as a single blob.
 const _LOOP_PORTS = ("n", "s", "e", "w", "ne", "sw", "se", "nw")
 
-function _escape_dot_string(value::AbstractString)
+function __escape_dot_string(value::AbstractString)
   return replace(
     value,
     '\\' => "\\\\",
@@ -316,7 +316,7 @@ function to_dot(Q::Quiver)
   n = n_vertices(Q)
   io = IOBuffer()
   println(io, "digraph {")
-  isempty(Q.name) || println(io, "  label=\"", _escape_dot_string(Q.name), "\";")
+  isempty(Q.name) || println(io, "  label=\"", __escape_dot_string(Q.name), "\";")
   println(io, "  node [shape=circle];")
   for i in 1:n
     println(io, "  ", i, ";")

@@ -645,7 +645,7 @@ end
 ########################################################################################
 
 """
-    _mobius(n::Int)
+    __mobius(n::Int)
 
 Return the Möbius function ``\\mu(n)``, by trial division.
 
@@ -655,7 +655,7 @@ intersection cohomology.
 # Examples
 
 ```jldoctest
-julia> QuiverTools._mobius.(1:10)
+julia> QuiverTools.__mobius.(1:10)
 10-element Vector{Int64}:
   1
  -1
@@ -669,7 +669,7 @@ julia> QuiverTools._mobius.(1:10)
   1
 ```
 """
-function _mobius(n::Int)
+function __mobius(n::Int)
   sign, remaining = 1, n
   for divisor in 2:isqrt(n)
     if iszero(remaining % divisor)
@@ -860,7 +860,7 @@ function intersection_poincare_polynomial(M::QuiverModuliSpace)
   common = gcd(d)
   for k in 2:common
     iszero(common % k) || continue
-    mobius = _mobius(k)
+    mobius = __mobius(k)
     iszero(mobius) && continue
     total += F(mobius)//k * adams(get(logarithm, target .÷ k, zero(F)), k)
   end

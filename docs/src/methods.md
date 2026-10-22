@@ -10,7 +10,7 @@ and are not intended to be accessed directly by the user.
 ```@docs
 QuiverTools.__chow_ring_monomial_grading
 QuiverTools.symmetric_polynomial
-QuiverTools._chern_characters_symmetric
+QuiverTools.__chern_characters_symmetric
 QuiverTools.weight_canonical_on_stratum
 QuiverTools.poincare_polynomial
 QuiverTools.all_destabilizing_subdimension_vectors
@@ -26,10 +26,10 @@ QuiverTools.weights_line_bundle
 QuiverTools.diagonal
 QuiverTools.adams
 QuiverTools.teleman_bound_on_stratum
-QuiverTools._chern_characters_wedge
+QuiverTools.__chern_characters_wedge
 QuiverTools.weights_universal_bundle_on_stratum
 QuiverTools.thin_dimension_vector
-QuiverTools._mobius
+QuiverTools.__mobius
 QuiverTools.is_root
 QuiverTools.total_chern_class_universal
 QuiverTools.all_subdimension_vectors
@@ -40,11 +40,12 @@ QuiverTools.__add_and_return_new
 QuiverTools.__add_and_return
 QuiverTools.__add_and_return_noniso
 QuiverTools.__projection_to_quotient_ring
-QuiverTools._weighted_monomials
-QuiverTools._degree1_vector
-QuiverTools._universal_chern_generators
+QuiverTools.__weighted_monomials
+QuiverTools.__degree1_vector
+QuiverTools.__universal_chern_generators
 QuiverTools.__homogeneous_components
 QuiverTools.__simplify
+QuiverTools.__truncate
 QuiverTools.support_subquiver
 QuiverTools.__in_semistable_cone
 QuiverTools.__in_vgit_wall

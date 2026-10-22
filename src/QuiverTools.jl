@@ -117,7 +117,7 @@ import Pkg
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
 
-function _print_banner()
+function __print_banner()
   printstyled(raw"""   ___"""; color=:red)
   printstyled(raw"""       _             """)
   println("  |")
@@ -142,7 +142,7 @@ end
 
 function __init__()
   if displaysize(stdout)[2] >= 80
-    _print_banner()
+    __print_banner()
   end
 
   # `draw` only gets a method from the GraphViz extension; without it the bare

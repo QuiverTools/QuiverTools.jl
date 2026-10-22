@@ -890,12 +890,12 @@ function dimension(M::QuiverModuliSpace)
   # uncached.
   cached = M.chow._dimension
   cached !== nothing && return cached
-  n = _dimension(M)
+  n = __dimension(M)
   n isa Int && setfield!(M.chow, :_dimension, n)
   return n
 end
 
-function _dimension(M::QuiverModuliSpace)
+function __dimension(M::QuiverModuliSpace)
   # the zero representation is semistable, but not stable, for d = 0
   !is_connected(M.Q) &&
     throw(ArgumentError("Q is not connected, M has disjoint connected components."))

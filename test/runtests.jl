@@ -480,7 +480,7 @@ import GraphViz
   @test !isnothing(extension_module)
   mktempdir() do directory
     path = joinpath(directory, "quiver.svg")
-    @test extension_module._write_svg(Q, path) == path
+    @test extension_module.__write_svg(Q, path) == path
     @test isfile(path)
     @test occursin("<svg", read(path, String))
   end
