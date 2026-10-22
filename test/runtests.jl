@@ -822,6 +822,20 @@ QuiverTools.empty_all_caches!()
 end;
 QuiverTools.empty_all_caches!()
 
+@testset "Adams operations overflow        " begin
+  # The Adams operation Φ^k multiplies the part of degree i of a Chern character by k^i
+  # (regression: k^i was computed as an Int and overflowed for large k and dimension. The
+  # determinant of the tangent bundle of an 18-dimensional moduli space needs exterior
+  # powers up to k = 18, and its degree came out as a fraction.)
+  # The anticanonical bundle is the descent of the canonical stability parameter, so the
+  # two degrees must agree.
+  Q, d = kronecker_quiver(5), [2, 3]
+  M = QuiverModuliSpace(Q, d)
+  @test degree(tangent_bundle(M)) ==
+    degree(line_bundle(M, canonical_stability(Q, d); teleman=false))
+end;
+QuiverTools.empty_all_caches!()
+
 # The number of `jldoctest` blocks in the docstrings of `mod`. `doctest` runs them all
 # as a single test, so the number is shown in the name of the testset instead.
 function count_doctests(mod::Module)
