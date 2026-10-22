@@ -723,32 +723,22 @@ function point_class(
   end
 
   CH = chow_ring(M; unsafe=unsafe)
-  num = CH(1)
   unsafe ? (N = 1 - euler_form(M.Q, M.d, M.d)) : (N = dimension(M))
 
+  # the point class is the degree N component of the product of c(U_i)^m_i.
+  # A negative power of c(U_i) is a power of its Segre class, so we avoid slow divisions.
+  m = M.Q.adjacency' * M.d - M.d
+  num = CH(1)
   for i in 1:n_vertices(M.Q)
+    (m[i] == 0 || M.d[i] == 0) && continue
     c = total_chern_class_universal(M, i; unsafe=unsafe)
-    for k in 1:(M.d' * M.Q.adjacency[:, i])
-      Singular.mul!(num, num, c)
-      num = __simplify(num)
-      num = truncate(M, num, N)
-    end
-  end
-  # dividing at once is very slow, iteratively is much faster.
-  for i in 1:n_vertices(M.Q)
-    c = total_chern_class_universal(M, i; unsafe=unsafe)
-    for _ in 1:M.d[i]
-      num = Singular.div(num, c)
+    factor = m[i] > 0 ? c : segre_class(M, c; unsafe=unsafe)
+    for _ in 1:abs(m[i])
+      num = __simplify(truncate(M, num * factor, N))
     end
   end
 
-  pt = CH(0)
-  for term in Singular.terms(num)
-    if __chow_ring_monomial_grading(M, term) == N
-      Singular.add!(pt, pt, term)
-    end
-  end
-  setfield!(M.chow, :point, pt)
+  setfield!(M.chow, :point, __homogeneous_components(M, num, N))
   return M.chow.point
 end
 
