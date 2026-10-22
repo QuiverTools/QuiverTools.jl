@@ -1015,6 +1015,9 @@ end
 
 Compute the Chern numbers of a bundle `F`, i.e. all top intersection products
 ``\\int_M c_{i_1}(F) \\cdots c_{i_k}(F)``, indexed by partitions `[i_1, ..., i_k]` of `dimension(M)`.
+
+Returns a `Dict{String,BigInt}`, since the Chern numbers of high-dimensional moduli
+spaces do not fit in an `Int`.
 """
 function chern_numbers(F::Bundle; unsafe::Bool=false)
   M = variety(F)
@@ -1024,8 +1027,8 @@ function chern_numbers(F::Bundle; unsafe::Bool=false)
   # the Chern numbers of an element in the Chow ring
   # are the top intersection product c_{i_1} ... c_{i_k}
   # per every partition (i_1, ..., i_k) of the dimension of the underlying variety.
-  return Dict{String,Int}(
-    _format_chern_monomial(partition) => Int(
+  return Dict{String,BigInt}(
+    _format_chern_monomial(partition) => BigInt(
       Singular.numerator(
         integral(M, prod(classes[k] for k in partition; init=CH(1)); unsafe=unsafe)
       ),
@@ -1042,7 +1045,7 @@ i.e. all top intersection products
 ``\\int_M c_{i_1}(T_M) \\cdots c_{i_k}(T_M)``,
 indexed by partitions `[i_1, ..., i_k]` of `dimension(M)`.
 
-Returns a `Dict{String,Int}` whose keys describe each monomial in the Chern
+Returns a `Dict{String,BigInt}` whose keys describe each monomial in the Chern
 classes and whose values are the corresponding Chern numbers.
 
 If `universal` is set to `true`, the result additionally contains all top
