@@ -445,8 +445,8 @@ function det(F::Bundle)
   if __has_chern_data(F)
     CH = F.parent.ring
     n = dimension(variety(F))
-    classes = Dict{Int,Singular.spoly{Singular.n_Q}}(i => CH(0) for i in 0:n)
-    classes[0] = CH(1)
+    classes = Dict{Int,Singular.spoly{Singular.n_Q}}(i => zero(CH) for i in 0:n)
+    classes[0] = one(CH)
     n >= 1 && (classes[1] = chern_class(F, 1))
     setfield!(new, :chern_class, classes)
   end
@@ -1048,7 +1048,7 @@ function chern_numbers(F::Bundle; unsafe::Bool=false)
   return Dict{String,BigInt}(
     __format_chern_monomial(partition) => BigInt(
       Singular.numerator(
-        integral(M, prod(classes[k] for k in partition; init=CH(1)); unsafe=unsafe)
+        integral(M, prod(classes[k] for k in partition; init=one(CH)); unsafe=unsafe)
       ),
     )
     for partition in partitions(dimension(M))

@@ -245,7 +245,7 @@ function chow_ring(
   # The discriminant in the definition of the antisymmetrization.
   delta = prod(
     xi(i, l) - xi(i, k) for i in 1:n_vertices(Q) for k in 1:(d[i] - 1) for l in (k + 1):d[i];
-    init=R(1),
+    init=one(R),
   )
 
   # The antisymmetrization A(f) of f, divided by delta.
@@ -288,7 +288,7 @@ function chow_ring(
 
   # builds a new forbidden polynomial for the minimal forbidden dimension vector e.
   function new_forbidden(e::AbstractVector{Int})
-    out = R(1)
+    out = one(R)
     for (i, j) in Iterators.product(1:n_vertices(Q), 1:n_vertices(Q))
       for r in 1:e[i], s in (e[j] + 1):d[j]
         Q.adjacency[i, j] == 0 && continue
@@ -504,7 +504,7 @@ function chern_class_line_bundle(
   proj = __projection_to_quotient_ring(A)
 
   var_indices = __var_indices(M.d)
-  chern_class = R(0)
+  chern_class = zero(R)
   for i in support(M.d)
     Singular.add!(chern_class, chern_class, eta[i] * Rvars[var_indices[i] + 1])
   end
@@ -550,8 +550,8 @@ function chern_character_line_bundle(
 )
   x = chern_class_line_bundle(M, eta)
   CH = parent(x)
-  ch = CH(1)
-  term = CH(1)
+  ch = one(CH)
+  term = one(CH)
   for i in 1:dimension(M)
     term *= x / big(i) # x^i / i!
     ch += term
@@ -593,9 +593,9 @@ function chern_character_tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false
     for (i, c) in enumerate(classes)
   ]
   ch_dual = [dual(M, x) for x in ch]
-  chT = CH(1)
-  chT += sum(ch_dual[i] * ch[j] for (i, j) in arrows(M.Q); init=CH(0))
-  chT -= sum(ch_dual[i] * ch[i] for i in 1:n_vertices(M.Q); init=CH(0))
+  chT = one(CH)
+  chT += sum(ch_dual[i] * ch[j] for (i, j) in arrows(M.Q); init=zero(CH))
+  chT -= sum(ch_dual[i] * ch[i] for i in 1:n_vertices(M.Q); init=zero(CH))
   return __simplify(chT)
 end
 
@@ -634,7 +634,7 @@ function total_chern_class_universal(
   CH = chow_ring(M; unsafe=unsafe)
   CHvars = gens(CH)
   var_indices = __var_indices(M.d)
-  return sum(CHvars[var_indices[i] + r] for r in 1:M.d[i]; init=CH(0)) + CH(1)
+  return sum(CHvars[var_indices[i] + r] for r in 1:M.d[i]; init=zero(CH)) + one(CH)
 end
 
 """
@@ -718,8 +718,8 @@ function __chern_classes_from_character(M::QuiverModuliSpace, x)
   n = dimension(M)
   comps = __homogeneous_components(M, x)
   p = [(CH(-1))^i * CH(factorial(big(i))) * comps[i + 1] for i in 0:n]
-  e = [CH(0) for _ in 1:(n + 1)]
-  e[1] = CH(1)
+  e = [zero(CH) for _ in 1:(n + 1)]
+  e[1] = one(CH)
   for i in 1:n
     e[i + 1] = CH(-1//i) * sum(p[j + 1] * e[i - j + 1] for j in 1:i)
     e[i + 1] = __simplify(e[i + 1])
@@ -732,8 +732,8 @@ end
 function __chern_character_from_classes(M::QuiverModuliSpace, e, r)
   CH = parent(e[0])
   n = dimension(M)
-  n == 0 && return CH(0)
-  p = vcat([-e[1]], [CH(0) for _ in 1:(n - 1)])
+  n == 0 && return zero(CH)
+  p = vcat([-e[1]], [zero(CH) for _ in 1:(n - 1)])
   for i in 1:(n - 1)
     p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i)
   end
@@ -749,19 +749,19 @@ For internal use only.
 """
 function __chern_characters_wedge(M::QuiverModuliSpace, x, k)
   CH = parent(x)
-  k == 0 && return [CH(1)]
+  k == 0 && return [one(CH)]
   n = dimension(M)
 
-  # init as CH(0) for type stability
-  wedges = [CH(0) for _ in 1:(k + 1)]
-  wedges[1], wedges[2] = CH(1), x
+  # init as zero(CH) for type stability
+  wedges = [zero(CH) for _ in 1:(k + 1)]
+  wedges[1], wedges[2] = one(CH), x
 
   for j in 2:k
     wedges[j + 1] =
       CH(1//j) * __truncate(M,
         sum(
-          (-CH(1))^(j - i + 1) * wedges[i + 1] * adams(M, x, j - i) for i in 0:(j - 1);
-          init=CH(0),
+          (-one(CH))^(j - i + 1) * wedges[i + 1] * adams(M, x, j - i) for i in 0:(j - 1);
+          init=zero(CH),
         ),
         n)
     wedges[j + 1] = __simplify(wedges[j + 1])
@@ -778,19 +778,19 @@ For internal use only.
 """
 function __chern_characters_symmetric(M::QuiverModuliSpace, x, r, k)
   CH = parent(x)
-  k == 0 && return [CH(1)]
+  k == 0 && return [one(CH)]
   n = dimension(M)
 
   wedges = __chern_characters_wedge(M, x, r)
-  # init as CH(0) for type stability
-  syms = [CH(0) for _ in 1:(k + 1)]
-  syms[1], syms[2] = CH(1), x
+  # init as zero(CH) for type stability
+  syms = [zero(CH) for _ in 1:(k + 1)]
+  syms[1], syms[2] = one(CH), x
 
   for j in 2:k
     syms[j + 1] = __truncate(M,
       sum(
-        (-CH(1))^(i + 1) * wedges[i + 1] * syms[j - i + 1] for i in 1:min(j, r);
-        init=CH(0),
+        (-one(CH))^(i + 1) * wedges[i + 1] * syms[j - i + 1] for i in 1:min(j, r);
+        init=zero(CH),
       ),
       n)
     syms[j + 1] = __simplify(syms[j + 1])
@@ -857,7 +857,7 @@ function point_class(
   # the point class is the degree N component of the product of c(U_i)^m_i.
   # A negative power of c(U_i) is a power of its Segre class, so we avoid slow divisions.
   m = M.Q.adjacency' * M.d - M.d
-  num = CH(1)
+  num = one(CH)
   for i in 1:n_vertices(M.Q)
     (m[i] == 0 || M.d[i] == 0) && continue
     c = total_chern_class_universal(M, i; unsafe=unsafe)
@@ -918,15 +918,15 @@ function todd_class(
   ch = __homogeneous_components(
     M, chern_character_tangent_bundle(M; unsafe=unsafe); unsafe=unsafe
   ) # ch[k + 1] = ch_k(T_M)
-  y = N >= 1 ? CH(1//2) * ch[2] : CH(0)
+  y = N >= 1 ? CH(1//2) * ch[2] : zero(CH)
   for m in 1:div(N, 2)
     y -= CH(Singular.bernoulli(2m) // (2m)) * ch[2m + 1]
   end
 
   # y has no constant term and the Chow ring vanishes above degree N,
   # so exp(y) = sum_{k = 0}^N y^k / k!
-  td = CH(1)
-  term = CH(1)
+  td = one(CH)
+  term = one(CH)
   for k in 1:N
     term = __simplify(CH(1//k) * term * y)
     td += term
