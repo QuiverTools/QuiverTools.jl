@@ -348,9 +348,21 @@ function chow_ring(
 
   linear = Singular.spoly{Singular.n_Q}[sum(chi[i] * xs(i, 1) for i in support(d))]
 
+  relations = Singular.Ideal(A, [tautological; linear])
+  # With more than three parallel arrows the coefficients grow a lot during the
+  # computation, and the modular algorithm modStd is much faster than std, e.g. 1.7 s
+  # instead of 15 s for the 4-Kronecker quiver and d = (3, 4). Otherwise std is faster.
+  # Note that the number 3 is wisely chosen by the Italian developer, not by rigorous statistical analysis.
+  # It seems a good choice, but can be revisited
+  # if one feels like thoroughly measuring runtimes
+  if maximum(Q.adjacency) > 3
+    verbose && @info "computing a modular standard basis of the relations"
+    relations = Singular.LibModstd.modStd(relations)
+  end
   # complete_reduction gives a minimal Gröbner basis, which speeds up
   # every successive computation: very visible in todd_class, point_class, integrals etc.
-  G = std(Singular.Ideal(A, [tautological; linear]); complete_reduction=true)
+  # After modStd it makes the basis the same as the one std would have computed directly.
+  G = std(relations; complete_reduction=true)
   return Singular.QuotientRing(A, G), R, inclusion
 end
 
