@@ -137,7 +137,7 @@ Quiver with adjacency matrix [0 0; 1 0]
 Quiver(::String)
 
 ==(Q1::Quiver, Q2::Quiver) = Q1.adjacency == Q2.adjacency
-hash(Q::Quiver) = hash(Q.adjacency)
+hash(Q::Quiver, h::UInt) = hash(Q.adjacency, h)
 
 function show(io::IO, Q::Quiver)
   if Q.name == ""
@@ -484,7 +484,7 @@ end
 
 ==(H1::HNType, H2::HNType) = H1.hn == H2.hn
 ==(H::HNType, x::Vector{<:AbstractVector{Int}}) = H.hn == x
-hash(H::HNType) = hash(H.hn)
+hash(H::HNType, h::UInt) = hash(H.hn, h)
 length(H::HNType) = length(H.hn)
 Base.getindex(H::HNType, i) = getindex(H.hn, i)
 Base.iterate(H::HNType) = iterate(H.hn)
@@ -700,7 +700,7 @@ end
 
 ==(L1::LunaType, L2::LunaType) = L1.data == L2.data
 ==(L::LunaType, x::Dict{<:AbstractVector{Int},Vector{Int}}) = L.data == x
-hash(L::LunaType) = hash(L.data)
+hash(L::LunaType, h::UInt) = hash(L.data, h)
 length(L::LunaType) = length(L.data)
 getindex(L::LunaType, i) = getindex(L.data, i)
 setindex!(L::LunaType, value, key...) = setindex!(L.data, value, key...)
