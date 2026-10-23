@@ -860,20 +860,37 @@ function point_class(
   unsafe ? (N = 1 - euler_form(M.Q, M.d, M.d)) : (N = dimension(M))
 
   # the point class is the degree N component of the product of c(U_i)^m_i.
-  # A negative power of c(U_i) is a power of its Segre class, so we avoid slow divisions.
+  # First multiply the total Chern classes with m_i > 0.
   m = M.Q.adjacency' * M.d - M.d
   num = one(CH)
   for i in 1:n_vertices(M.Q)
-    (m[i] == 0 || M.d[i] == 0) && continue
+    (m[i] <= 0 || M.d[i] == 0) && continue
     c = total_chern_class_universal(M, i; unsafe=unsafe)
-    factor = m[i] > 0 ? c : segre_class(M, c; unsafe=unsafe)
-    for _ in 1:abs(m[i])
-      num = __simplify(__truncate(M, num * factor, N))
+    for _ in 1:m[i]
+      num = __simplify(__truncate(M, num * c, N))
+    end
+  end
+
+  # Then divide by the others degree by degree: if c = 1 + c_1 + c_2 + ... and c y = z,
+  # then y_k = z_k - sum_j c_j y_{k - j}. Each c_j is a single variable of the Chow ring,
+  # which is much cheaper than multiplying by an entire Segre class.
+  y = __homogeneous_components(M, num; unsafe=unsafe)
+  for i in 1:n_vertices(M.Q)
+    (m[i] >= 0 || M.d[i] == 0) && continue
+    c = __homogeneous_components(
+      M, total_chern_class_universal(M, i; unsafe=unsafe); unsafe=unsafe
+    )
+    for _ in 1:(-m[i])
+      z = y
+      y = [z[1]]
+      for k in 1:N
+        yk =
+          z[k + 1] - sum(c[j + 1] * y[k - j + 1] for j in 1:min(k, M.d[i]); init=zero(CH))
+        push!(y, __simplify(yk))
       end
     end
   end
 
-  setfield!(M.chow, :point, __homogeneous_components(M, num, N))
   setfield!(M.chow, :point, y[N + 1])
   return M.chow.point
 end
