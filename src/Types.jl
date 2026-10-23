@@ -54,11 +54,11 @@ struct Quiver{T}
         @warn "Quiver: integer vertex labels $labels are not 1:$n; " *
           "relabeling to 1:$n (the kth smallest label becomes vertex k)"
       end
-      rank = Dict(v => i for (i, v) in enumerate(labels))
-      index = Dict(tokens[k] => rank[ints[k]] for k in eachindex(tokens))
+      rank = Dict{Int,Int}(v => i for (i, v) in enumerate(labels))
+      index = Dict{String,Int}(tokens[k] => rank[ints[k]] for k in eachindex(tokens))
     else
       n = length(tokens)
-      index = Dict(tok => i for (i, tok) in enumerate(tokens))
+      index = Dict{String,Int}(tok => i for (i, tok) in enumerate(tokens))
     end
 
     A = zeros(Int, n, n)
@@ -137,7 +137,7 @@ Quiver with adjacency matrix [0 0; 1 0]
 Quiver(::String)
 
 ==(Q1::Quiver, Q2::Quiver) = Q1.adjacency == Q2.adjacency
-hash(Q::Quiver) = hash(Q.adjacency)
+hash(Q::Quiver, h::UInt) = hash(Q.adjacency, h)
 
 function show(io::IO, Q::Quiver)
   if Q.name == ""
@@ -484,7 +484,7 @@ end
 
 ==(H1::HNType, H2::HNType) = H1.hn == H2.hn
 ==(H::HNType, x::Vector{<:AbstractVector{Int}}) = H.hn == x
-hash(H::HNType) = hash(H.hn)
+hash(H::HNType, h::UInt) = hash(H.hn, h)
 length(H::HNType) = length(H.hn)
 Base.getindex(H::HNType, i) = getindex(H.hn, i)
 Base.iterate(H::HNType) = iterate(H.hn)
@@ -570,7 +570,7 @@ function Bundle(M::QuiverModuliSpace, chern_character::Int)
   bundle = Bundle()
   setfield!(bundle, :parent, M.chow)
   setfield!(bundle, :rank, chern_character)
-  setfield!(bundle, :chern_character, M.chow.ring(chern_character))
+  setfield!(bundle, :chern_character, chow_ring(M)(chern_character))
   return bundle
 end
 
@@ -700,7 +700,7 @@ end
 
 ==(L1::LunaType, L2::LunaType) = L1.data == L2.data
 ==(L::LunaType, x::Dict{<:AbstractVector{Int},Vector{Int}}) = L.data == x
-hash(L::LunaType) = hash(L.data)
+hash(L::LunaType, h::UInt) = hash(L.data, h)
 length(L::LunaType) = length(L.data)
 getindex(L::LunaType, i) = getindex(L.data, i)
 setindex!(L::LunaType, value, key...) = setindex!(L.data, value, key...)
@@ -708,3 +708,4 @@ iterate(L::LunaType) = iterate(L.data)
 iterate(L::LunaType, i) = iterate(L.data, i)
 keys(L::LunaType) = keys(L.data)
 haskey(L::LunaType, key) = haskey(L.data, key)
+copy(L::LunaType) = LunaType(Dict(e => copy(m) for (e, m) in L.data))

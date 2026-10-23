@@ -31,7 +31,7 @@ julia> euler_matrix(Q) == [1 -4; 0 1]
 true
 ```
 """
-@memoize Dict euler_matrix(Q::Quiver) = identity_matrix(n_vertices(Q)) - Q.adjacency
+@memoize Dict euler_matrix(Q::Quiver) = one(Q.adjacency) - Q.adjacency
 
 """
     euler_form(Q::Quiver, x::AbstractVector{Int}, y::AbstractVector{Int})
@@ -493,20 +493,36 @@ function __n_quasiprimitive_cycles(
   A::AbstractMatrix{Int}, d::AbstractVector{Int}, v::Int, cap::Int
 )
   total, budget = Ref(0), copy(d)
-  # each step of the recursion "walks" along arrows and adds to total when it comes across v.
-  # When called starting from v, this counts then cycles through v.
-  # the extra variable `mult` carries the amount of arrows that brought the walk where it is.
-  function walk(x::Int, mult::Int)
-    (total[] > cap || budget[x] == 0) && return nothing
-    budget[x] -= 1
-    for y in findall(>(0), A[x, :])
-      y == v ? (total[] += mult * A[x, y]) : walk(y, mult * A[x, y])
-    end
-    budget[x] += 1
-    return nothing
-  end
-  walk(v, 1)
+  __walk_quasiprimitive_cycles!(total, budget, A, v, cap, v, 1)
   return total[]
+end
+
+# each step of the recursion "walks" along arrows and adds to total when it comes across v.
+# When called starting from v, this counts then cycles through v.
+# the extra variable `mult` carries the amount of arrows that brought the walk where it is.
+# This is a top-level function rather than a closure inside `__n_quasiprimitive_cycles`,
+# because a recursive closure is stored in a `Core.Box` and every call to it dispatches
+# at run time.
+function __walk_quasiprimitive_cycles!(
+  total::Base.RefValue{Int},
+  budget::AbstractVector{Int},
+  A::AbstractMatrix{Int},
+  v::Int,
+  cap::Int,
+  x::Int,
+  mult::Int,
+)
+  (total[] > cap || budget[x] == 0) && return nothing
+  budget[x] -= 1
+  for y in findall(>(0), A[x, :])
+    if y == v
+      (total[] += mult * A[x, y])
+    else
+      __walk_quasiprimitive_cycles!(total, budget, A, v, cap, y, mult * A[x, y])
+    end
+  end
+  budget[x] += 1
+  return nothing
 end
 
 # One application of the wedging step W of [doi:10.1016/j.jalgebra.2007.08.019] to a
@@ -719,7 +735,7 @@ end
 #
 # where s(e, d) = \sum_i binomial(d_i - e_i, 2) + \sum_{a: i -> j} e_i (d_j - e_j).
 function __nullcone_motive(A::AbstractMatrix{Int}, d::AbstractVector{Int})
-  R, (L,) = polynomial_ring(Singular.QQ, ["L"])
+  R, (L,) = polynomial_ring(__QQ(), ["L"])
   n = length(d)
 
   # the Gaussian binomial coefficients [m; k]_L, computed once per call
@@ -849,7 +865,7 @@ L^18
 function nullcone_motive(Q::Quiver, d::AbstractVector{Int})
   __check_dimension_vector(Q, d)
 
-  K, (L,) = Singular.FunctionField(Singular.QQ, ["L"])
+  K, (L,) = Singular.FunctionField(__QQ(), ["L"])
   return Singular.evaluate(__nullcone_motive(Q.adjacency, d), [L])
 end
 

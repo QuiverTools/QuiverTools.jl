@@ -92,7 +92,7 @@ function hodge_polynomial(
 )
   P = poincare_polynomial(Q, d, theta, denom)
   # the cohomology is of Hodge--Tate type, so L^k contributes x^k * y^k
-  S, (x, y) = polynomial_ring(Singular.QQ, ["x", "y"])
+  S, (x, y) = polynomial_ring(__QQ(), ["x", "y"])
   terms = zip(Singular.coefficients(P), Singular.exponent_vectors(P))
   return sum((S(c) * (x * y)^e[1] for (c, e) in terms); init=zero(S))
 end
@@ -548,9 +548,9 @@ function motive(
 )
   # the computation runs in the fraction field of Q[L], which for answers of high degree
   # is much faster than the function field Q(L); the result is converted at the end
-  R, (L,) = polynomial_ring(Singular.QQ, ["L"])
+  R, (x,) = polynomial_ring(__QQ(), ["L"])
   F = fraction_field(R)
-  L = F(L)
+  L = F(x)
 
   all(ti == 0 for ti in theta) && return __to_function_field(__trivial_motive(Q, d, L))
 
@@ -607,7 +607,7 @@ end
 # Convert a rational function in the fraction field of Q[L] to the function field Q(L),
 # in which `motive` returns its result.
 function __to_function_field(x)
-  K, (L,) = Singular.FunctionField(Singular.QQ, ["L"])
+  K, (L,) = Singular.FunctionField(__QQ(), ["L"])
   function to_K(p)
     terms = zip(Singular.coefficients(p), Singular.exponent_vectors(p))
     return sum((K(c) * L^e[1] for (c, e) in terms); init=zero(K))
@@ -645,7 +645,7 @@ end
 ########################################################################################
 
 """
-    _mobius(n::Int)
+    __mobius(n::Int)
 
 Return the Möbius function ``\\mu(n)``, by trial division.
 
@@ -655,7 +655,7 @@ intersection cohomology.
 # Examples
 
 ```jldoctest
-julia> QuiverTools._mobius.(1:10)
+julia> QuiverTools.__mobius.(1:10)
 10-element Vector{Int64}:
   1
  -1
@@ -669,7 +669,7 @@ julia> QuiverTools._mobius.(1:10)
   1
 ```
 """
-function _mobius(n::Int)
+function __mobius(n::Int)
   sign, remaining = 1, n
   for divisor in 2:isqrt(n)
     if iszero(remaining % divisor)
@@ -812,7 +812,7 @@ function intersection_poincare_polynomial(M::QuiverModuliSpace)
     ArgumentError("There are no stable representations of dimension vector $(Vector(d))")
   )
 
-  R, ws = polynomial_ring(Singular.QQ, ["w"])
+  R, ws = polynomial_ring(__QQ(), ["w"])
   w = ws[1]
   F = fraction_field(R)
   E = Singular.elem_type(F)
@@ -860,7 +860,7 @@ function intersection_poincare_polynomial(M::QuiverModuliSpace)
   common = gcd(d)
   for k in 2:common
     iszero(common % k) || continue
-    mobius = _mobius(k)
+    mobius = __mobius(k)
     iszero(mobius) && continue
     total += F(mobius)//k * adams(get(logarithm, target .÷ k, zero(F)), k)
   end
@@ -878,7 +878,7 @@ function intersection_poincare_polynomial(M::QuiverModuliSpace)
 
   # intersection cohomology of these moduli spaces is concentrated in even degree, so the
   # answer has to be a polynomial in `w^2`; that is a real check on the whole computation
-  S, Ls = polynomial_ring(Singular.QQ, ["L"])
+  S, Ls = polynomial_ring(__QQ(), ["L"])
   L = Ls[1]
   invariant = numerator(result)
   P = zero(S)

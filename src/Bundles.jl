@@ -2,55 +2,81 @@
 # Tensor calculus on quiver moduli
 ##################################
 
-_has_chern_data(F::Bundle) = isdefined(F, :chern_character) || isdefined(F, :chern_class)
+__has_chern_data(F::Bundle) = isdefined(F, :chern_character) || isdefined(F, :chern_class)
 """   chern_character(F::Bundle)"""
 function chern_character(F::Bundle)
-  !_has_chern_data(F) &&
+  !__has_chern_data(F) &&
     throw(
       ArgumentError(
         "Bundle has no Chow ring data."
       ),
     )
   !isdefined(F, :chern_character) &&
-    setfield!(F, :chern_character, _chern_character_from_classes(F))
+    setfield!(F, :chern_character, __chern_character_from_classes(F))
   return F.chern_character
 end
 """   chern_classes(F::Bundle)"""
 function chern_classes(F::Bundle)
-  !_has_chern_data(F) &&
+  !__has_chern_data(F) &&
     throw(
       ArgumentError(
         "Bundle has no Chow ring data."
       ),
     )
   !isdefined(F, :chern_class) &&
-    setfield!(F, :chern_class, _chern_classes_from_character(F))
+    setfield!(F, :chern_class, __chern_classes_from_character(F))
   return F.chern_class
 end
 """   chern_class(F::Bundle)"""
 function chern_class(F::Bundle)
-  !_has_chern_data(F) &&
+  !__has_chern_data(F) &&
     throw(
       ArgumentError(
         "Bundle has no Chow ring data."
       ),
     )
   !isdefined(F, :chern_class) &&
-    setfield!(F, :chern_class, _chern_classes_from_character(F))
+    setfield!(F, :chern_class, __chern_classes_from_character(F))
   return sum(values(chern_classes(F)))
 end
 """   chern_class(F::Bundle, k)"""
 function chern_class(F::Bundle, k)
-  !_has_chern_data(F) &&
+  !__has_chern_data(F) &&
     throw(
       ArgumentError(
         "Bundle has no Chow ring data."
       ),
     )
   !isdefined(F, :chern_class) &&
-    setfield!(F, :chern_class, _chern_classes_from_character(F))
+    setfield!(F, :chern_class, __chern_classes_from_character(F))
   return chern_classes(F)[k]
 end
+
+"""
+    segre_class(F::Bundle)
+
+Compute the total Segre class of the bundle `F`, i.e. the inverse of its total Chern
+class in the Chow ring, from [`chern_class(F)`](@ref chern_class).
+
+# Examples
+
+The tangent bundle of the projective plane has total Chern class ``1 + 3H + 3H^2``,
+hence Segre class ``1 - 3H + 6H^2``. Here the hyperplane class is ``H = -x_{1,1}``:
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [1, 1]);
+
+julia> T = tangent_bundle(M);
+
+julia> chern_class(T)
+3*x1_1^2 - 3*x1_1 + 1
+
+julia> segre_class(T)
+6*x1_1^2 + 3*x1_1 + 1
+```
+"""
+segre_class(F::Bundle) = segre_class(variety(F), chern_class(F))
+
 """    teleman_weights(F::Bundle)"""
 function teleman_weights(F::Bundle)
   !isdefined(F, :teleman_weights) && throw(ArgumentError("Bundle has no weights."))
@@ -65,7 +91,35 @@ chow_ring(F::Bundle) = F.parent.ring
 """    variety(F::Bundle)"""
 variety(F::Bundle) = F.parent.parent
 
-"""    structure_sheaf(M::QuiverModuliSpace)"""
+"""
+    structure_sheaf(M::QuiverModuliSpace)
+
+Construct the structure sheaf of `M`, i.e. the trivial line bundle, with Teleman weight
+``0`` on every HN stratum.
+
+# Example
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
+
+julia> O = structure_sheaf(M);
+
+julia> rank(O), chern_character(O)
+(1, 1)
+
+julia> teleman_weights(O) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [0],
+             [[2, 1], [0, 2]]         => [0],
+             [[1, 0], [1, 2], [0, 1]] => [0],
+             [[1, 0], [1, 3]]         => [0],
+             [[1, 0], [1, 1], [0, 2]] => [0],
+             [[1, 1], [1, 2]]         => [0],
+             [[2, 0], [0, 3]]         => [0]
+       )
+true
+```
+"""
 function structure_sheaf(M::QuiverModuliSpace)
   new = Bundle(M, 1)
   HN = all_hn_types(M; unstable=true, ordered=false)
@@ -73,11 +127,38 @@ function structure_sheaf(M::QuiverModuliSpace)
   return new
 end
 
-"""    zero_sheaf(M::QuiverModuliSpace)"""
+"""
+    zero_sheaf(M::QuiverModuliSpace)
+
+Construct the zero sheaf on `M`, of rank ``0`` and without Teleman weights.
+
+# Example
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
+
+julia> Z = QuiverTools.zero_sheaf(M);
+
+julia> rank(Z), chern_character(Z)
+(0, 0)
+
+julia> teleman_weights(Z) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [],
+             [[2, 1], [0, 2]]         => [],
+             [[1, 0], [1, 2], [0, 1]] => [],
+             [[1, 0], [1, 3]]         => [],
+             [[1, 0], [1, 1], [0, 2]] => [],
+             [[1, 1], [1, 2]]         => [],
+             [[2, 0], [0, 3]]         => []
+       )
+true
+```
+"""
 function zero_sheaf(M::QuiverModuliSpace)
   new = Bundle(M, 0)
   HN = all_hn_types(M; unstable=true, ordered=false)
-  set_teleman_weights!(new, Dict(hn_type => [] for hn_type in HN))
+  set_teleman_weights!(new, Dict(hn_type => Int[] for hn_type in HN))
   return new
 end
 
@@ -102,19 +183,11 @@ julia> T = tangent_bundle(M)
 Bundle of rank 3
 
 julia> chern_class(T, 1)
--4*x11
+-4*x1_1
 ```
 """
-function tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
-  U = [universal_bundle(M, i; teleman=false, unsafe=unsafe) for i in 1:n_vertices(M.Q)]
-  ch = [chern_character(F) for F in U]
-  ch_dual = [adams(F, -1) for F in U]
-  CH = chow_ring(M; unsafe=unsafe)
-  chT = CH(1)
-  chT += sum(ch_dual[i] * ch[j] for (i, j) in arrows(M.Q); init=CH(0))
-  chT -= sum(ch_dual[i] * ch[i] for i in 1:n_vertices(M.Q); init=CH(0))
-  return Bundle(M, chT)
-end
+tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false) =
+  Bundle(M, chern_character_tangent_bundle(M; unsafe=unsafe))
 
 ##############################
 # Operations on Bundle objects
@@ -146,7 +219,7 @@ julia> td = Bundle(M, todd_class(M))
 Bundle of rank 1
 
 julia> chern_character(dual(td))
--x21 + 1
+-x2_1 + 1
 ```
 
 On our favourite 6-fold:
@@ -159,19 +232,19 @@ julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=[-1, 1]);
 julia> td = Bundle(M, todd_class(M));
 
 julia> chern_character(td)
--17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
+-17//8*x1_2*x2_1 + x2_1^2 + 823//360*x1_2*x2_2 - 823//1080*x2_2^2 + 553//1080*x2_1*x2_3 - 77//60*x2_2*x2_3 + x2_3^2 + 5//12*x1_2 - 3//2*x2_1 + 9//8*x2_3 + 1
 
 
 julia> tdd = dual(td)
 Bundle of rank 1
 
 julia> chern_character(tdd)
-17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 + 77//60*x22*x23 + x23^2 + 5//12*x12 + 3//2*x21 - 9//8*x23 + 1
+17//8*x1_2*x2_1 + x2_1^2 + 823//360*x1_2*x2_2 - 823//1080*x2_2^2 + 553//1080*x2_1*x2_3 + 77//60*x2_2*x2_3 + x2_3^2 + 5//12*x1_2 + 3//2*x2_1 - 9//8*x2_3 + 1
 ```
 """
 function dual(F::Bundle)
-  if _has_chern_data(F)
-    new = Bundle(F.parent, adams(F, -1))
+  if __has_chern_data(F)
+    new = Bundle(F.parent, dual(variety(F), chern_character(F)))
   else
     new = Bundle()
     setfield!(new, :parent, F.parent)
@@ -191,7 +264,7 @@ function *(n::Int, F::Bundle)
   new = Bundle()
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, F.rank * n)
-  _has_chern_data(F) && setfield!(new, :chern_character, n * chern_character(F))
+  __has_chern_data(F) && setfield!(new, :chern_character, n * chern_character(F))
   if isdefined(F, :teleman_weights)
     n_weights = Dict(
       hn_type => reduce(vcat, teleman_weights(F)[hn_type] for _ in 1:n)
@@ -210,7 +283,16 @@ function ^(F::Bundle, n::Int)
   new = Bundle()
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, (F.rank)^n)
-  _has_chern_data(F) && setfield!(new, :chern_character, chern_character(F)^n)
+  if __has_chern_data(F)
+    # the terms above the dimension vanish in the Chow ring, so drop them at each step
+    M = variety(F)
+    x = chern_character(F)
+    out = x
+    for _ in 2:n
+      out = __truncate(M, out * x, dimension(M))
+    end
+    setfield!(new, :chern_character, out)
+  end
   if isdefined(F, :teleman_weights)
     pow_weights = Dict(
       hn_type =>
@@ -224,7 +306,7 @@ end
 
 function +(F::Bundle, G::Bundle)
   F.parent != G.parent && throw(DomainError("Different Chow rings."))
-  homog_chow = _has_chern_data(F) == _has_chern_data(G)
+  homog_chow = __has_chern_data(F) == __has_chern_data(G)
   !homog_chow && throw(ArgumentError("Dishomogeneous Chern data."))
   homog_weights = isdefined(F, :teleman_weights) == isdefined(G, :teleman_weights)
   !homog_weights && throw(ArgumentError("Dishomogeneous Teleman weights."))
@@ -233,7 +315,7 @@ function +(F::Bundle, G::Bundle)
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, F.rank + G.rank)
 
-  _has_chern_data(F) &&
+  __has_chern_data(F) &&
     setfield!(new, :chern_character, chern_character(F) + chern_character(G))
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
@@ -255,7 +337,7 @@ end
 
 function *(F::Bundle, G::Bundle)
   F.parent != G.parent && throw(DomainError("Different Chow rings."))
-  homog_chow = _has_chern_data(F) == _has_chern_data(G)
+  homog_chow = __has_chern_data(F) == __has_chern_data(G)
   !homog_chow && throw(ArgumentError("Dishomogeneous Chern data."))
   homog_weights = isdefined(F, :teleman_weights) == isdefined(G, :teleman_weights)
   !homog_weights && throw(ArgumentError("Dishomogeneous Teleman weights."))
@@ -264,8 +346,15 @@ function *(F::Bundle, G::Bundle)
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, F.rank * G.rank)
 
-  _has_chern_data(F) &&
-    setfield!(new, :chern_character, chern_character(F) * chern_character(G))
+  if __has_chern_data(F)
+    # the terms above the dimension vanish in the Chow ring
+    M = variety(F)
+    setfield!(
+      new,
+      :chern_character,
+      __truncate(M, chern_character(F) * chern_character(G), dimension(M)),
+    )
+  end
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
       hn_type =>
@@ -307,16 +396,16 @@ julia> F = 3*td
 Bundle of rank 3
 
 julia> chern_character(F)
-3*x21 + 3
+3*x2_1 + 3
 
 julia> W = map(i -> exterior_power(F, i), 0:4);
 
 julia> map(w -> (rank(w), chern_character(w)), W)
 5-element Vector{Tuple{Int64, Singular.spoly{Singular.n_Q}}}:
  (1, 1)
- (3, 3*x21 + 3)
- (3, 6*x21 + 3)
- (1, 3*x21 + 1)
+ (3, 3*x2_1 + 3)
+ (3, 6*x2_1 + 3)
+ (1, 3*x2_1 + 1)
  (0, 0)
 ```
 """
@@ -325,8 +414,8 @@ function exterior_power(F::Bundle, k::Int)
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, binomial(rank(F), k))
 
-  _has_chern_data(F) &&
-    setfield!(new, :chern_character, __simplify(_chern_characters_wedge(F, k)[end]))
+  __has_chern_data(F) &&
+    setfield!(new, :chern_character, __simplify(__chern_characters_wedge(F, k)[end]))
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
       hn_type =>
@@ -342,8 +431,32 @@ end
     det(F::Bundle)
 
 Compute the determinant of `F`. This is the top exterior power of `F`.
+
+The determinant is the line bundle with total Chern class ``1 + c_1(F)``, so it is
+built from the first Chern class of `F` rather than as an exterior power.
 """
-det(F::Bundle) = exterior_power(F, rank(F))
+function det(F::Bundle)
+  new = Bundle()
+  setfield!(new, :parent, F.parent)
+  setfield!(new, :rank, 1)
+
+  if __has_chern_data(F)
+    CH = F.parent.ring
+    n = dimension(variety(F))
+    classes = Dict{Int,Singular.spoly{Singular.n_Q}}(i => zero(CH) for i in 0:n)
+    classes[0] = one(CH)
+    n >= 1 && (classes[1] = chern_class(F, 1))
+    setfield!(new, :chern_class, classes)
+  end
+  if isdefined(F, :teleman_weights)
+    new_weights = Dict(
+      hn_type => [sum(teleman_weights(F)[hn_type]; init=0)]
+      for hn_type in keys(teleman_weights(F))
+    )
+    set_teleman_weights!(new, new_weights)
+  end
+  return new
+end
 
 """
     symmetric_power(F::Bundle, k::Int)
@@ -374,17 +487,17 @@ julia> F = 3*td
 Bundle of rank 3
 
 julia> chern_character(F)
-3*x21 + 3
+3*x2_1 + 3
 
 julia> W = map(i -> symmetric_power(F, i), 0:4);
 
 julia> map(w -> (rank(w), chern_character(w)), W)
 5-element Vector{Tuple{Int64, Singular.spoly{Singular.n_Q}}}:
  (1, 1)
- (3, 3*x21 + 3)
- (6, 12*x21 + 6)
- (10, 30*x21 + 10)
- (15, 60*x21 + 15)
+ (3, 3*x2_1 + 3)
+ (6, 12*x2_1 + 6)
+ (10, 30*x2_1 + 10)
+ (15, 60*x2_1 + 15)
 ```
 """
 function symmetric_power(F::Bundle, k::Int)
@@ -392,9 +505,9 @@ function symmetric_power(F::Bundle, k::Int)
   setfield!(new, :parent, F.parent)
   setfield!(new, :rank, binomial(rank(F) + k - 1, rank(F) - 1))
 
-  _has_chern_data(F) &&
+  __has_chern_data(F) &&
     setfield!(
-      new, :chern_character, __simplify(_chern_characters_symmetric(F, k)[end])
+      new, :chern_character, __simplify(__chern_characters_symmetric(F, k)[end])
     )
   if isdefined(F, :teleman_weights)
     new_weights = Dict(
@@ -407,73 +520,23 @@ function symmetric_power(F::Bundle, k::Int)
   return new
 end
 
-function truncate(M::QuiverModuliSpace, x, n)
-  return sum(
-    (t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) <= n);
-    init=parent(x)(0),
-  )
-end
-
 """
-    _chern_characters_wedge(F::Bundle, k)
+    __chern_characters_wedge(F::Bundle, k)
 
 Compute the exterior powers of `F` up to degree `k`.
 For internal use only.
 """
-function _chern_characters_wedge(F::Bundle, k)
-  CH = chow_ring(F)
-  k == 0 && return [CH(1)]
-  x = chern_character(F)
-  M = variety(F)
-  n = dimension(M)
-
-  # init as CH(0) for type stability
-  wedges = [CH(0) for _ in 1:(k + 1)]
-  wedges[1], wedges[2] = CH(1), x
-
-  for j in 2:k
-    wedges[j + 1] =
-      CH(1//j) * truncate(M,
-        sum(
-          (-CH(1))^(j - i + 1) * wedges[i + 1] * adams(F, j - i) for i in 0:(j - 1);
-          init=CH(0),
-        ),
-        n)
-    wedges[j + 1] = __simplify(wedges[j + 1])
-  end
-  return wedges
-end
+__chern_characters_wedge(F::Bundle, k) =
+  __chern_characters_wedge(variety(F), chern_character(F), k)
 
 """
-    _chern_characters_symmetric(F::Bundle, k)
+    __chern_characters_symmetric(F::Bundle, k)
 
 Compute the symmetric powers of `F` up to degree `k`.
 For internal use only.
 """
-function _chern_characters_symmetric(F::Bundle, k)
-  CH = chow_ring(F)
-  k == 0 && return [CH(1)]
-  x = chern_character(F)
-  M = variety(F)
-  n = dimension(M)
-  r = rank(F)
-
-  wedges = _chern_characters_wedge(F, r)
-  # init as CH(0) for type stability
-  syms = [CH(0) for _ in 1:(k + 1)]
-  syms[1], syms[2] = CH(1), x
-
-  for j in 2:k
-    syms[j + 1] = truncate(M,
-      sum(
-        (-CH(1))^(i + 1) * wedges[i + 1] * syms[j - i + 1] for i in 1:min(j, r);
-        init=CH(0),
-      ),
-      n)
-    syms[j + 1] = __simplify(syms[j + 1])
-  end
-  return syms
-end
+__chern_characters_symmetric(F::Bundle, k) =
+  __chern_characters_symmetric(variety(F), chern_character(F), rank(F), k)
 
 """
     adams(F::Bundle, k)
@@ -481,41 +544,13 @@ end
 Compute the Adams operation ``\\Phi^k`` on the Chern character of `F`.
 For internal use only.
 """
-function adams(F::Bundle, k)
-  M = variety(F)
-  n = dimension(M)
-  x = chern_character(F)
+adams(F::Bundle, k) = adams(variety(F), chern_character(F), k)
 
-  return [k^i for i in 0:n]' * __homogeneous_components(M, x)
-end
+__chern_classes_from_character(F::Bundle) =
+  __chern_classes_from_character(variety(F), chern_character(F))
 
-function _chern_classes_from_character(F::Bundle)
-  CH = chow_ring(F)
-  M = variety(F)
-  n = dimension(M)
-  comps = __homogeneous_components(M, chern_character(F))
-  p = [(CH(-1))^i * CH(factorial(big(i))) * comps[i + 1] for i in 0:n]
-  e = [CH(0) for _ in 1:(n + 1)]
-  e[1] = CH(1)
-  for i in 1:n
-    e[i + 1] = CH(-1//i) * sum(p[j + 1] * e[i - j + 1] for j in 1:i)
-    e[i + 1] = __simplify(e[i + 1])
-  end
-  return Dict(i => e[i + 1] for i in 0:n)
-end
-
-function _chern_character_from_classes(F::Bundle)
-  CH = F.parent.ring
-  M = variety(F)
-  n = dimension(M)
-  n == 0 && return CH(0)
-  e = chern_classes(F)
-  p = vcat([-e[1]], [CH(0) for _ in 1:(n - 1)])
-  for i in 1:(n - 1)
-    p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i)
-  end
-  return __simplify(sum(CH((-1)^i//factorial(big(i))) * p[i] for i in 1:n) + rank(F))
-end
+__chern_character_from_classes(F::Bundle) =
+  __chern_character_from_classes(variety(F), chern_classes(F), rank(F))
 
 """
     line_bundle(M::QuiverModuliSpace, eta::AbstractVector{Int}; unsafe::Bool=false, teleman::Bool=true)
@@ -547,7 +582,7 @@ julia> chow_ring(M; chi=[-1, 1]);
 julia> H = line_bundle(M, [3, -2]);
 
 julia> chern_class(H)
--x21
+-x2_1 + 1
 
 julia> teleman_weights(H) ==
         Dict{HNType, Vector{Int64}}(
@@ -567,14 +602,15 @@ The 7-subspace quiver moduli space:
 julia> Q = subspace_quiver(7); d = push!(ones(Int, 7), 2); M = QuiverModuliSpace(Q, d);
 
 julia> K_dual = line_bundle(M, canonical_stability(Q, d); unsafe=true, teleman=false); K_dual.chern_class[1]
--2*x11 - 2*x21 - 2*x31 - 2*x41 - 2*x51 - 2*x61 + 7*x81
+-2*x1_1 - 2*x2_1 - 2*x3_1 - 2*x4_1 - 2*x5_1 - 2*x6_1 + 7*x8_1
 ```
 """
 function line_bundle(
   M::QuiverModuliSpace, eta::AbstractVector{Int}; unsafe::Bool=false, teleman::Bool=true
 )
   eta' * M.d != 0 && throw(ArgumentError("$(eta) is not a linearization."))
-  new = Bundle(M, 1, chern_class_line_bundle(M, eta; unsafe=unsafe))
+  c1 = chern_class_line_bundle(M, eta; unsafe=unsafe)
+  new = Bundle(M, 1, one(parent(c1)) + c1)
   teleman && set_teleman_weights!(new, weights_line_bundle(M, eta))
   return new
 end
@@ -612,11 +648,11 @@ julia> omega = map(canonical_bundle, Pn);
 
 julia> map(chern_class, omega)
 5-element Vector{Singular.spoly{Singular.n_Q}}:
- 2*x11
- 3*x11
- 4*x11
- 5*x11
- 6*x11
+ 2*x1_1 + 1
+ 3*x1_1 + 1
+ 4*x1_1 + 1
+ 5*x1_1 + 1
+ 6*x1_1 + 1
 
 julia> map(teleman_weights, omega)
 5-element Vector{Dict{HNType, Vector{Int64}}}:
@@ -635,7 +671,7 @@ julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 julia> omega = canonical_bundle(M);
 
 julia> chern_class(omega)
-3*x21
+3*x2_1 + 1
 
 julia> QuiverTools.teleman_weights(omega) ==
         Dict{HNType, Vector{Int64}}(
@@ -704,8 +740,8 @@ julia> u1, u2 = universal_bundle(M, 1), universal_bundle(M, 2);
 
 julia> map(chern_class, [u1, u2])
 2-element Vector{Singular.spoly{Singular.n_Q}}:
- x11 + 1
- x21 + 1
+ x1_1 + 1
+ x2_1 + 1
 
 julia> map(teleman_weights, [u1, u2])
 2-element Vector{Dict{HNType, Vector{Int64}}}:
@@ -724,8 +760,8 @@ julia> u1, u2 = universal_bundle(M, 1), universal_bundle(M, 2);
 
 julia> map(chern_character, [u1, u2])
 2-element Vector{Singular.spoly{Singular.n_Q}}:
- 1//6*x12*x21 + 1//2*x21^2 + 1//12*x12*x22 - 1//36*x22^2 - 7//72*x21*x23 - 1//120*x22*x23 - 1//720*x23^2 - x12 + x21 - 1//2*x23 + 2
- 2//3*x12*x21 + 1//2*x21^2 - 1//6*x12*x22 - 1//2*x21*x22 + 1//12*x22^2 + 1//24*x21*x23 + 1//180*x22*x23 + x21 - x22 + 3
+ 1//6*x1_2*x2_1 + 1//2*x2_1^2 + 1//12*x1_2*x2_2 - 1//36*x2_2^2 - 7//72*x2_1*x2_3 - 1//120*x2_2*x2_3 - 1//720*x2_3^2 - x1_2 + x2_1 - 1//2*x2_3 + 2
+ 2//3*x1_2*x2_1 + 1//2*x2_1^2 - 1//6*x1_2*x2_2 - 1//2*x2_1*x2_2 + 1//12*x2_2^2 + 1//24*x2_1*x2_3 + 1//180*x2_2*x2_3 + x2_1 - x2_2 + 3
 
 julia> w = map(teleman_weights, [u1, u2]);
 
@@ -813,7 +849,7 @@ julia> F = dual(canonical_bundle(M))
 Bundle of rank 1
 
 julia> chern_class(F)
-2*x31 + 1
+2*x3_1 + 1
 
 julia> degree(F)
 56
@@ -839,15 +875,14 @@ function degree(F::Bundle; unsafe::Bool=false)
     out = chern_class(det(F))
   end
 
-  out = Singular.jet(out, n)
   out = __simplify(out)
+
   if n >= 2
     class_det = deepcopy(out)
     for _ in 1:(n - 1)
       # the multiplication here takes most of runtime
       # what about out *= class_det?
       Singular.mul!(out, out, class_det)
-      out = Singular.jet(out, n)
       out = __simplify(out)
     end
   end
@@ -855,7 +890,7 @@ function degree(F::Bundle; unsafe::Bool=false)
   return integral(M, out; unsafe=unsafe)
 end
 
-function _format_chern_monomial(partition::AbstractVector{Int})
+function __format_chern_monomial(partition::AbstractVector{Int})
   isempty(partition) && return "1"
   pieces = map(unique(partition)) do k
     m = count(==(k), partition)
@@ -864,7 +899,7 @@ function _format_chern_monomial(partition::AbstractVector{Int})
   return join(pieces, " ")
 end
 
-function _format_universal_monomial(
+function __format_universal_monomial(
   generator_labels::AbstractVector{Tuple{Int,Int}}, exponents::AbstractVector{Int}
 )
   # the empty monomial is the fundamental class
@@ -880,43 +915,54 @@ function _format_universal_monomial(
 end
 
 """
-    _weighted_monomials(weights::AbstractVector{Int}, n::Int)
+    __weighted_monomials(weights::AbstractVector{Int}, n::Int)
 
 Enumerate the exponent vectors of all monomials of weighted degree `n` in
 generators whose individual degrees are given by `weights`. Used to list every
 monomial of a fixed codimension in a graded ring. For internal use only.
 """
-function _weighted_monomials(degrees::AbstractVector{Int}, total_degree::Int)
-  n_generators = length(degrees)
+function __weighted_monomials(degrees::AbstractVector{Int}, total_degree::Int)
   monomials = Vector{Int}[]
-  exponents = zeros(Int, n_generators)
-  # assign an exponent to generator `gen`, then recurse on the remaining
-  # generators, spending `remaining_degree` of the total budget across them
-  function extend(gen::Int, remaining_degree::Int)
-    if gen > n_generators
-      # all exponents assigned; keep this monomial iff the budget is exactly spent
-      remaining_degree == 0 && push!(monomials, copy(exponents))
-      return nothing
-    end
-    for exponent in 0:(remaining_degree ÷ degrees[gen])
-      exponents[gen] = exponent
-      extend(gen + 1, remaining_degree - exponent * degrees[gen])
-    end
-    exponents[gen] = 0  # reset before unwinding to the caller
-    return nothing
-  end
-  extend(1, total_degree)
+  exponents = zeros(Int, length(degrees))
+  __extend_weighted_monomials!(monomials, exponents, degrees, 1, total_degree)
   return monomials
 end
 
+# assign an exponent to generator `gen`, then recurse on the remaining
+# generators, spending `remaining_degree` of the total budget across them.
+# This is a top-level function rather than a closure inside `__weighted_monomials`,
+# because a recursive closure is stored in a `Core.Box` and every call to it dispatches
+# at run time.
+function __extend_weighted_monomials!(
+  monomials::Vector{Vector{Int}},
+  exponents::Vector{Int},
+  degrees::AbstractVector{Int},
+  gen::Int,
+  remaining_degree::Int,
+)
+  if gen > length(degrees)
+    # all exponents assigned; keep this monomial iff the budget is exactly spent
+    remaining_degree == 0 && push!(monomials, copy(exponents))
+    return nothing
+  end
+  for exponent in 0:(remaining_degree ÷ degrees[gen])
+    exponents[gen] = exponent
+    __extend_weighted_monomials!(
+      monomials, exponents, degrees, gen + 1, remaining_degree - exponent * degrees[gen]
+    )
+  end
+  exponents[gen] = 0  # reset before unwinding to the caller
+  return nothing
+end
+
 """
-    _degree1_vector(nf, L::Int)
+    __degree1_vector(nf, L::Int)
 
 Read the coordinate vector (over the degree-1 variables of the Chow ring) of a
 homogeneous codimension-1 class from its Gröbner normal form `nf`. For internal
 use only.
 """
-function _degree1_vector(normal_form, n_variables::Int)
+function __degree1_vector(normal_form, n_variables::Int)
   coordinates = zeros(Rational{BigInt}, n_variables)
   # a linear form is a sum of terms `coefficient * x_k`; record each coefficient
   # at the index of the single variable appearing in its term
@@ -932,7 +978,7 @@ function _degree1_vector(normal_form, n_variables::Int)
 end
 
 """
-    _universal_chern_generators(M::QuiverModuliSpace)
+    __universal_chern_generators(M::QuiverModuliSpace)
 
 Compute the universal Chern classes ``c_j(U_i)`` that minimally generate the Chow
 ring `chow_ring(M)`.
@@ -944,7 +990,7 @@ linearization), so only a maximal linearly independent subset of them is kept;
 they are processed in vertex order, so that ``c_1(U_1)`` is the first.
 All higher Chern classes are always kept. For internal use only.
 """
-function _universal_chern_generators(M::QuiverModuliSpace)
+function __universal_chern_generators(M::QuiverModuliSpace)
   generators = gens(chow_ring(M))
   n_variables = length(generators)
   # row-echelon basis of the kept first Chern classes, used to test the linear
@@ -965,7 +1011,7 @@ function _universal_chern_generators(M::QuiverModuliSpace)
       continue
     end
 
-    coords = _degree1_vector(__simplify(generators[var_index]), n_variables)
+    coords = __degree1_vector(__simplify(generators[var_index]), n_variables)
 
     for row in echelon_rows
       pivot = findfirst(!iszero, row)
@@ -986,6 +1032,9 @@ end
 
 Compute the Chern numbers of a bundle `F`, i.e. all top intersection products
 ``\\int_M c_{i_1}(F) \\cdots c_{i_k}(F)``, indexed by partitions `[i_1, ..., i_k]` of `dimension(M)`.
+
+Returns a `Dict{String,BigInt}`, since the Chern numbers of high-dimensional moduli
+spaces do not fit in an `Int`.
 """
 function chern_numbers(F::Bundle; unsafe::Bool=false)
   M = variety(F)
@@ -995,10 +1044,10 @@ function chern_numbers(F::Bundle; unsafe::Bool=false)
   # the Chern numbers of an element in the Chow ring
   # are the top intersection product c_{i_1} ... c_{i_k}
   # per every partition (i_1, ..., i_k) of the dimension of the underlying variety.
-  return Dict{String,Int}(
-    _format_chern_monomial(partition) => Int(
+  return Dict{String,BigInt}(
+    __format_chern_monomial(partition) => BigInt(
       Singular.numerator(
-        integral(M, prod(classes[k] for k in partition; init=CH(1)); unsafe=unsafe)
+        integral(M, prod(classes[k] for k in partition; init=one(CH)); unsafe=unsafe)
       ),
     )
     for partition in partitions(dimension(M))
@@ -1013,7 +1062,7 @@ i.e. all top intersection products
 ``\\int_M c_{i_1}(T_M) \\cdots c_{i_k}(T_M)``,
 indexed by partitions `[i_1, ..., i_k]` of `dimension(M)`.
 
-Returns a `Dict{String,Int}` whose keys describe each monomial in the Chern
+Returns a `Dict{String,BigInt}` whose keys describe each monomial in the Chern
 classes and whose values are the corresponding Chern numbers.
 
 If `universal` is set to `true`, the result additionally contains all top
@@ -1138,7 +1187,7 @@ function chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false, universal::Bool
   # top intersection products of Chern classes of the universal bundles specifically.
   generators = gens(CH)
 
-  kept_generators_indices = _universal_chern_generators(M)
+  kept_generators_indices = __universal_chern_generators(M)
   # the actual indices of the variables we need
   generator_indices = Int[var_index for (_, _, var_index) in kept_generators_indices]
   # to label the output, we keep track of vertices and degrees.
@@ -1148,16 +1197,15 @@ function chern_numbers(M::QuiverModuliSpace; unsafe::Bool=false, universal::Bool
   # to enumerate all the top degree monomials.
   generator_degrees = Int[chern_degree for (_, chern_degree) in generator_labels]
 
-  for exponents in _weighted_monomials(generator_degrees, dimension(M))
-    monomial = prod(
-      (
-        generators[generator_indices[g]]^exponents[g] for
-        g in eachindex(exponents) if exponents[g] > 0
-      );
-      init=CH(1),
-    )
+  for exponents in __weighted_monomials(generator_degrees, dimension(M))
+    # the monomial is a single term in the variables of the Chow ring, so build it directly
+    full_exponents = zeros(Int, length(generators))
+    full_exponents[generator_indices] = exponents
+    context = Singular.MPolyBuildCtx(CH)
+    Singular.push_term!(context, one(Singular.base_ring(CH)), full_exponents)
+    monomial = Singular.finish(context)
 
-    out[_format_universal_monomial(generator_labels, exponents)] = Int(
+    out[__format_universal_monomial(generator_labels, exponents)] = BigInt(
       Singular.numerator(integral(M, monomial; unsafe=unsafe))
     )
   end

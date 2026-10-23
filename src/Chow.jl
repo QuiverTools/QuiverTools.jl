@@ -7,12 +7,23 @@
 # partial order on the forbidden dimension vectors as defined in
 # https://doi.org/10.48550/arXiv.1307.3066
 function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int})
-  if !all(f[i] <= g[i] for i in 1:n_vertices(Q) if is_source(Q, i))
-    return false
-  elseif !all(f[i] >= g[i] for i in 1:n_vertices(Q) if is_sink(Q, i))
-    return false
-  elseif !all(f[i] == g[i] for i in 1:n_vertices(Q) if !is_source(Q, i) && !is_sink(Q, i))
-    return false
+  sources = [is_source(Q, i) for i in 1:n_vertices(Q)]
+  sinks = [is_sink(Q, i) for i in 1:n_vertices(Q)]
+  return __partial_order(sources, sinks, f, g)
+end
+
+# The partial order for the given masks of the sources and sinks of the quiver, so that
+# they can be computed once for many comparisons.
+function __partial_order(
+  sources::AbstractVector{Bool},
+  sinks::AbstractVector{Bool},
+  f::AbstractVector{Int},
+  g::AbstractVector{Int},
+)
+  for i in eachindex(f)
+    sources[i] && f[i] > g[i] && return false
+    sinks[i] && f[i] < g[i] && return false
+    !sources[i] && !sinks[i] && f[i] != g[i] && return false
   end
   return true
 end
@@ -20,39 +31,65 @@ end
 """
     __simplify(f)
 
-Force some Gröbner basis simplification of the polynomial `f`
-by dividing it by 1.
+Force some Gröbner basis simplification of the polynomial `f`.
 
 For internal use only.
 """
-__simplify(f) = div(f, one(parent(f)))
+__simplify(f) = Singular.reduce(f, Singular.Ideal(parent(f), zero(f)))
+
+"""
+    __truncate(M::QuiverModuliSpace, x, n)
+
+Truncate a polynomial in the Chow ring,
+discarding terms of degree higher than n.
+
+For internal use only.
+"""
+function __truncate(M::QuiverModuliSpace, x, n)
+  degrees = __chow_degrees(M.d)
+  context = Singular.MPolyBuildCtx(parent(x))
+  for (c, e) in zip(Singular.coefficients(x), Singular.exponent_vectors(x))
+    e' * degrees <= n && Singular.push_term!(context, c, e)
+  end
+  return Singular.finish(context)
+end
 
 """
     __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
+    __homogeneous_components(M::QuiverModuliSpace, x, k::Int)
 
 # Input
 
 - `M::QuiverModuliSpace`: a quiver moduli space.
 - `x`: an element of the Chow ring of `M`.
+- `k::Int`: a degree.
 - `unsafe::Bool=false`: whether to compute the dimension of `M` using
   the faster Euler form instead of `dimension()`. Default is `false`.
 
 Decompose a Chow ring element `x` into its homogeneous components.
+If the degree `k` is given, return only the homogeneous component of degree `k`.
 
 For internal use only.
 """
 function __homogeneous_components(M::QuiverModuliSpace, x; unsafe::Bool=false)
   unsafe ? (n = 1 - euler_form(M.Q, M.d, M.d)) : (n = dimension(M))
 
-  CH = parent(x)
+  degrees = __chow_degrees(M.d)
+  contexts = [Singular.MPolyBuildCtx(parent(x)) for _ in 0:n]
+  for (c, e) in zip(Singular.coefficients(x), Singular.exponent_vectors(x))
+    k = e' * degrees
+    k <= n && Singular.push_term!(contexts[k + 1], c, e)
+  end
+  return map(Singular.finish, contexts)
+end
 
-  return [
-    sum(
-      t for t in Singular.terms(x) if __chow_ring_monomial_grading(M, t) == i; init=CH(0)
-    )
-    for
-    i in 0:n
-  ]
+function __homogeneous_components(M::QuiverModuliSpace, x, k::Int)
+  degrees = __chow_degrees(M.d)
+  context = Singular.MPolyBuildCtx(parent(x))
+  for (c, e) in zip(Singular.coefficients(x), Singular.exponent_vectors(x))
+    e' * degrees == k && Singular.push_term!(context, c, e)
+  end
+  return Singular.finish(context)
 end
 
 """
@@ -84,15 +121,6 @@ x*y + x*z + y*z
 function symmetric_polynomial(degree::Int)
   f(vars) = sum(prod(e; init=1) for e in IterTools.subsets(vars, degree))
   return f
-end
-"""
-    product_lists(L)
-
-For internal use only.
-"""
-function product_lists(L)
-  length(L) == 1 && return L[1]
-  return [p * l for p in product_lists(L[1:(end - 1)]) for l in L[end]]
 end
 
 """
@@ -126,8 +154,8 @@ julia> CH = chow_ring(kronecker_quiver(2), [1, 1])[1][1];
 
 julia> QuiverTools.gens(QuiverTools.quotient_ideal(CH))
 2-element Vector{Singular.spoly{Singular.n_Q}}:
- x21
- x11^2
+ x2_1
+ x1_1^2
 ```
 
 The Chow ring for our favourite 6-fold has, in this implementation, 16 generators:
@@ -164,81 +192,99 @@ function chow_ring(
   end
 
   # j varies first, then i
-  varnames = ["xi$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
-  R, vars = Singular.polynomial_ring(Singular.QQ, varnames)
+  varnames = ["xi$(i)_$(j)" for i in 1:n_vertices(Q) for j in 1:d[i]]
+  R, vars = Singular.polynomial_ring(__QQ(), varnames)
+
+  # the variable `xi_{i,j}` has index var_indices[i] + j
+  var_indices = __var_indices(d)
 
   # Shorthand to address the variable `xi_{i,j}`.
   function xi(i, j)
     d[i] == 0 && throw(ArgumentError("i is not in the support of d."))
-    return vars[sum(d[1:(i - 1)]; init=0) + j]
+    return vars[var_indices[i] + j]
   end
 
   # build a base of R as an A-module.
   bounds = UnitRange{Int64}[0:(d[i] - nu) for i in 1:n_vertices(Q) for nu in 1:d[i]]
+  # the exponent of xi(i, nu) is lambda[var_indices[i] + nu], so `lambda` is the exponent
+  # vector of the monomial
   function build_elem(lambda::NTuple)
-    out = R(1)
-    for i in support(d)
-      for nu in 1:d[i]
-        Singular.mul!(out, out, xi(i, nu)^lambda[sum(d[1:(i - 1)]; init=0) + nu])
-      end
-    end
-    return out
+    context = Singular.MPolyBuildCtx(R)
+    Singular.push_term!(context, one(__QQ()), collect(lambda))
+    return Singular.finish(context)
   end
   base = map(build_elem, Iterators.product(bounds...))
 
   verbose && @info "base has $(length(base)) elements"
 
-  # build the permutation group W
-  W = Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
+  # the variables xi(i, 1), ..., xi(i, d[i]) of each vertex i in the support of d
+  blocks = [(var_indices[i] + 1):(var_indices[i] + d[i]) for i in support(d)]
 
-  # sign for the product of symmetric groups
-  sign_product(w) = prod(sign(Singular.perm(wi)) for wi in w; init=1)
+  # the group W, product of the symmetric groups on the blocks. Each element is stored as
+  # its sign and the permutation it induces on the indices of the variables.
+  W = [
+    (
+      prod(sign(Singular.perm(wi)) for wi in w; init=1),
+      Int[var_indices[i] + w[i][j] for i in support(d) for j in 1:d[i]],
+    ) for
+    w in Iterators.product([Combinatorics.permutations(1:d[i]) for i in 1:n_vertices(Q)]...)
+  ]
 
-  # caching the indices of the variables after each permutation
-  permuted_indices = Dict{Tuple,Vector{Int64}}(
-    sigma =>
-      reduce(
-        vcat,
-        map(
-          i -> Int64[sum(d[1:(i - 1)]; init=0) + sigma[i][j] for j in 1:d[i]], support(d)
-        ),
-      )
-    for sigma in W
-  )
-  permute_vector(e, sigma) = e[permuted_indices[sigma]]
-
-  # constructor of the permuted polynomial. This is much faster than f(permuted_vars[sigma]...)
-  function permute(f::Singular.spoly{Singular.n_Q}, sigma::Tuple)
-    context = Singular.MPolyBuildCtx(parent(f))
-    for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
-      Singular.push_term!(context, c, permute_vector(e, sigma))
+  # Sort the exponents of each block decreasingly, in place, and return the sign of the
+  # sorting permutation. Return 0 if a block has a repeated exponent.
+  function sort_blocks!(e::Vector{Int})
+    s = 1
+    for b in blocks
+      for k in b, l in (k + 1):last(b)
+        e[k] == e[l] && return 0
+        e[k] < e[l] && (s = -s)
+      end
+      sort!(view(e, b); rev=true)
     end
-    return Singular.finish(context)
+    return s
   end
 
   # The discriminant in the definition of the antisymmetrization.
   delta = prod(
     xi(i, l) - xi(i, k) for i in 1:n_vertices(Q) for k in 1:(d[i] - 1) for l in (k + 1):d[i];
-    init=R(1),
+    init=one(R),
   )
 
+  # The antisymmetrization A(f) of f, divided by delta.
+  # If e = b ∘ tau then A(x^e) = sign(tau) A(x^b), and A(x^e) = 0 if a block of e has a
+  # repeated exponent. So it suffices to collect the coefficients of f on each W-orbit of
+  # exponents, represented by its decreasing rearrangement b, and to expand A(x^b) only for
+  # the orbits whose coefficient is nonzero.
   function antisymmetrize(f::Singular.spoly{Singular.n_Q})
-    out = zero(R)
-    for sigma in W
-      if sign_product(sigma) == 1
-        out += permute(f, sigma)
-      else # sign_product(sigma) == -1 # this is the only possibility
-        out -= permute(f, sigma)
+    orbits = Dict{Vector{Int},Singular.n_Q}()
+    for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
+      s = sort_blocks!(e)
+      s == 0 && continue
+      orbits[e] = get(orbits, e, zero(c)) + (s == 1 ? c : -c)
+    end
+    # distinct orbits give distinct monomials, so the context has no terms to merge
+    context = Singular.MPolyBuildCtx(R)
+    exponents = Vector{Int}(undef, length(vars))
+    for (b, c) in orbits
+      iszero(c) && continue
+      for (s, indices) in W
+        for k in eachindex(indices)
+          exponents[k] = b[indices[k]]
+        end
+        Singular.push_term!(context, s == 1 ? c : -c, exponents)
       end
     end
-    return div(out, delta)
+    # the division is exact, which is faster than just `div`
+    return Singular.divexact(Singular.finish(context), delta)
   end
 
   # All the destabilizing subdimension vectors of `d` with respect to the slope
   # `theta/denom` that are minimal with respect to the total order.
   minimal_forbidden = all_destabilizing_subdimension_vectors(d, theta)
+  sources = [is_source(Q, i) for i in 1:n_vertices(Q)]
+  sinks = [is_sink(Q, i) for i in 1:n_vertices(Q)]
   filter!(
-    e -> !any(partial_order(Q, f, e) for f in minimal_forbidden if f != e),
+    e -> !any(__partial_order(sources, sinks, f, e) for f in minimal_forbidden if f != e),
     minimal_forbidden,
   )
 
@@ -247,9 +293,10 @@ function chow_ring(
 
   # builds a new forbidden polynomial for the minimal forbidden dimension vector e.
   function new_forbidden(e::AbstractVector{Int})
-    out = R(1)
+    out = one(R)
     for (i, j) in Iterators.product(1:n_vertices(Q), 1:n_vertices(Q))
       for r in 1:e[i], s in (e[j] + 1):d[j]
+        Q.adjacency[i, j] == 0 && continue
         Singular.mul!(out, out, (xi(j, s) - xi(i, r))^Q.adjacency[i, j])
       end
     end
@@ -259,13 +306,13 @@ function chow_ring(
     new_forbidden(e) for e in minimal_forbidden
   ]
 
-  varnames2 = ["x$i$j" for i in 1:n_vertices(Q) for j in 1:d[i]]
-  A, Avars = polynomial_ring(Singular.QQ, varnames2)
+  varnames2 = ["x$(i)_$(j)" for i in 1:n_vertices(Q) for j in 1:d[i]]
+  A, Avars = polynomial_ring(__QQ(), varnames2)
 
   # Shorthand to address the variables of A `x_{i,j}`.
   function xs(i, j)
     d[i] == 0 && throw(ArgumentError("i is not in the support of d."))
-    return Avars[sum(d[1:(i - 1)]; init=0) + j]
+    return Avars[var_indices[i] + j]
   end
 
   symm_polys = [symmetric_polynomial(k) for k in 1:maximum(d)]
@@ -301,9 +348,22 @@ function chow_ring(
 
   linear = Singular.spoly{Singular.n_Q}[sum(chi[i] * xs(i, 1) for i in support(d))]
 
-  return (
-    Singular.QuotientRing(A, std(Singular.Ideal(A, [tautological; linear]))), R, inclusion
-  )
+  relations = Singular.Ideal(A, [tautological; linear])
+  # With more than three parallel arrows the coefficients grow a lot during the
+  # computation, and the modular algorithm modStd is much faster than std, e.g. 1.7 s
+  # instead of 15 s for the 4-Kronecker quiver and d = (3, 4). Otherwise std is faster.
+  # Note that the number 3 is wisely chosen by the Italian developer, not by rigorous statistical analysis.
+  # It seems a good choice, but can be revisited
+  # if one feels like thoroughly measuring runtimes
+  if maximum(Q.adjacency) > 3
+    verbose && @info "computing a modular standard basis of the relations"
+    relations = Singular.LibModstd.modStd(relations)
+  end
+  # complete_reduction gives a minimal Gröbner basis, which speeds up
+  # every successive computation: very visible in todd_class, point_class, integrals etc.
+  # After modStd it makes the basis the same as the one std would have computed directly.
+  G = std(relations; complete_reduction=true)
+  return Singular.QuotientRing(A, G), R, inclusion
 end
 
 """
@@ -388,29 +448,29 @@ A tuple containing:
 
 ```jldoctest
 julia> QuiverTools.extended_gcd([2, 3, 4])
-2-element Vector{Any}:
- 1
-  [-1, 1, 0]
+(1, [-1, 1, 0])
 
 julia> QuiverTools.extended_gcd([2, 3])
-2-element Vector{Any}:
- 1
-  [-1, 1]
+(1, [-1, 1])
+
+julia> QuiverTools.extended_gcd([-4])
+(4, [-1])
 ```
 """
 function extended_gcd(x)
   n = length(x)
   if n == 1
-    return [x, [1]]
+    # the gcd of a single integer a is |a| = sign(a) * a
+    return abs(x[1]), [sign(x[1])]
   elseif n == 2
     g, a, b = gcdx(x[1], x[2])
-    return [g, [a, b]]
+    return g, [a, b]
   else
     g, a, b = gcdx(x[1], x[2])
     y = vcat([g], [x[i] for i in 3:n])
     d, c = extended_gcd(y)
     m = vcat([c[1] * a, c[1] * b], [c[i] for i in 2:(n - 1)])
-    return [d, m]
+    return d, m
   end
 end
 
@@ -439,7 +499,7 @@ The line bundles ``\\mathcal{O}(i)`` on the projective line:
 julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
 julia> l = chern_class_line_bundle(M, [1, -1])
--x11
+-x1_1
 ```
 
 The line bundle corresponding to the canonical stability condition on our favourite
@@ -448,7 +508,7 @@ The line bundle corresponding to the canonical stability condition on our favour
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> chern_class_line_bundle(M, [9, -6])
--3*x21
+-3*x2_1
 ```
 """
 function chern_class_line_bundle(
@@ -457,16 +517,11 @@ function chern_class_line_bundle(
   unsafe::Bool=false,
 )
   A = chow_ring(M; unsafe=unsafe)
-  R = base_ring(quotient_ideal(A))
-  Rvars = gens(R)
-  proj = __projection_to_quotient_ring(A)
-
-  chern_class = R(0)
-  for i in support(M.d)
-    Singular.add!(chern_class, chern_class, eta[i] * Rvars[1 + sum(M.d[1:(i - 1)])])
-  end
-
-  return __simplify(proj(- chern_class))
+  Avars = gens(A)
+  var_indices = __var_indices(M.d)
+  # c_1 is minus the sum of eta[i] times the first Chern class of U_i
+  chern_class = -sum(eta[i] * Avars[var_indices[i] + 1] for i in support(M.d); init=zero(A))
+  return __simplify(chern_class)
 end
 
 """
@@ -490,7 +545,7 @@ Some line bundles on the projective line:
 julia> Q = kronecker_quiver(2); M = QuiverModuliSpace(Q, [1, 1]);
 
 julia> chern_character_line_bundle(M, [1, -1])
--x11 + 1
+-x1_1 + 1
 ```
 
 Some Chern characters for our favourite 6-fold:
@@ -498,7 +553,7 @@ Some Chern characters for our favourite 6-fold:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> chern_character_line_bundle(M, [3, -2])
-1//720*x21^6 - 1//120*x21^5 + 1//24*x21^4 - 1//6*x21^3 + 1//2*x21^2 - x21 + 1
+1//720*x2_1^6 - 1//120*x2_1^5 + 1//24*x2_1^4 - 1//6*x2_1^3 + 1//2*x2_1^2 - x2_1 + 1
 ```
 """
 function chern_character_line_bundle(
@@ -506,7 +561,54 @@ function chern_character_line_bundle(
   eta::AbstractVector{Int},
 )
   x = chern_class_line_bundle(M, eta)
-  return sum(x^i / factorial(big(i)) for i in 0:dimension(M))
+  CH = parent(x)
+  ch = one(CH)
+  term = one(CH)
+  for i in 1:dimension(M)
+    term *= x / big(i) # x^i / i!
+    ch += term
+  end
+  return ch
+end
+
+"""
+    chern_character_tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
+
+Compute the Chern character of the tangent bundle of the quiver moduli space `M`.
+
+Uses the identity
+``[\\mathrm{T}_M] = \\sum_{a: i \\to j} [U_i^\\vee \\otimes U_j] - \\sum_i [U_i^\\vee \\otimes U_i] + [\\mathcal{O}_M]``
+in the Grothendieck group of `M`.
+
+# Example
+
+The Chern character of the tangent bundle of `P^3`, realized as the moduli space of the
+generalized Kronecker quiver with 4 arrows and dimension vector `(1, 1)`:
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(4), [1, 1]); chow_ring(M);
+
+julia> chern_character_tangent_bundle(M)
+-2//3*x1_1^3 + 2*x1_1^2 - 4*x1_1 + 3
+```
+"""
+function chern_character_tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false)
+  CH = chow_ring(M; unsafe=unsafe)
+  # the Chern characters of the universal bundles, from their Chern classes
+  classes = [
+    __homogeneous_components(
+      M, total_chern_class_universal(M, i; unsafe=unsafe); unsafe=unsafe
+    ) for i in 1:n_vertices(M.Q)
+  ]
+  ch = [
+    __chern_character_from_classes(M, Dict(k - 1 => c[k] for k in eachindex(c)), M.d[i])
+    for (i, c) in enumerate(classes)
+  ]
+  ch_dual = [dual(M, x) for x in ch]
+  chT = one(CH)
+  chT += sum(ch_dual[i] * ch[j] for (i, j) in arrows(M.Q); init=zero(CH))
+  chT -= sum(ch_dual[i] * ch[i] for i in 1:n_vertices(M.Q); init=zero(CH))
+  return __simplify(chT)
 end
 
 """
@@ -530,10 +632,10 @@ The universal Chern classes on both vertices of our favourite 3-Kronecker quiver
 julia> Q  = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> total_chern_class_universal(M, 1)
-x11 + x12 + 1
+x1_1 + x1_2 + 1
 
 julia> total_chern_class_universal(M, 2)
-x21 + x22 + x23 + 1
+x2_1 + x2_2 + x2_3 + 1
 ```
 """
 function total_chern_class_universal(
@@ -543,7 +645,174 @@ function total_chern_class_universal(
 )
   CH = chow_ring(M; unsafe=unsafe)
   CHvars = gens(CH)
-  return sum(CHvars[sum(M.d[1:(i - 1)]) + r] for r in 1:M.d[i]; init=CH(0)) + CH(1)
+  var_indices = __var_indices(M.d)
+  return sum(CHvars[var_indices[i] + r] for r in 1:M.d[i]; init=zero(CH)) + one(CH)
+end
+
+"""
+    segre_class(M::QuiverModuliSpace, c; unsafe::Bool=false)
+
+Compute the total Segre class with total Chern class `c`, i.e. the inverse of `c` in the
+Chow ring of `M`.
+
+Writing ``c_j`` for the part of degree ``j`` of `c`, which must have ``c_0 = 1``, the part
+``s_k`` of degree ``k`` of the Segre class is given by ``s_0 = 1`` and
+```math
+s_k = -\\sum_{j=1}^{k} c_j s_{k-j}
+```
+for ``k \\geq 1``, which is the part of degree ``k`` of ``c \\cdot s = 1``.
+
+# Examples
+
+The Segre class of the universal bundle ``U_1`` on the projective plane:
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [1, 1]);
+
+julia> c = total_chern_class_universal(M, 1)
+x1_1 + 1
+
+julia> segre_class(M, c)
+x1_1^2 - x1_1 + 1
+```
+"""
+function segre_class(M::QuiverModuliSpace, c; unsafe::Bool=false)
+  unsafe ? (n = 1 - euler_form(M.Q, M.d, M.d)) : (n = dimension(M))
+  cs = __homogeneous_components(M, c; unsafe=unsafe)
+  isone(cs[1]) ||
+    throw(ArgumentError("the total Chern class must have constant term 1"))
+  CH = parent(c)
+  s = [one(CH)]
+  for k in 1:n
+    s_k = -sum(cs[j + 1] * s[k - j + 1] for j in 1:k if !iszero(cs[j + 1]); init=zero(CH))
+    push!(s, __simplify(s_k))
+  end
+  return sum(s)
+end
+
+"""
+    adams(M::QuiverModuliSpace, x, k)
+
+Compute the Adams operation ``\\Phi^k`` on the Chern character `x`, i.e. multiply its part
+of degree ``i`` by ``k^i``.
+For internal use only.
+"""
+function adams(M::QuiverModuliSpace, x, k)
+  n = dimension(M)
+  # k^n overflows an Int already for k = n = 16
+  return [big(k)^i for i in 0:n]' * __homogeneous_components(M, x)
+end
+
+"""
+    dual(M::QuiverModuliSpace, x)
+
+Compute the Chern character of the dual of a bundle with Chern character `x`, i.e. the
+Adams operation ``\\Phi^{-1}`` on `x`.
+
+# Example
+
+On the projective line:
+
+```jldoctest
+julia> Q = kronecker_quiver(2); d = [1, 1]; a = [1, 0];
+
+julia> M = QuiverModuliSpace(Q, d); chow_ring(M; chi=a);
+
+julia> dual(M, todd_class(M))
+-x2_1 + 1
+```
+"""
+dual(M::QuiverModuliSpace, x) = adams(M, x, -1)
+
+# The Chern classes of a bundle with Chern character `x`, as a dictionary from the degree
+# to the class, computed with the Newton identities.
+function __chern_classes_from_character(M::QuiverModuliSpace, x)
+  CH = parent(x)
+  n = dimension(M)
+  comps = __homogeneous_components(M, x)
+  p = [(CH(-1))^i * CH(factorial(big(i))) * comps[i + 1] for i in 0:n]
+  e = [zero(CH) for _ in 1:(n + 1)]
+  e[1] = one(CH)
+  for i in 1:n
+    e[i + 1] = CH(-1//i) * sum(p[j + 1] * e[i - j + 1] for j in 1:i)
+    e[i + 1] = __simplify(e[i + 1])
+  end
+  return Dict(i => e[i + 1] for i in 0:n)
+end
+
+# The Chern character of a bundle of rank `r` with Chern classes `e`, a dictionary from the
+# degree to the class, computed with the Newton identities.
+function __chern_character_from_classes(M::QuiverModuliSpace, e, r)
+  CH = parent(e[0])
+  n = dimension(M)
+  # on a point the Chern character is the rank
+  n == 0 && return CH(r)
+  p = vcat([-e[1]], [zero(CH) for _ in 1:(n - 1)])
+  for i in 1:(n - 1)
+    p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i; init=zero(CH))
+  end
+  return __simplify(
+    sum(CH((-1)^i//factorial(big(i))) * p[i] for i in 1:n; init=zero(CH)) + r
+  )
+end
+
+"""
+    __chern_characters_wedge(M::QuiverModuliSpace, x, k)
+
+Compute the Chern characters of the exterior powers, up to degree `k`, of a bundle with
+Chern character `x`.
+For internal use only.
+"""
+function __chern_characters_wedge(M::QuiverModuliSpace, x, k)
+  CH = parent(x)
+  k == 0 && return [one(CH)]
+  n = dimension(M)
+
+  # init as zero(CH) for type stability
+  wedges = [zero(CH) for _ in 1:(k + 1)]
+  wedges[1], wedges[2] = one(CH), x
+  # the Adams operations Φ^1(x), ..., Φ^k(x), each needed by several steps below
+  adams_x = [adams(M, x, j) for j in 1:k]
+
+  for j in 2:k
+    wedges[j + 1] =
+      CH(1//j) * __truncate(M,
+        sum(
+          (-one(CH))^(j - i + 1) * wedges[i + 1] * adams_x[j - i] for i in 0:(j - 1);
+          init=zero(CH),
+        ),
+        n)
+    wedges[j + 1] = __simplify(wedges[j + 1])
+  end
+  return wedges
+end
+
+"""
+    __chern_characters_symmetric(M::QuiverModuliSpace, x, r, k)
+
+Compute the Chern characters of the symmetric powers, up to degree `k`, of a bundle of
+rank `r` with Chern character `x`.
+For internal use only.
+"""
+function __chern_characters_symmetric(M::QuiverModuliSpace, x, r, k)
+  CH = parent(x)
+  k == 0 && return [one(CH)]
+  n = dimension(M)
+
+  wedges = __chern_characters_wedge(M, x, r)
+  # init as zero(CH) for type stability
+  syms = [zero(CH) for _ in 1:(k + 1)]
+  syms[1], syms[2] = one(CH), x
+
+  for j in 2:k
+    syms[j + 1] = __truncate(M,
+      sum(
+        (-one(CH))^(i + 1) * wedges[i + 1] * syms[j - i + 1] for i in 1:min(j, r);
+        init=zero(CH),
+      ),
+      n)
+    syms[j + 1] = __simplify(syms[j + 1])
+  end
+  return syms
 end
 
 """
@@ -570,7 +839,7 @@ julia> Q = kronecker_quiver(8);
 julia> M = QuiverModuliSpace(Q, [1, 1]);
 
 julia> chow_ring(M; chi=[1, 0]); point_class(M)
-x21^7
+x2_1^7
 ```
 
 Our favourite 6-fold:
@@ -580,7 +849,7 @@ julia> Q = kronecker_quiver(3);
 julia> M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> point_class(M)
-x23^2
+x2_3^2
 ```
 
 The 7-subspace quiver:
@@ -588,7 +857,7 @@ The 7-subspace quiver:
 julia> Q = subspace_quiver(7); d = push!(ones(Int, 7), 2); M = QuiverModuliSpace(Q, d);
 
 julia> point_class(M; unsafe=true)
-1//10*x81^4
+1//10*x8_1^4
 ```
 """
 function point_class(
@@ -600,49 +869,54 @@ function point_class(
   end
 
   CH = chow_ring(M; unsafe=unsafe)
-  num = CH(1)
   unsafe ? (N = 1 - euler_form(M.Q, M.d, M.d)) : (N = dimension(M))
 
+  # the point class is the degree N component of the product of c(U_i)^m_i.
+  # First multiply the total Chern classes with m_i > 0.
+  m = M.Q.adjacency' * M.d - M.d
+  num = one(CH)
   for i in 1:n_vertices(M.Q)
+    (m[i] <= 0 || M.d[i] == 0) && continue
     c = total_chern_class_universal(M, i; unsafe=unsafe)
-    for k in 1:(M.d' * M.Q.adjacency[:, i])
-      Singular.mul!(num, num, c)
-      num = __simplify(num)
-      num = Singular.jet(num, N)
-    end
-  end
-  # dividing at once is very slow, iteratively is much faster.
-  for i in 1:n_vertices(M.Q)
-    c = total_chern_class_universal(M, i; unsafe=unsafe)
-    for _ in 1:M.d[i]
-      num = Singular.div(num, c)
+    for _ in 1:m[i]
+      num = __simplify(__truncate(M, num * c, N))
     end
   end
 
-  pt = CH(0)
-  for term in Singular.terms(num)
-    if __chow_ring_monomial_grading(M, term) == N
-      Singular.add!(pt, pt, term)
+  # Then divide by the others degree by degree: if c = 1 + c_1 + c_2 + ... and c y = z,
+  # then y_k = z_k - sum_j c_j y_{k - j}. Each c_j is a single variable of the Chow ring,
+  # which is much cheaper than multiplying by an entire Segre class.
+  y = __homogeneous_components(M, num; unsafe=unsafe)
+  for i in 1:n_vertices(M.Q)
+    (m[i] >= 0 || M.d[i] == 0) && continue
+    c = __homogeneous_components(
+      M, total_chern_class_universal(M, i; unsafe=unsafe); unsafe=unsafe
+    )
+    for _ in 1:(-m[i])
+      z = y
+      y = [z[1]]
+      for k in 1:N
+        yk =
+          z[k + 1] - sum(c[j + 1] * y[k - j + 1] for j in 1:min(k, M.d[i]); init=zero(CH))
+        push!(y, __simplify(yk))
+      end
     end
   end
-  setfield!(M.chow, :point, pt)
+
+  setfield!(M.chow, :point, y[N + 1])
   return M.chow.point
-end
-
-"""
-We call the series ``Q(t) = t/(1-e^{-t})`` the Todd generating series.
-The function computes the terms of this series up to degree n.
-We use this instead of the more conventional notation `Q` to avoid a
-clash with the notation for the quiver.
-"""
-function todd_Q(t, n)
-  return sum((-1)^i * (Singular.bernoulli(i) * t^i) / factorial(big(i)) for i in 0:n)
 end
 
 """
     todd_class(M::QuiverModuliSpace)
 
 Compute the Todd class of the moduli space `M`.
+
+The Todd class is computed from the Chern character of the tangent bundle, as
+```math
+\\operatorname{td}(T_M) = \\exp\\Big(\\frac{1}{2}\\operatorname{ch}_1(T_M)
+- \\sum_{m \\geq 1} \\frac{B_{2m}}{2m} \\operatorname{ch}_{2m}(T_M)\\Big).
+```
 
 # Input
 
@@ -659,7 +933,7 @@ The Todd class of our favourite 3-Kronecker quiver moduli:
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> todd_class(M)
--17//8*x12*x21 + x21^2 + 823//360*x12*x22 - 823//1080*x22^2 + 553//1080*x21*x23 - 77//60*x22*x23 + x23^2 + 5//12*x12 - 3//2*x21 + 9//8*x23 + 1
+-17//8*x1_2*x2_1 + x2_1^2 + 823//360*x1_2*x2_2 - 823//1080*x2_2^2 + 553//1080*x2_1*x2_3 - 77//60*x2_2*x2_3 + x2_3^2 + 5//12*x1_2 - 3//2*x2_1 + 9//8*x2_3 + 1
 ```
 """
 function todd_class(
@@ -670,53 +944,30 @@ function todd_class(
     return M.chow.todd
   end
 
+  CH = chow_ring(M; unsafe=unsafe)
   N = dimension(M)
-  # consider these constructors: https://nemocas.github.io/AbstractAlgebra.jl/latest/mpolynomial/#Polynomial-functions
-  A = chow_ring(M; unsafe=unsafe)
-  R, inclusion = M.chow._R, M.chow._inclusion
-  Rvars = gens(R)
-  proj = __projection_to_quotient_ring(A)
 
-  function xi(i, p)
-    return Rvars[sum(M.d[1:(i - 1)]) + p]
+  # The Todd class is multiplicative: td(E) = prod_j Q(t_j) over the Chern roots t_j of E,
+  # with Q(t) = t/(1 - e^{-t}). Since log Q(t) = t/2 - sum_{m >= 1} B_{2m}/(2m (2m)!) t^{2m}
+  # and sum_j t_j^k = k! ch_k(E), this gives
+  # log td(E) = ch_1(E)/2 - sum_{m >= 1} B_{2m}/(2m) ch_{2m}(E).
+  ch = __homogeneous_components(
+    M, chern_character_tangent_bundle(M; unsafe=unsafe); unsafe=unsafe
+  ) # ch[k + 1] = ch_k(T_M)
+  y = N >= 1 ? CH(1//2) * ch[2] : zero(CH)
+  for m in 1:div(N, 2)
+    y -= CH(Singular.bernoulli(2m) // (2m)) * ch[2m + 1]
   end
 
-  num = R(1)
-  den = R(1)
-
-  for a in arrows(M.Q)
-    i, j = a
-    for p in 1:M.d[i]
-      for q in 1:M.d[j]
-        Singular.mul!(num, num, todd_Q(xi(j, q) - xi(i, p), N))
-        num = Singular.jet(num, N)
-      end
-    end
+  # y has no constant term and the Chow ring vanishes above degree N,
+  # so exp(y) = sum_{k = 0}^N y^k / k!
+  td = one(CH)
+  term = one(CH)
+  for k in 1:N
+    term = __simplify(CH(1//k) * term * y)
+    td += term
   end
-
-  for i in 1:n_vertices(M.Q)
-    for p in 1:M.d[i]
-      for q in 1:M.d[i]
-        Singular.mul!(den, den, todd_Q(xi(i, q) - xi(i, p), N))
-        den = Singular.jet(den, N)
-      end
-    end
-  end
-
-  # this is because Singular does not have a method to get the preimage
-  # of a given element, only ideals.
-  # In Singular's implementation this does not result in a loss of time anyways...
-  num = gens(preimage(inclusion, Singular.Ideal(R, num)))[1]
-  den = gens(preimage(inclusion, Singular.Ideal(R, den)))[1]
-
-  # renormalizing the constant term because it should be 1,
-  #  but Singular does not keep it fixed.
-  num /= constant_coefficient(num)
-  den /= constant_coefficient(den)
-
-  quot = div(proj(num), proj(den))
-  quot = __simplify(quot)
-  setfield!(M.chow, :todd, quot)
+  setfield!(M.chow, :todd, __simplify(td))
   return M.chow.todd
 end
 
@@ -741,10 +992,7 @@ julia> integral(M, H^3)
 """
 function integral(M::QuiverModuliSpace, x; unsafe::Bool=false)
   n = dimension(M)
-  top = Singular.div(
-    __homogeneous_components(M, x; unsafe=unsafe)[n + 1],
-    point_class(M; unsafe=unsafe),
-  )
+  top = Singular.div(__homogeneous_components(M, x, n), point_class(M; unsafe=unsafe))
   return Singular.constant_coefficient(top)
 end
 
@@ -807,33 +1055,6 @@ euler_characteristic(F::Bundle) = euler_characteristic(variety(F), chern_charact
 chi(F::Bundle) = euler_characteristic(F)
 
 """
-Takes a quotient ring R/I and returns the projection map from R to R/I.
-For internal use only.
-"""
-function __projection_to_quotient_ring(A)
-  I = quotient_ideal(A)
-  R = base_ring(I)
-  return Singular.AlgebraHomomorphism(R, A, gens(A))
-end
-
-"""
-    __chow_ring__monomial_grading(M::QuiverModuliSpace, f)
-
-Compute the "pseudodegree" of the monomial `f` in the Chow ring of the moduli
-space `M` passed.
-
-This method is unsafe, as it does not consider the actual degree of the MPolyRingElem
-objects passed. Instead, it assumes that the Chow ring passed has variables
-``x_{i, j}`` as in the Chow ring paper.
-"""
-function __chow_ring_monomial_grading(M::QuiverModuliSpace, f)
-  deg = __chow_degrees(M.d)
-  exp = first(Singular.AbstractAlgebra.exponent_vectors(f))
-  @assert size(deg) == size(exp)
-  return exp' * deg
-end
-
-"""
     __chow_degrees(d)
 
 Compute the vector of degrees for the variables of a Chow ring.
@@ -841,5 +1062,19 @@ Compute the vector of degrees for the variables of a Chow ring.
 For internal use only.
 """
 function __chow_degrees(d::AbstractVector{Int})
+  all(di == 0 for di in d) && return Int[] # does not happen, we do this for type stability
   return vcat([collect(1:di) for di in d if di > 0]...)
+end
+
+"""
+    __var_indices(d)
+
+Compute the vector whose `i`-th entry is the number of variables of a Chow ring
+attached to the vertices before `i`, so that the variable ``x_{i,j}`` has index
+`__var_indices(d)[i] + j`.
+
+For internal use only.
+"""
+function __var_indices(d::AbstractVector{Int})
+  return [sum(d[1:(i - 1)]; init=0) for i in eachindex(d)]
 end

@@ -15,38 +15,38 @@ julia> using QuiverTools
 
 Quivers can be built by passing the adjacency matrix to the `Quiver()` constructor:
 
-```doctest
+```jldoctest
 julia> Quiver([0 3; 0 0])
 Quiver with adjacency matrix [0 3; 0 0]
 ```
 
 The constructor accepts an optional string for naming the quiver:
 
-```doctest
+```jldoctest
 julia> MyQ = Quiver([0 3; 0 0], "My personal quiver")
-My personal quiver, with adjacency matrix [0 3; 0 0]
+My personal quiver
 ```
 
 QuiverTools has several constructors in place for many common examples. See
 [Constructors](@ref) for all the special constructors.
 
-```doctest
+```jldoctest
 julia> kronecker_quiver(4)
-4-Kronecker quiver, with adjacency matrix [0 4; 0 0]
+4-Kronecker quiver
 
 julia> loop_quiver(5)
-5-loop quiver, with adjacency matrix [5;;]
+5-loop quiver
 
 julia> subspace_quiver(3)
-3-subspace quiver, with adjacency matrix [0 0 0 1; 0 0 0 1; 0 0 0 1; 0 0 0 0]
+3-subspace quiver
 
 julia> three_vertex_quiver(1, 6, 7)
-An acyclic 3-vertex quiver, with adjacency matrix [0 1 6; 0 0 7; 0 0 0]
+Acyclic 3-vertex quiver
 ```
 
 Lastly, there is a handy constructor using strings:
 
-```doctest
+```jldoctest
 julia> Q = Quiver("1--2,1---3,2-4,2--3")
 Quiver with adjacency matrix [0 2 3 0; 0 0 2 1; 0 0 0 0; 0 0 0 0]
 ```
@@ -54,7 +54,7 @@ Quiver with adjacency matrix [0 2 3 0; 0 0 2 1; 0 0 0 0; 0 0 0 0]
 Dimension vectors and stability parameters are represented by `AbstractVector{Int}`
 objects, while under the hood these are encoded using the StaticArrays package.
 
-```doctest
+```jldoctest
 julia> Q = kronecker_quiver(3); d = [2,3];
 
 julia> θ = canonical_stability(Q, d)
@@ -72,7 +72,7 @@ proper subdimension vectors ``0 \neq d' \nleq d`` satisfies ``\theta \cdot d' = 
 The bilinear Euler form relative to a quiver Q of any two vectors
 in ``\mathbb{Z}^{Q_0}`` can be computed:
 
-```doctest
+```jldoctest
 julia> Q = kronecker_quiver(3); d = [2,2]; e = [3,4];
 
 julia> euler_form(Q, d, e)
@@ -96,7 +96,7 @@ for all vertices i,
 where ``s_i`` is the dimension vector with all entries set to ``0`` and the i-th
 set to ``1``.
 
-```doctest
+```jldoctest
 julia> Q = kronecker_quiver(3); d = [2,2];
 
 julia> in_fundamental_domain(Q, d)
@@ -111,7 +111,7 @@ false
 One can check if semistable, respectively stable representations
 exist for a given dimension vector and stability parameter:
 
-```doctest
+```jldoctest
 julia> Q = kronecker_quiver(3); d = [2,3]; θ = [3,-2];
 
 julia> has_semistable_representation(Q, d, θ)
@@ -132,7 +132,7 @@ true
 One can also determine whether stable representations exist at all
 for a given dimension vector by checking if it is a Schur root:
 
-```doctest
+```jldoctest
 julia> Q = kronecker_quiver(3); d = [2, 2];
 
 julia> is_schur_root(Q, d)
@@ -149,7 +149,7 @@ false
 QuiverTools implements the abstract `QuiverModuli` type and the two concrete types
 `QuiverModuliSpace` and `QuiverModuliStack`.
 
-```doctest
+```jldoctest
 julia> Q = kronecker_quiver(3);
 
 julia> M = QuiverModuliSpace(Q, [2, 3])
@@ -162,7 +162,7 @@ Quiver moduli space defined as follows:
 
 Some special constructors are implemented for Kronecker moduli and subspace moduli.
 
-```doctest
+```jldoctest
 julia> kronecker_moduli(3, 3, 4)
 Quiver moduli space defined as follows:
  - quiver: 3-Kronecker quiver
@@ -189,7 +189,7 @@ See the docstring of each method for more information and examples.
 QuiverTools provides methods to study the Harder-Narasimhan stratification
 of the parameter space ``\mathrm{R}(Q,\mathbf{d})``.
 
-```doctest
+```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
 
 julia> all_hn_types(M)
@@ -219,23 +219,25 @@ is at least 2.
 The method `all_hn_types()` provides a list of
 all the Harder-Narasimhan types that appear in the problem.
 
-The method `all_teleman_bounds()` computes the bounds
+The method `teleman_bounds()` computes the bounds
 to apply Teleman quantization on the non-dense strata.
 The output is a dictionary whose keys are the HN types
 and whose values are the weights themselves.
 
-```doctest
+```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3], [3, -2]);
 
-julia> all_teleman_bounds(M)
-Dict{HNType{2}, Int64} with 7 entries:
-  [[2, 2], [0, 1]]         => 20
-  [[2, 1], [0, 2]]         => 100
-  [[1, 0], [1, 2], [0, 1]] => 100
-  [[1, 0], [1, 3]]         => 120
-  [[1, 0], [1, 1], [0, 2]] => 90
-  [[1, 1], [1, 2]]         => 15
-  [[2, 0], [0, 3]]         => 90
+julia> teleman_bounds(M) ==
+        Dict{HNType, Int64}(
+             [[2, 2], [0, 1]]         => 20,
+             [[2, 1], [0, 2]]         => 50,
+             [[1, 0], [1, 2], [0, 1]] => 100,
+             [[1, 0], [1, 3]]         => 40,
+             [[1, 0], [1, 1], [0, 2]] => 90,
+             [[1, 1], [1, 2]]         => 15,
+             [[2, 0], [0, 3]]         => 90
+       )
+true
 ```
 
 ## Verify Teleman inequalities
@@ -244,33 +246,41 @@ In the following example, for each ``i,j`` and on each Harder-Narasimhan stratum
 we compute the weight of ``\mathcal{U}_i^\vee \otimes \mathcal{U}_j`` relative to the
 1-PS corresponding to the HN stratum. These are then compared to the Teleman bounds.
 
-```doctest
+```jldoctest
 julia> Q = kronecker_quiver(3); M = QuiverModuliStack(Q, [2, 3]);
 
-julia> hn = all_teleman_bounds(M)
-Dict{HNType{2}, Int64} with 7 entries:
-  [[2, 2], [0, 1]]         => 60
-  [[2, 1], [0, 2]]         => 100
-  [[1, 0], [1, 2], [0, 1]] => 100
-  [[1, 0], [1, 3]]         => 360
-  [[1, 0], [1, 1], [0, 2]] => 270
-  [[1, 1], [1, 2]]         => 15
-  [[2, 0], [0, 3]]         => 270
+julia> hn = teleman_bounds(M);
 
-julia> endom = all_weights_endomorphisms_universal_bundle(M)
-Dict{Vector{Vector{Int64}}, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [0, 5, -5, 0]
-  [[2, 1], [0, 2]]         => [0, 10, -10, 0]
-  [[1, 0], [1, 2], [0, 1]] => [0, 10, 15, -10, 0, 5, -15, -5, 0]
-  [[1, 0], [1, 3]]         => [0, 15, -15, 0]
-  [[1, 0], [1, 1], [0, 2]] => [0, 5, 10, -5, 0, 5, -10, -5, 0]
-  [[1, 1], [1, 2]]         => [0, 5, -5, 0]
-  [[2, 0], [0, 3]]         => [0, 5, -5, 0]
+julia> hn ==
+        Dict{HNType, Int64}(
+             [[2, 2], [0, 1]]         => 20,
+             [[2, 1], [0, 2]]         => 50,
+             [[1, 0], [1, 2], [0, 1]] => 100,
+             [[1, 0], [1, 3]]         => 40,
+             [[1, 0], [1, 1], [0, 2]] => 90,
+             [[1, 1], [1, 2]]         => 15,
+             [[2, 0], [0, 3]]         => 90
+       )
+true
+
+julia> endom = all_weights_endomorphisms_universal_bundle(M);
+
+julia> endom ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [0, 5, -5, 0],
+             [[2, 1], [0, 2]]         => [0, 5, -5, 0],
+             [[1, 0], [1, 2], [0, 1]] => [0, 10, 15, -10, 0, 5, -15, -5, 0],
+             [[1, 0], [1, 3]]         => [0, 5, -5, 0],
+             [[1, 0], [1, 1], [0, 2]] => [0, 5, 10, -5, 0, 5, -10, -5, 0],
+             [[1, 1], [1, 2]]         => [0, 5, -5, 0],
+             [[2, 0], [0, 3]]         => [0, 5, -5, 0]
+       )
+true
 
 julia> all(maximum(endom[key]) < hn[key] for key in keys(hn))
 true
 
-julia> does_teleman_inequality_hold(M)
+julia> does_rigidity_inequality_hold(M)
 true
 ```
 
@@ -294,7 +304,7 @@ If this is the canonical decomposition of ``d``,
 then the general representation of dimension vector ``d`` is
 a direct sum of indecomposable representations of dimension vector ``\beta_i``.
 
-```doctest
+```jldoctest roots
 julia> Q = kronecker_quiver(3);
 
 julia> canonical_decomposition(Q, [2, 3])
@@ -320,8 +330,8 @@ julia> canonical_decomposition(Q, [12, 4])
 
 QuiverTools also implements computations of general hom and ext for dimension vectors.
 
-```julia-repl
-julia> e = [1, 2];
+```jldoctest roots
+julia> e = [1, 2]; d = [2, 3];
 
 julia> general_hom(Q, d, e)
 0
@@ -339,15 +349,8 @@ julia> general_ext(Q, e, d)
 This allows to determine whether a root is real, imaginary isotropic
 or imaginary anisotropic.
 
-```doctest
-julia> ds = QuiverTools.all_subdimension_vectors([5, 5])
-6×6 Matrix{Vector{Int64}}:
- [0, 0]  [0, 1]  [0, 2]  [0, 3]  [0, 4]  [0, 5]
- [1, 0]  [1, 1]  [1, 2]  [1, 3]  [1, 4]  [1, 5]
- [2, 0]  [2, 1]  [2, 2]  [2, 3]  [2, 4]  [2, 5]
- [3, 0]  [3, 1]  [3, 2]  [3, 3]  [3, 4]  [3, 5]
- [4, 0]  [4, 1]  [4, 2]  [4, 3]  [4, 4]  [4, 5]
- [5, 0]  [5, 1]  [5, 2]  [5, 3]  [5, 4]  [5, 5]
+```jldoctest roots
+julia> ds = QuiverTools.all_subdimension_vectors([5, 5]);
 
 julia> filter(d -> is_real_root(Q, d), ds)
 4-element Vector{Vector{Int64}}:
@@ -389,7 +392,7 @@ julia> filter(d -> is_imaginary_root(Q, d), ds)
 QuiverTools features an implementation of the Hodge polynomial of quiver moduli,
 if the base field is ``\mathbb{C}`` and the dimension vector is a coprime Schurian root.
 
-```doctest
+```jldoctest hodge
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> hodge_polynomial(M)
@@ -412,7 +415,7 @@ In other words, the point of the diamond is on the upper left side of the matrix
 
 This allows us to conclude that the Picard rank of the moduli space is 1.
 
-```julia-repl
+```jldoctest hodge
 julia> picard_rank(M)
 1
 ```
@@ -423,14 +426,14 @@ QuiverTools allows to compute the Chow ring for a given quiver moduli space, as 
 the point class, the Todd class and the Euler characteristic of a vector bundle, given
 its Chern character or its Chern class.
 
-```doctest
+```jldoctest chow
 julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 
 julia> CH = chow_ring(M; chi=[2, -1])
-Singular polynomial quotient ring (QQ),(x11,x12,x21,x22,x23),(dp(5),C)
+Singular polynomial quotient ring (QQ),(x1_1,x1_2,x2_1,x2_2,x2_3),(dp(5),C)
 
 julia> QuiverTools.quotient_ideal(CH)
-Singular ideal over Singular polynomial ring (QQ),(x11,x12,x21,x22,x23),(dp(5),C) with generators (2*x11 - x21, 33*x12*x23 - 7*x22*x23, 3*x12*x22 - x22^2 + x21*x23, x23^3, x22*x23^2, x21*x23^2, 9082*x22^2*x23 - 26539*x21*x23^2, 3*x21*x22*x23 - 22*x23^2, 3*x21^2*x23 - 8*x22*x23, 110*x22^3 - 153*x21*x22*x23 - 1188*x23^2, 5*x21*x22^2 - 5*x21^2*x23 - 144*x12*x23 + 6*x22*x23, x21^2*x22 - 48*x12^2 + 80*x12*x22 - 24*x22^2 + 18*x21*x23, x21^3 + 8*x12*x21 - 6*x21*x22 + 12*x23, x12*x21^2 - 12*x12^2 + 12*x12*x22 - 4*x22^2 + 4*x21*x23, 6*x12^2*x21 - 4*x12*x21*x22 + x21*x22^2 - x21^2*x23 - 12*x12*x23 + 2*x22*x23, 4*x12^3 - 4*x12*x21*x23 + x21*x22*x23 - 2*x23^2)
+Singular ideal over Singular polynomial ring (QQ),(x1_1,x1_2,x2_1,x2_2,x2_3),(dp(5),C) with generators (2*x1_1 - x2_1, 33*x1_2*x2_3 - 7*x2_2*x2_3, 3*x1_2*x2_2 - x2_2^2 + x2_1*x2_3, x2_3^3, x2_2*x2_3^2, x2_1*x2_3^2, x2_2^2*x2_3, 3*x2_1*x2_2*x2_3 - 22*x2_3^2, 3*x2_1^2*x2_3 - 8*x2_2*x2_3, x2_2^3 - 21*x2_3^2, 33*x2_1*x2_2^2 - 250*x2_2*x2_3, 3*x2_1^2*x2_2 - 144*x1_2^2 + 8*x2_2^2 - 26*x2_1*x2_3, x2_1^3 + 8*x1_2*x2_1 - 6*x2_1*x2_2 + 12*x2_3, x1_2*x2_1^2 - 12*x1_2^2, 11*x1_2^2*x2_1 - 4*x2_2*x2_3, 9*x1_2^3 - 2*x2_3^2)
 
 julia> u1, u2 = universal_bundle(M, 1), universal_bundle(M, 2)
 (Bundle of rank 2, Bundle of rank 3)
@@ -439,10 +442,10 @@ julia> endom = dual(u1) * u2
 Bundle of rank 6
 
 julia> chern_class(u1)
-x11 + x12 + 1
+x1_1 + x1_2 + 1
 
 julia> chern_class(u2)
-x21 + x22 + x23 + 1
+x2_1 + x2_2 + x2_3 + 1
 
 julia> degree(u1)
 57
@@ -454,7 +457,7 @@ julia> ω = canonical_bundle(M)
 Bundle of rank 1
 
 julia> chern_class(ω)
--3//2*x21
+-3//2*x2_1 + 1
 
 julia> degree(ω)
 41553
@@ -481,26 +484,24 @@ julia> Λ = map(n -> exterior_power(u2, n), 0:4)
 julia> map(chern_character, Λ)
 5-element Vector{Singular.spoly{Singular.n_Q}}:
  1
- -4//3*x12*x21 + 1//2*x21^2 + 1//2*x21*x22 - 5//36*x22^2 + 7//18*x21*x23 - 1//360*x22*x23 - 1//2160*x23^2 + x21 - x22 - 3//2*x23 + 3
- 8*x12^2 - 8//3*x12*x21 + x21^2 + 3//2*x21*x22 - 29//36*x22^2 + 14//9*x21*x23 + 383//3960*x22*x23 + 23//432*x23^2 + 2*x21 - x22 - 9//2*x23 + 3
- 8*x12^2 - 4//3*x12*x21 + 1//2*x21^2 + x21*x22 - 2//3*x22^2 + 5//3*x21*x23 + 76//165*x22*x23 + 76//135*x23^2 + x21 - 2*x23 + 1
+ -4//3*x1_2*x2_1 + 1//2*x2_1^2 + 1//2*x2_1*x2_2 - 5//36*x2_2^2 + 7//18*x2_1*x2_3 - 1//360*x2_2*x2_3 - 1//2160*x2_3^2 + x2_1 - x2_2 - 3//2*x2_3 + 3
+ 8*x1_2^2 - 8//3*x1_2*x2_1 + x2_1^2 + 3//2*x2_1*x2_2 - 29//36*x2_2^2 + 14//9*x2_1*x2_3 + 383//3960*x2_2*x2_3 + 23//432*x2_3^2 + 2*x2_1 - x2_2 - 9//2*x2_3 + 3
+ 8*x1_2^2 - 4//3*x1_2*x2_1 + 1//2*x2_1^2 + x2_1*x2_2 - 2//3*x2_2^2 + 5//3*x2_1*x2_3 + 76//165*x2_2*x2_3 + 76//135*x2_3^2 + x2_1 - 2*x2_3 + 1
  0
 
 julia> ⨂ = map(n -> symmetric_power(u2, n), 0:3)
-6-element Vector{Bundle}:
+4-element Vector{Bundle}:
  Bundle of rank 1
  Bundle of rank 3
  Bundle of rank 6
  Bundle of rank 10
- Bundle of rank 15
- Bundle of rank 21
 
 julia> map(chern_character, ⨂)
 4-element Vector{Singular.spoly{Singular.n_Q}}:
  1
- 1//12*x12^2 - 5//12*x12*x21 + 1//8*x21^2 + 1//8*x21*x22 - 1//24*x22^2 + 5//48*x21*x23 - 1//1320*x22*x23 - 1//6480*x23^2 - x12 + 1//2*x21 - 1//4*x23 + 2
- 11//6*x12^2 - 7//2*x12*x21 + 5//8*x21^2 + 9//8*x21*x22 - 17//24*x22^2 + 85//48*x21*x23 - 13//1320*x22*x23 - 7//6480*x23^2 - 4*x12 + 3//2*x21 - 9//4*x23 + 3
- 71//6*x12^2 - 27//2*x12*x21 + 7//4*x21^2 + 9//2*x21*x22 - 49//12*x22^2 + 245//24*x21*x23 - 3//110*x22*x23 + 19//3240*x23^2 - 10*x12 + 3*x21 - 9*x23 + 4
+ -4//3*x1_2*x2_1 + 1//2*x2_1^2 + 1//2*x2_1*x2_2 - 5//36*x2_2^2 + 7//18*x2_1*x2_3 - 1//360*x2_2*x2_3 - 1//2160*x2_3^2 + x2_1 - x2_2 - 3//2*x2_3 + 3
+ 8*x1_2^2 - 40//3*x1_2*x2_1 + 3*x2_1^2 + 11//2*x2_1*x2_2 - 109//36*x2_2^2 + 70//9*x2_1*x2_3 + 31//3960*x2_2*x2_3 + 17//720*x2_3^2 + 4*x2_1 - 5*x2_2 - 33//2*x2_3 + 6
+ 88*x1_2^2 - 184//3*x1_2*x2_1 + 10*x2_1^2 + 53//2*x2_1*x2_2 - 269//12*x2_2^2 + 331//6*x2_1*x2_3 + 217//264*x2_2*x2_3 + 337//432*x2_3^2 + 10*x2_1 - 15*x2_2 - 157//2*x2_3 + 10
 ```
 
 In fact, `Bundle` objects can also store the Teleman weights.
@@ -508,51 +509,59 @@ These are implemented for known bundles, behave well with respect to all
 tensor calculus operations, and streamline the application of the Teleman quantization
 theorem.
 
-```doctest
-julia> teleman_weights(u1)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [-15, -15]
-  [[2, 1], [0, 2]]         => [-20, -20]
-  [[1, 0], [1, 2], [0, 1]] => [-15, -25]
-  [[1, 0], [1, 3]]         => [-45, -90]
-  [[1, 0], [1, 1], [0, 2]] => [-45, -60]
-  [[1, 1], [1, 2]]         => [0, -5]
-  [[2, 0], [0, 3]]         => [-45, -45]
+```jldoctest chow
+julia> teleman_weights(u1) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [-5, -5],
+             [[2, 1], [0, 2]]         => [-10, -10],
+             [[1, 0], [1, 2], [0, 1]] => [-15, -25],
+             [[1, 0], [1, 3]]         => [-5, -10],
+             [[1, 0], [1, 1], [0, 2]] => [-15, -20],
+             [[1, 1], [1, 2]]         => [0, -5],
+             [[2, 0], [0, 3]]         => [-15, -15]
+       )
+true
 
-julia> teleman_weights(u2)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [-15, -15, -30]
-  [[2, 1], [0, 2]]         => [-20, -30, -30]
-  [[1, 0], [1, 2], [0, 1]] => [-25, -25, -30]
-  [[1, 0], [1, 3]]         => [-90, -90, -90]
-  [[1, 0], [1, 1], [0, 2]] => [-60, -75, -75]
-  [[1, 1], [1, 2]]         => [0, -5, -5]
-  [[2, 0], [0, 3]]         => [-60, -60, -60]
+julia> teleman_weights(u2) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [-5, -5, -10],
+             [[2, 1], [0, 2]]         => [-10, -15, -15],
+             [[1, 0], [1, 2], [0, 1]] => [-25, -25, -30],
+             [[1, 0], [1, 3]]         => [-10, -10, -10],
+             [[1, 0], [1, 1], [0, 2]] => [-20, -25, -25],
+             [[1, 1], [1, 2]]         => [0, -5, -5],
+             [[2, 0], [0, 3]]         => [-20, -20, -20]
+       )
+true
 
-julia> teleman_weights(ω)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [90]
-  [[2, 1], [0, 2]]         => [120]
-  [[1, 0], [1, 2], [0, 1]] => [120]
-  [[1, 0], [1, 3]]         => [405]
-  [[1, 0], [1, 1], [0, 2]] => [315]
-  [[1, 1], [1, 2]]         => [15]
-  [[2, 0], [0, 3]]         => [270]
+julia> teleman_weights(ω) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [30],
+             [[2, 1], [0, 2]]         => [60],
+             [[1, 0], [1, 2], [0, 1]] => [120],
+             [[1, 0], [1, 3]]         => [45],
+             [[1, 0], [1, 1], [0, 2]] => [105],
+             [[1, 1], [1, 2]]         => [15],
+             [[2, 0], [0, 3]]         => [90]
+       )
+true
 
-julia> teleman_weights(endom)
-Dict{HNType{2}, Vector{Int64}} with 7 entries:
-  [[2, 2], [0, 1]]         => [0, 0, -15, 0, 0, -15]
-  [[2, 1], [0, 2]]         => [0, -10, -10, 0, -10, -10]
-  [[1, 0], [1, 2], [0, 1]] => [-10, -10, -15, 0, 0, -5]
-  [[1, 0], [1, 3]]         => [-45, -45, -45, 0, 0, 0]
-  [[1, 0], [1, 1], [0, 2]] => [-15, -30, -30, 0, -15, -15]
-  [[1, 1], [1, 2]]         => [0, -5, -5, 5, 0, 0]
-  [[2, 0], [0, 3]]         => [-15, -15, -15, -15, -15, -15]
+julia> teleman_weights(endom) ==
+        Dict{HNType, Vector{Int64}}(
+             [[2, 2], [0, 1]]         => [0, 0, -5, 0, 0, -5],
+             [[2, 1], [0, 2]]         => [0, -5, -5, 0, -5, -5],
+             [[1, 0], [1, 2], [0, 1]] => [-10, -10, -15, 0, 0, -5],
+             [[1, 0], [1, 3]]         => [-5, -5, -5, 0, 0, 0],
+             [[1, 0], [1, 1], [0, 2]] => [-5, -10, -10, 0, -5, -5],
+             [[1, 1], [1, 2]]         => [0, -5, -5, 5, 0, 0],
+             [[2, 0], [0, 3]]         => [-5, -5, -5, -5, -5, -5]
+       )
+true
 ```
 
 
 The ample generator of the Picard group of `M`.
-```doctest
+```jldoctest chow
 julia> L = Bundle(M, chern_character_line_bundle(M, [3, -2]));
 
 julia> map(i -> euler_characteristic(L^i), 0:5)
@@ -572,7 +581,7 @@ For acyclic quivers, the Hochschild cohomologies are described in
 
 QuiverTools provides a method to compute the only nontrivial one.
 
-```doctest
+```jldoctest
 julia> Q = kronecker_quiver(3);
 
 julia> first_hochschild_cohomology(Q)

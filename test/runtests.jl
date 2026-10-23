@@ -408,7 +408,7 @@ QuiverTools.empty_all_caches!()
 
   # K3 with d = [2, 2] is P^5
   M = QuiverModuliSpace(K3, [2, 2])
-  identity = QuiverTools.identity_matrix(6)
+  identity = one(zeros(Int, (6, 6)))
   @test string(poincare_polynomial(M)) == "L^5 + L^4 + L^3 + L^2 + L + 1"
   @test betti_numbers(M) == [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
   @test picard_rank(M) == 1
@@ -480,7 +480,7 @@ import GraphViz
   @test !isnothing(extension_module)
   mktempdir() do directory
     path = joinpath(directory, "quiver.svg")
-    @test extension_module._write_svg(Q, path) == path
+    @test extension_module.__write_svg(Q, path) == path
     @test isfile(path)
     @test occursin("<svg", read(path, String))
   end
@@ -819,6 +819,20 @@ QuiverTools.empty_all_caches!()
   d4 = [3, 2, 6, 1]
   @test_throws ArgumentError is_taus_minimal(Q4, d4; max_states=1)
   @test is_taus_minimal(Q4, d4; max_states=100) == false
+end;
+QuiverTools.empty_all_caches!()
+
+@testset "Adams operations overflow        " begin
+  # The Adams operation Φ^k multiplies the part of degree i of a Chern character by k^i
+  # (regression: k^i was computed as an Int and overflowed for large k and dimension. The
+  # determinant of the tangent bundle of an 18-dimensional moduli space needs exterior
+  # powers up to k = 18, and its degree came out as a fraction.)
+  # The anticanonical bundle is the descent of the canonical stability parameter, so the
+  # two degrees must agree.
+  Q, d = kronecker_quiver(5), [2, 3]
+  M = QuiverModuliSpace(Q, d)
+  @test degree(tangent_bundle(M)) ==
+    degree(line_bundle(M, canonical_stability(Q, d); teleman=false))
 end;
 QuiverTools.empty_all_caches!()
 

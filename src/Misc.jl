@@ -18,19 +18,6 @@ function __check_sincere_dimension_vector(Q::Quiver, d::AbstractVector{Int})
 end
 
 """
-    identity_matrix(n::Int)
-
-Return the identity matrix of size `n`.
-"""
-@memoize function identity_matrix(n::Int)
-  out = zeros(Int, n, n)
-  for i in 1:n
-    out[i, i] = 1
-  end
-  return coerce_matrix(out)
-end
-
-"""
     diagonal(m::AbstractMatrix{Int})
 
 Return the diagonal matrix with the diagonal of `m` as its diagonal.
@@ -297,3 +284,16 @@ end
 
 __checked_sum(a::AbstractVector{Int}) =
   foldl(Base.Checked.checked_add, a; init=0)
+
+"""
+    __QQ()
+
+Return the field of rational numbers `Singular.QQ`, with its type asserted.
+
+`Singular.QQ` is a global that Singular.jl sets at run time, so the compiler does not
+know its type. Asserting it makes the rings built over QQ, and their arithmetic,
+type-stable.
+
+For internal use only.
+"""
+__QQ() = Singular.QQ::Singular.Rationals
