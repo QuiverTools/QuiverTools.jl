@@ -285,6 +285,15 @@ end
 __checked_sum(a::AbstractVector{Int}) =
   foldl(Base.Checked.checked_add, a; init=0)
 
-# `Singular.QQ` is a global that Singular.jl sets at run time, so the compiler does not know
-# its type; asserting it makes the rings built over QQ, and their arithmetic, type-stable.
+"""
+    __QQ()
+
+Return the field of rational numbers `Singular.QQ`, with its type asserted.
+
+`Singular.QQ` is a global that Singular.jl sets at run time, so the compiler does not
+know its type. Asserting it makes the rings built over QQ, and their arithmetic,
+type-stable.
+
+For internal use only.
+"""
 __QQ() = Singular.QQ::Singular.Rationals
