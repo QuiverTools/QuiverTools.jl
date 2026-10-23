@@ -725,12 +725,15 @@ end
 function __chern_character_from_classes(M::QuiverModuliSpace, e, r)
   CH = parent(e[0])
   n = dimension(M)
-  n == 0 && return zero(CH)
+  # on a point the Chern character is the rank
+  n == 0 && return CH(r)
   p = vcat([-e[1]], [zero(CH) for _ in 1:(n - 1)])
   for i in 1:(n - 1)
-    p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i)
+    p[i + 1] = -CH(i + 1) * e[i + 1] - sum(e[j] * p[i - j + 1] for j in 1:i; init=zero(CH))
   end
-  return __simplify(sum(CH((-1)^i//factorial(big(i))) * p[i] for i in 1:n) + r)
+  return __simplify(
+    sum(CH((-1)^i//factorial(big(i))) * p[i] for i in 1:n; init=zero(CH)) + r
+  )
 end
 
 """
@@ -1010,16 +1013,6 @@ julia> euler_characteristic(U1)
 euler_characteristic(M::QuiverModuliSpace, f) = integral(M, f * todd_class(M))
 euler_characteristic(F::Bundle) = euler_characteristic(variety(F), chern_character(F))
 chi(F::Bundle) = euler_characteristic(F)
-
-"""
-Takes a quotient ring R/I and returns the projection map from R to R/I.
-For internal use only.
-"""
-function __projection_to_quotient_ring(A)
-  I = quotient_ideal(A)
-  R = base_ring(I)
-  return Singular.AlgebraHomomorphism(R, A, gens(A))
-end
 
 """
     __chow_degrees(d)
