@@ -111,15 +111,6 @@ function symmetric_polynomial(degree::Int)
   f(vars) = sum(prod(e; init=1) for e in IterTools.subsets(vars, degree))
   return f
 end
-"""
-    product_lists(L)
-
-For internal use only.
-"""
-function product_lists(L)
-  length(L) == 1 && return L[1]
-  return [p * l for p in product_lists(L[1:(end - 1)]) for l in L[end]]
-end
 
 """
     chow_ring(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d); chi::AbstractVector{Int}=extended_gcd(d)[2], verbose::Bool=false, unsafe::Bool=false)
@@ -1028,23 +1019,6 @@ function __projection_to_quotient_ring(A)
   I = quotient_ideal(A)
   R = base_ring(I)
   return Singular.AlgebraHomomorphism(R, A, gens(A))
-end
-
-"""
-    __chow_ring__monomial_grading(M::QuiverModuliSpace, f)
-
-Compute the "pseudodegree" of the monomial `f` in the Chow ring of the moduli
-space `M` passed.
-
-This method is unsafe, as it does not consider the actual degree of the MPolyRingElem
-objects passed. Instead, it assumes that the Chow ring passed has variables
-``x_{i, j}`` as in the Chow ring paper.
-"""
-function __chow_ring_monomial_grading(M::QuiverModuliSpace, f)
-  deg = __chow_degrees(M.d)
-  exp = first(Singular.AbstractAlgebra.exponent_vectors(f))
-  @assert size(deg) == size(exp)
-  return exp' * deg
 end
 
 """
