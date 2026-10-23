@@ -272,7 +272,8 @@ function chow_ring(
         Singular.push_term!(context, s == 1 ? c : -c, exponents)
       end
     end
-    return div(Singular.finish(context), delta)
+    # the division is exact, which is faster than just `div`
+    return Singular.divexact(Singular.finish(context), delta)
   end
 
   # All the destabilizing subdimension vectors of `d` with respect to the slope
