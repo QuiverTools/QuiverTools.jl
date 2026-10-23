@@ -7,12 +7,23 @@
 # partial order on the forbidden dimension vectors as defined in
 # https://doi.org/10.48550/arXiv.1307.3066
 function partial_order(Q::Quiver, f::AbstractVector{Int}, g::AbstractVector{Int})
-  if !all(f[i] <= g[i] for i in 1:n_vertices(Q) if is_source(Q, i))
-    return false
-  elseif !all(f[i] >= g[i] for i in 1:n_vertices(Q) if is_sink(Q, i))
-    return false
-  elseif !all(f[i] == g[i] for i in 1:n_vertices(Q) if !is_source(Q, i) && !is_sink(Q, i))
-    return false
+  sources = [is_source(Q, i) for i in 1:n_vertices(Q)]
+  sinks = [is_sink(Q, i) for i in 1:n_vertices(Q)]
+  return __partial_order(sources, sinks, f, g)
+end
+
+# The partial order for the given masks of the sources and sinks of the quiver, so that
+# they can be computed once for many comparisons.
+function __partial_order(
+  sources::AbstractVector{Bool},
+  sinks::AbstractVector{Bool},
+  f::AbstractVector{Int},
+  g::AbstractVector{Int},
+)
+  for i in eachindex(f)
+    sources[i] && f[i] > g[i] && return false
+    sinks[i] && f[i] < g[i] && return false
+    !sources[i] && !sinks[i] && f[i] != g[i] && return false
   end
   return true
 end
@@ -270,8 +281,10 @@ function chow_ring(
   # All the destabilizing subdimension vectors of `d` with respect to the slope
   # `theta/denom` that are minimal with respect to the total order.
   minimal_forbidden = all_destabilizing_subdimension_vectors(d, theta)
+  sources = [is_source(Q, i) for i in 1:n_vertices(Q)]
+  sinks = [is_sink(Q, i) for i in 1:n_vertices(Q)]
   filter!(
-    e -> !any(partial_order(Q, f, e) for f in minimal_forbidden if f != e),
+    e -> !any(__partial_order(sources, sinks, f, e) for f in minimal_forbidden if f != e),
     minimal_forbidden,
   )
 
@@ -745,12 +758,14 @@ function __chern_characters_wedge(M::QuiverModuliSpace, x, k)
   # init as zero(CH) for type stability
   wedges = [zero(CH) for _ in 1:(k + 1)]
   wedges[1], wedges[2] = one(CH), x
+  # the Adams operations Φ^1(x), ..., Φ^k(x), each needed by several steps below
+  adams_x = [adams(M, x, j) for j in 1:k]
 
   for j in 2:k
     wedges[j + 1] =
       CH(1//j) * __truncate(M,
         sum(
-          (-one(CH))^(j - i + 1) * wedges[i + 1] * adams(M, x, j - i) for i in 0:(j - 1);
+          (-one(CH))^(j - i + 1) * wedges[i + 1] * adams_x[j - i] for i in 0:(j - 1);
           init=zero(CH),
         ),
         n)
@@ -854,10 +869,12 @@ function point_class(
     factor = m[i] > 0 ? c : segre_class(M, c; unsafe=unsafe)
     for _ in 1:abs(m[i])
       num = __simplify(__truncate(M, num * factor, N))
+      end
     end
   end
 
   setfield!(M.chow, :point, __homogeneous_components(M, num, N))
+  setfield!(M.chow, :point, y[N + 1])
   return M.chow.point
 end
 
