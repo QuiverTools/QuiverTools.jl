@@ -492,17 +492,11 @@ function chern_class_line_bundle(
   unsafe::Bool=false,
 )
   A = chow_ring(M; unsafe=unsafe)
-  R = base_ring(quotient_ideal(A))
-  Rvars = gens(R)
-  proj = __projection_to_quotient_ring(A)
-
+  Avars = gens(A)
   var_indices = __var_indices(M.d)
-  chern_class = zero(R)
-  for i in support(M.d)
-    Singular.add!(chern_class, chern_class, eta[i] * Rvars[var_indices[i] + 1])
-  end
-
-  return __simplify(proj(- chern_class))
+  # c_1 is minus the sum of eta[i] times the first Chern class of U_i
+  chern_class = -sum(eta[i] * Avars[var_indices[i] + 1] for i in support(M.d); init=zero(A))
+  return __simplify(chern_class)
 end
 
 """
