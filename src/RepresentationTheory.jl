@@ -735,7 +735,7 @@ end
 #
 # where s(e, d) = \sum_i binomial(d_i - e_i, 2) + \sum_{a: i -> j} e_i (d_j - e_j).
 function __nullcone_motive(A::AbstractMatrix{Int}, d::AbstractVector{Int})
-  R, (L,) = polynomial_ring(Singular.QQ, ["L"])
+  R, (L,) = polynomial_ring(__QQ(), ["L"])
   n = length(d)
 
   # the Gaussian binomial coefficients [m; k]_L, computed once per call
@@ -865,7 +865,7 @@ L^18
 function nullcone_motive(Q::Quiver, d::AbstractVector{Int})
   __check_dimension_vector(Q, d)
 
-  K, (L,) = Singular.FunctionField(Singular.QQ, ["L"])
+  K, (L,) = Singular.FunctionField(__QQ(), ["L"])
   return Singular.evaluate(__nullcone_motive(Q.adjacency, d), [L])
 end
 

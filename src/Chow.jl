@@ -182,7 +182,7 @@ function chow_ring(
 
   # j varies first, then i
   varnames = ["xi$(i)_$(j)" for i in 1:n_vertices(Q) for j in 1:d[i]]
-  R, vars = Singular.polynomial_ring(Singular.QQ, varnames)
+  R, vars = Singular.polynomial_ring(__QQ(), varnames)
 
   # the variable `xi_{i,j}` has index var_indices[i] + j
   var_indices = __var_indices(d)
@@ -199,7 +199,7 @@ function chow_ring(
   # vector of the monomial
   function build_elem(lambda::NTuple)
     context = Singular.MPolyBuildCtx(R)
-    Singular.push_term!(context, Singular.QQ(1), collect(lambda))
+    Singular.push_term!(context, one(__QQ()), collect(lambda))
     return Singular.finish(context)
   end
   base = map(build_elem, Iterators.product(bounds...))
@@ -294,7 +294,7 @@ function chow_ring(
   ]
 
   varnames2 = ["x$(i)_$(j)" for i in 1:n_vertices(Q) for j in 1:d[i]]
-  A, Avars = polynomial_ring(Singular.QQ, varnames2)
+  A, Avars = polynomial_ring(__QQ(), varnames2)
 
   # Shorthand to address the variables of A `x_{i,j}`.
   function xs(i, j)

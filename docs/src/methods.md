@@ -47,5 +47,6 @@ QuiverTools.support_subquiver
 QuiverTools.__in_semistable_cone
 QuiverTools.__in_vgit_wall
 QuiverTools.__is_vgit_chamber_parameter
+QuiverTools.__QQ
 QuiverTools.@oscar_stub
 ```
