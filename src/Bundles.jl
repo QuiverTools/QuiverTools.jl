@@ -584,7 +584,7 @@ julia> chow_ring(M; chi=[-1, 1]);
 julia> H = line_bundle(M, [3, -2]);
 
 julia> chern_class(H)
--x2_1
+-x2_1 + 1
 
 julia> teleman_weights(H) ==
         Dict{HNType, Vector{Int64}}(
@@ -611,7 +611,8 @@ function line_bundle(
   M::QuiverModuliSpace, eta::AbstractVector{Int}; unsafe::Bool=false, teleman::Bool=true
 )
   eta' * M.d != 0 && throw(ArgumentError("$(eta) is not a linearization."))
-  new = Bundle(M, 1, chern_class_line_bundle(M, eta; unsafe=unsafe))
+  c1 = chern_class_line_bundle(M, eta; unsafe=unsafe)
+  new = Bundle(M, 1, one(parent(c1)) + c1)
   teleman && set_teleman_weights!(new, weights_line_bundle(M, eta))
   return new
 end
@@ -649,11 +650,11 @@ julia> omega = map(canonical_bundle, Pn);
 
 julia> map(chern_class, omega)
 5-element Vector{Singular.spoly{Singular.n_Q}}:
- 2*x1_1
- 3*x1_1
- 4*x1_1
- 5*x1_1
- 6*x1_1
+ 2*x1_1 + 1
+ 3*x1_1 + 1
+ 4*x1_1 + 1
+ 5*x1_1 + 1
+ 6*x1_1 + 1
 
 julia> map(teleman_weights, omega)
 5-element Vector{Dict{HNType, Vector{Int64}}}:
@@ -672,7 +673,7 @@ julia> Q = kronecker_quiver(3); M = QuiverModuliSpace(Q, [2, 3]);
 julia> omega = canonical_bundle(M);
 
 julia> chern_class(omega)
-3*x2_1
+3*x2_1 + 1
 
 julia> QuiverTools.teleman_weights(omega) ==
         Dict{HNType, Vector{Int64}}(

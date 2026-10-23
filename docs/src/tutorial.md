@@ -457,7 +457,7 @@ julia> ω = canonical_bundle(M)
 Bundle of rank 1
 
 julia> chern_class(ω)
--3//2*x2_1
+-3//2*x2_1 + 1
 
 julia> degree(ω)
 41553
