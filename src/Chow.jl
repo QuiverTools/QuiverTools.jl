@@ -344,9 +344,10 @@ function chow_ring(
 
   linear = Singular.spoly{Singular.n_Q}[sum(chi[i] * xs(i, 1) for i in support(d))]
 
-  return (
-    Singular.QuotientRing(A, std(Singular.Ideal(A, [tautological; linear]))), R, inclusion
-  )
+  # complete_reduction gives a minimal Gröbner basis, which speeds up
+  # every successive computation: very visible in todd_class, point_class, integrals etc.
+  G = std(Singular.Ideal(A, [tautological; linear]); complete_reduction=true)
+  return Singular.QuotientRing(A, G), R, inclusion
 end
 
 """

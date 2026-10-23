@@ -433,7 +433,7 @@ julia> CH = chow_ring(M; chi=[2, -1])
 Singular polynomial quotient ring (QQ),(x1_1,x1_2,x2_1,x2_2,x2_3),(dp(5),C)
 
 julia> QuiverTools.quotient_ideal(CH)
-Singular ideal over Singular polynomial ring (QQ),(x1_1,x1_2,x2_1,x2_2,x2_3),(dp(5),C) with generators (2*x1_1 - x2_1, 33*x1_2*x2_3 - 7*x2_2*x2_3, 3*x1_2*x2_2 - x2_2^2 + x2_1*x2_3, x2_3^3, x2_2*x2_3^2, x2_1*x2_3^2, 9082*x2_2^2*x2_3 - 26539*x2_1*x2_3^2, 3*x2_1*x2_2*x2_3 - 22*x2_3^2, 3*x2_1^2*x2_3 - 8*x2_2*x2_3, 110*x2_2^3 - 153*x2_1*x2_2*x2_3 - 1188*x2_3^2, 5*x2_1*x2_2^2 - 5*x2_1^2*x2_3 - 144*x1_2*x2_3 + 6*x2_2*x2_3, x2_1^2*x2_2 - 48*x1_2^2 + 80*x1_2*x2_2 - 24*x2_2^2 + 18*x2_1*x2_3, x2_1^3 + 8*x1_2*x2_1 - 6*x2_1*x2_2 + 12*x2_3, x1_2*x2_1^2 - 12*x1_2^2 + 12*x1_2*x2_2 - 4*x2_2^2 + 4*x2_1*x2_3, 6*x1_2^2*x2_1 - 4*x1_2*x2_1*x2_2 + x2_1*x2_2^2 - x2_1^2*x2_3 - 12*x1_2*x2_3 + 2*x2_2*x2_3, 4*x1_2^3 - 4*x1_2*x2_1*x2_3 + x2_1*x2_2*x2_3 - 2*x2_3^2)
+Singular ideal over Singular polynomial ring (QQ),(x1_1,x1_2,x2_1,x2_2,x2_3),(dp(5),C) with generators (2*x1_1 - x2_1, 33*x1_2*x2_3 - 7*x2_2*x2_3, 3*x1_2*x2_2 - x2_2^2 + x2_1*x2_3, x2_3^3, x2_2*x2_3^2, x2_1*x2_3^2, x2_2^2*x2_3, 3*x2_1*x2_2*x2_3 - 22*x2_3^2, 3*x2_1^2*x2_3 - 8*x2_2*x2_3, x2_2^3 - 21*x2_3^2, 33*x2_1*x2_2^2 - 250*x2_2*x2_3, 3*x2_1^2*x2_2 - 144*x1_2^2 + 8*x2_2^2 - 26*x2_1*x2_3, x2_1^3 + 8*x1_2*x2_1 - 6*x2_1*x2_2 + 12*x2_3, x1_2*x2_1^2 - 12*x1_2^2, 11*x1_2^2*x2_1 - 4*x2_2*x2_3, 9*x1_2^3 - 2*x2_3^2)
 
 julia> u1, u2 = universal_bundle(M, 1), universal_bundle(M, 2)
 (Bundle of rank 2, Bundle of rank 3)
