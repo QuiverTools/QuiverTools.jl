@@ -423,29 +423,29 @@ A tuple containing:
 
 ```jldoctest
 julia> QuiverTools.extended_gcd([2, 3, 4])
-2-element Vector{Any}:
- 1
-  [-1, 1, 0]
+(1, [-1, 1, 0])
 
 julia> QuiverTools.extended_gcd([2, 3])
-2-element Vector{Any}:
- 1
-  [-1, 1]
+(1, [-1, 1])
+
+julia> QuiverTools.extended_gcd([-4])
+(4, [-1])
 ```
 """
 function extended_gcd(x)
   n = length(x)
   if n == 1
-    return [x, [1]]
+    # the gcd of a single integer a is |a| = sign(a) * a
+    return abs(x[1]), [sign(x[1])]
   elseif n == 2
     g, a, b = gcdx(x[1], x[2])
-    return [g, [a, b]]
+    return g, [a, b]
   else
     g, a, b = gcdx(x[1], x[2])
     y = vcat([g], [x[i] for i in 3:n])
     d, c = extended_gcd(y)
     m = vcat([c[1] * a, c[1] * b], [c[i] for i in 2:(n - 1)])
-    return [d, m]
+    return d, m
   end
 end
 
@@ -1016,6 +1016,7 @@ Compute the vector of degrees for the variables of a Chow ring.
 For internal use only.
 """
 function __chow_degrees(d::AbstractVector{Int})
+  all(di == 0 for di in d) && return Int[] # does not happen, we do this for type stability
   return vcat([collect(1:di) for di in d if di > 0]...)
 end
 

@@ -54,11 +54,11 @@ struct Quiver{T}
         @warn "Quiver: integer vertex labels $labels are not 1:$n; " *
           "relabeling to 1:$n (the kth smallest label becomes vertex k)"
       end
-      rank = Dict(v => i for (i, v) in enumerate(labels))
-      index = Dict(tokens[k] => rank[ints[k]] for k in eachindex(tokens))
+      rank = Dict{Int,Int}(v => i for (i, v) in enumerate(labels))
+      index = Dict{String,Int}(tokens[k] => rank[ints[k]] for k in eachindex(tokens))
     else
       n = length(tokens)
-      index = Dict(tok => i for (i, tok) in enumerate(tokens))
+      index = Dict{String,Int}(tok => i for (i, tok) in enumerate(tokens))
     end
 
     A = zeros(Int, n, n)
@@ -570,7 +570,7 @@ function Bundle(M::QuiverModuliSpace, chern_character::Int)
   bundle = Bundle()
   setfield!(bundle, :parent, M.chow)
   setfield!(bundle, :rank, chern_character)
-  setfield!(bundle, :chern_character, M.chow.ring(chern_character))
+  setfield!(bundle, :chern_character, chow_ring(M)(chern_character))
   return bundle
 end
 
