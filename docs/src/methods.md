@@ -8,7 +8,6 @@ and are not intended to be accessed directly by the user.
 
 
 ```@docs
-QuiverTools.__chow_ring_monomial_grading
 QuiverTools.symmetric_polynomial
 QuiverTools.__chern_characters_symmetric
 QuiverTools.weight_canonical_on_stratum
@@ -19,7 +18,6 @@ QuiverTools.weights_endomorphisms_universal_bundles_on_stratum
 QuiverTools.weights_endomorphism_universal_bundle_on_stratum
 QuiverTools.__chow_degrees
 QuiverTools.__var_indices
-QuiverTools.product_lists
 QuiverTools.weight_line_bundle_on_stratum
 QuiverTools.extended_gcd
 QuiverTools.weights_line_bundle
@@ -39,7 +37,6 @@ QuiverTools.zero_vector
 QuiverTools.__add_and_return_new
 QuiverTools.__add_and_return
 QuiverTools.__add_and_return_noniso
-QuiverTools.__projection_to_quotient_ring
 QuiverTools.__weighted_monomials
 QuiverTools.__degree1_vector
 QuiverTools.__universal_chern_generators
