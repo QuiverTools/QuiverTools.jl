@@ -1,4 +1,5 @@
 using Test, QuiverTools, Documenter, Logging
+include("quantum.jl")
 # To ensure that the version of the tests being run
 # is the latest committed one,
 # the local installation of QuiverTools should be the one developed at path="../."
