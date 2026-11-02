@@ -131,8 +131,8 @@ using Test, QuiverTools, Documenter, Logging
       chi=[1, 0])
     c1, c2 = quantum_tautological_classes(A)[2]
     q = only(novikov_variables(A))
-    @test iszero(normal(c1^3 - 2c1*c2))
-    @test iszero(normal(c1^4 - 3c1^2*c2 + c2^2 + q))
+    @test iszero(normal(c1^3 - 2c1 * c2))
+    @test iszero(normal(c1^4 - 3c1^2 * c2 + c2^2 + q))
     @test finite_rank(classical(A)) == 6
     matrix, _, _ = quantum_multiplication_matrix(A, c1, [1])
     @test matrix^6 == 4matrix^2
@@ -159,7 +159,7 @@ using Test, QuiverTools, Documenter, Logging
     b, _, _ = quantum_multiplication_matrix(A, h2, [1, 1])
     @test a^2 == one(a)
     @test b^2 == one(b)
-    @test a*b == b*a
+    @test a * b == b * a
     T, t = N.polynomial_ring(N.QQ, "t")
     @test N.charpoly(T, a + b) == t^2 * (t^2 - 4)
   end
@@ -173,8 +173,8 @@ using Test, QuiverTools, Documenter, Logging
     base = only(q[j] for j in eachindex(q) if degrees[j][2] - degrees[j][1] == 1)
     fibre = only(q[j] for j in eachindex(q) if degrees[j][2] - degrees[j][1] == 0)
     a, b = x[2][1], x[3][1]
-    @test iszero(normal(a^2 - base*(b-a)))
-    @test iszero(normal(b*(b-a) - fibre))
+    @test iszero(normal(a^2 - base * (b - a)))
+    @test iszero(normal(b * (b - a) - fibre))
     @test finite_rank(classical(A)) == 4
     @test gw_comparison(A) == :unknown
     # A forced-nonzero arrow gives a point with a nontrivial quasimap degree monoid.
@@ -187,14 +187,14 @@ using Test, QuiverTools, Documenter, Logging
   @testset "Effective degree lattice and monoid kernel" begin
     for d in ([2, 3], [0, 2, 3], [3, 4, 5], [1])
       U = QuiverTools.__qm_degree_lattice(d)
-      @test U * BigInt.(d) == [1; zeros(BigInt, length(d)-1)]
+      @test U * BigInt.(d) == [1; zeros(BigInt, length(d) - 1)]
       @test abs(N.det(N.matrix(N.ZZ, U))) == 1
     end
     R, q = S.polynomial_ring(S.QQ, ["q1", "q2", "q3"])
     relations = QuiverTools.__qm_monoid_relations(R, q,
       [BigInt[1, 0], BigInt[1, 1], BigInt[1, 2]])
     I = S.std(S.Ideal(R, relations))
-    @test iszero(S.reduce(q[1]*q[3] - q[2]^2, I))
+    @test iszero(S.reduce(q[1] * q[3] - q[2]^2, I))
     @test !iszero(S.reduce(q[1] - q[2], I))
     @test (@inferred Union{Nothing,Vector{Int}} QuiverTools.__qm_factor(BigInt[3, 2],
       BigInt(3),
@@ -215,7 +215,7 @@ using Test, QuiverTools, Documenter, Logging
     A = quasimap_quantum_cohomology(M)
     q = novikov_variables(A)
     @test length(q) == 4
-    @test iszero(normal(q[1]*q[4] - q[2]*q[3]))
+    @test iszero(normal(q[1] * q[4] - q[2] * q[3]))
     @test finite_rank(classical(A)) == sum(betti_numbers(M)) == 2
     @test_throws ArgumentError specialize_quantum_parameters(A, [1, 1, 1, 2])
     @test finite_rank(specialize_quantum_parameters(A, [1, 1, 1, 1])) == 2
@@ -241,7 +241,7 @@ using Test, QuiverTools, Documenter, Logging
           end
       end
       # Every effective bounded integral potential splits into effective level cuts.
-      for tail in Iterators.product(fill(-2:2, r-1)...)
+      for tail in Iterators.product(fill(-2:2, r - 1)...)
         k = [0; collect(tail)]
         adjacency = zeros(Int, r, r)
         for (i, j, multiplicity) in edges
@@ -274,11 +274,11 @@ using Test, QuiverTools, Documenter, Logging
     # are classical in index three, so no change of quantum coordinates is needed.
     c, d, q = x[2][2], x[1][2], only(novikov_variables(A))
     published_relations = [
-      hA^4 - 11q*hA + 3c^2 - 9c*d - 3d^2,
-      hA^2*c - 3q*hA - c*d - 3d^2,
-      hA^2*d - 2q*hA - 3d^2,
-      9*(hA*c^2 - q*(4hA^2 - 3c - d)) - 14*(hA*c*d - q*(3hA^2 - c - 3d)),
-      2*(hA*c*d - q*(3hA^2 - c - 3d)) - 3*(hA*d^2 - q*(2hA^2 - 3d)),
+      hA^4 - 11q * hA + 3c^2 - 9c * d - 3d^2,
+      hA^2 * c - 3q * hA - c * d - 3d^2,
+      hA^2 * d - 2q * hA - 3d^2,
+      9 * (hA * c^2 - q * (4hA^2 - 3c - d)) - 14 * (hA * c * d - q * (3hA^2 - c - 3d)),
+      2 * (hA * c * d - q * (3hA^2 - c - 3d)) - 3 * (hA * d^2 - q * (2hA^2 - 3d)),
     ]
     for relation in published_relations
       @test iszero(quantum_normal_form(A, relation))

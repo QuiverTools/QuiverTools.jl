@@ -286,7 +286,8 @@ function quasimap_quantum_cohomology(
   representatives, coordinates, powers = __qm_monoid(M, vertices, cuts, U)
   r, m = length(vertices), length(coordinates)
   verbose &&
-    @info "Effective cut degrees" cuts=cut_count cut_orbits=length(cuts) novikov_generators=m
+    @info "Effective cut degrees" cuts = cut_count cut_orbits = length(cuts) novikov_generators =
+      m
   R, vars = polynomial_ring(Singular.QQ,
     ["xi$i$j" for i in eachindex(M.d) for j in 1:M.d[i]] ∪
     ["q$i" for i in 1:m])
@@ -321,7 +322,7 @@ function quasimap_quantum_cohomology(
     for i in eachindex(M.d) for j in 1:M.d[i]
   ]
   inclusion = Singular.AlgebraHomomorphism(B, R, [images; qvars])
-  verbose && @info "Descending divided alternants" relations=length(alternants)
+  verbose && @info "Descending divided alternants" relations = length(alternants)
   root_ideal = Singular.Ideal(R, isempty(alternants) ? [R(0)] : alternants)
   relations = collect(gens(preimage(inclusion, root_ideal)))
   push!(
