@@ -95,6 +95,13 @@ export teleman_bounds, weights_hn_type, weights_universal_bundle, weights_canoni
   all_weights_endomorphisms_universal_bundle, weights_endomorphisms_universal_bundles,
   does_rigidity_inequality_hold, does_teleman_inequality_hold, set_teleman_weights!
 
+# Quasimap quantum cohomology
+export QuasimapQuantumCohomology, quasimap_quantum_cohomology,
+  quasimap_presentation, novikov_variables, novikov_degrees,
+  quantum_tautological_classes, quantum_normal_form, gw_comparison,
+  specialize_quantum_parameters,
+  quantum_multiplication_matrix
+
 # Bundles
 export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
   det, line_bundle, canonical_bundle, universal_bundle, tangent_bundle, chern_numbers,
@@ -172,6 +179,7 @@ include("Hodge.jl")
 include("Chow.jl")
 include("Teleman.jl")
 include("Bundles.jl")
+include("Quantum.jl")
 include("Deprecated.jl")
 
 # Warm the JIT for the shared Chow/Hodge computation path so the user's first

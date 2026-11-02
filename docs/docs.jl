@@ -31,6 +31,7 @@ makedocs(;
       "Representation theory" => "methods/representation-theory.md",
       "Teleman quantization" => "methods/teleman-quantization.md",
       "Chow rings" => "methods/chow-rings.md",
+      "Quasimap quantum cohomology" => "methods/quantum-cohomology.md",
       "Walls and chamber decompositions" => "methods/walls-and-chambers.md",
     ],
     "Internal methods" => "methods.md",
