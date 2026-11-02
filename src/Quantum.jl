@@ -82,6 +82,18 @@ function __qm_cut_data(M)
   return vertices, edges, cuts
 end
 
+# A Weyl orbit of binary cuts is determined by the number of selected roots
+# in each vertex block. Keep the first cut in each orbit, preserving degree order.
+function __qm_cut_orbits(d, cuts)
+  offsets = cumsum([0; d])
+  indices = unique(eachindex(cuts)) do i
+    k = cuts[i]
+    Tuple(sum(k[j] for j in (offsets[v] + 1):offsets[v + 1]; init=0)
+          for v in eachindex(d))
+  end
+  return cuts[indices]
+end
+
 # Factor an effective monoid element using a finite set of generators. The
 # positive stability height makes this a terminating exact integer search.
 function __qm_factor(target, height, degrees, heights)
@@ -206,12 +218,12 @@ included. The polynomial model can have components away from the formal
 neighborhood of `q = 0`; its specialization at nonzero parameters is not, in
 general, a specialization of the completed algebra.
 
-The algorithm enumerates cuts of the expanded quiver (with `sum(M.d)` vertices)
-and uses a coinvariant basis of size `prod(factorial, M.d)`. Each divided
-alternant is computed by a reduced word of adjacent divided differences,
-without enumerating the Weyl group. The cut enumeration is still exponential
-and the basis size factorial. No extra dependencies or user-supplied effective
-cone are required.
+The algorithm enumerates cuts of the expanded quiver (with `sum(M.d)` vertices),
+retains one cut per Weyl orbit, and uses a coinvariant basis of size
+`prod(factorial, M.d)`. Each divided alternant is computed by a reduced word
+of adjacent divided differences, without enumerating the Weyl group.
+The cut enumeration is still exponential and the basis size factorial.
+No extra dependencies or user-supplied effective cone are required.
 
 # Examples
 
@@ -259,9 +271,12 @@ function quasimap_quantum_cohomology(
   normalization = BigInt.(normalization)
 
   vertices, edges, cuts = __qm_cut_data(M)
+  cut_count = length(cuts)
+  cuts = __qm_cut_orbits(M.d, cuts)
   representatives, coordinates, powers = __qm_monoid(M, vertices, cuts, U)
   r, m = length(vertices), length(coordinates)
-  verbose && @info "Effective cut degrees" cuts=length(cuts) novikov_generators=m
+  verbose &&
+    @info "Effective cut degrees" cuts=cut_count cut_orbits=length(cuts) novikov_generators=m
   R, vars = polynomial_ring(Singular.QQ,
     ["xi$i$j" for i in eachindex(M.d) for j in 1:M.d[i]] ∪
     ["q$i" for i in 1:m])

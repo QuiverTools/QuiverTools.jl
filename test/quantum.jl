@@ -45,6 +45,54 @@
     end
   end
 
+  @testset "Weyl orbits preserve the full relation ideal" begin
+    nonfree = QuiverModuliSpace(Quiver([0 1 1 0; 0 0 1 1; 0 0 0 1; 0 0 0 0]),
+      [1, 1, 1, 2], [6, 3, 1, -5])
+    for M in (QuiverModuliSpace(kronecker_quiver(3), [2, 3]),
+      QuiverModuliSpace(kronecker_quiver(4), [2, 3]),
+      QuiverModuliSpace(kronecker_quiver(6), [1, 3]), nonfree)
+      vertices, edges, cuts = QuiverTools.__qm_cut_data(M)
+      orbit_cuts = QuiverTools.__qm_cut_orbits(M.d, cuts)
+      U = QuiverTools.__qm_degree_lattice(M.d)
+      representatives, coordinates, powers = QuiverTools.__qm_monoid(M, vertices, cuts, U)
+      orbit_representatives, orbit_coordinates, _ = QuiverTools.__qm_monoid(
+        M, vertices, orbit_cuts, U
+      )
+      @test orbit_representatives == representatives
+      @test orbit_coordinates == coordinates
+      @test length(orbit_cuts) < length(cuts)
+      @test all(k -> k in cuts, orbit_cuts)
+      r, m = length(vertices), length(coordinates)
+      R, vars = S.polynomial_ring(S.QQ, ["z$i" for i in 1:r] ∪ ["q$i" for i in 1:m])
+      roots, q = vars[1:r], vars[(r + 1):end]
+      differences, basis = QuiverTools.__qm_weyl_data(M.d, R, roots)
+      coefficients = [M.d[i] + 1 - 2j for i in eachindex(M.d) for j in 1:M.d[i]]
+      original, optimized = typeof(R(0))[], typeof(R(0))[]
+      for (k, exponent) in zip(cuts, powers)
+        positive, negative = R(1), R(1)
+        for (i, j, multiplicity) in edges
+          k[j] > k[i] && (positive *= (roots[j] - roots[i])^multiplicity)
+          k[j] < k[i] && (negative *= (roots[j] - roots[i])^multiplicity)
+        end
+        novikov = prod(q[i]^exponent[i] for i in 1:m; init=R(1))
+        binomial = positive - (-1)^sum(coefficients .* k) * novikov * negative
+        for b in basis
+          f = explicit_alternant(b * binomial, M.d, roots)
+          iszero(f) || push!(original, f)
+          if k in orbit_cuts
+            f = QuiverTools.__qm_divided_alternant(b * binomial, differences)
+            iszero(f) || push!(optimized, f)
+          end
+        end
+      end
+      original_ideal = S.std(S.Ideal(R, original))
+      optimized_ideal = S.std(S.Ideal(R, optimized))
+      @test all(f -> iszero(S.reduce(f, optimized_ideal)), QuiverTools.gens(original_ideal))
+      @test all(f -> iszero(S.reduce(f, original_ideal)), QuiverTools.gens(optimized_ideal))
+    end
+    @test isempty(QuiverTools.__qm_cut_orbits([1], Vector{Int}[]))
+  end
+
   @testset "Projective spaces and nilpotents" begin
     for n in 2:5
       M = QuiverModuliSpace(kronecker_quiver(n), [1, 1])

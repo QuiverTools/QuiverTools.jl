@@ -252,6 +252,11 @@ the presentation.
 Finally the Chern-root polynomial ring is free over the Weyl-invariant ring.
 A coinvariant basis of size ``\prod_i d_i!`` therefore suffices for the factors
 ``g`` in the divided alternants ``\Delta^{-1}\operatorname{Alt}(gB_d)``.
+Cuts in the same Weyl orbit give the same invariant ideal, since a Weyl
+permutation of ``B_d`` can be transferred to the arbitrary multiplier ``g``
+inside alternation, up to its sign.
+It therefore suffices to retain one cut for each tuple of selected-vertex
+counts in the original vertex blocks.
 
 Each divided alternant is computed by composing adjacent divided differences
 along a reduced word for the longest Weyl-group element.
@@ -265,7 +270,7 @@ No root or discriminant is inverted.
 The cut enumeration is exponential in ``\sum_i d_i`` and alternation is
 still factorial in the vertex dimensions through the coinvariant basis size.
 The interface is general; large dimension vectors can still be impractical.
-Use `verbose=true` to see the cut count and relation-generation stage.
+Use `verbose=true` to see the cut count, Weyl-orbit count, and relation-generation stage.
 
 ## Reference
 
