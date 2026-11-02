@@ -252,11 +252,18 @@ the presentation.
 Finally the Chern-root polynomial ring is free over the Weyl-invariant ring.
 A coinvariant basis of size ``\prod_i d_i!`` therefore suffices for the factors
 ``g`` in the divided alternants ``\Delta^{-1}\operatorname{Alt}(gB_d)``.
-Exact polynomial division is used, followed by descent to Chern generators.
-This is different from localizing at ``\Delta``.
+
+Each divided alternant is computed by composing adjacent divided differences
+along a reduced word for the longest Weyl-group element.
+For the discriminant convention above, an adjacent operator is
+``f\mapsto(f-s_i f)/(\xi_{i+1}-\xi_i)``.
+This uses ``\sum_i d_i(d_i-1)/2`` operators instead of summing over the full
+Weyl group for each basis element.
+Every polynomial division is exact, followed by descent to Chern generators.
+No root or discriminant is inverted.
 
 The cut enumeration is exponential in ``\sum_i d_i`` and alternation is
-factorial in the vertex dimensions.
+still factorial in the vertex dimensions through the coinvariant basis size.
 The interface is general; large dimension vectors can still be impractical.
 Use `verbose=true` to see the cut count and relation-generation stage.
 

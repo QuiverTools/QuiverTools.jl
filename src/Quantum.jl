@@ -149,37 +149,39 @@ function __qm_monoid_relations(R, qvars, coordinates)
   return [inclusion(f) for f in gens(kernel)]
 end
 
-function __qm_weyl_data(d, R, roots, qvars)
-  blocks = [collect((sum(d[1:(i - 1)]) + 1):sum(d[1:i])) for i in eachindex(d)]
-  W = Iterators.product([permutations(block) for block in blocks]...)
-  permutations_and_signs = [
-    (vcat(w..., collect((length(roots) + 1):(length(roots) + length(qvars)))),
-      prod(sign(Singular.perm(sortperm(b))) for b in w; init=1)) for w in W
-  ]
-  delta = prod(
-    roots[j] - roots[i] for block in blocks for i in block for j in block
-                                                               if i < j; init=R(1))
-  bounds = [0:(length(block) - j) for block in blocks for j in eachindex(block)]
+function __qm_weyl_data(d, R, roots)
+  # A reduced word for the longest element in each symmetric-group block.
+  word = Int[]
+  offset = 0
+  for n in d
+    for j in 1:(n - 1), i in j:-1:1
+      push!(word, offset + i)
+    end
+    offset += n
+  end
+  differences = [(i, roots[i + 1] - roots[i]) for i in word]
+  bounds = [0:(n - j) for n in d for j in 1:n]
   basis = [
     prod(roots[i]^e[i] for i in eachindex(roots); init=R(1))
     for e in Iterators.product(bounds...)
   ]
-  return permutations_and_signs, delta, basis
+  return differences, basis
 end
 
-function __qm_divided_alternant(f, W, delta)
+# The longest divided difference is Alt(f)/prod(x_j-x_i), with i < j in
+# each block. Every division is exact; no root or discriminant is inverted.
+function __qm_divided_alternant(f, differences)
   R = parent(f)
-  alternating = R(0)
-  for (permutation, sign) in W
+  for (i, divisor) in differences
+    iszero(f) && return f
     context = Singular.MPolyBuildCtx(R)
     for (c, e) in zip(Singular.coefficients(f), Singular.exponent_vectors(f))
-      Singular.push_term!(context, sign * c, e[permutation])
+      e[i], e[i + 1] = e[i + 1], e[i]
+      Singular.push_term!(context, c, e)
     end
-    # Separate builders keep exponents distinct. Singular's low-level builder
-    # does not combine duplicate monomials contributed by different permutations.
-    alternating += Singular.finish(context)
+    f = Singular.divexact(f - Singular.finish(context), divisor)
   end
-  return Singular.divexact(alternating, delta)
+  return f
 end
 
 """
@@ -205,9 +207,11 @@ neighborhood of `q = 0`; its specialization at nonzero parameters is not, in
 general, a specialization of the completed algebra.
 
 The algorithm enumerates cuts of the expanded quiver (with `sum(M.d)` vertices)
-and a basis of size `prod(factorial, M.d)` for divided alternation. Its cost is
-exponential and factorial in these sizes, respectively. No extra dependencies
-or user-supplied effective cone are required.
+and uses a coinvariant basis of size `prod(factorial, M.d)`. Each divided
+alternant is computed by a reduced word of adjacent divided differences,
+without enumerating the Weyl group. The cut enumeration is still exponential
+and the basis size factorial. No extra dependencies or user-supplied effective
+cone are required.
 
 # Examples
 
@@ -262,7 +266,7 @@ function quasimap_quantum_cohomology(
     ["xi$i$j" for i in eachindex(M.d) for j in 1:M.d[i]] ∪
     ["q$i" for i in 1:m])
   roots, qvars = vars[1:r], vars[(r + 1):end]
-  W, delta, basis = __qm_weyl_data(M.d, R, roots, qvars)
+  differences, basis = __qm_weyl_data(M.d, R, roots)
   alternants = typeof(R(0))[]
   root_coefficients = [M.d[i] + 1 - 2j for i in eachindex(M.d) for j in 1:M.d[i]]
   for (k, exponent) in zip(cuts, powers)
@@ -279,7 +283,7 @@ function quasimap_quantum_cohomology(
     root_sign = isodd(sum(root_coefficients .* k)) ? -1 : 1
     binomial = positive - root_sign * novikov * negative
     for b in basis
-      f = __qm_divided_alternant(b * binomial, W, delta)
+      f = __qm_divided_alternant(b * binomial, differences)
       iszero(f) || push!(alternants, f)
     end
   end

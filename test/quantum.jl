@@ -5,6 +5,46 @@
   finite_rank(R) = length(QuiverTools.gens(S.kbase(QuiverTools.quotient_ideal(R))))
   classical(A) = specialize_quantum_parameters(A, zeros(Int, length(novikov_variables(A))))
 
+  # Independent reference for the reduced-word implementation: explicitly sum
+  # over the Weyl group and divide by its discriminant.
+  function explicit_alternant(f, d, roots)
+    R = parent(f)
+    offsets = cumsum([0; d])
+    blocks = [collect((offsets[i] + 1):offsets[i + 1]) for i in eachindex(d)]
+    delta = prod(
+      roots[j] - roots[i]
+      for block in blocks for i in block for j in block if i < j; init=R(1))
+    alternating = R(0)
+    for w in Iterators.product([QuiverTools.permutations(block) for block in blocks]...)
+      permutation = [vcat(w...); collect((length(roots) + 1):length(QuiverTools.gens(R)))]
+      weyl_sign = prod(sign(S.perm(sortperm(block))) for block in w; init=1)
+      context = S.MPolyBuildCtx(R)
+      for (c, e) in zip(S.coefficients(f), S.exponent_vectors(f))
+        S.push_term!(context, weyl_sign * c, e[permutation])
+      end
+      alternating += S.finish(context)
+    end
+    return S.divexact(alternating, delta)
+  end
+
+  @testset "Reduced-word divided alternants" begin
+    for d in ([1], [0, 2, 1], [3], [2, 3])
+      r = sum(d)
+      R, vars = S.polynomial_ring(S.QQ, ["z$i" for i in 1:r] ∪ ["q1", "q2"])
+      roots, q = vars[1:r], vars[(r + 1):end]
+      differences, basis = QuiverTools.__qm_weyl_data(d, R, roots)
+      @test length(differences) == sum(n * (n - 1) ÷ 2 for n in d)
+      f =
+        sum(i * roots[i]^(i + 1) for i in 1:r; init=R(0)) +
+        q[1] * prod(roots[i]^(i - 1) for i in 1:r; init=R(1)) + q[2]^2
+      for b in basis
+        @test QuiverTools.__qm_divided_alternant(b * f, differences) ==
+          explicit_alternant(b * f, d, roots)
+      end
+      @test iszero(QuiverTools.__qm_divided_alternant(R(0), differences))
+    end
+  end
+
   @testset "Projective spaces and nilpotents" begin
     for n in 2:5
       M = QuiverModuliSpace(kronecker_quiver(n), [1, 1])
