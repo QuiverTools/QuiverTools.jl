@@ -188,12 +188,17 @@
     I = S.std(S.Ideal(R, relations))
     @test iszero(S.reduce(q[1]*q[3] - q[2]^2, I))
     @test !iszero(S.reduce(q[1] - q[2], I))
-    @test QuiverTools.__qm_factor(BigInt[3, 2], BigInt(3),
-      [BigInt[1, 0], BigInt[1, 1]], BigInt[1, 1]) == [1, 2]
-    @test isnothing(
-      QuiverTools.__qm_factor(BigInt[1, 2], BigInt(1),
-        [BigInt[1, 0], BigInt[1, 1]], BigInt[1, 1]),
-    )
+    @test (@inferred Union{Nothing,Vector{Int}} QuiverTools.__qm_factor(BigInt[3, 2],
+      BigInt(3),
+      [BigInt[1, 0], BigInt[1, 1]], BigInt[1, 1])) == [1, 2]
+    @test (@inferred Union{Nothing,Vector{Int}} QuiverTools.__qm_factor_tuple(
+      (big(3), big(2)), BigInt(3),
+      [BigInt[1, 0], BigInt[1, 1]], BigInt[1, 1])) == [1, 2]
+    @test isnothing((@inferred Union{Nothing,Vector{Int}} QuiverTools.__qm_factor(
+      BigInt[1, 2], BigInt(1),
+      [BigInt[1, 0], BigInt[1, 1]], BigInt[1, 1])))
+    @test (@inferred Union{Nothing,Vector{Int}} QuiverTools.__qm_factor(BigInt[], big(0),
+      Vector{BigInt}[], BigInt[])) == Int[]
   end
 
   @testset "A nonfree Novikov monoid" begin

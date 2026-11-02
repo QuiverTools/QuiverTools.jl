@@ -96,21 +96,31 @@ end
 
 # Factor an effective monoid element using a finite set of generators. The
 # positive stability height makes this a terminating exact integer search.
-function __qm_factor(target, height, degrees, heights)
-  memo = Dict{Tuple{Int,Tuple},Union{Nothing,Vector{Int}}}()
-  function search(v, h, j)
-    all(iszero, v) && return zeros(Int, j)
-    j == 0 && return nothing
-    key = (j, Tuple(v))
-    return get!(memo, key) do
-      for power in 0:Int(h ÷ heights[j])
-        answer = search(v - power * degrees[j], h - power * heights[j], j - 1)
-        isnothing(answer) || return [answer; power]
-      end
-      nothing
+function __qm_factor(target, height, degrees, heights)::Union{Nothing,Vector{Int}}
+  return __qm_factor_tuple(Tuple(target), height, degrees, heights)
+end
+
+function __qm_factor_tuple(target::NTuple{N,BigInt}, height, degrees, heights) where {N}
+  memo = Dict{Tuple{Int,NTuple{N,BigInt}},Union{Nothing,Vector{Int}}}()
+  return __qm_factor_search(target, height, length(degrees), degrees, heights, memo)
+end
+
+function __qm_factor_search(v::NTuple{N,BigInt}, h, j, degrees, heights, memo) where {N}
+  all(iszero, v) && return zeros(Int, j)
+  j == 0 && return nothing
+  key = (j, v)
+  haskey(memo, key) && return memo[key]
+  for power in 0:Int(h ÷ heights[j])
+    remainder = ntuple(i -> v[i] - power * degrees[j][i], Val(N))
+    answer = __qm_factor_search(remainder, h - power * heights[j], j - 1,
+      degrees, heights, memo)
+    if !isnothing(answer)
+      memo[key] = [answer; power]
+      return memo[key]
     end
   end
-  return search(target, height, length(degrees))
+  memo[key] = nothing
+  return nothing
 end
 
 function __qm_monoid(M, vertices, cuts, U)
