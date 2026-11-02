@@ -1,6 +1,6 @@
 ###############################################################################
 # Quasimap quantum cohomology of acyclic quiver moduli.
-# Zhang--Zhou, arXiv:2511.09875, Theorem 2.24.
+# Zhang--Zhou, arXiv:2511.09875v2, Theorem 2.22.
 # See the manual for the finite cut-degree reduction and completion convention.
 ###############################################################################
 
@@ -211,7 +211,7 @@ end
 
 Compute an exact polynomial presentation of quasimap quantum cohomology over
 the effective integral Novikov monoid. Its Novikov completion is the algebra
-of Zhang--Zhou, [arXiv:2511.09875](https://arxiv.org/abs/2511.09875), Theorem 2.24.
+of Zhang--Zhou, [arXiv:2511.09875v2](https://arxiv.org/abs/2511.09875v2), Theorem 2.22.
 This is not a degree truncation or a computation on the regular Bethe locus.
 
 The quiver must be acyclic, the dimension vector nonnegative and indivisible,

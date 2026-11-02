@@ -8,7 +8,7 @@ DocTestSetup = :(using QuiverTools)
 QuiverTools computes a finite polynomial presentation whose completion in the
 effective Novikov monoid is the quasimap quantum cohomology of a smooth projective
 quiver moduli space.
-The construction uses [Zhang--Zhou, Theorem 2.24](https://arxiv.org/abs/2511.09875).
+The construction uses [Zhang--Zhou, Theorem 2.22](https://arxiv.org/abs/2511.09875v2).
 It works over the rational numbers, without enumerating quantum points or assuming
 semisimplicity.
 
