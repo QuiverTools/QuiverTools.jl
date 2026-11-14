@@ -5,6 +5,11 @@ These measurements do not establish correctness or a uniform performance improve
 The proof and geometric hypotheses are in
 [the experimental documentation](../docs/src/experimental-chow.md).
 
+The stored measurements below precede the code cleanup and were taken at
+[`5b64f80`](https://github.com/QuiverTools/QuiverTools.jl/commit/5b64f80293038e39c61283f116656a5225a21caa).
+Check out that commit to reproduce this table; running the scripts on the
+current branch measures the revised implementation.
+
 Measured 2026-11-14 on Apple M4, arm64, Julia 1.13.0,
 Singular.jl 0.28.15, one Julia thread.
 The reference is the unchanged `:weyl` backend from
@@ -70,9 +75,9 @@ For both rank $(5,5,2)$ examples, tests separately check the graded dimensions
 `[1,2,4,4,4,4,2,1]` and certified stopping at Schur degree one.
 The old implementation did not finish on the two rank $(5,5,2)$ examples or
 the 3-Kronecker $(3,5)$ example, so no whole-ideal comparison with it is claimed there.
-`benchmark/compare_chow.jl` checks exact equality for all six distinct models
-on which the reference completed, outside the timing runs.
-The smaller tests compare complete ideals and known Chern numbers.
+`test/runtests.jl` checks exact equality for all six distinct benchmark models
+on which the reference completed, alongside the other stability, operator and
+Chern-number checks. Run these separately from the timing measurements.
 
 ## Reproduce
 
@@ -86,7 +91,7 @@ Python 3.11 or newer is needed for the TOML reader in the summarizer.
 ```sh
 python3 benchmark/run_chow.py --julia /path/to/julia --timeout 120
 python3 benchmark/summarize_chow.py
-/path/to/julia --startup-file=no --project=. benchmark/compare_chow.jl
+/path/to/julia --startup-file=no --project=. -e 'using Pkg; Pkg.test()'
 ```
 
 Generated logs and TOML samples are ignored in `benchmark/raw/`.

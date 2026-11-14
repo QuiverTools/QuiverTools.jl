@@ -7,13 +7,26 @@
 The default algorithm is `:weyl`.
 Use the parabolic algorithm on a fresh moduli object:
 
-```julia
-M = QuiverModuliSpace(kronecker_quiver(3), [2, 3])
-chow_ring(M; algorithm=:experimental_parabolic)
-chern_numbers(M)
+```jldoctest
+julia> using QuiverTools
+
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
+
+julia> CH = chow_ring(M; algorithm=:experimental_parabolic);
+
+julia> numbers = chern_numbers(M); (numbers["c_1^6"], numbers["c_6"])
+(41553, 13)
+
+julia> chow_ring(M; algorithm=:weyl) === CH
+true
 ```
 
-An existing cached ring is reused, regardless of the algorithm keyword.
+An existing cached ring is reused when the normalization `chi` is unchanged,
+regardless of `algorithm` or `adaptive`.
+Changing `chi` rebuilds the ring and clears the cached point and Todd classes.
+To compare presentations, construct a fresh moduli object for each algorithm.
+Bundle and integration methods use whichever presentation is stored on that object.
+
 Use `adaptive=false` to compute the full parabolic generating set in the relevant degrees,
 without early stopping.
 Both experimental modes impose the dimension truncation proved below.
@@ -25,6 +38,50 @@ with stable equal to semistable and the quiver acyclic on the support of $d$.
 Theta-coprimality is a sufficient condition.
 Zero-dimensional vertex spaces are removed for the independent Betti computation.
 The reduction applies in any dimension and for any stability parameter satisfying these assumptions.
+
+## Choosing an algorithm
+
+| Keywords | Relations | Completeness check |
+|:--|:--|:--|
+| `algorithm=:weyl` | Full Weyl-module basis, followed by elimination | Existing tautological presentation |
+| `algorithm=:experimental_parabolic` | Parabolic Schur bases, in increasing Schur degree | Independent Betti numbers |
+| `algorithm=:experimental_parabolic, adaptive=false` | Full parabolic Schur bases in the relevant degrees | Exhaustion of those bases |
+
+There is no automatic selection.
+The reduction in the number of basis elements helps when the vertex ranks are large.
+It does not by itself predict the running time:
+the dimension truncation can introduce many monomials, and adaptive mode also computes Betti numbers.
+For example, the Weyl algorithm is faster on the 3-Kronecker sixfold above,
+while the parabolic algorithm is faster on the measured rank $(5,5,2)$ sevenfolds.
+The benchmark report below gives both improvements and regressions.
+
+## Implementation
+
+The implementation follows these steps:
+
+1. Keep the existing minimal forbidden vectors and normalization of the universal bundles.
+2. Add the minimal monomial generators in degrees above the dimension.
+3. For each forbidden vector, enumerate the rectangular partition bases at its vertices.
+   Their Cartesian product is lazy.
+4. Evaluate the parabolic and remaining divided differences.
+   Coefficients stay in Singular's rational field throughout.
+5. Normalize nonzero relations, discard duplicates using polynomial equality,
+   and express them in elementary symmetric polynomials.
+6. Compute a Gröbner basis.
+   In adaptive mode, count standard monomials and compare with the independently computed Betti numbers;
+   continue to the next Schur degree if they differ.
+
+The internal routines are documented in the API reference:
+[`QuiverTools.__chow_divided_difference`](@ref),
+[`QuiverTools.__chow_divided_alternant`](@ref),
+[`QuiverTools.__chow_parabolic_monomials`](@ref),
+[`QuiverTools.__chow_parabolic_alternant`](@ref),
+[`QuiverTools.__chow_elementary_expression`](@ref),
+[`QuiverTools.__chow_truncation_relations`](@ref), and
+[`QuiverTools.__chow_graded_dimensions`](@ref).
+[`QuiverTools.__chow_ring_parabolic`](@ref) assembles the presentation and returns the stopping data used by the tests.
+The public quiver-level `chow_ring` method returns its usual presentation tuple;
+the moduli-level method stores the presentation on the moduli object.
 
 ## Parabolic reduction
 
@@ -178,6 +235,25 @@ The code adds just their minimal monomial generators;
 these have degrees between $N+1$ and $N+\max_i d_i$.
 A larger minimal generator would still have degree greater than $N$ after removing
 any variable dividing it, contradicting minimality.
+
+For a fixed forbidden vector, write $F_e=\deg(f_e)$,
+$D_H=\deg(\Delta_H)$ and $D_W=\deg(\Delta_W)$.
+The monomial lifting a Schur basis element of degree $s$ has degree $D_H+s$.
+Its divided alternant therefore has degree $F_e+D_H+s-D_W$, if it is nonzero.
+The rectangle bases have maximum Schur degree $\sum_i e_i(d_i-e_i)$,
+so only the following degrees can contribute:
+
+```math
+\begin{equation}\label{equation:schur-degree-bound}
+0\leq s\leq
+\min\left\{\sum_i e_i(d_i-e_i),\ N+D_W-F_e-D_H\right\}.
+\end{equation}
+```
+
+A negative upper bound discards that forbidden vector entirely.
+This bound applies to the Schur degree, rather than the degree of its lifting monomial,
+and can exceed $N$ because the transfer lowers degree.
+It is used in both experimental modes.
 
 At an intermediate Schur degree, every computed relation is already proved to
 lie in $K$.

@@ -1,4 +1,5 @@
 """Collect run_chow.py output into the checked-in experimental report."""
+
 from datetime import date
 import json
 import math
@@ -14,16 +15,29 @@ for record in records:
     stem = f"{record['case']}_{record['algorithm']}.toml"
     record["measurement"] = tomllib.loads((raw / stem).read_text())
     record["phase"] = Path(str(raw / stem) + ".phase").read_text()
-result = dict(date=str(date.today()),
-              reference_commit=subprocess.check_output(
-                  ["git", "rev-parse", "main"], cwd=root, text=True).strip(),
-              resolved_dependencies={name: [{key: entry[key] for key in
-                  ("uuid", "version", "git-tree-sha1") if key in entry}
-                  for entry in entries] for name, entries in
-                  tomllib.loads((root / "Manifest.toml").read_text())["deps"].items()},
-              records=records)
+result = dict(
+    date=str(date.today()),
+    reference_commit=subprocess.check_output(
+        ["git", "rev-parse", "main"], cwd=root, text=True
+    ).strip(),
+    resolved_dependencies={
+        name: [
+            {
+                key: entry[key]
+                for key in ("uuid", "version", "git-tree-sha1")
+                if key in entry
+            }
+            for entry in entries
+        ]
+        for name, entries in tomllib.loads((root / "Manifest.toml").read_text())[
+            "deps"
+        ].items()
+    },
+    records=records,
+)
 (root / "benchmark/parabolic-chow-results.json").write_text(
-    json.dumps(result, indent=2) + "\n")
+    json.dumps(result, indent=2) + "\n"
+)
 
 lookup = {(r["case"], r["algorithm"]): r for r in records}
 labels = {
@@ -39,6 +53,8 @@ labels = {
     "K3_23_chern": "3-Kronecker $(2,3)$, all Chern numbers",
     "subspace7_chern": "Seven-subspace fourfold, all Chern numbers",
 }
+
+
 def first(record):
     samples = record["measurement"]["samples"]
     if samples:
@@ -46,9 +62,15 @@ def first(record):
     assert record["status"] == "timeout" and record["phase"] == "trial=0"
     return f">{record['timeout_seconds']:g} (timeout)"
 
+
 def warm(record):
     samples = record["measurement"]["samples"][1:]
-    return f"{1000 * statistics.median(s['seconds'] for s in samples):.6g}" if samples else "—"
+    return (
+        f"{1000 * statistics.median(s['seconds'] for s in samples):.6g}"
+        if samples
+        else "—"
+    )
+
 
 rows = []
 for case, label in labels.items():
@@ -58,20 +80,23 @@ for case, label in labels.items():
     old_dims = [s["chow_total_dimension"] for s in old["measurement"]["samples"]]
     new_dims = [s["chow_total_dimension"] for s in new["measurement"]["samples"]]
     assert len(set(old_dims + new_dims)) == 1
-    rows.append(f"| {label} | {first(old)} | {first(new)} | {warm(old)} | {warm(new)} |")
+    rows.append(
+        f"| {label} | {first(old)} | {first(new)} | {warm(old)} | {warm(new)} |"
+    )
 
 env = records[0]["measurement"]
-text = f"""# Experimental parabolic Chow benchmark
+text = (
+    f"""# Experimental parabolic Chow benchmark
 
 **LLM-suggested experiment; careful independent checking is required.**
 These measurements do not establish correctness or a uniform performance improvement.
 The proof and geometric hypotheses are in
 [the experimental documentation](../docs/src/experimental-chow.md).
 
-Measured {result['date']} on {env['cpu']}, arm64, Julia {env['julia']},
-Singular.jl {env['singular']}, one Julia thread.
+Measured {result["date"]} on {env["cpu"]}, arm64, Julia {env["julia"]},
+Singular.jl {env["singular"]}, one Julia thread.
 The reference is the unchanged `:weyl` backend from
-`{result['reference_commit']}`.
+`{result["reference_commit"]}`.
 The experimental backend uses `adaptive=true`.
 No tests or other Julia jobs were run concurrently with these serial measurements.
 
@@ -94,17 +119,27 @@ All other rows measure ring construction alone.
 
 | Model / computation | Weyl first (s) | Experimental first (s) | Weyl warm median (ms) | Experimental warm median (ms) |
 |---|---:|---:|---:|---:|
-""" + "\n".join(rows) + "\n\n"
+"""
+    + "\n".join(rows)
+    + "\n\n"
+)
 for case in ("chain_552", "fork_552", "K3_35"):
     old, new = lookup[case, "weyl"], lookup[case, "experimental_parabolic"]
     if old["status"] == "timeout" and old["phase"] == "trial=0":
         seconds = new["measurement"]["samples"][0]["seconds"]
-        allocated = statistics.median(s["julia_bytes"] for s in new["measurement"]["samples"][1:]) / 1e9
-        text += (f"For **{labels[case]}**, the reference was still inside the first timed "
-                 f"construction at the {old['timeout_seconds']:g}-second deadline. "
-                 f"The first-call speedup is therefore **greater than {math.floor(100 * old['timeout_seconds'] / seconds) / 100:g}×**; "
-                 f"the exact speedup is unknown. The experimental warm constructions allocated "
-                 f"about {allocated:.2f} GB cumulatively in Julia per call.\n\n")
+        allocated = (
+            statistics.median(
+                s["julia_bytes"] for s in new["measurement"]["samples"][1:]
+            )
+            / 1e9
+        )
+        text += (
+            f"For **{labels[case]}**, the reference was still inside the first timed "
+            f"construction at the {old['timeout_seconds']:g}-second deadline. "
+            f"The first-call speedup is therefore **greater than {math.floor(100 * old['timeout_seconds'] / seconds) / 100:g}×**; "
+            f"the exact speedup is unknown. The experimental warm constructions allocated "
+            f"about {allocated:.2f} GB cumulatively in Julia per call.\n\n"
+        )
 text += """These are cumulative allocation counts, not peak resident memory.
 Native Singular allocations and peak memory were not measured.
 The small reference cases regress; their reference runtimes are already very small,
@@ -126,9 +161,9 @@ For both rank $(5,5,2)$ examples, tests separately check the graded dimensions
 `[1,2,4,4,4,4,2,1]` and certified stopping at Schur degree one.
 The old implementation did not finish on the two rank $(5,5,2)$ examples or
 the 3-Kronecker $(3,5)$ example, so no whole-ideal comparison with it is claimed there.
-`benchmark/compare_chow.jl` checks exact equality for all six distinct models
-on which the reference completed, outside the timing runs.
-The smaller tests compare complete ideals and known Chern numbers.
+`test/runtests.jl` checks exact equality for all six distinct benchmark models
+on which the reference completed, alongside the other stability, operator and
+Chern-number checks. Run these separately from the timing measurements.
 
 ## Reproduce
 
@@ -142,7 +177,7 @@ Python 3.11 or newer is needed for the TOML reader in the summarizer.
 ```sh
 python3 benchmark/run_chow.py --julia /path/to/julia --timeout 120
 python3 benchmark/summarize_chow.py
-/path/to/julia --startup-file=no --project=. benchmark/compare_chow.jl
+/path/to/julia --startup-file=no --project=. -e 'using Pkg; Pkg.test()'
 ```
 
 Generated logs and TOML samples are ignored in `benchmark/raw/`.
