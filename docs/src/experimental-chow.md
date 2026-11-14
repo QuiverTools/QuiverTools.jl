@@ -55,6 +55,19 @@ For example, the Weyl algorithm is faster on the 3-Kronecker sixfold above,
 while the parabolic algorithm is faster on the measured rank $(5,5,2)$ sevenfolds.
 The benchmark report below gives both improvements and regressions.
 
+The updated measurements also test the proposed score $S=FW^2/B$,
+where $W=\prod_i d_i!$, $F$ counts minimal forbidden vectors,
+and $B$ counts the minimal weighted monomials above the dimension before normalization.
+A single cutoff at 32 does not predict the winner reliably near the boundary.
+Five of six additional examples expose warm parabolic wins below 32,
+while a cache-cleared warm parabolic call on 5-Kronecker $(2,5)$ exceeds 30 seconds at score 19.34.
+Weyl takes about 10.45 seconds there.
+The current data suggest Weyl below 16 and parabolic above 32 as provisional starting points,
+with scores 16–32 left for direct comparison.
+These are timing observations for the measured implementations, rather than a general complexity bound.
+First-call choices can differ because of compilation.
+The full tables, the one-call warm bound, and the preselected checks are in the benchmark report.
+
 ## Implementation
 
 The implementation follows these steps:
