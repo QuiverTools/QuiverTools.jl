@@ -1,13 +1,11 @@
 # Experimental parabolic Chow relations
 
-!!! warning "LLM-suggested experiment: independent review required"
-    This optimization was suggested and implemented with an LLM.
-    The argument below, its geometric hypotheses, the operator conventions,
-    the implementation, and the benchmarks need careful independent checking.
-    This is not a claim of a new theorem or a production-ready replacement.
-    The existing Weyl implementation remains the default.
+!!! warning "Experimental"
+    This is an LLM-suggested optimization.
+    The proof and code need careful checking.
 
-Opt in on a fresh moduli object:
+The default algorithm is `:weyl`.
+Use the parabolic algorithm on a fresh moduli object:
 
 ```julia
 M = QuiverModuliSpace(kronecker_quiver(3), [2, 3])
@@ -17,20 +15,18 @@ chern_numbers(M)
 
 An existing cached ring is reused, regardless of the algorithm keyword.
 Use `adaptive=false` to compute the full parabolic generating set in the relevant degrees,
-without the early stopping certificate.
+without early stopping.
 Both experimental modes impose the dimension truncation proved below.
 The existing stability checks are retained;
 `unsafe=true` makes the caller responsible for the geometric hypotheses.
 
-The intended setting is a nonempty, smooth, projective, fine moduli space of stable
-representations of a quiver acyclic on the support of $d$, with stable equal to semistable.
+Assume a nonempty, smooth, projective, fine moduli space of stable representations,
+with stable equal to semistable and the quiver acyclic on the support of $d$.
 Theta-coprimality is a sufficient condition.
 Zero-dimensional vertex spaces are removed for the independent Betti computation.
-The argument is not specific to Fano varieties, fourfolds, canonical stability,
-or complete intersections.
-It concerns rational Chow rings, not quantum periods.
+The reduction applies in any dimension and for any stability parameter satisfying these assumptions.
 
-## Proposition: the smaller module gives exactly the same relations
+## Parabolic reduction
 
 Work over the rationals, and write
 
@@ -107,7 +103,6 @@ For a single block of rank $a+b$, the invariant ring
 $\mathbb Q[x_1,\ldots,x_{a+b}]^{S_a\times S_b}$ is a free module over the
 fully symmetric ring, with basis $s_\lambda(x_1,\ldots,x_a)$ for
 $\lambda\subseteq(b^a)$.
-Here is the standard Grassmann bundle justification of the precise basis being used.
 The invariant ring has the presentation by the Chern classes of two bundles of
 ranks $a,b$, with the identity $c(U)c(V)=c(E)$ over the ring of the Chern classes of $E$.
 This is the equivariant Chow presentation of the Grassmann bundle of $a$-planes
@@ -115,9 +110,8 @@ in a universal rank $a+b$ bundle.
 The Grassmann bundle formula gives a free module over the base, with the Schur
 classes of the rank $a$ tautological bundle indexed by that rectangle as a basis
 (up to the harmless dual-bundle signs).
-One can apply this to finite-dimensional Grassmannian approximations to the
-classifying spaces in every fixed degree, so the statement is an identity of
-polynomial invariant rings, rather than a specialization at a particular bundle.
+Applying the formula to finite-dimensional Grassmannian approximations of the
+classifying spaces gives the invariant-ring statement in every degree.
 Taking the product over vertices gives the displayed $A$-basis of $R^H$.
 Both $p_W$ and $T$ are $A$-linear.
 Surjectivity of $p_H$ and the factorization therefore prove the equality of modules
@@ -126,11 +120,9 @@ and hence of the ideals they generate. $\square$
 Franzen's tautological presentation identifies the Chow ideal with the sum of
 these modules, together with the linear relation normalizing the universal bundles.
 The existing selection of minimal forbidden vectors is unchanged.
-Consequently the reduction changes the generating set, not the ideal.
 The freedom to choose bases adapted to the forbidden vector already occurs in
 [Franzen, Theorem 3.1 and its following remark, arXiv:1307.3066](https://arxiv.org/abs/1307.3066).
 See also [Belmans–Franzen, Section 2.2, arXiv:2307.01711](https://arxiv.org/abs/2307.01711).
-No mathematical novelty is asserted here.
 
 ## Realization by divided differences
 
@@ -175,7 +167,7 @@ differences has exactly that leading monomial, with coefficient one.
 Subtraction strictly lowers the leading monomial in a fixed finite degree, proving
 termination and the claimed expression without elimination.
 
-## Dimension truncation and the early stopping certificate
+## Truncation and stopping
 
 Let $N=1-\langle d,d\rangle$ be the dimension in the stated geometric setting,
 and let $K\subset A$ be the true Chow ideal, including the normalization relation.
@@ -210,24 +202,13 @@ would not suffice.
 The implementation raises an error if any count is too small or the full relevant
 set of relations does not attain the expected counts.
 
-## Scope, review, and measurements
+## Benchmarks
 
-This is a separate, opt-in backend.
-It combines the parabolic module reduction, divided differences, constructive
-symmetric conversion, dimension truncation, and the optional Hilbert certificate.
-Timings measure the combination, not the basis reduction in isolation.
-The independent certificate checks completeness, but cannot by itself establish
-that a buggy computed relation lies in the true kernel.
-Whole-ideal comparisons and operator tests provide additional evidence;
-they do not replace independent review of the proof and implementation.
+The timings include the parabolic reduction, divided differences, conversion to
+elementary symmetric polynomials, truncation, and the Betti computation.
+The smaller reference examples are slower with this algorithm.
+See [the measurements and reproduction instructions](https://github.com/QuiverTools/QuiverTools.jl/blob/experimental/llm-parabolic-chow/benchmark/parabolic-chow.md).
 
-Particular review targets are coset/operator signs and order, the Grassmann module
-basis, the precise stability hypotheses, the inclusion underlying the stopping
-certificate, and coefficient conversion in Singular.
-Large or nonprojective spaces, positive characteristic, stacks, singular quotients,
-and integral Chow rings are outside the claims here.
-No uniform runtime improvement is claimed: the Betti and Gröbner computations
-can themselves be expensive, and small examples can regress.
-
-See the reproducible experiment and measured results in
-[`benchmark/parabolic-chow.md`](https://github.com/QuiverTools/QuiverTools.jl/blob/experimental/llm-parabolic-chow/benchmark/parabolic-chow.md).
+The Hilbert check proves completeness once the relations are known to be valid.
+Their validity depends on the transfer calculation above and its implementation;
+the operator and whole-ideal tests check this on the listed examples.
