@@ -57,8 +57,8 @@ $\xi_{i,s}-\xi_{i,r}$ for $r<s$ within its blocks, and set
 
 ```math
 \begin{equation}\label{equation:alternating-transfer}
-p_G(g)=\frac{\operatorname{Alt}_G(g)}{\Delta_G},\qquad
-\operatorname{Alt}_G(g)=\sum_{w\in G}\operatorname{sgn}(w)w(g).
+p_G(g)=\frac{\mathrm{Alt}_G(g)}{\Delta_G},\qquad
+\mathrm{Alt}_G(g)=\sum_{w\in G}\mathrm{sgn}(w)w(g).
 \end{equation}
 ```
 
@@ -69,7 +69,7 @@ Define the relative transfer, using representatives for the cosets $wH$ in $W/H$
 ```math
 \begin{equation}\label{equation:relative-transfer}
 T(h)=\frac{1}{\Delta_W}
-\sum_{w\in W/H}\operatorname{sgn}(w)w(\Delta_Hh),\qquad h\in R^H.
+\sum_{w\in W/H}\mathrm{sgn}(w)w(\Delta_Hh),\qquad h\in R^H.
 \end{equation}
 ```
 
@@ -193,7 +193,7 @@ Thus its ideal $J$ satisfies $J\subseteq K$, and there is a graded surjection
 
 ```math
 \begin{equation}\label{equation:certified-surjection}
-A/J\twoheadrightarrow A/K=\operatorname{CH}^*(M)_{\mathbb Q}.
+A/J\twoheadrightarrow A/K=\mathrm{CH}^*(M)_{\mathbb Q}.
 \end{equation}
 ```
 
