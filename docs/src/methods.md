@@ -10,6 +10,17 @@ and are not intended to be accessed directly by the user.
 ```@docs
 QuiverTools.__chow_ring_monomial_grading
 QuiverTools.symmetric_polynomial
+QuiverTools.__check_chow_algorithm
+QuiverTools.__chow_divided_difference
+QuiverTools.__chow_divided_alternant
+QuiverTools.__chow_elementary_expression
+QuiverTools.__chow_rectangle_partitions
+QuiverTools.__chow_parabolic_monomials
+QuiverTools.__chow_parabolic_alternant
+QuiverTools.__chow_truncation_relations
+QuiverTools.__chow_graded_dimensions
+QuiverTools.__chow_parabolic_relations!
+QuiverTools.__chow_ring_parabolic
 QuiverTools._chern_characters_symmetric
 QuiverTools.weight_canonical_on_stratum
 QuiverTools.poincare_polynomial

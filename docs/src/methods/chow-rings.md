@@ -16,6 +16,10 @@ QuiverTools.ChowRing
 
 ## Presentation of Chow rings
 
+An opt-in, LLM-suggested backend is described in
+[Experimental parabolic Chow relations](../experimental-chow.md), including the
+reduction proof, geometric hypotheses, and independent-review requirements.
+
 Chow rings must be initialized manually, passing a choice of linearization to the constructor.
 If no linearization is passed, the default one is used.
 

@@ -96,10 +96,22 @@ function product_lists(L)
 end
 
 """
-    chow_ring(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d); chi::AbstractVector{Int}=extended_gcd(d)[2], verbose::Bool=false, unsafe::Bool=false)
+    __check_chow_algorithm(algorithm::Symbol)
+
+Check that `algorithm` names a supported Chow presentation, even when a cached
+ring is available. For internal use only.
+"""
+function __check_chow_algorithm(algorithm::Symbol)
+  algorithm in (:weyl, :experimental_parabolic) ||
+    throw(ArgumentError("unknown Chow algorithm: $algorithm"))
+  return nothing
+end
+
+"""
+    chow_ring(Q::Quiver, d::AbstractVector{Int}, theta::AbstractVector{Int}=canonical_stability(Q, d); chi::AbstractVector{Int}=extended_gcd(d)[2], verbose::Bool=false, unsafe::Bool=false, algorithm::Symbol=:weyl, adaptive::Bool=true)
 
 Compute the Chow ring of the moduli space of `theta`-semistable representations of
-`Q` with dimension vector `d`, for a choice of linearization `a`.
+`Q` with dimension vector `d`, for a choice of linearization `chi`.
 
 This method of the function `chow_ring` also returns the ambient ring ``R``
 and the inclusion morphism.
@@ -109,7 +121,28 @@ and the inclusion morphism.
 - `Q::Quiver`: a quiver.
 - `d::AbstractVector{Int}`: a dimension vector.
 - `theta::AbstractVector{Int}`: a stability parameter. Default is `canonical_stability(Q, d)`.
-- `chi`: a linearization. Default is the extended gcd of `extended_gcd(d)[2]`.
+- `chi::AbstractVector{Int}`: a linearization satisfying `chi' * d == 1`.
+  Default is `extended_gcd(d)[2]`.
+- `algorithm::Symbol=:weyl`: the existing implementation, or the opt-in
+  `:experimental_parabolic` backend.
+- `adaptive::Bool=true`: for the experimental backend, certify an increasing
+  set of relations against independently computed Betti numbers. With `false`,
+  enumerate all parabolic generators whose resulting relations have degree
+  at most the dimension. Both modes impose dimension truncation. This keyword
+  has no effect on the Weyl algorithm.
+- `verbose::Bool=false`: report progress, including graded dimensions at each
+  experimental stopping check.
+- `unsafe::Bool=false`: skip the properly semistable and ample-stability checks.
+
+!!! warning "Experimental, LLM-suggested backend"
+    The proof and code need careful independent checking. The moduli space must
+    be nonempty, smooth, projective and fine, with stable equal to semistable
+    and acyclic support. With `unsafe=true`, the caller must check these assumptions.
+
+The parabolic algorithm replaces the full Weyl-module basis by Grassmannian
+Schur bases adapted to each forbidden vector. It can be slower on small ranks
+or in high dimension; there is no automatic algorithm selection. See the
+experimental Chow documentation for the proof and performance measurements.
 
 # Output
 
@@ -137,6 +170,18 @@ julia> CH = chow_ring(kronecker_quiver(3), [2, 3])[1][1]; I = QuiverTools.quotie
 julia> length(QuiverTools.gens(I))
 16
 ```
+
+The experimental presentation can be used by the same bundle and integration
+methods. For the Kronecker sixfold:
+
+```jldoctest
+julia> M = QuiverModuliSpace(kronecker_quiver(3), [2, 3]);
+
+julia> chow_ring(M; algorithm=:experimental_parabolic);
+
+julia> numbers = chern_numbers(M); (numbers["c_1^6"], numbers["c_6"])
+(41553, 13)
+```
 """
 function chow_ring(
   Q::Quiver,
@@ -145,7 +190,10 @@ function chow_ring(
   chi::AbstractVector{Int}=extended_gcd(d)[2],
   verbose::Bool=false,
   unsafe::Bool=false,
+  algorithm::Symbol=:weyl,
+  adaptive::Bool=true,
 )
+  __check_chow_algorithm(algorithm)
   chi' * d != 1 && throw(ArgumentError("``chi`` is not a linearization"))
   if !unsafe
     has_properly_semistable_representation(Q, d, theta) &&
@@ -161,6 +209,10 @@ function chow_ring(
     )
   else
     verbose && @warn "Unsafe computation."
+  end
+
+  if algorithm == :experimental_parabolic
+    return __chow_ring_parabolic(Q, d, theta, chi; adaptive=adaptive, verbose=verbose).presentation
   end
 
   # j varies first, then i
@@ -307,7 +359,7 @@ function chow_ring(
 end
 
 """
-    chow_ring(M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef, verbose::Bool=false, unsafe::Bool=false)
+    chow_ring(M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef, verbose::Bool=false, unsafe::Bool=false, algorithm::Symbol=:weyl, adaptive::Bool=true)
 
 Compute the Chow ring of the moduli space `M` for the given linearization `chi`.
 
@@ -316,6 +368,16 @@ Compute the Chow ring of the moduli space `M` for the given linearization `chi`.
 - `M::QuiverModuliSpace`: a moduli space of representations of a quiver.
 - `chi::AbstractVector{Int}`: a choice of linearization for the trivial line bundle.
   Default is `extended_gcd(M.d)[2]`.
+- `algorithm::Symbol=:weyl`: use `:experimental_parabolic` to opt into the
+  LLM-suggested experimental backend; see the quiver-level method for its assumptions.
+- `adaptive::Bool=true`: enable the experimental backend's Hilbert certificate.
+
+The algorithm is used when constructing a ring. If the normalization `chi` is
+unchanged, an already cached ring is reused independently of `algorithm` and
+`adaptive`. Changing `chi` rebuilds the presentation and clears the cached point
+and Todd classes.
+Use a fresh moduli object to compare algorithms. Subsequent bundle operations
+use the presentation stored on `M`.
 
 
 # Output
@@ -326,7 +388,10 @@ function chow_ring(
   M::QuiverModuliSpace; chi::Union{AbstractVector{Int},UndefInitializer}=undef,
   verbose::Bool=false,
   unsafe::Bool=false,
+  algorithm::Symbol=:weyl,
+  adaptive::Bool=true,
 )
+  __check_chow_algorithm(algorithm)
   # `unsafe` asserts the stable locus is nonempty, so seed the dimension cache with the
   # cheap `1 - <d, d>` before any bundle is built. This stops downstream `dimension(M)`
   # calls from triggering the expensive `has_stable_representation` check (issue #20).
@@ -343,7 +408,8 @@ function chow_ring(
       setfield!(M.chow, :chi, chi)
     end
     CH, R, inc = chow_ring(
-      M.Q, M.d, M.theta; chi=M.chow.chi, verbose=verbose, unsafe=unsafe
+      M.Q, M.d, M.theta; chi=M.chow.chi, verbose=verbose, unsafe=unsafe,
+      algorithm=algorithm, adaptive=adaptive,
     )
     setfield!(M.chow, :ring, CH[1])
     setfield!(M.chow, :_R, R)
@@ -354,7 +420,8 @@ function chow_ring(
   if !(chi isa UndefInitializer) && M.chow.chi != chi
     # reinitializing all the fields
     setfield!(M.chow, :chi, chi)
-    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=chi, verbose=verbose, unsafe=unsafe)
+    CH, R, inc = chow_ring(M.Q, M.d, M.theta; chi=chi, verbose=verbose, unsafe=unsafe,
+      algorithm=algorithm, adaptive=adaptive)
     setfield!(M.chow, :ring, CH[1])
     setfield!(M.chow, :_R, R)
     setfield!(M.chow, :_inclusion, inc)
