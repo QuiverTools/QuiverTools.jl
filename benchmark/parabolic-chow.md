@@ -15,8 +15,11 @@ No tests or other Julia jobs were run concurrently with these serial measurement
 Each case/algorithm runs in a fresh process, with the same generic warmup of both
 algorithms on the 3-arrow Kronecker $(1,1)$ model.
 The first timed call includes remaining case-specific compilation.
-The warm result is the median of three further uncached constructions in that process.
-Memoization caches are cleared and a full Julia GC is run before each sample.
+The warm result is the median of three further constructions in the same process.
+Before each sample, Memoization function-result caches are cleared and a full Julia GC is run.
+Compiled code and Singular's polynomial parent-ring caches remain available.
+Each call recomputes the relations and Gröbner bases;
+the experimental algorithm also repeats its Betti computation.
 The timings include any GC occurring during the computation.
 Startup, generic warmup, cache clearing, the preceding GC, and subsequent dimension
 checks are excluded.

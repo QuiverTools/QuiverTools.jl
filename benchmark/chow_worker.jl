@@ -34,6 +34,7 @@ function save()
 end
 save()
 for trial in 0:3
+  # Clear Memoization results; compiled code and Singular's parent rings persist.
   QT.empty_all_caches!()
   GC.gc()
   write(destination * ".phase", "trial=$trial")
