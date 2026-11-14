@@ -34,6 +34,7 @@ makedocs(;
       "Walls and chamber decompositions" => "methods/walls-and-chambers.md",
     ],
     "Internal methods" => "methods.md",
+    "Experimental Chow relations" => "experimental-chow.md",
     "Benchmarks" => "benchmarks.md"],
 )
 

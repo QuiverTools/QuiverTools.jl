@@ -1,0 +1,2361 @@
+{
+  "date": "2026-11-14",
+  "reference_commit": "f1a12e766264204cca9d212c68f5193a5949da90",
+  "resolved_dependencies": {
+    "ANSIColoredPrinters": [
+      {
+        "uuid": "a4c015fc-c6ff-483c-b24f-f7ea428134e9",
+        "version": "0.0.1",
+        "git-tree-sha1": "574baf8110975760d391c710b6341da1afa48d8c"
+      }
+    ],
+    "AbstractAlgebra": [
+      {
+        "uuid": "c3fe647b-3220-5bb0-a1ea-a7954cac585d",
+        "version": "0.50.2",
+        "git-tree-sha1": "f796131c1f3f9521a03b947e231acfff17309fca"
+      }
+    ],
+    "AbstractTrees": [
+      {
+        "uuid": "1520ce14-60c1-5f80-bbc7-55ef81b5835c",
+        "version": "0.4.5",
+        "git-tree-sha1": "2d9c9a55f9c93e8887ad391fbae72f8ef55e1177"
+      }
+    ],
+    "ArgTools": [
+      {
+        "uuid": "0dad84c5-d112-42e6-8d28-ef12dabb789f",
+        "version": "1.1.2"
+      }
+    ],
+    "Artifacts": [
+      {
+        "uuid": "56f22d72-fd6d-98f1-02f0-08ddc0907c33",
+        "version": "1.11.0"
+      }
+    ],
+    "Base64": [
+      {
+        "uuid": "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f",
+        "version": "1.11.0"
+      }
+    ],
+    "BinaryWrappers": [
+      {
+        "uuid": "f01c122e-0ea1-4f85-ad8f-907073ad7a9f",
+        "version": "0.2.0",
+        "git-tree-sha1": "2c8fdd2d2604128a7123e7c8fa5cf07b4d8e414b"
+      }
+    ],
+    "CodecZlib": [
+      {
+        "uuid": "944b1d66-785c-5afd-91f1-9de20f533193",
+        "version": "0.7.9",
+        "git-tree-sha1": "970758a3d591a2a5c2a907c53f2e2f8c1b1d3537"
+      }
+    ],
+    "Combinatorics": [
+      {
+        "uuid": "861a8166-3701-5b0c-9a16-15d98fcdc6aa",
+        "version": "1.1.0",
+        "git-tree-sha1": "c761b00e7755700f9cdf5b02039939d1359330e1"
+      }
+    ],
+    "Compat": [
+      {
+        "uuid": "34da2185-b29b-5c13-b0c7-acf172513d20",
+        "version": "4.18.1",
+        "git-tree-sha1": "9d8a54ce4b17aa5bdce0ea5c34bc5e7c340d16ad"
+      }
+    ],
+    "CompilerSupportLibraries_jll": [
+      {
+        "uuid": "e66e0078-7015-5450-92f7-15fbd957f2ae",
+        "version": "1.5.5+2"
+      }
+    ],
+    "ConstructionBase": [
+      {
+        "uuid": "187b0558-2788-49d3-abe0-74a17ed4e7c9",
+        "version": "1.6.0",
+        "git-tree-sha1": "b4b092499347b18a015186eae3042f72267106cb"
+      }
+    ],
+    "CxxWrap": [
+      {
+        "uuid": "1f15a43c-97ca-5a2a-ae31-89f07a497df4",
+        "version": "0.17.5",
+        "git-tree-sha1": "f7a997d3959648a818c45dda059a45844300b94d"
+      }
+    ],
+    "Dates": [
+      {
+        "uuid": "ade2ca70-3891-5945-98fb-dc099432e06a",
+        "version": "1.11.0"
+      }
+    ],
+    "DocStringExtensions": [
+      {
+        "uuid": "ffbed154-4ef7-542d-bbb7-c09d3a79fcae",
+        "version": "0.9.5",
+        "git-tree-sha1": "7442a5dfe1ebb773c29cc2962a8980f47221d76c"
+      }
+    ],
+    "Documenter": [
+      {
+        "uuid": "e30172f5-a6a5-5a46-863b-614d45cd2de4",
+        "version": "1.19.0",
+        "git-tree-sha1": "191e6bef0cf32cac3a3913cd4787d851715254c2"
+      }
+    ],
+    "Downloads": [
+      {
+        "uuid": "f43a241f-c20a-4ad4-852c-f6b1247861c6",
+        "version": "1.7.0"
+      }
+    ],
+    "Expat_jll": [
+      {
+        "uuid": "2e619515-83b5-522b-bb60-26c02a35a201",
+        "version": "2.9.0+0",
+        "git-tree-sha1": "d0f666deaf8099a7d7ac229a74402ada88898be1"
+      }
+    ],
+    "FLINT_jll": [
+      {
+        "uuid": "e134572f-a0d5-539d-bddf-3cad8db41a82",
+        "version": "301.600.0+0",
+        "git-tree-sha1": "2e37c236c0c3e714b540ecc6220e547464845349"
+      }
+    ],
+    "FileWatching": [
+      {
+        "uuid": "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee",
+        "version": "1.11.0"
+      }
+    ],
+    "Future": [
+      {
+        "uuid": "9fa8497b-333b-5362-9e8d-4d0656e87820",
+        "version": "1.11.0"
+      }
+    ],
+    "GLPK_jll": [
+      {
+        "uuid": "e8aa6df9-e6ca-548a-97ff-1f85fc5b8b98",
+        "version": "5.0.2+0",
+        "git-tree-sha1": "18671d6720e293344ff4581e2ebc4194fe2263dc"
+      }
+    ],
+    "GMP_jll": [
+      {
+        "uuid": "781609d7-10c4-51f6-84f2-b8444358ff6d",
+        "version": "6.3.0+2"
+      }
+    ],
+    "Git": [
+      {
+        "uuid": "d7ba0133-e1db-5d97-8f8c-041e4b3a1eb2",
+        "version": "1.5.0",
+        "git-tree-sha1": "824a1890086880696fc908fe12a17bcf61738bd8"
+      }
+    ],
+    "Git_LFS_jll": [
+      {
+        "uuid": "020c3dae-16b3-5ae5-87b3-4cb189e250b2",
+        "version": "3.8.1+0",
+        "git-tree-sha1": "d310b22511a51569401e975194cc76077bcd3786"
+      }
+    ],
+    "Git_jll": [
+      {
+        "uuid": "f8c6e375-362e-5223-8a59-34ff63f689eb",
+        "version": "2.56.0+0",
+        "git-tree-sha1": "3842d761162baf8efce819cdfb5ea070fe44ac40"
+      }
+    ],
+    "IOCapture": [
+      {
+        "uuid": "b5f81e59-6552-4d32-b1f0-c071b021bf89",
+        "version": "1.0.0",
+        "git-tree-sha1": "0ee181ec08df7d7c911901ea38baf16f755114dc"
+      }
+    ],
+    "IntegerMathUtils": [
+      {
+        "uuid": "18e54dd8-cb9d-406c-a71d-865a43cbb235",
+        "version": "0.1.4",
+        "git-tree-sha1": "c72458f1962faeb003bf23cbdb75164fe6280906"
+      }
+    ],
+    "InteractiveUtils": [
+      {
+        "uuid": "b77e0a4c-d291-57a0-90e8-8db25a27a240",
+        "version": "1.11.0"
+      }
+    ],
+    "IterTools": [
+      {
+        "uuid": "c8e1da08-722c-5040-9ed9-7db0dc04731e",
+        "version": "1.10.0",
+        "git-tree-sha1": "42d5f897009e7ff2cf88db414a389e5ed1bdd023"
+      }
+    ],
+    "JLLWrappers": [
+      {
+        "uuid": "692b3bcd-3c85-4b1f-b108-f13ce0eb3210",
+        "version": "1.8.0",
+        "git-tree-sha1": "7204148362dafe5fe6a273f855b8ccbe4df8173e"
+      }
+    ],
+    "JSON": [
+      {
+        "uuid": "682c06a0-de6a-54ab-a142-c8b1cf79cde6",
+        "version": "1.13.0",
+        "git-tree-sha1": "3a9b0da8237deffb70be5e8d2e9af7601e4a79b0"
+      }
+    ],
+    "JuliaSyntaxHighlighting": [
+      {
+        "uuid": "ac6e5ff7-fb65-4e79-a425-ec3bc9c03011",
+        "version": "1.12.0"
+      }
+    ],
+    "LazilyInitializedFields": [
+      {
+        "uuid": "0e77f7df-68c5-4e49-93ce-4cd80f5598bf",
+        "version": "1.3.0",
+        "git-tree-sha1": "0f2da712350b020bc3957f269c9caad516383ee0"
+      }
+    ],
+    "LibCURL": [
+      {
+        "uuid": "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21",
+        "version": "1.0.0"
+      }
+    ],
+    "LibCURL_jll": [
+      {
+        "uuid": "deac9b47-8bc7-5906-a0fe-35ac56dc84c0",
+        "version": "8.18.0+1"
+      }
+    ],
+    "LibGit2": [
+      {
+        "uuid": "76f85450-5226-5b5a-8eaa-529ad045b433",
+        "version": "1.11.0"
+      }
+    ],
+    "LibGit2_jll": [
+      {
+        "uuid": "e37daf67-58a4-590a-8e99-b0245dd2ffc5",
+        "version": "1.9.1+0"
+      }
+    ],
+    "LibSSH2_jll": [
+      {
+        "uuid": "29816b5a-b9ab-546f-933c-edad1886dfa8",
+        "version": "1.11.103+0"
+      }
+    ],
+    "Libdl": [
+      {
+        "uuid": "8f399da3-3557-5675-b5ff-fb832c97cbdb",
+        "version": "1.11.0"
+      }
+    ],
+    "Libiconv_jll": [
+      {
+        "uuid": "94ce4f54-9a6c-5748-9c1c-f9c7231a4531",
+        "version": "1.18.0+0",
+        "git-tree-sha1": "be484f5c92fad0bd8acfef35fe017900b0b73809"
+      }
+    ],
+    "LinearAlgebra": [
+      {
+        "uuid": "37e2e46d-f89d-539d-b4ee-838fcccc9c8e",
+        "version": "1.13.0"
+      }
+    ],
+    "LinearAlgebraX": [
+      {
+        "uuid": "9b3f67b0-2d00-526e-9884-9e4938f8fb88",
+        "version": "0.2.11",
+        "git-tree-sha1": "81b61301d2881af967ad53b13c64f21421040d46"
+      }
+    ],
+    "Logging": [
+      {
+        "uuid": "56ddb016-857b-54e1-b83d-db4d58db5568",
+        "version": "1.11.0"
+      }
+    ],
+    "MPFR_jll": [
+      {
+        "uuid": "3a97d323-0669-5f0c-9066-3539efd106a3",
+        "version": "4.2.2+0"
+      }
+    ],
+    "MacroTools": [
+      {
+        "uuid": "1914dd2f-81c6-5fcd-8719-6d5c9610ff09",
+        "version": "0.5.16",
+        "git-tree-sha1": "1e0228a030642014fe5cfe68c2c0a818f9e3f522"
+      }
+    ],
+    "Markdown": [
+      {
+        "uuid": "d6f4376e-aef5-505a-96c1-9c027394607a",
+        "version": "1.11.0"
+      }
+    ],
+    "MarkdownAST": [
+      {
+        "uuid": "d0879d2d-cac2-40c8-9cee-1863dc0c7391",
+        "version": "0.1.3",
+        "git-tree-sha1": "93c718d892e73931841089cdc0e982d6dd9cc87b"
+      }
+    ],
+    "Memoization": [
+      {
+        "uuid": "6fafb56a-5788-4b4e-91ca-c0cea6611c73",
+        "version": "0.2.2",
+        "git-tree-sha1": "7dbf904fa6c4447bd1f1d316886bfbe29feacf45"
+      }
+    ],
+    "Mods": [
+      {
+        "uuid": "7475f97c-0381-53b1-977b-4c60186c8d62",
+        "version": "2.2.6",
+        "git-tree-sha1": "0a3c164857cfc4defe0ac09e6b0123d61320abb1"
+      }
+    ],
+    "MozillaCACerts_jll": [
+      {
+        "uuid": "14a3606d-f60d-562e-9121-12d972cd8159",
+        "version": "2026.8.13"
+      }
+    ],
+    "Multisets": [
+      {
+        "uuid": "3b2b4ff1-bcff-5658-a3ee-dbcf1ce5ac09",
+        "version": "0.4.6",
+        "git-tree-sha1": "f4205a002e2e0c4a10971ea313084ee212f761a4"
+      }
+    ],
+    "Nemo": [
+      {
+        "uuid": "2edaba10-b0f1-5616-af89-8c11ac63239a",
+        "version": "0.56.1",
+        "git-tree-sha1": "10c4cc66207e5fe215c4fe381d25d1e89269378a"
+      }
+    ],
+    "NetworkOptions": [
+      {
+        "uuid": "ca575930-c2e3-43a9-ace4-1e988b2c1908",
+        "version": "1.3.0"
+      }
+    ],
+    "OpenBLAS32_jll": [
+      {
+        "uuid": "656ef2d0-ae68-5445-9ca0-591084a874a2",
+        "version": "0.3.34+0",
+        "git-tree-sha1": "30870d0f2dc0b2dba76b10df1c58c7f018413e56"
+      }
+    ],
+    "OpenBLAS_jll": [
+      {
+        "uuid": "4536629a-c528-5b80-bd46-f80d51c5b363",
+        "version": "0.3.30+0"
+      }
+    ],
+    "OpenSSH_jll": [
+      {
+        "uuid": "9bd350c2-7e96-507f-8002-3f2e150b4e1b",
+        "version": "10.6.1+0",
+        "git-tree-sha1": "1f640b82a627df3dbbaaff756a201a9ceb10dd1f"
+      }
+    ],
+    "OpenSSL_jll": [
+      {
+        "uuid": "458c3c95-2e84-50aa-8efc-19380b2a3a95",
+        "version": "3.5.6+0"
+      }
+    ],
+    "OrderedCollections": [
+      {
+        "uuid": "bac558e1-5e72-5ebc-8fee-abe8a469f55d",
+        "version": "2.0.3",
+        "git-tree-sha1": "b079a6affebde167dad8ffe0d670b53917fbcb68"
+      }
+    ],
+    "PCRE2_jll": [
+      {
+        "uuid": "efcefdf7-47ab-520b-bdef-62a2eaa19f15",
+        "version": "10.46.0+0"
+      }
+    ],
+    "Parsers": [
+      {
+        "uuid": "69de0a69-1ddd-5017-9359-2bf0b02dc9f0",
+        "version": "3.0.3",
+        "git-tree-sha1": "610915fdeab587d89d6e9f2768b7268674ceb62b"
+      }
+    ],
+    "Pkg": [
+      {
+        "uuid": "44cfe95a-1eb2-52ea-b672-e2afdf69b78f",
+        "version": "1.13.0"
+      }
+    ],
+    "Polynomials": [
+      {
+        "uuid": "f27b6e38-b328-58d1-80ce-0feddd5e7a45",
+        "version": "4.1.4",
+        "git-tree-sha1": "94d0e1856caee351ab1004ef726aa9a8230493b5"
+      }
+    ],
+    "PrecompileTools": [
+      {
+        "uuid": "aea7be01-6a6a-4083-8856-8a6e6704d82a",
+        "version": "1.3.4",
+        "git-tree-sha1": "edbeefc7a4889f528644251bdb5fc9ab5348bc2c"
+      }
+    ],
+    "Preferences": [
+      {
+        "uuid": "21216c6a-2e73-6563-6e65-726566657250",
+        "version": "1.6.1",
+        "git-tree-sha1": "aef1987d90dcc2e2cbd919ad10b2d25bcce4f418"
+      }
+    ],
+    "Primes": [
+      {
+        "uuid": "27ebfcd6-29c5-5fa9-bf4b-fb8fc14df3ae",
+        "version": "0.5.7",
+        "git-tree-sha1": "25cdd1d20cd005b52fc12cb6be3f75faaf59bb9b"
+      }
+    ],
+    "Printf": [
+      {
+        "uuid": "de0858da-6303-5e67-8744-51eddeeeb8d7",
+        "version": "1.11.0"
+      }
+    ],
+    "QuiverTools": [
+      {
+        "uuid": "dc2e10be-62a3-4315-9c95-46bb97ac152d",
+        "version": "2.0.0"
+      }
+    ],
+    "REPL": [
+      {
+        "uuid": "3fa0cd96-eef1-5676-8a61-b3b8758bbffb",
+        "version": "1.11.0"
+      }
+    ],
+    "Random": [
+      {
+        "uuid": "9a3f8284-a2c9-5f02-9a11-845980a1fd5c",
+        "version": "1.11.0"
+      }
+    ],
+    "RandomExtensions": [
+      {
+        "uuid": "fb686558-2515-59ef-acaa-46db3789a887",
+        "version": "0.4.4",
+        "git-tree-sha1": "b8a399e95663485820000f26b6a43c794e166a49"
+      }
+    ],
+    "RegistryInstances": [
+      {
+        "uuid": "2792f1a3-b283-48e8-9a74-f99dce5104f3",
+        "version": "0.1.0",
+        "git-tree-sha1": "ffd19052caf598b8653b99404058fce14828be51"
+      }
+    ],
+    "SHA": [
+      {
+        "uuid": "ea8e919c-243c-51af-8825-aaa63cd721ce",
+        "version": "1.0.0"
+      }
+    ],
+    "Scratch": [
+      {
+        "uuid": "6c6a2e73-6563-6170-7368-637461726353",
+        "version": "1.3.0",
+        "git-tree-sha1": "9b81b8393e50b7d4e6d0a9f14e192294d3b7c109"
+      }
+    ],
+    "Serialization": [
+      {
+        "uuid": "9e88b42a-f829-5b0c-bbe9-9e923198166b",
+        "version": "1.11.0"
+      }
+    ],
+    "Setfield": [
+      {
+        "uuid": "efcf1570-3423-57d1-acb7-fd33fddbac46",
+        "version": "1.2.0",
+        "git-tree-sha1": "89880a2cca5cabc68c9023f58e544beda1d2fc1f"
+      }
+    ],
+    "SimplePolynomials": [
+      {
+        "uuid": "cc47b68c-3164-5771-a705-2bc0097375a0",
+        "version": "0.2.18",
+        "git-tree-sha1": "77b2c5e731f7e50bbd088ccc2810232e06c1afa3"
+      }
+    ],
+    "Singular": [
+      {
+        "uuid": "bcd08a7b-43d2-5ff7-b6d4-c458787f915c",
+        "version": "0.28.15",
+        "git-tree-sha1": "9daddc3c155fc379a499708c263b75818ed3f4de"
+      }
+    ],
+    "Singular_jll": [
+      {
+        "uuid": "43d676ae-4934-50ba-8046-7a96366d613b",
+        "version": "404.101.510+0",
+        "git-tree-sha1": "13f5cf2260f78518ef3eeae269b2f118cf204cc8"
+      }
+    ],
+    "Sockets": [
+      {
+        "uuid": "6462fe0b-24de-5631-8697-dd941f90decc",
+        "version": "1.11.0"
+      }
+    ],
+    "SparseArrays": [
+      {
+        "uuid": "2f01184e-e22b-5df5-ae63-d93ebab69eaf",
+        "version": "1.13.0"
+      }
+    ],
+    "StaticArrays": [
+      {
+        "uuid": "90137ffa-7385-5640-81b9-e52037218182",
+        "version": "1.9.24",
+        "git-tree-sha1": "8a8a52f887f38d44014e24ee46b8a7311c625f6d"
+      }
+    ],
+    "StaticArraysCore": [
+      {
+        "uuid": "1e83bf80-4336-4d27-bf5d-d5a4f845583c",
+        "version": "1.4.4",
+        "git-tree-sha1": "6ab403037779dae8c514bad259f32a447262455a"
+      }
+    ],
+    "StructUtils": [
+      {
+        "uuid": "ec057cc2-7a8d-4b58-b3b3-92acb9f63b42",
+        "version": "2.11.2",
+        "git-tree-sha1": "96cf0c4f535157787dc4089eca1cbed62d124d5f"
+      }
+    ],
+    "StyledStrings": [
+      {
+        "uuid": "f489334b-da3d-4c2e-b8f0-e476e12c162b",
+        "version": "1.11.0"
+      }
+    ],
+    "SuiteSparse_jll": [
+      {
+        "uuid": "bea87d4a-7f5b-5778-9afe-8cc45184846c",
+        "version": "7.10.1+0"
+      }
+    ],
+    "TOML": [
+      {
+        "uuid": "fa267f1f-6049-4f14-aa54-33bafae1ed76",
+        "version": "1.0.3"
+      }
+    ],
+    "Tar": [
+      {
+        "uuid": "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e",
+        "version": "1.10.0"
+      }
+    ],
+    "Test": [
+      {
+        "uuid": "8dfed614-e22c-5e08-85e1-65c5234f0b40",
+        "version": "1.11.0"
+      }
+    ],
+    "TranscodingStreams": [
+      {
+        "uuid": "3bb67fe8-82b1-5028-8e26-92a6c54297fa",
+        "version": "0.11.3",
+        "git-tree-sha1": "0c45878dcfdcfa8480052b6ab162cdd138781742"
+      }
+    ],
+    "UUIDs": [
+      {
+        "uuid": "cf7118a7-6976-5b1a-9a39-7adc72f591a4",
+        "version": "1.11.0"
+      }
+    ],
+    "Unicode": [
+      {
+        "uuid": "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5",
+        "version": "1.11.0"
+      }
+    ],
+    "Zlib_jll": [
+      {
+        "uuid": "83775a58-1f1d-513f-b197-d71354ab007a",
+        "version": "1.3.1+2"
+      }
+    ],
+    "Zstd_jll": [
+      {
+        "uuid": "3161d3a3-bdf6-5164-811a-617609db77b4",
+        "version": "1.5.7+1"
+      }
+    ],
+    "cddlib_jll": [
+      {
+        "uuid": "f07e07eb-5685-515a-97c8-3014f6152feb",
+        "version": "0.94.15+0",
+        "git-tree-sha1": "932ceeea3797cd95a1b2e0f978aa33a355f04cbf"
+      }
+    ],
+    "lib4ti2_jll": [
+      {
+        "uuid": "1493ae25-0f90-5c0e-a06c-8c5077d6d66f",
+        "version": "1.6.10+0",
+        "git-tree-sha1": "79116185def638e73ea3d88ca6c10e210a1dc183"
+      }
+    ],
+    "libblastrampoline_jll": [
+      {
+        "uuid": "8e850b90-86db-534c-a0d3-1478176c7d93",
+        "version": "5.15.0+0"
+      }
+    ],
+    "libcxxwrap_julia_jll": [
+      {
+        "uuid": "3eaa8342-bff7-56a5-9981-c04077f7cee7",
+        "version": "0.14.10+1",
+        "git-tree-sha1": "ded0ec008143feba86aceba3cecd27f5625db8d8"
+      }
+    ],
+    "libsingular_julia_jll": [
+      {
+        "uuid": "ae4fbd8f-ecdb-54f8-bbce-35570499b30e",
+        "version": "0.47.15+0",
+        "git-tree-sha1": "88a957e8a400e01e1003b96dade82c8f4152ad0a"
+      }
+    ],
+    "nghttp2_jll": [
+      {
+        "uuid": "8e850ede-7688-5339-a07c-302acd2aaf8d",
+        "version": "1.67.1+0"
+      }
+    ],
+    "p7zip_jll": [
+      {
+        "uuid": "3f19e933-33d8-53b3-aaab-bd5110c3b7a0",
+        "version": "17.8.2+0"
+      }
+    ]
+  },
+  "records": [
+    {
+      "case": "P3",
+      "algorithm": "weyl",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 18.464875957928598,
+      "measurement": {
+        "d": [
+          1,
+          1
+        ],
+        "julia": "1.13.0",
+        "algorithm": "weyl",
+        "theta": [
+          4,
+          -4
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "P3",
+        "samples": [
+          {
+            "gc_seconds": 0.0,
+            "trial": 0,
+            "seconds": 0.000178416,
+            "chow_total_dimension": 4,
+            "julia_bytes": 16512
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.0001835,
+            "chow_total_dimension": 4,
+            "julia_bytes": 16512
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.000170916,
+            "chow_total_dimension": 4,
+            "julia_bytes": 16512
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.000150833,
+            "chow_total_dimension": 4,
+            "julia_bytes": 16512
+          }
+        ]
+      }
+    },
+    {
+      "case": "P3",
+      "algorithm": "experimental_parabolic",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 4.561312292004004,
+      "measurement": {
+        "d": [
+          1,
+          1
+        ],
+        "julia": "1.13.0",
+        "algorithm": "experimental_parabolic",
+        "theta": [
+          4,
+          -4
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "P3",
+        "samples": [
+          {
+            "gc_seconds": 0.0,
+            "trial": 0,
+            "seconds": 0.000364667,
+            "chow_total_dimension": 4,
+            "julia_bytes": 51104
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.000294417,
+            "chow_total_dimension": 4,
+            "julia_bytes": 51104
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.00036075,
+            "chow_total_dimension": 4,
+            "julia_bytes": 51104
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.000247,
+            "chow_total_dimension": 4,
+            "julia_bytes": 51104
+          }
+        ]
+      }
+    },
+    {
+      "case": "Gr24",
+      "algorithm": "weyl",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 4.686099499929696,
+      "measurement": {
+        "d": [
+          1,
+          2
+        ],
+        "julia": "1.13.0",
+        "algorithm": "weyl",
+        "theta": [
+          8,
+          -4
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "Gr24",
+        "samples": [
+          {
+            "gc_seconds": 0.0,
+            "trial": 0,
+            "seconds": 0.118712709,
+            "chow_total_dimension": 6,
+            "julia_bytes": 46100384
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.000204417,
+            "chow_total_dimension": 6,
+            "julia_bytes": 35104
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.000202708,
+            "chow_total_dimension": 6,
+            "julia_bytes": 35104
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.000188833,
+            "chow_total_dimension": 6,
+            "julia_bytes": 35104
+          }
+        ]
+      }
+    },
+    {
+      "case": "Gr24",
+      "algorithm": "experimental_parabolic",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 4.93538137502037,
+      "measurement": {
+        "d": [
+          1,
+          2
+        ],
+        "julia": "1.13.0",
+        "algorithm": "experimental_parabolic",
+        "theta": [
+          8,
+          -4
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "Gr24",
+        "samples": [
+          {
+            "gc_seconds": 0.0,
+            "trial": 0,
+            "seconds": 0.352805083,
+            "chow_total_dimension": 6,
+            "julia_bytes": 73541136
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.000577125,
+            "chow_total_dimension": 6,
+            "julia_bytes": 211552
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.000533083,
+            "chow_total_dimension": 6,
+            "julia_bytes": 211552
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.000524625,
+            "chow_total_dimension": 6,
+            "julia_bytes": 211552
+          }
+        ]
+      }
+    },
+    {
+      "case": "Gr36",
+      "algorithm": "weyl",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 4.887946292059496,
+      "measurement": {
+        "d": [
+          1,
+          3
+        ],
+        "julia": "1.13.0",
+        "algorithm": "weyl",
+        "theta": [
+          18,
+          -6
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "Gr36",
+        "samples": [
+          {
+            "gc_seconds": 0.0,
+            "trial": 0,
+            "seconds": 0.132289542,
+            "chow_total_dimension": 20,
+            "julia_bytes": 48201840
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.000421291,
+            "chow_total_dimension": 20,
+            "julia_bytes": 181600
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.000414625,
+            "chow_total_dimension": 20,
+            "julia_bytes": 181600
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.000412958,
+            "chow_total_dimension": 20,
+            "julia_bytes": 181600
+          }
+        ]
+      }
+    },
+    {
+      "case": "Gr36",
+      "algorithm": "experimental_parabolic",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 5.271332749980502,
+      "measurement": {
+        "d": [
+          1,
+          3
+        ],
+        "julia": "1.13.0",
+        "algorithm": "experimental_parabolic",
+        "theta": [
+          18,
+          -6
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "Gr36",
+        "samples": [
+          {
+            "gc_seconds": 0.0,
+            "trial": 0,
+            "seconds": 0.382814417,
+            "chow_total_dimension": 20,
+            "julia_bytes": 75190528
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.001814458,
+            "chow_total_dimension": 20,
+            "julia_bytes": 1380144
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.001733583,
+            "chow_total_dimension": 20,
+            "julia_bytes": 1380144
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.001725208,
+            "chow_total_dimension": 20,
+            "julia_bytes": 1380144
+          }
+        ]
+      }
+    },
+    {
+      "case": "K3_23",
+      "algorithm": "weyl",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 4.805377500015311,
+      "measurement": {
+        "d": [
+          2,
+          3
+        ],
+        "julia": "1.13.0",
+        "algorithm": "weyl",
+        "theta": [
+          9,
+          -6
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "K3_23",
+        "samples": [
+          {
+            "gc_seconds": 0.0,
+            "trial": 0,
+            "seconds": 0.002207167,
+            "chow_total_dimension": 13,
+            "julia_bytes": 2459712
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.001955416,
+            "chow_total_dimension": 13,
+            "julia_bytes": 2421744
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.001972,
+            "chow_total_dimension": 13,
+            "julia_bytes": 2421744
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.001915,
+            "chow_total_dimension": 13,
+            "julia_bytes": 2421744
+          }
+        ]
+      }
+    },
+    {
+      "case": "K3_23",
+      "algorithm": "experimental_parabolic",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 5.049077250063419,
+      "measurement": {
+        "d": [
+          2,
+          3
+        ],
+        "julia": "1.13.0",
+        "algorithm": "experimental_parabolic",
+        "theta": [
+          9,
+          -6
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "K3_23",
+        "samples": [
+          {
+            "gc_seconds": 0.0,
+            "trial": 0,
+            "seconds": 0.383569958,
+            "chow_total_dimension": 13,
+            "julia_bytes": 81285000
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.006573166,
+            "chow_total_dimension": 13,
+            "julia_bytes": 6514456
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.006192083,
+            "chow_total_dimension": 13,
+            "julia_bytes": 6514456
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.005841833,
+            "chow_total_dimension": 13,
+            "julia_bytes": 6514456
+          }
+        ]
+      }
+    },
+    {
+      "case": "subspace7",
+      "algorithm": "weyl",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 5.772494875011034,
+      "measurement": {
+        "d": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2
+        ],
+        "julia": "1.13.0",
+        "algorithm": "weyl",
+        "theta": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          -7
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "subspace7",
+        "samples": [
+          {
+            "gc_seconds": 0.028944292,
+            "trial": 0,
+            "seconds": 1.005193125,
+            "chow_total_dimension": 38,
+            "julia_bytes": 359940736
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.00891725,
+            "chow_total_dimension": 38,
+            "julia_bytes": 8178176
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.008881666,
+            "chow_total_dimension": 38,
+            "julia_bytes": 8178176
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.008730625,
+            "chow_total_dimension": 38,
+            "julia_bytes": 8178176
+          }
+        ]
+      }
+    },
+    {
+      "case": "subspace7",
+      "algorithm": "experimental_parabolic",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 6.831239667022601,
+      "measurement": {
+        "d": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2
+        ],
+        "julia": "1.13.0",
+        "algorithm": "experimental_parabolic",
+        "theta": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          -7
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "subspace7",
+        "samples": [
+          {
+            "gc_seconds": 0.049086793,
+            "trial": 0,
+            "seconds": 1.830502083,
+            "chow_total_dimension": 38,
+            "julia_bytes": 553575696
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.053450292,
+            "chow_total_dimension": 38,
+            "julia_bytes": 50324672
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.053883041,
+            "chow_total_dimension": 38,
+            "julia_bytes": 50324672
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.054162459,
+            "chow_total_dimension": 38,
+            "julia_bytes": 50324672
+          }
+        ]
+      }
+    },
+    {
+      "case": "chain_552",
+      "algorithm": "experimental_parabolic",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 101.45266445900779,
+      "measurement": {
+        "d": [
+          5,
+          5,
+          2
+        ],
+        "julia": "1.13.0",
+        "algorithm": "experimental_parabolic",
+        "theta": [
+          10,
+          -8,
+          -5
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            2,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "chain_552",
+        "samples": [
+          {
+            "gc_seconds": 4.338318127,
+            "trial": 0,
+            "seconds": 25.478226541,
+            "chow_total_dimension": 22,
+            "julia_bytes": 21479937856
+          },
+          {
+            "gc_seconds": 3.806286457,
+            "trial": 1,
+            "seconds": 23.55448975,
+            "chow_total_dimension": 22,
+            "julia_bytes": 21092272944
+          },
+          {
+            "gc_seconds": 3.699773416,
+            "trial": 2,
+            "seconds": 23.447187041,
+            "chow_total_dimension": 22,
+            "julia_bytes": 21081455536
+          },
+          {
+            "gc_seconds": 3.669049877,
+            "trial": 3,
+            "seconds": 23.689798292,
+            "chow_total_dimension": 22,
+            "julia_bytes": 21095671024
+          }
+        ]
+      }
+    },
+    {
+      "case": "fork_552",
+      "algorithm": "experimental_parabolic",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 133.91277112497482,
+      "measurement": {
+        "d": [
+          5,
+          5,
+          2
+        ],
+        "julia": "1.13.0",
+        "algorithm": "experimental_parabolic",
+        "theta": [
+          12,
+          -10,
+          -5
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            2,
+            1
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "fork_552",
+        "samples": [
+          {
+            "gc_seconds": 5.373874457,
+            "trial": 0,
+            "seconds": 31.05790225,
+            "chow_total_dimension": 22,
+            "julia_bytes": 27144854032
+          },
+          {
+            "gc_seconds": 4.633327955,
+            "trial": 1,
+            "seconds": 29.085698917,
+            "chow_total_dimension": 22,
+            "julia_bytes": 26759542656
+          },
+          {
+            "gc_seconds": 4.512970624,
+            "trial": 2,
+            "seconds": 28.957519167,
+            "chow_total_dimension": 22,
+            "julia_bytes": 26766114496
+          },
+          {
+            "gc_seconds": 4.675493043,
+            "trial": 3,
+            "seconds": 29.803531458,
+            "chow_total_dimension": 22,
+            "julia_bytes": 26753088576
+          }
+        ]
+      }
+    },
+    {
+      "case": "K3_34",
+      "algorithm": "weyl",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 16.311224999953993,
+      "measurement": {
+        "d": [
+          3,
+          4
+        ],
+        "julia": "1.13.0",
+        "algorithm": "weyl",
+        "theta": [
+          12,
+          -9
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "K3_34",
+        "samples": [
+          {
+            "gc_seconds": 0.420092875,
+            "trial": 0,
+            "seconds": 2.958460583,
+            "chow_total_dimension": 68,
+            "julia_bytes": 2784420880
+          },
+          {
+            "gc_seconds": 0.406494002,
+            "trial": 1,
+            "seconds": 2.8710435,
+            "chow_total_dimension": 68,
+            "julia_bytes": 2754035872
+          },
+          {
+            "gc_seconds": 0.406929708,
+            "trial": 2,
+            "seconds": 2.889267583,
+            "chow_total_dimension": 68,
+            "julia_bytes": 2751741440
+          },
+          {
+            "gc_seconds": 0.367110123,
+            "trial": 3,
+            "seconds": 2.835114625,
+            "chow_total_dimension": 68,
+            "julia_bytes": 2747507200
+          }
+        ]
+      }
+    },
+    {
+      "case": "K3_34",
+      "algorithm": "experimental_parabolic",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 10.79489287501201,
+      "measurement": {
+        "d": [
+          3,
+          4
+        ],
+        "julia": "1.13.0",
+        "algorithm": "experimental_parabolic",
+        "theta": [
+          12,
+          -9
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "K3_34",
+        "samples": [
+          {
+            "gc_seconds": 0.272304876,
+            "trial": 0,
+            "seconds": 1.863510583,
+            "chow_total_dimension": 68,
+            "julia_bytes": 1594273672
+          },
+          {
+            "gc_seconds": 0.227632086,
+            "trial": 1,
+            "seconds": 1.471801625,
+            "chow_total_dimension": 68,
+            "julia_bytes": 1519852248
+          },
+          {
+            "gc_seconds": 0.178481833,
+            "trial": 2,
+            "seconds": 1.409873625,
+            "chow_total_dimension": 68,
+            "julia_bytes": 1515295368
+          },
+          {
+            "gc_seconds": 0.179269665,
+            "trial": 3,
+            "seconds": 1.423190333,
+            "chow_total_dimension": 68,
+            "julia_bytes": 1514141768
+          }
+        ]
+      }
+    },
+    {
+      "case": "K3_35",
+      "algorithm": "weyl",
+      "status": "timeout",
+      "phase": "trial=0",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 124.19782912509982,
+      "measurement": {
+        "d": [
+          3,
+          5
+        ],
+        "samples": [],
+        "julia": "1.13.0",
+        "algorithm": "weyl",
+        "theta": [
+          15,
+          -9
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "K3_35"
+      }
+    },
+    {
+      "case": "K3_35",
+      "algorithm": "experimental_parabolic",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 24.405881957965903,
+      "measurement": {
+        "d": [
+          3,
+          5
+        ],
+        "julia": "1.13.0",
+        "algorithm": "experimental_parabolic",
+        "theta": [
+          15,
+          -9
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "K3_35",
+        "samples": [
+          {
+            "gc_seconds": 0.886974125,
+            "trial": 0,
+            "seconds": 4.805059375,
+            "chow_total_dimension": 68,
+            "julia_bytes": 3452203784
+          },
+          {
+            "gc_seconds": 0.682935416,
+            "trial": 1,
+            "seconds": 4.284607666,
+            "chow_total_dimension": 68,
+            "julia_bytes": 3380848872
+          },
+          {
+            "gc_seconds": 0.600363666,
+            "trial": 2,
+            "seconds": 4.475643042,
+            "chow_total_dimension": 68,
+            "julia_bytes": 3385077640
+          },
+          {
+            "gc_seconds": 0.764669626,
+            "trial": 3,
+            "seconds": 4.471916792,
+            "chow_total_dimension": 68,
+            "julia_bytes": 3385612840
+          }
+        ]
+      }
+    },
+    {
+      "case": "K3_23_chern",
+      "algorithm": "weyl",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 6.154773209011182,
+      "measurement": {
+        "d": [
+          2,
+          3
+        ],
+        "julia": "1.13.0",
+        "algorithm": "weyl",
+        "theta": [
+          9,
+          -6
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "K3_23_chern",
+        "samples": [
+          {
+            "gc_seconds": 0.0,
+            "trial": 0,
+            "seconds": 0.033010958,
+            "chow_total_dimension": 13,
+            "julia_bytes": 3383896
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.00357375,
+            "chow_total_dimension": 13,
+            "julia_bytes": 3107960
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.00339125,
+            "chow_total_dimension": 13,
+            "julia_bytes": 3107960
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.003566916,
+            "chow_total_dimension": 13,
+            "julia_bytes": 3107960
+          }
+        ]
+      }
+    },
+    {
+      "case": "K3_23_chern",
+      "algorithm": "experimental_parabolic",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 6.4447601669235155,
+      "measurement": {
+        "d": [
+          2,
+          3
+        ],
+        "julia": "1.13.0",
+        "algorithm": "experimental_parabolic",
+        "theta": [
+          9,
+          -6
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "K3_23_chern",
+        "samples": [
+          {
+            "gc_seconds": 0.0,
+            "trial": 0,
+            "seconds": 0.474405416,
+            "chow_total_dimension": 13,
+            "julia_bytes": 82205168
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.01386925,
+            "chow_total_dimension": 13,
+            "julia_bytes": 7201792
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.007592625,
+            "chow_total_dimension": 13,
+            "julia_bytes": 7201792
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.007521625,
+            "chow_total_dimension": 13,
+            "julia_bytes": 7201792
+          }
+        ]
+      }
+    },
+    {
+      "case": "subspace7_chern",
+      "algorithm": "weyl",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 7.530611666967161,
+      "measurement": {
+        "d": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2
+        ],
+        "julia": "1.13.0",
+        "algorithm": "weyl",
+        "theta": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          -7
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "subspace7_chern",
+        "samples": [
+          {
+            "gc_seconds": 0.028522458,
+            "trial": 0,
+            "seconds": 1.295126833,
+            "chow_total_dimension": 38,
+            "julia_bytes": 314367680
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.018611625,
+            "chow_total_dimension": 38,
+            "julia_bytes": 12691232
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.018918333,
+            "chow_total_dimension": 38,
+            "julia_bytes": 12691232
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.018722625,
+            "chow_total_dimension": 38,
+            "julia_bytes": 12691232
+          }
+        ]
+      }
+    },
+    {
+      "case": "subspace7_chern",
+      "algorithm": "experimental_parabolic",
+      "status": "complete",
+      "phase": "complete",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 8.825193708995357,
+      "measurement": {
+        "d": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2
+        ],
+        "julia": "1.13.0",
+        "algorithm": "experimental_parabolic",
+        "theta": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          -7
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "subspace7_chern",
+        "samples": [
+          {
+            "gc_seconds": 0.054234207,
+            "trial": 0,
+            "seconds": 2.4027115,
+            "chow_total_dimension": 38,
+            "julia_bytes": 506550544
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 1,
+            "seconds": 0.065106041,
+            "chow_total_dimension": 38,
+            "julia_bytes": 54838272
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 2,
+            "seconds": 0.063739458,
+            "chow_total_dimension": 38,
+            "julia_bytes": 54838272
+          },
+          {
+            "gc_seconds": 0.0,
+            "trial": 3,
+            "seconds": 0.095761083,
+            "chow_total_dimension": 38,
+            "julia_bytes": 54838272
+          }
+        ]
+      }
+    },
+    {
+      "case": "chain_552",
+      "algorithm": "weyl",
+      "status": "timeout",
+      "phase": "trial=0",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 125.6581286250148,
+      "measurement": {
+        "d": [
+          5,
+          5,
+          2
+        ],
+        "samples": [],
+        "julia": "1.13.0",
+        "algorithm": "weyl",
+        "theta": [
+          10,
+          -8,
+          -5
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            2,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "chain_552"
+      }
+    },
+    {
+      "case": "fork_552",
+      "algorithm": "weyl",
+      "status": "timeout",
+      "phase": "trial=0",
+      "timeout_seconds": 120,
+      "elapsed_wall_seconds": 124.60573033289984,
+      "measurement": {
+        "d": [
+          5,
+          5,
+          2
+        ],
+        "samples": [],
+        "julia": "1.13.0",
+        "algorithm": "weyl",
+        "theta": [
+          12,
+          -10,
+          -5
+        ],
+        "singular": "0.28.15",
+        "adjacency": [
+          [
+            0,
+            2,
+            1
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "cpu": "Apple M4",
+        "threads": 1,
+        "case": "fork_552"
+      }
+    }
+  ]
+}
