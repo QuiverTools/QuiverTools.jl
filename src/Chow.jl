@@ -967,10 +967,12 @@ function todd_class(
 
   # y has no constant term and the Chow ring vanishes above degree N,
   # so exp(y) = sum_{k = 0}^N y^k / k!
+  # and the terms of degree higher than N of each product need not be computed at all
+  degrees = __chow_degrees(M.d)
   td = one(CH)
   term = one(CH)
   for k in 1:N
-    term = __simplify(CH(1//k) * term * y)
+    term = __simplify(CH(1//k) * __truncated_product(term, y, N; degrees=degrees))
     td += term
   end
   setfield!(M.chow, :todd, __simplify(td))

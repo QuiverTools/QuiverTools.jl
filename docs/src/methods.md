@@ -48,5 +48,6 @@ QuiverTools.__in_semistable_cone
 QuiverTools.__in_vgit_wall
 QuiverTools.__is_vgit_chamber_parameter
 QuiverTools.__QQ
+QuiverTools.__truncated_product
 QuiverTools.@oscar_stub
 ```
