@@ -606,7 +606,13 @@ function chern_character_tangent_bundle(M::QuiverModuliSpace; unsafe::Bool=false
   ]
   ch_dual = [dual(M, x) for x in ch]
   chT = one(CH)
-  chT += sum(ch_dual[i] * ch[j] for (i, j) in arrows(M.Q); init=zero(CH))
+  # parallel arrows contribute the same product, so compute it once per pair of vertices
+  n = n_vertices(M.Q)
+  chT += sum(
+    M.Q.adjacency[i, j] * (ch_dual[i] * ch[j]) for
+    i in 1:n, j in 1:n if M.Q.adjacency[i, j] > 0;
+    init=zero(CH),
+  )
   chT -= sum(ch_dual[i] * ch[i] for i in 1:n_vertices(M.Q); init=zero(CH))
   return __simplify(chT)
 end
