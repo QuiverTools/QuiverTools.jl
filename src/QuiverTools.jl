@@ -13,7 +13,8 @@ using Singular: Singular
 using PrecompileTools: PrecompileTools
 
 import Base:
-  show, ==, hash, convert, getindex, setindex!, length, iterate, keys, haskey, *, +, -, ^
+  show, ==, hash, convert, copy, getindex, setindex!, length, iterate, keys, haskey, *, +,
+  -, ^
 import Memoization: @memoize, empty_all_caches!, empty_cache!
 import IterTools: subsets
 import LinearAlgebraX: rankx
@@ -96,9 +97,10 @@ export teleman_bounds, weights_hn_type, weights_universal_bundle, weights_canoni
   does_rigidity_inequality_hold, does_teleman_inequality_hold, set_teleman_weights!
 
 # Bundles
-export chern_character, chern_class, chern_classes, dual, exterior_power, symmetric_power,
-  det, line_bundle, canonical_bundle, universal_bundle, tangent_bundle, chern_numbers,
-  degree, rank, teleman_weights, structure_sheaf
+export chern_character, chern_class, chern_classes, segre_class, dual, exterior_power,
+  symmetric_power, det, line_bundle, canonical_bundle, universal_bundle, tangent_bundle,
+  chern_character_tangent_bundle, chern_numbers, degree, rank, teleman_weights,
+  structure_sheaf
 
 # Walls and Chambers
 export rays, is_special_subdimension_vector, all_special_subdimension_vectors, sst,
@@ -115,7 +117,7 @@ import Pkg
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
 
-function _print_banner()
+function __print_banner()
   printstyled(raw"""   ___"""; color=:red)
   printstyled(raw"""       _             """)
   println("  |")
@@ -140,7 +142,7 @@ end
 
 function __init__()
   if displaysize(stdout)[2] >= 80
-    _print_banner()
+    __print_banner()
   end
 
   # `draw` only gets a method from the GraphViz extension; without it the bare

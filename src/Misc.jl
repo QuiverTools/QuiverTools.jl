@@ -18,19 +18,6 @@ function __check_sincere_dimension_vector(Q::Quiver, d::AbstractVector{Int})
 end
 
 """
-    identity_matrix(n::Int)
-
-Return the identity matrix of size `n`.
-"""
-@memoize function identity_matrix(n::Int)
-  out = zeros(Int, n, n)
-  for i in 1:n
-    out[i, i] = 1
-  end
-  return coerce_matrix(out)
-end
-
-"""
     diagonal(m::AbstractMatrix{Int})
 
 Return the diagonal matrix with the diagonal of `m` as its diagonal.
@@ -297,3 +284,66 @@ end
 
 __checked_sum(a::AbstractVector{Int}) =
   foldl(Base.Checked.checked_add, a; init=0)
+
+"""
+    __QQ()
+
+Return the field of rational numbers `Singular.QQ`, with its type asserted.
+
+`Singular.QQ` is a global that Singular.jl sets at run time, so the compiler does not
+know its type. Asserting it makes the rings built over QQ, and their arithmetic,
+type-stable.
+
+For internal use only.
+"""
+__QQ() = Singular.QQ::Singular.Rationals
+
+# Gianni: using __truncated_product does not seem to gain time anywhere except in todd_class.
+
+"""
+    __truncated_product(f, g, n; degrees::AbstractVector{Int}=ones(Int, Singular.nvars(parent(f))))
+
+Compute the product of the polynomials `f` and `g`, discarding the terms of degree higher
+than `n`, where the `i`-th variable has degree `degrees[i]`.
+
+Writing ``f = \\sum_a f_a`` and ``g = \\sum_b g_b`` as sums of homogeneous parts, this
+computes ``\\sum_a f_a g_{\\leq n - a}``, so that the terms of degree higher than `n` are
+never formed. Here ``g_{\\leq m} = \\sum_{b \\leq m} g_b``.
+
+For internal use only.
+"""
+function __truncated_product(
+  f,
+  g,
+  n::Int;
+  degrees::AbstractVector{Int}=ones(Int, Singular.nvars(parent(f))),
+)
+  R = parent(f)
+  # the homogeneous parts of degree 0, ..., n of x, and which of them have terms.
+  # iszero would not do: in a quotient ring it computes a normal form.
+  function parts(x)
+    contexts = [Singular.MPolyBuildCtx(R) for _ in 0:n]
+    has_terms = falses(n + 1)
+    for (c, e) in zip(Singular.coefficients(x), Singular.exponent_vectors(x))
+      k = e' * degrees
+      if k <= n
+        Singular.push_term!(contexts[k + 1], c, e)
+        has_terms[k + 1] = true
+      end
+    end
+    return map(Singular.finish, contexts), has_terms
+  end
+  (fs, f_has_terms), (gs, g_has_terms) = parts(f), parts(g)
+  # split the factor with fewer homogeneous parts, as each part costs a multiplication
+  if count(f_has_terms) > count(g_has_terms)
+    fs, f_has_terms, gs = gs, g_has_terms, fs
+  end
+
+  out = zero(R)
+  g_low = zero(R) # the part of degree at most m of the other factor
+  for m in 0:n
+    g_low += gs[m + 1]
+    f_has_terms[n - m + 1] && (out += fs[n - m + 1] * g_low)
+  end
+  return out
+end

@@ -37,6 +37,7 @@ Bundle
 chern_character
 chern_class
 chern_classes
+segre_class
 QuiverTools.degree
 rank
 teleman_weights
@@ -55,6 +56,7 @@ QuiverTools.zero_sheaf
 structure_sheaf
 canonical_bundle
 universal_bundle
+chern_character_tangent_bundle
 tangent_bundle
 ```
 

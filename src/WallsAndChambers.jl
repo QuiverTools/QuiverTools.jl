@@ -602,7 +602,7 @@ function all_stability_parameters end
 # concrete methods that shadow the catch-all stubs below. We `import` rather than
 # `using` Oscar so its exports do not clash with QuiverTools names such as `index`
 # and `todd_class`; the extension triggers on either.
-function _load_oscar()
+function __load_oscar()
   Base.get_extension(@__MODULE__, :QuiverToolsOscarExt) === nothing || return nothing
   redirect_stdout(devnull) do
     @eval Main import Oscar
@@ -625,7 +625,7 @@ macro oscar_stub(f)
       if Base.get_extension(@__MODULE__, :QuiverToolsOscarExt) !== nothing
         throw(MethodError($(esc(f)), args))
       end
-      _load_oscar()
+      __load_oscar()
       return Base.invokelatest($(esc(f)), args...; kwargs...)
     end
   end

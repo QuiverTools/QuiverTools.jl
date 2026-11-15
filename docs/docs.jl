@@ -33,8 +33,7 @@ makedocs(;
       "Chow rings" => "methods/chow-rings.md",
       "Walls and chamber decompositions" => "methods/walls-and-chambers.md",
     ],
-    "Internal methods" => "methods.md",
-    "Benchmarks" => "benchmarks.md"],
+    "Internal methods" => "methods.md"],
 )
 
 deploydocs(;

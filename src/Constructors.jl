@@ -274,7 +274,7 @@ function coframed_quiver(Q::Quiver, n::AbstractVector{Int})
 end
 
 # Split a Dynkin label like "A3" or "D10" into its letter type and integer rank.
-function _parse_dynkin_label(Tn::String)
+function __parse_dynkin_label(Tn::String)
   m = match(r"^([A-Za-z]+)([0-9]+)$", Tn)
   if isnothing(m)
     throw(ArgumentError("$Tn is not a valid Dynkin label, e.g. \"A3\" or \"D10\"."))
@@ -297,7 +297,7 @@ Dynkin quiver of type D10
 ```
 """
 function dynkin_quiver(Tn::String)
-  type, n = _parse_dynkin_label(Tn)
+  type, n = __parse_dynkin_label(Tn)
   return dynkin_quiver(type, n)
 end
 
@@ -408,7 +408,7 @@ Extended Dynkin quiver of type D10
 ```
 """
 function extended_dynkin_quiver(Tn::String)
-  type, n = _parse_dynkin_label(Tn)
+  type, n = __parse_dynkin_label(Tn)
   return extended_dynkin_quiver(type, n)
 end
 

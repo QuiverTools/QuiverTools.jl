@@ -331,6 +331,19 @@ for reduction in (:tau_reduction, :sigma_reduction)
   end
 end
 
+# The first large vertex of `(Q, d)`, or `nothing` if there is none.
+__first_large_vertex(Q::Quiver, d::AbstractVector{Int}) =
+  findfirst(v -> is_large(Q, d, v), 1:n_vertices(Q))
+
+# The first small source or sink of `(Q, d)` whose reflection shrinks the dimension
+# vector, or `nothing` if there is none.
+function __first_shrinking_vertex(Q::Quiver, d::AbstractVector{Int})
+  return findfirst(1:n_vertices(Q)) do v
+    (is_small_source(Q, d, v) && __out_sum(Q, d, v) < 2 * d[v]) ||
+      (is_small_sink(Q, d, v) && __in_sum(Q, d, v) < 2 * d[v])
+  end
+end
+
 """
     tau_sigma_reduce(Q::Quiver, d)
     tau_sigma_reduce(Q::Quiver, d, theta)
@@ -370,16 +383,12 @@ function tau_sigma_reduce(Q::Quiver, d::AbstractVector{Int})
   __check_sincere_dimension_vector(Q, d)
   d = collect(d)
   while true
-    n = n_vertices(Q)
-    u = findfirst(v -> is_large(Q, d, v), 1:n)
+    u = __first_large_vertex(Q, d)
     if !isnothing(u)
       Q, d = tau_reduction(Q, d, u)
       continue
     end
-    u = findfirst(1:n) do v
-      (is_small_source(Q, d, v) && __out_sum(Q, d, v) < 2 * d[v]) ||
-        (is_small_sink(Q, d, v) && __in_sum(Q, d, v) < 2 * d[v])
-    end
+    u = __first_shrinking_vertex(Q, d)
     if !isnothing(u)
       Q, d = sigma_reduction(Q, d, u)
       continue
@@ -395,16 +404,12 @@ function tau_sigma_reduce(
   d = collect(d)
   theta = collect(theta)
   while true
-    n = n_vertices(Q)
-    u = findfirst(v -> is_large(Q, d, v), 1:n)
+    u = __first_large_vertex(Q, d)
     if !isnothing(u)
       Q, d, theta = tau_reduction(Q, d, theta, u)
       continue
     end
-    u = findfirst(1:n) do v
-      (is_small_source(Q, d, v) && __out_sum(Q, d, v) < 2 * d[v]) ||
-        (is_small_sink(Q, d, v) && __in_sum(Q, d, v) < 2 * d[v])
-    end
+    u = __first_shrinking_vertex(Q, d)
     if !isnothing(u)
       Q, d, theta = sigma_reduction(Q, d, theta, u)
       continue

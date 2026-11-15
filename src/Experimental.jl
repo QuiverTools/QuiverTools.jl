@@ -212,7 +212,7 @@ end
 function find_framing(Q, d; bound::Int=10)
   # this function finds the smallest framing for which the smooth model is a quiver flag variety
 
-  for e in QuiverTools.all_subdimension_vectors(bound*d; nonzero=true)
+  for e in QuiverTools.all_subdimension_vectors(bound * d; nonzero=true)
     !all(ei > 0 for ei in e) && continue
     is_QFV(Q, d, e) && return e
   end

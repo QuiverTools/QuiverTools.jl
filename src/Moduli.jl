@@ -389,7 +389,7 @@ the subdimension vector `e` by 1, in the given Luna type.
 Internal use only.
 """
 function __add_and_return(luna_type, e, i)
-  new_luna_type = deepcopy(luna_type)
+  new_luna_type = copy(luna_type)
   new_luna_type[e][i] += 1
   return new_luna_type
 end
@@ -405,7 +405,7 @@ that is not isomorphic to the present one.
 Internal use only.
 """
 function __add_and_return_noniso(luna_type, e)
-  new_luna_type = deepcopy(luna_type)
+  new_luna_type = copy(luna_type)
   pushfirst!(new_luna_type[e], 1)
   return new_luna_type
 end
@@ -419,7 +419,7 @@ with multiplicity 1 to the given Luna type.
 Internal use only.
 """
 function __add_and_return_new(luna_type, e)
-  new_luna_type = deepcopy(luna_type)
+  new_luna_type = copy(luna_type)
   new_luna_type[e] = [1]
   return new_luna_type
 end
@@ -890,12 +890,12 @@ function dimension(M::QuiverModuliSpace)
   # uncached.
   cached = M.chow._dimension
   cached !== nothing && return cached
-  n = _dimension(M)
+  n = __dimension(M)
   n isa Int && setfield!(M.chow, :_dimension, n)
   return n
 end
 
-function _dimension(M::QuiverModuliSpace)
+function __dimension(M::QuiverModuliSpace)
   # the zero representation is semistable, but not stable, for d = 0
   !is_connected(M.Q) &&
     throw(ArgumentError("Q is not connected, M has disjoint connected components."))
